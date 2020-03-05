@@ -1,0 +1,4 @@
+include README.md
+recursive-include mewpy/model/data *
+graft mewpy/model/data
+
