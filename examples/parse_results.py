@@ -164,37 +164,3 @@ class Parser:
                     stats[rx] = 1
         self.stats = stats
 
-
-
-
-if __name__ == "__main__":
-    """
-    import pandas as pd
-
-    BIOMASS_ID = 'R_Ec_biomass_iJO1366_core_53p95M'
-    O2 = 'R_EX_o2_LPAREN_e_RPAREN_'
-    GLC = 'R_EX_glc_LPAREN_e_RPAREN_'
-    PRODUCT_ID = 'R_EX_phe_DASH_L_LPAREN_e_RPAREN_'
-    envcond = {GLC: (-10.0,100000.0), O2: (-9.66,100000.0)}
-    parser = Parser(['BPCY','WYIELD'],result_type='OU')
-    data, idx = parser.parse_results('/home/vmsapereira/Results/PHE/EColi/CBM/OU')
-    df = pd.DataFrame(data,columns = parser.obj_labels,index = idx)
-    df.describe()
-    from reframed.io.sbml import load_cbmodel
-    model = load_cbmodel('/home/vmsapereira/Models/w5/iJO1366SL/models/iJO1366SL.xml', flavor='cobra')
-
-    data_fba, data_lmoma , data_fvaMin = parser.compute_fluxes(model,BIOMASS_ID,[PRODUCT_ID,GLC],envcond = envcond)
-    print('Wild Type Biomass:', parser.wt_biomass)
-    print('Wild type products:', parser.wt_products)
-    """
-    
-    from parse_results import Parser
-    import pandas as pd
-    
-    parser = Parser(['WYIELD','BPCY'],result_type='KO')
-    data, idx = parser.parse_results('/home/vmsapereira/Results/TYR/Yeast/GECKO/KO')
-    from mewpy.model.gecko import GeckoModel
-    model = GeckoModel('single-pool')
-    data_fba, data_lmoma, data_fva = parser.compute_fluxes(model,'r_2111',['r_1912','r_1714_REV'])
-    print('Wild Type Biomass:', parser.wt_biomass)
-    print('Wild type products:', parser.wt_products)

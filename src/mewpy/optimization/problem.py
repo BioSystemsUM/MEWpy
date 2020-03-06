@@ -10,7 +10,6 @@ from enum import Enum
 import functools
 import sys
 import copy
-import dill
 import warnings
 
 
@@ -586,9 +585,8 @@ class ROUProblem(OUProblem):
 
     def _build_target_list(self):
         reactions = set(self.simulator.reactions)
-        essential = set(self.simulator.essential_reactions)
         drains = set(self.simulator.get_drains())
-        target = reactions - essential - drains
+        target = reactions - drains
         if self.non_target is not None:
             target = target - set(self.non_target)
         self._trg_list = list(target)
@@ -675,9 +673,7 @@ class GOUProblem(OUProblem):
 
     def _build_target_list(self):
        
-        genes = set(self.simulator.genes)
-        essential = set(self.simulator.essential_genes)
-        target = genes - essential
+        target = set(self.simulator.genes)
         if self.non_target:
             target = target - set(self.non_target)
         self._trg_list = list(target)
@@ -769,10 +765,10 @@ class GeckoRKOProblem(KOProblem):
         
         proteins = set(self.simulator.proteins)
         # as draw_prot_XXXXXX
-        e = self.simulator.essential_proteins
+        ess = self.simulator.essential_proteins
         # remove 'draw_prot_'
         n = len(self.prot_prefix)
-        essential = set([p[n:] for p in e])
+        essential = set([p[n:] for p in ess])
         target = proteins - essential
         if self.non_target:
             target = target - set(self.non_target)
@@ -837,12 +833,7 @@ class GeckoROUProblem(OUProblem):
         If not provided, targets are all non essential proteins.
         """
         proteins = set(self.simulator.proteins)
-        # as draw_prot_XXXXXX
-        e = self.simulator.essential_proteins
-        # remove 'draw_prot_'
-        n = len(self.prot_prefix)
-        essential = set([p[n:] for p in e])
-        target = proteins - essential
+        target = proteins 
         if self.non_target:
             target = target - set(self.non_target)
         self._trg_list = list(target)
