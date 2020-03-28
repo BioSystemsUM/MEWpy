@@ -6,124 +6,106 @@ from cobra.core.solution import Solution
 from geckopy.gecko import GeckoModel
 from cobra.flux_analysis import pfba, moma, room
 from mewpy.simulation import SimulationMethod, SStatus
-from mewpy.simulation.simulation import  Simulator, SimulationResult, ModelContainer
+from mewpy.simulation.simulation import Simulator, SimulationResult, ModelContainer
 from mewpy.utils.constants import ModelConstants
 from mewpy.utils.parsing import evaluate_expression_tree
 from collections import OrderedDict
 from warnings import warn
 
 
-
-
 class CobraModelContainer(ModelContainer):
-    def __init__(self, model : Model):
-        if  not isinstance(model,Model):
-            raise ValueError("The model is not am instance of cobrapy Model")
+    def __init__(self, model: Model):
+        if not isinstance(model, Model):
+            raise ValueError("The model is not an instance of cobrapy Model")
         self.model = model
-        
+
     @property
     def reactions(self):
-       return [rxn.id for rxn in self.model.reactions]
-    
+        return [rxn.id for rxn in self.model.reactions]
+
     @property
     def genes(self):
         return [gene.id for gene in self.model.genes]
-        
 
     @property
     def metabolites(self):
         return [met.id for met in self.model.metabolites]
-    
-    
+
     @property
     def medium(self):
         return self.model.medium
-    
-    
+
     def get_gpr(self, reaction_id):
         """Returns the gpr rule (str) for a given reaction ID.
         """
         if reaction_id not in self.reactions:
             raise ValueError(f"Reactions {reaction_id} does not exist")
         reaction = self.model.reactions.get_by_id(reaction_id)
-        if reaction.gene_reaction_rule: 
+        if reaction.gene_reaction_rule:
             return str(reaction.gene_reaction_rule)
         else:
             return None
-    
-    
+
     def get_drains(self):
-        rxns= [r.id for r in self.model.exchanges]
+        rxns = [r.id for r in self.model.exchanges]
         return rxns
-    
-    
 
 
-
-class Simulation(CobraModelContainer,Simulator):
+class Simulation(CobraModelContainer, Simulator):
     """
         Generic Simulation class for cobra Model.
         Defines the simulation conditions.
     """
 
-    def __init__(self, model:Model, objective = None, envcond = None, constraints = None,  solver = None, reference = None):
-        
-        if not isinstance(model,Model): 
+    def __init__(self, model: Model, objective=None, envcond=None, constraints=None,  solver=None, reference=None):
+
+        if not isinstance(model, Model):
             raise ValueError("Model is incompatible or inexistent")
-        
-        self.model = model    
+
+        self.model = model
         self.objective = self.model.objective if objective is None else objective
         self.environmental_conditions = OrderedDict() if envcond is None else envcond
         self.constraints = OrderedDict() if constraints is None else constraints
         self.solver = solver
-        self._essential_reactions = None 
-        self._essential_genes = None 
+        self._essential_reactions = None
+        self._essential_genes = None
         self._reference = reference
         self.__status_mapping = {
-           'optimal': SStatus.OPTIMAL,
-           'unbounded': SStatus.UNBOUNDED,
-           'infeasible': SStatus.INFEASIBLE,
-           'infeasible_or_unbounded': SStatus.INF_OR_UNB,
-           'suboptimal': SStatus.SUBOPTIMAL,
-           'unknown' : SStatus.UNKNOWN
+            'optimal': SStatus.OPTIMAL,
+            'unbounded': SStatus.UNBOUNDED,
+            'infeasible': SStatus.INFEASIBLE,
+            'infeasible_or_unbounded': SStatus.INF_OR_UNB,
+            'suboptimal': SStatus.SUBOPTIMAL,
+            'unknown': SStatus.UNKNOWN
         }
         self.solver = solver
         self._reset_solver = ModelConstants.RESET_SOLVER
         self.reverse_sintax = []
-      
-        
-
-
-   
 
     @property
     def reference(self):
         if self._reference is None:
-            self._reference = self.simulate(method = SimulationMethod.pFBA).fluxes
+            self._reference = self.simulate(
+                method=SimulationMethod.pFBA).fluxes
         return self._reference
 
-
     @property
-    def essential_reactions(self, min_growth = 0.01):
+    def essential_reactions(self, min_growth=0.01):
         if self._essential_reactions is not None:
             return self._essential_reactions
         wt_solution = self.simulate()
         wt_growth = wt_solution.objective_value
         reactions = self.reactions
-        self._essential_reactions =[]
+        self._essential_reactions = []
         for rxn in reactions:
-            res = self.simulate(constraints={rxn : 0})
-            if res: 
+            res = self.simulate(constraints={rxn: 0})
+            if res:
                 if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) or res.status == SStatus.INFEASIBLE:
                     self._essential_reactions.append(rxn)
         return self._essential_reactions
 
-
-
-
-
     @property
-    def essential_genes(self, min_growth = 0.01):
+    def essential_genes(self, min_growth=0.01):
         if self._essential_genes is not None:
             return self._essential_genes
         self._essential_genes = []
@@ -134,52 +116,36 @@ class Simulation(CobraModelContainer,Simulator):
             active_genes = set(self.genes) - set([gene])
             active_reactions = self.evaluate_gprs(active_genes)
             inactive_reactions = set(self.reactions) - set(active_reactions)
-            gr_constraints = { rxn: 0 for rxn in inactive_reactions}
-            res = self.simulate(constraints = gr_constraints)
-            if res: 
+            gr_constraints = {rxn: 0 for rxn in inactive_reactions}
+            res = self.simulate(constraints=gr_constraints)
+            if res:
                 if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) or res.status == SStatus.INFEASIBLE:
                     self._essential_genes.append(gene)
         return self._essential_genes
 
-
-
-    def evaluate_gprs(self,active_genes):
+    def evaluate_gprs(self, active_genes):
         """Returns the list of active reactions for a given list of active genes.
         """
-        active_reactions =[]
+        active_reactions = []
         for r_id in self.reactions:
             reaction = self.model.reactions.get_by_id(r_id)
-            if reaction.gene_reaction_rule: 
-                if evaluate_expression_tree(str(reaction.gene_reaction_rule),active_genes):
+            if reaction.gene_reaction_rule:
+                if evaluate_expression_tree(str(reaction.gene_reaction_rule), active_genes):
                     active_reactions.append(r_id)
             else:
                 active_reactions.append(r_id)
         return active_reactions
 
-
-
-    
-
-
-
-   
-
-
-
     def get_uptake_reactions(self):
-        
+
         drains = self.get_drains()
-        rxns = [r for r in drains if self.model.reactions.get_by_id(r).reversibility 
-                or ((self.model.reactions.get_by_id(r).lower_bound is None or self.model.reactions.get_by_id(r).lower_bound<0 ) and len(self.model.reactions.get_by_id(r).reactants)>0) 
-                or ((self.model.reactions.get_by_id(r).upper_bound is None or self.model.reactions.get_by_id(r).upper_bound>0 ) and len(self.model.reactions.get_by_id(r).products)>0)     
-               ]
+        rxns = [r for r in drains if self.model.reactions.get_by_id(r).reversibility
+                or ((self.model.reactions.get_by_id(r).lower_bound is None or self.model.reactions.get_by_id(r).lower_bound < 0) and len(self.model.reactions.get_by_id(r).reactants) > 0)
+                or ((self.model.reactions.get_by_id(r).upper_bound is None or self.model.reactions.get_by_id(r).upper_bound > 0) and len(self.model.reactions.get_by_id(r).products) > 0)
+                ]
         return rxns
 
-
-
-
-    def reverse_reaction(self,reaction_id):
-
+    def reverse_reaction(self, reaction_id):
         """
         Identify if a reaction is reversible and returns the 
         reverse reaction if it is the case.
@@ -193,7 +159,7 @@ class Simulation(CobraModelContainer,Simulator):
             rxn.reversible = True
             return reaction_id
         else:
-            for a,b in self.reverse_sintax:
+            for a, b in self.reverse_sintax:
                 n = len(reaction_id)-len(a)
                 m = len(reaction_id)-len(b)
                 if reaction_id[n:] == a and reactions[reaction_id[:n]+b]:
@@ -204,11 +170,7 @@ class Simulation(CobraModelContainer,Simulator):
                     continue
             return None
 
-
-
-
-
-    def simulate(self, objective = None , method = SimulationMethod.FBA , maximize = True, constraints = None, reference = None , scalefactor = None):
+    def simulate(self, objective=None, method=SimulationMethod.FBA, maximize=True, constraints=None, reference=None, scalefactor=None):
         '''
             Simulates the application of constraints using the specified method.
 
@@ -220,116 +182,127 @@ class Simulation(CobraModelContainer,Simulator):
             *reference* 
             *scalefactor* (float) : a positive scaling factor. Default None 
         '''
-        
-       
+
         if not objective:
             objective = self.objective
-        elif isinstance(objective,dict) and len(objective)>0:
+        elif isinstance(objective, dict) and len(objective) > 0:
             objective = next(iter(objective.keys()))
-        
 
         simul_constraints = OrderedDict()
         if constraints:
             simul_constraints.update(constraints)
-        if self.constraints: 
+        if self.constraints:
             simul_constraints.update(self.constraints)
         if self.environmental_conditions:
-            simul_constraints.update(self.environmental_conditions) 
- 
-        with self.model:
-            self.model.objective = objective
+            simul_constraints.update(self.environmental_conditions)
+
+        with self.model as model:
+            model.objective = objective
             for rxn in list(simul_constraints.keys()):
-                reac = self.model.reactions.get_by_id(rxn)
+                reac = model.reactions.get_by_id(rxn)
                 # constraints defined as a tuple (lower_bound, upper_bound) or as a single float value
-                if isinstance(simul_constraints.get(rxn),tuple):
-                    reac.bounds = (simul_constraints.get(rxn)[0], simul_constraints.get(rxn)[1])
+                if isinstance(simul_constraints.get(rxn), tuple):
+                    reac.bounds = (simul_constraints.get(
+                        rxn)[0], simul_constraints.get(rxn)[1])
                 else:
-                    reac.bounds = (simul_constraints.get(rxn), simul_constraints.get(rxn))
+                    reac.bounds = (simul_constraints.get(
+                        rxn), simul_constraints.get(rxn))
             objective_sense = 'maximize' if maximize else 'minimize'
             if method == SimulationMethod.FBA:
-                solution = self.model.optimize(objective_sense=objective_sense)   
+                solution = model.optimize(objective_sense=objective_sense)
             elif method == SimulationMethod.pFBA:
                 # make fraction_of_optimum a configurable parameter?
-                solution = pfba(self.model,fraction_of_optimum=0.95)
-            elif method == SimulationMethod.lMOMA or method == SimulationMethod.MOMA: 
+                solution = pfba(model)
+            elif method == SimulationMethod.lMOMA or method == SimulationMethod.MOMA:
                 s = None
                 if not maximize:
-                    s = self.model.optimize(objective_sense=objective_sense)
-                linear = True if method == SimulationMethod.lMOMA else False    
-                solution = moma(self.model,solution = s, linear = linear)
+                    s = model.optimize(objective_sense=objective_sense)
+                linear = True if method == SimulationMethod.lMOMA else False
+                solution = moma(model, solution=s, linear=linear)
             elif method == SimulationMethod.ROOM:
-                solution = room(self.model)
-            # Special case in which only the simulation context is required without any simulation result 
-            elif method == SimulationMethod.NONE: 
-                solution = Solution(None,'unknown',None)    
+                solution = room(model)
+            # Special case in which only the simulation context is required without any simulation result
+            elif method == SimulationMethod.NONE:
+                solution = Solution(None, 'unknown', None)
                 pass
             else:
                 raise Exception(
                     "Unknown method to perform the simulation.")
-            
-        
+
         status = self.__status_mapping[solution.status]
-        
-        result = SimulationResult(self.model, solution.objective_value , fluxes= solution.fluxes.to_dict(OrderedDict), status= status, 
-                                 envcond= self.environmental_conditions, model_constraints= self.constraints , 
-                                 simul_constraints= constraints, maximize= maximize)
+
+        result = SimulationResult(model, solution.objective_value, fluxes=solution.fluxes.to_dict(OrderedDict), status=status,
+                                  envcond=self.environmental_conditions, model_constraints=self.constraints,
+                                  simul_constraints=constraints, maximize=maximize)
         return result
 
+    def FVA(self, obj_frac=0, reactions=None, constraints=None, loopless=False, internal=None, solver=None):
+        """ Run Flux Variability Analysis (FVA).
 
+        Arguments:
+            model (CBModel): a constraint-based model
+            obj_frac (float): minimum fraction of the maximum growth rate (default 0.0, max: 1.0)
+            reactions (list): list of reactions to analyze (default: all)
+            constraints (dict): additional constraints (optional)
+            loopless (bool): run looplessFBA internally (very slow) (default: false)
+            internal (list): list of internal reactions for looplessFBA (optional)
+            solver (Solver): pre-instantiated solver instance (optional)
 
-
-
-
-
+        Returns:
+            dict: flux variation ranges
+        """
+        from cobra.flux_analysis.variability import flux_variability_analysis
+        df = flux_variability_analysis(
+            self.model, reaction_list=reactions, loopless=loopless, fraction_of_optimum=obj_frac)
+        variability = {}
+        for r_id in reactions:
+            variability[r_id] = [
+                float(df.loc[r_id][0]), float(df.loc[r_id][1])]
+        return variability
 
 
 class GeckoSimulation(Simulation):
     """
     Simulator for geckopy.gecko.GeckoModel
     """
-    def __init__(self, model: GeckoModel, objective = None, envcond = None, constraints = None,  solver = None, reference = None):
-       super(GeckoSimulation,self).__init__(model,objective,envcond,constraints,solver,reference)        
-       self._essential_proteins = None
-       self._protein_rev_reactions = None
-    
-    
-    
+
+    def __init__(self, model: GeckoModel, objective=None, envcond=None, constraints=None,  solver=None, reference=None):
+        super(GeckoSimulation, self).__init__(
+            model, objective, envcond, constraints, solver, reference)
+        self._essential_proteins = None
+        self._protein_rev_reactions = None
+
     @property
     def proteins(self):
-       return list(self.model.proteins)
+        return list(self.model.proteins)
 
-    
     @property
-    def essential_proteins(self, min_growth = 0.01):
+    def essential_proteins(self, min_growth=0.01):
         if self._essential_proteins is not None:
             return self._essential_proteins
         wt_solution = self.simulate()
         wt_growth = wt_solution.objective_value
-        self._essential_proteins =[]
+        self._essential_proteins = []
         proteins = self.model.proteins
         for p in proteins:
-            rxn = "draw_prot_{}".format(p)    
-            res = self.simulate( constraints = { rxn : 0} )
-            if res: 
+            rxn = "draw_prot_{}".format(p)
+            res = self.simulate(constraints={rxn: 0})
+            if res:
                 if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) or res.status == SStatus.INFEASIBLE:
                     self._essential_proteins.append(rxn)
         return self._essential_proteins
-   
 
-
-    def protein_reactions(self,protein):
+    def protein_reactions(self, protein):
         """
         Returns the list of reactions associated to a protein
         """
-        reactions =[]
+        reactions = []
         for r_id, rxn in self.model.reactions.items():
-                    lsub = rxn.reactants
-                    for m in lsub:
-                        if protein in m:
-                            reactions.append(r_id)
+            lsub = rxn.reactants
+            for m in lsub:
+                if protein in m:
+                    reactions.append(r_id)
         return reactions
-
-
 
     def reverse_reaction(self, reaction_id):
         """
@@ -339,15 +312,13 @@ class GeckoSimulation(Simulation):
         Returns 
             reaction identifier or None
         """
-        f,d = zip(*self.protein_rev_reactions.values())
+        f, d = zip(*self.protein_rev_reactions.values())
         if reaction_id in f:
             return d[f.index(reaction_id)]
         elif reaction_id in d:
             return f[d.index(reaction_id)]
         else:
             return None
-
-
 
     @property
     def protein_rev_reactions(self):
@@ -370,22 +341,18 @@ class GeckoSimulation(Simulation):
                     for m in lsub:
                         if p in m.id:
                             sub.append(r_id)
-                in_sub[p]=sub
-            pairs ={}    
-            for k,s in in_sub.items():
+                in_sub[p] = sub
+            pairs = {}
+            for k, s in in_sub.items():
                 revs = [r for r in s if '_REV' in r]
-                if len(revs)>0:
+                if len(revs) > 0:
                     for r in revs:
-                        l = [ a for a in s if r.replace('_REV','') == a]
-                        l.append(r) 
-                        if len(l)==2:
+                        l = [a for a in s if r.replace('_REV', '') == a]
+                        l.append(r)
+                        if len(l) == 2:
                             if k in pairs.keys():
-                                pairs[k].append((l[0],l[1]))
+                                pairs[k].append((l[0], l[1]))
                             else:
-                                pairs[k]=[(l[0],l[1])]
+                                pairs[k] = [(l[0], l[1])]
             self._protein_rev_reactions = pairs
-        return self._protein_rev_reactions 
-
-
-
-
+        return self._protein_rev_reactions

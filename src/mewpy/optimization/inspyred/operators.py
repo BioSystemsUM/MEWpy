@@ -5,6 +5,7 @@ from inspyred.ec.variators.crossovers import crossover
 from inspyred.ec.variators.mutators import mutator
 import copy
 
+
 @mutator
 def shrink_mutation(random, candidate, args):
     """Returns the mutant produced by shrink mutation on the candidate.
@@ -31,10 +32,6 @@ def shrink_mutation(random, candidate, args):
     del mutantL[index]
     mutant = set(mutantL)
     return mutant
-
-
-
-
 
 
 @crossover
@@ -71,7 +68,8 @@ def uniform_crossover_KO(random, mom, dad, args):
     child2 = copy.copy(intersection)
 
     while len(otherElems) > 0:
-        elemPosition = random.randint(0, len(otherElems) - 1) if len(otherElems)>1 else 0
+        elemPosition = random.randint(
+            0, len(otherElems) - 1) if len(otherElems) > 1 else 0
         if len(child1) == maxSize or len(child2) == 0:
             child2.add(otherElems[elemPosition])
         elif len(child2) == maxSize or len(child1) == 0:
@@ -86,7 +84,6 @@ def uniform_crossover_KO(random, mom, dad, args):
     children.append(child1)
     children.append(child2)
     return children
-
 
 
 @crossover
@@ -118,50 +115,47 @@ def uniform_crossover_OU(random, mom, dad, args):
 
     maxSize = args["candidate_max_size"]
     # common idx (reactions)
-    intersection = list({idx for (idx,idy) in mom} & {idx for (idx,idy) in dad})
-    c_mom = {idx:idy for (idx,idy) in mom if idx in intersection}
-    c_dad = {idx:idy for (idx,idy) in dad if idx in intersection}
-    rest = [(idx,idy) for (idx,idy) in mom if idx not in intersection] + [(idx,idy) for (idx,idy) in dad if idx not in intersection]
+    intersection = list({idx for (idx, idy) in mom} &
+                        {idx for (idx, idy) in dad})
+    c_mom = {idx: idy for (idx, idy) in mom if idx in intersection}
+    c_dad = {idx: idy for (idx, idy) in dad if idx in intersection}
+    rest = [(idx, idy) for (idx, idy) in mom if idx not in intersection] + \
+        [(idx, idy) for (idx, idy) in dad if idx not in intersection]
     child1 = []
-    child2 = []   
-    
+    child2 = []
+
     for i in range(len(intersection)):
         idx = intersection[i]
         if random.random() < 0.5:
-            child1.append((idx,c_mom[idx]))
-            child2.append((idx,c_dad[idx]))
+            child1.append((idx, c_mom[idx]))
+            child2.append((idx, c_dad[idx]))
         else:
-            child2.append((idx,c_mom[idx]))
-            child1.append((idx,c_dad[idx]))
-    
+            child2.append((idx, c_mom[idx]))
+            child1.append((idx, c_dad[idx]))
+
     for i in range(len(rest)):
-        if random.random() < 0.5 and len(child1)<maxSize:
+        if random.random() < 0.5 and len(child1) < maxSize:
             child1.append(rest[i])
-        elif len(child2)<maxSize:
+        elif len(child2) < maxSize:
             child2.append(rest[i])
         else:
             child1.append(rest[i])
 
-    if len(child1)==0:
-        i = random.randint(0,len(child2)-1)
+    if len(child1) == 0:
+        i = random.randint(0, len(child2)-1)
         p = child2[i]
         child1.append(p)
         child2.remove(p)
 
-    if len(child2)==0:
-        i = random.randint(0,len(child1)-1)
+    if len(child2) == 0:
+        i = random.randint(0, len(child1)-1)
         p = child1[i]
         child2.append(p)
         child1.remove(p)
 
-
     children.append(set(child1))
     children.append(set(child2))
     return children
-
-
-
-
 
 
 @mutator
@@ -188,9 +182,9 @@ def grow_mutation_KO(random, candidate, args):
     maxSize = args["candidate_max_size"]
     mutant = copy.copy(candidate)
     if len(mutant) < maxSize:
-        newElem = random.randint(bounder.lower_bound,bounder.upper_bound)
+        newElem = random.randint(bounder.lower_bound, bounder.upper_bound)
         while newElem in mutant:
-            newElem = random.randint(bounder.lower_bound,bounder.upper_bound)
+            newElem = random.randint(bounder.lower_bound, bounder.upper_bound)
         mutant.add(newElem)
     return mutant
 
@@ -219,15 +213,14 @@ def grow_mutation_OU(random, candidate, args):
     maxSize = args["candidate_max_size"]
     mutant = copy.copy(candidate)
     if len(mutant) < maxSize:
-        idx = random.randint(bounder.lower_bound[0],bounder.upper_bound[0])
-        idxs = [a for (a,b) in mutant]
+        idx = random.randint(bounder.lower_bound[0], bounder.upper_bound[0])
+        idxs = [a for (a, b) in mutant]
         while idx in idxs:
-            idx = random.randint(bounder.lower_bound[0],bounder.upper_bound[0])
-        lv = random.randint(bounder.lower_bound[1],bounder.upper_bound[1])    
-        mutant.add((idx,lv))
+            idx = random.randint(
+                bounder.lower_bound[0], bounder.upper_bound[0])
+        lv = random.randint(bounder.lower_bound[1], bounder.upper_bound[1])
+        mutant.add((idx, lv))
     return mutant
-
-
 
 
 @mutator
@@ -265,7 +258,6 @@ def single_mutation_KO(random, candidate, args):
     return mutant
 
 
-
 @mutator
 def single_mutation_OU(random, candidate, args):
     """Returns the mutant produced by one mutation on the candidate (when the representation is a set of (int,int)).
@@ -295,22 +287,19 @@ def single_mutation_OU(random, candidate, args):
     index = random.randint(0, len(mutant) - 1) if len(mutant) > 1 else 0
     # the first idx has a 50% chance of beeing mutated
     # the second always mutates
-    l = [i for (i,j) in mutant]
+    l = [i for (i, j) in mutant]
     mutantL = list(mutant)
-    idx, idy = mutantL[index] 
+    idx, idy = mutantL[index]
     is_mutate_idx = False
     if random.random() > 0.5:
-        idx = random.randint(bounder.lower_bound[0],bounder.upper_bound[0])
+        idx = random.randint(bounder.lower_bound[0], bounder.upper_bound[0])
         while idx in l:
-            idx = random.randint(bounder.lower_bound[0],bounder.upper_bound[0])
-        is_mutate_idx = True    
-    lv = random.randint(bounder.lower_bound[1],bounder.upper_bound[1])
+            idx = random.randint(
+                bounder.lower_bound[0], bounder.upper_bound[0])
+        is_mutate_idx = True
+    lv = random.randint(bounder.lower_bound[1], bounder.upper_bound[1])
     while not is_mutate_idx and lv == idy:
-         lv = random.randint(bounder.lower_bound[1],bounder.upper_bound[1])
-    mutantL[index] = (idx,lv)
+        lv = random.randint(bounder.lower_bound[1], bounder.upper_bound[1])
+    mutantL[index] = (idx, lv)
     mutant = set(mutantL)
     return mutant
-
-
-
-
