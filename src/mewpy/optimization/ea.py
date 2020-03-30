@@ -43,6 +43,12 @@ class Solution(SolutionInterface):
     def get_constraints(self):
         return self.constraints
 
+    def __str__(self):
+        return f"{self.fitness}\n{self.constraints}"
+
+    def __repr__(self):
+        return f"{self.fitness}\n{self.constraints}"
+
     def __gt__(self, solution) -> bool:
         if isinstance(solution, self.__class__):
             return dominance_test(self, solution, maximize=self._is_maximize) == 1

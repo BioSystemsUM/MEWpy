@@ -1,7 +1,7 @@
 from mewpy.simulation import get_container, get_simulator
 
 
-def load_sbml_container(filename, flavor = 'reframed'):
+def load_sbml_container(filename, flavor='reframed'):
     if flavor == 'reframed':
         from reframed.io.sbml import load_cbmodel
         model = load_cbmodel(filename, flavor='cobra')
@@ -14,8 +14,7 @@ def load_sbml_container(filename, flavor = 'reframed'):
     return container
 
 
-
-def load_sbml_simulator(filename, flavor = 'reframed'):
+def load_sbml_simulator(filename, flavor='reframed', envcond=None):
     if flavor == 'reframed':
         from reframed.io.sbml import load_cbmodel
         model = load_cbmodel(filename, flavor='cobra')
@@ -24,12 +23,11 @@ def load_sbml_simulator(filename, flavor = 'reframed'):
         model = read_sbml_model(filename)
     else:
         raise ValueError(f"{flavor} is not a recognized flavor")
-    simul = get_simulator(model)
+    simul = get_simulator(model, envcond=envcond)
     return simul
 
 
-
-def load_gecko_simulator(filename, flavor = 'reframed'):
+def load_gecko_simulator(filename, flavor='reframed'):
     if flavor == 'reframed':
         from mewpy.model.gecko import GeckoModel
         model = GeckoModel(filename)

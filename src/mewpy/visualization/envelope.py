@@ -21,10 +21,10 @@ def flux_envelope(model, r_x, r_y, steps=10, constraints=None):
         simul = model
     else:
         try:
-            simul = get_simulator(model, constraints=constraints)
+            simul = get_simulator(model)
         except:
             raise ValueError(
-                'model should be an instance of model or simulator')
+                'The model should be an instance of model or simulator')
 
     x_range = simul.FVA(reactions=[r_x], constraints=constraints)
     xmin, xmax = x_range[r_x]
@@ -78,7 +78,7 @@ def plot_flux_envelope(model, r_x, r_y, steps=10, substrate=None, constraints=No
         simul = model
     else:
         try:
-            simul = get_simulator(model, constraints=constraints)
+            simul = get_simulator(model)
         except:
             raise ValueError(
                 'model should be an instance of model or simulator')
@@ -104,7 +104,7 @@ def plot_flux_envelope(model, r_x, r_y, steps=10, substrate=None, constraints=No
 
     if substrate:
         sol = simul.simulate()
-        uptk = abs(sol.values[substrate])
+        uptk = abs(sol.fluxes[substrate])
         xvals, ymins, ymaxs = xvals / uptk, ymins / uptk, ymaxs / uptk
 
     ax.plot(xvals, ymins, **plot_kwargs)

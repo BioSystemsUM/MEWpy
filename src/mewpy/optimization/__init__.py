@@ -58,6 +58,17 @@ def set_default_engine(enginename):
 
 
 def EA(problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS, mp=True, visualizer=False):
+    """
+    EA running helper
+
+    arguments
+        problem: the optimization problem
+        initial_population* (list): the EA initial population
+        max_generations (int): the number of iterations of the EA (stopping criteria)
+        mp (boolean): if should use multiprocessing
+        visualizer (boolean): if the pareto font should be displayed. Requires a graphic environment.
+    """
+
     if len(engines) == 0:
         raise RuntimeError('Inspyred or JMetal packages are required.')
     engine = engines[get_default_engine()]

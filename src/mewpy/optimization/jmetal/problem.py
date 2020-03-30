@@ -129,9 +129,14 @@ class OUSolution(Solution[IntTupple], SolutionInterface):
 
         return new_solution
 
-    @property
-    def candidate(self):
-        return set(self.variables)
+    def get_fitness(self):
+        """
+        Returns the candidate fitness list
+        """
+        return self.objectives
+
+    def __str__(self):
+        return " ".join((self.variables))
 
 
 class JMetalKOProblem(Problem[KOSolution]):
@@ -196,7 +201,7 @@ class JMetalOUProblem(Problem[OUSolution]):
             self.problem.bounder.lower_bound,
             self.problem.bounder.upper_bound,
             len(solution),
-            self.number_of_objectives)
+            self.problem.number_of_objectives)
         new_solution.variables = list(solution)
         return new_solution
 

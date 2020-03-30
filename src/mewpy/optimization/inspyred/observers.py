@@ -1,7 +1,5 @@
 from inspyred.ec.emo import Pareto
-from mewpy.optimization.ea import Solution
 from mewpy.visualization.plot import StreamingPlot
-from mewpy.utils.utilities import non_dominated_population
 import math
 import numpy
 
@@ -90,24 +88,11 @@ class VisualizerObserver():
         self.axis_labels = axis_labels
         self.non_dominated = non_dominated
 
-    def _convertPopulation(self, population):
-        p = []
-        for i in range(len(population)):
-            if isinstance(population[i].fitness, list):
-                obj = population[i].fitness
-            else:
-                obj = [population[i].fitness]
-            val = population[i].candidate
-            solution = Solution(val, obj)
-            p.append(solution)
-        return p
-
     def update(self, population, num_generations, num_evaluations, args):
         generations = num_generations
         evaluations = num_evaluations
 
         if population:
-            population = self._convertPopulation(population)
             if self.non_dominated:
                 pop = non_dominated_population(population)
             else:
@@ -133,3 +118,73 @@ class VisualizerObserver():
             if self.print_stats:
                 results_observer(population, num_generations,
                                  num_evaluations, args)
+
+
+def non_dominated_population(population, maximize=True):
+    """
+    returns the non dominated solutions from the population.
+    """
+    population.sort(reverse=True)
+    non_dominated = []
+    for i in range(len(population)-1):
+        individual = population[i]
+        j = 0
+        dominates = True
+        while j < len(population) and dominates:
+            if dominance_test(individual, population[j], maximize=maximize) == -1:
+                dominates = False
+            else:
+                j += 1
+        if dominates:
+            non_dominated.append(individual)
+
+    result = non_dominated
+    return result
+
+
+def dominance_test(solution1, solution2, maximize=True):
+    """
+    Testes Pareto dominance
+    args
+        solution1 : The first solution 
+        solution2 : The second solution
+        maximize (bool): maximization (True) or minimization (False)
+
+    returns 
+         1 : if the first solution dominates the second 
+        -1 : if the second solution dominates the first
+         0 : if non of the solutions dominates the other
+    """
+    best_is_one = 0
+    best_is_two = 0
+
+    if isinstance(solution1.fitness, Pareto):
+        values1 = solution1.fitness.values
+        values2 = solution2.fitness.values
+    else:
+        values1 = [solution1.fitness]
+        values2 = [solution2.fitness]
+
+    for i in range(len(values1)):
+        value1 = values1[i]
+        value2 = values2[i]
+        if value1 != value2:
+            if value1 < value2:
+                best_is_two = 1
+            if value1 > value2:
+                best_is_one = 1
+
+    if best_is_one > best_is_two:
+        if maximize:
+            result = 1
+        else:
+            result = -1
+    elif best_is_two > best_is_one:
+        if maximize:
+            result = -1
+        else:
+            result = 1
+    else:
+        result = 0
+
+    return result

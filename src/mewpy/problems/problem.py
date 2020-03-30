@@ -112,6 +112,10 @@ class AbstractProblem(ABC):
         """The decoder function for the problem."""
         raise NotImplementedError
 
+    def get_name(self):
+        """The decoder function for the problem."""
+        return self.__class__.__name__
+
     def pre_process(self):
         """ Defines pre processing tasks
         """
@@ -360,6 +364,8 @@ class AbstractOUProblem(AbstractProblem):
     def reaction_constraints(self, rxn, lv):
         """
         Converts a (reaction, level) pair into a constraint
+        If a reaction is reversible, the direction with no or less wild type flux
+        is knocked out.
         """
         constraints = {}
         fluxe_wt = self.reference[rxn]
