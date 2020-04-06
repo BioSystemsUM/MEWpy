@@ -33,8 +33,8 @@ def get_simulator(model, envcond=None, constraints=None, reference=None):
         try:
             from cobra.core.model import Model
             if isinstance(model, Model):
-                from .cobra import Simulator
-                instance = Simulator(
+                from .cobra import Simulation
+                instance = Simulation(
                     model, envcond=envcond, constraints=constraints, reference=reference)
         except:
             pass
@@ -42,8 +42,8 @@ def get_simulator(model, envcond=None, constraints=None, reference=None):
             try:
                 from reframed.core.cbmodel import CBModel
                 if isinstance(model, CBModel):
-                    from .reframed import Simulator
-                    instance = Simulator(
+                    from .reframed import Simulation
+                    instance = Simulation(
                         model, envcond=envcond, constraints=constraints, reference=reference)
             except:
                 pass

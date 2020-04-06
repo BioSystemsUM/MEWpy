@@ -109,10 +109,10 @@ else:
 
         def __init__(self, problem, number_of_actors):
             ray.init(ignore_reinit_error=True)
-            self.number_of_actors = number_of_actors
-            print(f"Creating {self.number_of_actors} workers.")
             self.actors = [RayActor.remote(problem)
                            for _ in range(number_of_actors)]
+            self.number_of_actors = len(self.actors)
+            print(f"Using {self.number_of_actors} workers.")
 
         def evaluate(self, candidates, args):
             """
