@@ -3,8 +3,8 @@ from mewpy.utils.constants import EAConstants, ModelConstants
 from mewpy.problems import Strategy
 from mewpy.optimization.ea import AbstractEA, Solution
 from mewpy.optimization.inspyred.problem import InspyredProblem
-import mewpy.optimization.inspyred.operators as op
-import mewpy.optimization.inspyred.observers as observers
+from mewpy.optimization.inspyred import operators as op
+from mewpy.optimization.inspyred import observers
 from random import Random
 from time import time
 import inspyred
