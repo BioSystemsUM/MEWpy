@@ -18,7 +18,7 @@ MEWpy is an integrated Metabolic Engineering Workbench, under development, for s
   | Method       | Strategy |
   | ------------ | -------- |
   | Reactions    | KO / OU  |
-  | Genes (GPRs) |          |
+  | Genes (GPRs) | KO / OU  |
 
   **Enzymatic Constraints**
 
