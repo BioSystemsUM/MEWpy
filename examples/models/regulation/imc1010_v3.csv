@@ -1,0 +1,1010 @@
+b4031;xylE;XylE;(XylR)
+b3189;murA;MurA;
+b4032;malG;MalG;((MalT AND Crp) OR MalT)
+b4033;malF;MalF;((MalT AND Crp) OR MalT)
+b4034;malE;MalE;((MalT AND Crp) OR MalT)
+b2818;argA;ArgA;(NOT ArgR)
+b2429;yfeV;YfeV;
+b3599;mtlA;MtlA;(NOT (MtlR))
+b2421;cysM;CysM;(CysB)
+b4025;pgi;Pgi;
+b2423;cysW;CysW;(CysB)
+b4024;lysC;LysC;(NOT lys-L(e)>0)
+b2422;cysA;CysA;(CysB)
+b2425;cysP;CysP;(CysB)
+b2424;cysU;CysU;(CysB)
+b2827;thyA;ThyA;
+b3389;aroB;AroB;
+b3386;rpe;Rpe;
+b2418;pdxK;PdxK;
+b2417;crr;Crr;(ON)
+b2416;ptsI;PtsI;(ON)
+b2415;ptsH;PtsH;(ON)
+b3390;aroK;AroK;
+b3588;aldB;AldB;(RpoS AND (Crp))
+b4019;metH;MetH;(MetR)
+b4018;iclR;IclR;( FadR )
+b2414;cysK;CysK;(CysB)
+b4015;aceA;AceA;(NOT (IclR) AND (NOT (ArcA) OR NOT (Cra)))
+b2413;cysZ;CysZ;(CysB)
+b4014;aceB;AceB;(NOT (IclR) AND (NOT (ArcA) OR NOT (Cra)))
+b4013;metA;MetA;(NOT (MetJ) OR MetR)
+b2411;lig;Lig;
+b2687;luxS;LuxS;
+b2688;gshA;GshA;
+b4053;alr;Alr;
+b4054;tyrB;TyrB;(NOT( ( (phe-L(e)>0) OR (tyr-L(e)>0) ) AND TyrR ))
+b3581;sgbH;SgbH;(NOT YiaJ)
+b3583;sgbE;SgbE;(NOT YiaJ)
+b3691;dgoT;DgoT;(galctn-D(e)>0)
+b3693;dgoK;DgoK;(galctn-D(e)>0)
+b3692;dgoA;DgoA;(galctn-D(e)>0)
+b3579;yiaO;YiaO;(Crp OR YiaJ)
+b3385;gph;Gph;
+b2405;xapR;XapR;(xtsn(e)>0)
+b3574;yiaJ;YiaJ;(NOT (fuc-L(e)>0))
+b3575;yiaK;YiaK;((NOT YiaJ) AND Crp)
+b2407;xapA;XapA;(XapR)
+b3380;yhfW;YhfW;
+b2406;xapB;XapB;(XapR)
+b2690;yqaB;YqaB;
+b2400;gltX;GltX;
+b3176;mrsA;MrsA;
+b3172;argG;ArgG;
+b4040;ubiA;UbiA;((NOT Fnr) AND Crp)
+b2677;proV;ProV;
+b4041;plsB;PlsB;
+b2678;proW;ProW;
+b2675;nrdE;NrdE;
+b2676;nrdF;NrdF;
+b2805;fucR;FucR;(fuc-L(e)>0) 
+b2802;fucI;FucI;((FucR AND Crp) OR FucR)
+b2803;fucK;FucK;((FucR AND Crp) OR FucR)
+b4042;dgkA;DgkA;
+b2800;fucA;FucA;((FucR AND Crp) OR FucR)
+b2801;fucP;FucP;((FucR AND Crp) OR FucR)
+b3177;folP;FolP;
+b3572;avtA;AvtA;(NOT (ala-L(e)>0 OR leu-L(e)>0 ))
+b3368;cysG;CysG;(Fnr OR NarL)
+b3367;nirC;NirC;(Fnr AND NarL)
+b3366;nirD;NirD;(Fnr AND NarL)
+b2679;proX;ProX;
+b3365;nirB;NirB;(Fnr AND NarL)
+b3568;xylH;XylH;((XylR AND Crp) OR XylR)
+b3569;xylR;XylR;(xyl-D(e)>0)
+b3566;xylF;XylF;((XylR AND Crp) OR XylR)
+b3567;xylG;XylG;((XylR AND Crp) OR XylR)
+b3564;xylB;XylB;((XylR AND Crp) OR XylR)
+b3565;xylA;XylA;((XylR AND Crp) OR XylR)
+b3187;ispB;IspB;
+b4036;lamB;LamB;((MalT AND Crp) OR MalT)
+b4035;malK;MalK;((MalT AND Crp) OR MalT)
+b4039;ubiC;UbiC;((NOT Fnr) AND Crp)
+b2808;gcvA;GcvA;(NOT GcvR)
+b3357;crp;Crp;( (NOT( (glcn(e)>0) OR (glc-D(e)>0))) )
+b3359;argD;ArgD;(NOT ArgR)
+b2661;gabD;GabD;
+b2663;gabP;GabP;
+b4077;gltP;GltP;
+b2662;gabT;GabT;
+b2472;dapE;DapE;
+b2463;maeB;MaeB;
+b2464;talA;TalA;
+b2465;tktB;TktB;
+b4069;acs;Acs;(RpoS OR Fnr OR ((NOT IclR) AND ((NOT( (glcn(e)>0) OR (glc-D(e)>0) OR (arab-L(e)>0) OR (xyl-D(e)>0) OR (rib-D(e)>0) OR (mal-L(e)>0) OR (glyc(e)>0) OR (sbt-D(e)>0) OR (lac-D(e)>0) OR (man(e)>0) OR (succ(e)>0))))))
+b3360;pabA;PabA;
+b4063;soxR;SoxR;((h2o2(e)>0) OR (OxidativeStress))
+b4062;soxS;SoxS;(SoxR)
+b2458;eutD;EutD;
+b2097;fbaB;FbaB;((pyr(e)>0) OR (lac-D(e)>0) AND NOT( glc-D(e)>0))
+b2096;gatY;GatY;(NOT (GatR))
+b2095;gatZ;GatZ;(NOT (GatR))
+b4090;rpiB;RpiB;(NOT( RpiR))
+b2094;gatA;GatA;(NOT (GatR))
+b2093;gatB;GatB;(NOT (GatR))
+b2092;gatC;GatC;(NOT (GatR))
+b2091;gatD;GatD;(NOT (GatR))
+b2090;gatR_2;GatR_2;(NOT (galt(e)>0))
+b2838;lysA;LysA;(LysR AND NOT lys-L(e)>0) 
+b2837;galR;GalR;( NOT ( lcts(e)>0 ) OR NOT (gal(e)>0) )
+b2839;lysR;LysR;(NOT (lys-L(e)>0))
+b2836;aas;Aas;
+b2440;eutC;EutC;
+b2441;eutB;EutB;
+b1584;speG;SpeG;
+b2087;gatR_1;GatR_1;(NOT (galt(e)>0))
+b2841;araE;AraE;(Crp)
+b4089;rpiR;RpiR;( NOT ( rib-D(e)>0 ) )
+b2436;hemF;HemF;
+b4079;fdhF;FdhF;(FhlA AND RpoN AND (NOT (o2(e)>0)))
+b1594;mlc;Mlc;( NOT ( glc-D(e)>0 ) )
+b2066;udk;Udk;(NOT ((thym(e)>0) OR (csn(e)>0) OR (ura(e)>0)))
+b1767;ansA;AnsA;
+b1768;pncA;PncA;
+b1380;ldhA;LdhA;
+b2264;menD;MenD;
+b0733;cydA;CydA;((NOT Fnr) OR (ArcA))
+b2265;menF;MenF;
+b1761;gdhA;GdhA;(NOT ((Nac) OR (glu-L(e)>0)) ) 
+b0734;cydB;CydB;((NOT Fnr) OR (ArcA))
+b1764;selD;SelD;
+b2262;menB;MenB;
+b2261;menC;MenC;
+b2260;menE;MenE;
+b1363;trkG;TrkG;
+b3112;tdcGb;TdcGb;(Crp OR NOT( o2(e)>0))
+b1779;gapA;GapA;
+b3111;tdcGa;TdcGa;(Crp OR NOT( o2(e)>0))
+b3114;tdcE;TdcE;(Crp OR Fnr OR LysR OR TdcA OR NOT TdcR)
+b3116;tdcC;TdcC;(Crp OR Fnr OR LysR OR TdcA OR NOT TdcR)
+b3115;tdcD;TdcD;(Crp OR Fnr OR LysR OR TdcA OR NOT TdcR)
+b3118;tdcA;TdcA;((thr-L(e)>0) AND (ser-L(e)>0) AND (val-L(e)>0) AND (ile-L(e)>0) AND NOT (o2(e)>0))
+b3117;tdcB;TdcB;(Crp OR Fnr OR LysR OR TdcA OR NOT TdcR)
+b3119;tdcR;TdcR;((thr-L(e)>0) AND (ser-L(e)>0) AND (val-L(e)>0) AND (ile-L(e)>0) AND NOT (o2(e)>0))
+b2615;yfjB;YfjB;
+b2065;dcd;Dcd;
+b1773;b1773;B1773;
+b2049;manC;ManC;
+b2048;cpsG;CpsG;
+b2045;wcaK;WcaK;
+b0750;nadA;NadA;
+b2600;tyrA;TyrA;( NOT( ( (phe-L(e)>10) OR (tyr-L(e)>0) ) AND TyrR ))
+b1748;astC;AstC;((NOT( Growth>0) AND RpoS) OR (NRI_hi AND RpoN)) 
+b0751;pnuC;PnuC;
+b2601;aroF;AroF;( NOT( ( (phe-L(e)>10) OR (tyr-L(e)>0) ) AND TyrR ))
+b1745;astB;AstB;((NOT( Growth>0) AND RpoS) OR (NRI_hi AND RpoN)) 
+b1744;astE;AstE;((NOT( Growth>0) AND RpoS) OR (NRI_hi AND RpoN)) 
+b1747;astA;AstA;((NOT( Growth>0) AND RpoS) OR (NRI_hi AND RpoN)) 
+b1746;astD;AstD;((NOT( Growth>0) AND RpoS) OR (NRI_hi AND RpoN)) 
+b0758;galT;GalT;(NOT( glc-D(e)>0) AND (NOT( GalR OR GalS)) OR NOT (Rob))
+b1740;nadE;NadE;
+b0759;galE;GalE;(NOT( glc-D(e)>0) AND (NOT( GalR OR GalS)) OR NOT (Rob))
+b2052;fcl;Fcl;
+b2053;gmd;Gmd;
+b2874;yqeA;YqeA;
+b0754;aroG;AroG;( NOT( ( (phe-L(e)>0) OR (trp-L(e)>0) ) AND TyrR ))
+b2242;glpB;GlpB;((NOT( (glcn(e)>0) OR (glc-D(e)>0) OR (arab-L(e)>0) OR (xyl-D(e)>0) OR (rib-D(e)>0))) AND (Fnr OR ArcA) AND (NOT( GlpR)))
+b0755;gpmA;GpmA;
+b2243;glpC;GlpC;((NOT( (glcn(e)>0) OR (glc-D(e)>0) OR (arab-L(e)>0) OR (xyl-D(e)>0) OR (rib-D(e)>0))) AND (Fnr OR ArcA) AND (NOT( GlpR)))
+b0757;galK;GalK;(NOT( glc-D(e)>0) AND (NOT( GalR OR GalS)) OR NOT (Rob))
+b2241;glpA;GlpA;((NOT( (glcn(e)>0) OR (glc-D(e)>0) OR (arab-L(e)>0) OR (xyl-D(e)>0) OR (rib-D(e)>0))) AND (Fnr OR ArcA) AND (NOT( GlpR)))
+b2039;rfbA;RfbA;
+b2240;glpT;GlpT;(NOT (GlpR) AND Crp)
+b2038;rfbC;RfbC;
+b2036;glf;Glf;
+b0099;mutT;MutT;
+b2889;idi;Idi;
+b2239;glpQ;GlpQ;((NOT GlpR OR Fnr) AND Crp)
+b2042;galF;GalF;
+b2040;rfbD;RfbD;
+b2235;nrdB;NrdB;(NOT (ArcA))
+b2041;rfbB;RfbB;
+b2234;nrdA;NrdA;(NOT (ArcA))
+b2232;ubiG;UbiG;((o2(e)>0) AND Crp)
+b2883;ygfP;YgfP;
+b0086;murF;MurF;
+b1524;yneH;YneH;((NOT (glc-D(e)>0) OR ((nh4(e)>0) AND NOT Crp)))
+b0087;mraY;MraY;
+b0088;murD;MurD;
+b1334;fnr;Fnr;( NOT ( o2(e)>0 ) )
+b0972;hyaA;HyaA;((ArcA OR Fnr) AND (AppY))
+b0973;hyaB;HyaB;((ArcA OR Fnr) AND (AppY))
+b0974;hyaC;HyaC;((ArcA OR Fnr) AND (AppY))
+b1907;tyrP;TyrP;(NOT( TyrR AND (tyr-L(e)>0)))
+b2022;hisB;HisB;
+b2023;hisH;HisH;
+b2024;hisA;HisA;
+b2025;hisF;HisF;
+b1521;uxaB;UxaB;(NOT ExuR)
+b2026;hisI;HisI;
+b2028;ugd;Ugd;
+b2029;gnd;Gnd;
+b0776;bioF;BioF;(NOT (BirA))
+b1900;araG;AraG;(AraC OR (AraC AND Crp))
+b0778;bioD;BioD;(NOT (BirA))
+b1901;araF;AraF;(AraC OR (AraC AND Crp))
+b1131;purB;PurB;(NOT (PurR))
+b0090;murG;MurG;
+b1723;pfkB;PfkB;
+b0092;ddlB;DdlB;
+b0091;murC;MurC;
+b1136;icdA;IcdA;
+b0775;bioB;BioB;(NOT (BirA))
+b0096;lpxC;LpxC;
+b0774;bioA;BioA;(NOT (BirA))
+b0077;ilvI;IlvI;(Lrp AND NOT (leu-L(e)>0))
+b0078;ilvH;IlvH;(Lrp AND NOT (leu-L(e)>0))
+b2019;hisG;HisG;
+b3161;mtr;Mtr;(NOT TrpR OR (TyrR AND ((phe-L(e)>0) OR (tyr-L(e)>0))))
+b1323;tyrR;TyrR;( (trp-L(e)>0) OR (tyr-L(e)>0) OR (phe-L(e)>0) )
+b1531;marA;MarA;(Salicylate)
+b1912;pgsA;PgsA;
+b2297;pta;Pta;
+b2021;hisC;HisC;
+b1732;katE;KatE;(NOT( Growth>0))
+b2020;hisD;HisD;
+b1123;potD;PotD;
+b0080;fruR;FruR;( NOT ( ( (NOT ( FBP>0) AND NOT (TKT2>0 OR TALA>0 OR PGI>0)) OR fru(e)>0) ) )
+b1126;potA;PotA;
+b0085;murE;MurE;
+b1124;potC;PotC;
+b1125;potB;PotB;
+b0068;sfuA;SfuA;
+b3132;agaZ;AgaZ;
+b4005;purD;PurD;(NOT (PurR))
+b0993;torS;TorS;(tmao(e)>0)
+b0995;torR;TorR;(TorS)
+b1709;btuD;BtuD;
+b0064;araC;AraC;(arab-L(e)>0)
+b4006;purH;PurH;
+b0066;sfuC;SfuC;
+b0067;sfuB;SfuB;
+b2296;ackA;AckA;
+b0996;torC;TorC;(TorR OR NOT (NarL))
+b0997;torA;TorA;(TorR OR NOT (NarL))
+b2287;nuoB;NuoB;(NOT (ArcA OR Fnr) OR NarL)
+b2286;nuoC;NuoC;(NOT (ArcA OR Fnr) OR NarL)
+b2288;nuoA;NuoA;(NOT (ArcA OR Fnr) OR NarL)
+b1704;aroH;AroH;(NOT TrpR)
+b0072;leuC;LeuC;(NOT( leu-L(e)>0) OR Lrp)
+b3128;garD;GarD;(SdaR)
+b0071;leuD;LeuD;(NOT( leu-L(e)>0) OR Lrp)
+b0074;leuA;LeuA;(NOT( leu-L(e)>0) OR Lrp)
+b3126;garL;GarL;(SdaR)
+b0073;leuB;LeuB;(NOT( leu-L(e)>0) OR Lrp)
+b3127;garP;GarP;
+b3124;garK;GarK;(SdaR)
+b3125;garR;GarR;(SdaR)
+b1702;pps;Pps;(Cra)
+b1519;tam;Tam;(NOT (Growth>0))
+b1302;goaG;GoaG;
+b1300;aldH;AldH;
+b2284;nuoF;NuoF;(NOT (ArcA OR Fnr) OR NarL)
+b2285;nuoE;NuoE;(NOT (ArcA OR Fnr) OR NarL)
+b2282;nuoH;NuoH;(NOT (ArcA OR Fnr) OR NarL)
+b2283;nuoG;NuoG;(NOT (ArcA OR Fnr) OR NarL)
+b2280;nuoJ;NuoJ;(NOT (ArcA OR Fnr) OR NarL)
+b2281;nuoI;NuoI;(NOT (ArcA OR Fnr) OR NarL)
+b2279;nuoK;NuoK;(NOT (ArcA OR Fnr) OR NarL)
+b2278;nuoL;NuoL;(NOT (ArcA OR Fnr) OR NarL)
+b1109;ndh;Ndh;(NOT (Fnr))
+b2277;nuoM;NuoM;(NOT (ArcA OR Fnr) OR NarL)
+b2276;nuoN;NuoN;(NOT (ArcA OR Fnr) OR NarL)
+b0063;araB;AraB;(AraC OR (AraC AND Crp))
+b3137;agaY;AgaY;
+b0062;araA;AraA;(AraC OR (AraC AND Crp))
+b0061;araD;AraD;(AraC OR (AraC AND Crp))
+b1101;ptsG;PtsG;(NOT( Mlc) OR NOT( Cra))
+b1711;btuC;BtuC;
+b3958;argC;ArgC;(NOT ArgR)
+b3957;argE;ArgE;(NOT ArgR)
+b0160;dgt;Dgt;
+b3956;ppc;Ppc;
+b0162;sdaR;SdaR;((glcr(e)>0) OR (galct-D(e)>0))
+b3959;argB;ArgB;(NOT ArgR)
+b0564;appY;AppY;(NOT CitB)
+b4240;treB;TreB;(((NOT TreR) AND Crp) OR (NOT TreR))
+b3952;pflC;PflC;(ArcA OR Fnr)
+b4241;treR;TreR;(NOT (tre(e)>0))
+b3951;pflD;PflD;(ArcA OR Fnr)
+b0945;pyrD;PyrD;((NOT (csn(e)>0)) OR (gua(e)>0) OR NOT PurR)
+b4239;treC;TreC;(((NOT TreR) AND Crp) OR (NOT TreR))
+b4238;nrdD;NrdD;(Fnr)
+b0159;mtn;Mtn;
+b0158;yadT;YadT;
+b0154;hemL;HemL;
+b3945;gldA;GldA;
+b0173;dxr;Dxr;
+b2309;hisJ;HisJ;(NOT (lys-L(e)>0))
+b3946;talC;TalC;
+b0171;pyrH;PyrH;
+b2307;hisM;HisM;(NOT (lys-L(e)>0))
+b2308;hisQ;HisQ;(NOT (lys-L(e)>0))
+b1054;lpxL;LpxL;
+b2306;hisP;HisP;(NOT (lys-L(e)>0))
+b3941;metF;MetF;
+b3940;metL;MetL;(NOT MetJ)
+b4254;argI;ArgI;(NOT ArgR)
+b3942;katG;KatG;((Growth>0) AND OxyR AND RpoS)
+b4245;pyrB;PyrB;(NOT (ura(e)>0 OR gua(e)>0))
+b4244;pyrI;PyrI;(NOT (ura(e)>0 OR gua(e)>0))
+b2104;thiM;ThiM;
+b2103;thiD;ThiD;
+b0931;pncB;PncB;(NOT (NadR))
+b1062;pyrC;PyrC;((NOT (csn(e)>0)) OR (gua(e)>0) OR NOT PurR)
+b0167;glnD;GlnD;(Lrp)
+b0166;dapD;DapD;
+b3939;metB;MetB;(NOT MetJ)
+b3938;metJ;MetJ;(met-L(e)>0)
+b3934;cytR;CytR;(cytd(e)>0)
+b3930;menA;MenA;
+b0963;mgsA;MgsA;
+b0131;panD;PanD;
+b0133;panC;PanC;
+b0134;panB;PanB;
+b3927;glpF;GlpF;
+b3926;glpK;GlpK;((NOT( (glcn(e)>0) OR (glc-D(e)>0) OR (arab-L(e)>0) OR (xyl-D(e)>0) OR (rib-D(e)>0) OR (mal-L(e)>0))) AND (NOT( GlpR)))
+b3929;menG;MenG;
+b1033;ycdW;YcdW;
+b4230;ytfT;YtfT;
+b4231;yjfF;YjfF;
+b4232;fbp;Fbp;
+b4227;ytfQ;YtfQ;
+b4226;ppa;Ppa;
+b0954;fabA;FabA;(NOT( Stringent) OR CpxR OR RpoE OR FadR2)
+b4229;ytfS;YtfS;
+b4228;ytfR;YtfR;
+b0142;folK;FolK;
+b0522;purK;PurK;(NOT (PurR))
+b0521;arcC;ArcC;
+b0908;aroA;AroA;
+b0907;serC;SerC;(Lrp OR (NOT (Crp)))
+b1993;cobU;CobU;(cbi(e)>0)
+b3912;cpxR;CpxR;(Stress)
+b0529;folD;FolD;
+b3917;sbp;Sbp;(CysB)
+b3918;cdh;Cdh;
+b0523;purE;PurE;(NOT (PurR))
+b1991;cobT;CobT;(cbi(e)>0)
+b3916;pfkA;PfkA;
+b1992;cobS;CobS;(cbi(e)>0)
+b1095;fabF;FabF;(NOT( Stringent) OR CpxR OR RpoE OR FadR2)
+b0112;aroP;AroP;(NOT (TyrR AND ((phe-L(e)>0) OR (tyr-L(e)>0) OR (trp-L(e)>0))))
+b0113;pdhR;PdhR;( NOT ( NOT ( (ME2>0 OR ME1>0) AND NOT (GLCpts>0 OR PYK>0 OR PFK>0 OR LDH_D<0 OR LDH_D2>0 OR SUCCt2_2>0 OR SUCCt2_3>0))) )
+b0114;aceE;AceE;((NOT( PdhR)) OR (Fis))
+b3919;tpiA;TpiA;
+b1096;pabC;PabC;
+b0115;aceF;AceF;((NOT( PdhR)) OR (Fis))
+b1091;fabH;FabH;(NOT( Stringent))
+b1288;fabI;FabI;(NOT( Stringent) OR CpxR OR RpoE OR FadR2)
+b1093;fabG;FabG;(NOT( Stringent) OR CpxR OR RpoE OR FadR2)
+b1092;fabD;FabD;(NOT( Stringent))
+b0902;pflA;PflA;(ArcA OR Fnr AND (Crp OR NOT( NarL)))
+b0903;pflB;PflB;(ArcA OR Fnr AND (Crp OR NOT( NarL)))
+b0323;yahI;YahI;
+b0904;focA;FocA;(ArcA OR Fnr AND (Crp OR NOT (NarL)))
+b0116;lpdA;LpdA;(ON)
+b0118;acnB;AcnB;(ON)
+b0511;allP;AllP;
+b1988;nac;Nac;(NRI_low AND RpoN)
+b2344;fadL;FadL;((NOT (Crp OR FadR OR OmpR)))
+b1987;cbl;Cbl;(NOT ((so4(e)>0) OR (cys-L(e)>0 )) AND CysB )
+b3902;rhaD;RhaD;(RhaS OR (RhaS AND Crp))
+b1982;amn;Amn;
+b3903;rhaA;RhaA;(RhaS OR (RhaS AND Crp))
+b0516;allC;AllC;(AllS)
+b3904;rhaB;RhaB;(RhaS OR (RhaS AND Crp))
+b3905;rhaS;RhaS;(RhaR)
+b0514;glxK;GlxK;(NOT AllR)
+b3906;rhaR;RhaR;(rmn(e)>0)
+b1098;tmk;Tmk;
+b3907;rhaT;RhaT;(RhaS OR (RhaS AND Crp))
+b0512;allB;AllB;(NOT AllR)
+b4208;cycA;CycA;
+b3909;kdgT;KdgT;(NOT KdgR)
+b0125;hpt;Hpt;(Crp)
+b3908;sodA;SodA;(NOT (ArcA OR Fur) OR (MarA OR Rob OR SoxS))
+b0126;yadF;YadF;
+b0124;gcd;Gcd;(NOT Crp)
+b0121;speE;SpeE;
+b3709;tnaB;TnaB;(Crp AND (trp-L(e)>0) )
+b1297;ycjK;YcjK;
+b0314;betT;BetT;(NOT (BetI))
+b3708;tnaA;TnaA;(Crp AND (trp-L(e)>0 OR cys-L(e)>0) )
+b0120;speD;SpeD;
+b0312;betB;BetB;(NOT (ArcA OR BetI))
+b0313;betI;BetI;(chol(e)>0)
+b0928;aspC;AspC;
+b0722;sdhD;SdhD;(NOT( (ArcA) OR (Fnr)) OR (Crp) OR (Fis))
+b0721;sdhC;SdhC;(NOT( (ArcA) OR (Fnr)) OR (Crp) OR (Fis))
+b0724;sdhB;SdhB;(NOT( (ArcA) OR (Fnr)) OR (Crp) OR (Fis))
+b2311;ubiX;UbiX;(NOT (PurR))
+b0723;sdhA;SdhA;(NOT( (ArcA) OR (Fnr)) OR (Crp) OR (Fis))
+b2310;argT;ArgT;(NOT (lys-L(e)>0))
+b0726;sucA;SucA;
+b2312;purF;PurF;(NOT (PurR))
+b0728;sucC;SucC;
+b2315;folC;FolC;
+b0727;sucB;SucB;
+b2316;accD;AccD;
+b0504;ybbS;YbbS;(NOT( o2(e)>0) AND NOT AllR AND NOT (nh4(e)>0))
+b1270;btuR;BtuR;
+b0506;allR;AllR;(OFF)
+b0505;allA;AllA;(NOT AllR)
+b0720;gltA;GltA;
+b0508;hyi;Hyi;
+b0507;gcl;Gcl;(NOT AllR)
+b1264;trpE;TrpE;(NOT TrpR)
+b0509;glxR;GlxR;(NOT AllR)
+b1263;trpD;TrpD;(NOT TrpR)
+b0729;sucD;SucD;
+b0918;kdsB;KdsB;
+b2320;pdxB;PdxB;
+b2323;fabB;FabB;(NOT( Stringent) OR CpxR OR RpoE OR FadR2)
+b2329;aroC;AroC;
+b1281;pyrF;PyrF;
+b1277;ribA;RibA;
+b1276;acnA;AcnA;(SoxS)
+b1275;cysB;CysB;(NOT (cys-L(e)>0)) 
+b0104;guaC;GuaC;(NOT ((gln-L(e)>0) OR (gua(e)>0))) 
+b1278;pgpB;PgpB;
+b0910;cmk;Cmk;
+b0915;lpxK;LpxK;
+b0109;nadC;NadC;
+b3621;rfaC;RfaC;
+b0368;tauD;TauD;(Cbl AND CysB)
+b3750;rbsC;RbsC;((NOT( (glcn(e)>0) OR (glc-D(e)>0) OR (arab-L(e)>0) OR (xyl-D(e)>0))) AND NOT( RbsR))
+b3622;rfaL;RfaL;
+b0367;tauC;TauC;(Cbl AND CysB)
+b3751;rbsB;RbsB;((NOT( (glcn(e)>0) OR (glc-D(e)>0) OR (arab-L(e)>0) OR (xyl-D(e)>0))) AND NOT( RbsR))
+b0366;tauB;TauB;(Cbl AND CysB)
+b3752;rbsK;RbsK;((NOT( (glcn(e)>0) OR (glc-D(e)>0) OR (arab-L(e)>0) OR (xyl-D(e)>0))) AND NOT( RbsR))
+b0365;tauA;TauA;(Cbl AND CysB)
+b3753;rbsR;RbsR;( NOT ( rib-D(e)>0 ) )
+b3620;rfaF;RfaF;
+b2378;lpxP;LpxP;
+b3626;rfaJ;RfaJ;
+b3627;rfaI;RfaI;
+b0369;hemB;HemB;
+b3428;glgP;GlgP;(Crp)
+b3429;glgA;GlgA;
+b3423;glpR;GlpR;( NOT ( glyc(e)>0 ) )
+b3426;glpD;GlpD;((NOT( (glcn(e)>0) OR (glc-D(e)>0) OR (arab-L(e)>0) OR (xyl-D(e)>0) OR (rib-D(e)>0) OR (mal-L(e)>0))) AND (NOT( ArcA OR GlpR)))
+b3425;glpE;GlpE;(Crp)
+b3634;coaD;CoaD;
+b3633;kdtA;KdtA;
+b0356;adhC;AdhC;
+b3744;asnA;AsnA;(NOT (asn-L(e)>0) AND AsnC)
+b0351;mhpF;MhpF;(MhpR)
+b3631;rfaG;RfaG;
+b0350;mhpD;MhpD;(MhpR)
+b0353;mhpT;MhpT;
+b3743;asnC;AsnC;( NOT ( asn-L(e)>0 ) AND NRI_hi )
+b0352;mhpE;MhpE;(MhpR)
+b3748;rbsD;RbsD;((NOT( (glcn(e)>0) OR (glc-D(e)>0) OR (arab-L(e)>0) OR (xyl-D(e)>0))) AND NOT( RbsR))
+b3749;rbsA;RbsA;((NOT( (glcn(e)>0) OR (glc-D(e)>0) OR (arab-L(e)>0) OR (xyl-D(e)>0))) AND NOT( RbsR))
+b2388;glk;Glk;
+b2393;nupC;NupC;(Crp OR NOT (CytR))
+b3438;gntR;GntR;(NOT (glcn(e)>0))
+b3437;gntK;GntK;(NOT (GntR) AND (glcn(e)>0))
+b3433;asd;Asd;
+b3430;glgC;GlgC;
+b3731;atpC;AtpC;
+b3732;atpD;AtpD;
+b0341;cynX;CynX;(cynt(e)>0)
+b3733;atpG;AtpG;
+b0340;cynS;CynS;(CynR)
+b3734;atpA;AtpA;
+b0346;mhpR;MhpR;(3hpppn(e)>0)
+b3600;mtlD;MtlD;(NOT MtlR)
+b0345;lacI;LacI;( NOT ( lcts(e)>0 ) )
+b3601;mtlR;MtlR;(NOT (mnl(e)>0))
+b0344;lacZ;LacZ;((NOT( (glcn(e)>0) OR (glc-D(e)>0))) AND NOT( LacI))
+b3730;glmU;GlmU;(NagC)
+b0343;lacY;LacY;((NOT( (glcn(e)>0) OR (glc-D(e)>0))) AND NOT( LacI))
+b3739;atpI;AtpI;
+b3603;lldP;LldP;(NOT (ArcA))
+b0349;mhpC;MhpC;(MhpR)
+b3605;lldD;LldD;(lac-L(e)>0 AND o2(e)>0)
+b0348;mhpB;MhpB;(MhpR)
+b0347;mhpA;MhpA;(MhpR)
+b3735;atpH;AtpH;
+b3607;cysE;CysE;(CysB)
+b3736;atpF;AtpF;
+b3608;gpsA;GpsA;
+b3737;atpE;AtpE;
+b3738;atpB;AtpB;
+b3405;ompR;OmpR;(highosmolarity)
+b3409;feoB;FeoB;
+b3403;pckA;PckA;
+b0331;prpB;PrpB;(ppa(e)>0)
+b3612;yibO;YibO;
+b0333;prpC;PrpC;(ppa(e)>0)
+b0335;prpE;PrpE;(ppa(e)>0)
+b0334;prpD;PrpD;(ppa(e)>0)
+b3616;tdh;Tdh;(NOT (Lrp) AND (leu-L(e)>0))
+b0337;codA;CodA;(NOT (PurR) OR NRI_hi)
+b2366;dsdA;DsdA;((Crp AND DsdC) OR  DsdC)
+b3617;kbl;Kbl;(NOT (Lrp) AND (leu-L(e)>0))
+b0336;codB;CodB;(NOT (PurR) OR (NRI_hi))
+b3728;pstS;PstS;(PhoB)
+b0339;cynT;CynT;
+b2364;dsdC;DsdC;(ser-D(e)>0)
+b3729;glmS;GlmS;
+b0338;cynR;CynR;(cynt(e)>0)
+b3726;pstA;PstA;(PhoB)
+b3727;pstC;PstC;(PhoB)
+b3725;pstB;PstB;(PhoB)
+b3619;rfaD;RfaD;
+b3418;malT;MalT;((malt(e)>0) OR (malttr(e)>0) OR (maltttr(e)>0) OR (malthx(e)>0) OR (maltpt(e)>0))
+b3417;malP;MalP;(MalT)
+b3416;malQ;MalQ;(MalT)
+b3415;gntT;GntT;(NOT (GntR) AND (glcn(e)>0))
+b3669;uhpA;UhpA;(UhpB)
+b3794;wecG;WecG;
+b3666;uhpT;UhpT;(Crp OR UhpA)
+b3793;wecF;WecF;
+b3665;yicP;YicP;
+b3668;uhpB;UhpB;(g6p(e)>0)
+b3991;thiG;ThiG;
+b3992;thiF;ThiF;
+b3993;thiE;ThiE;
+b3670;ilvN;IlvN;(NOT( leu-L(e)>0 OR val-L(e)>0) AND Crp)
+b3994;thiC;ThiC;
+b3671;ilvB;IlvB;(NOT( leu-L(e)>0 OR val-L(e)>0) AND Crp)
+b3997;hemE;HemE;
+b3784;wecA;WecA;
+b0399;phoB;PhoB;(PhoR)
+b3990;thiH;ThiH;
+b3789;rffH;RffH;
+b3788;rffG;RffG;
+b3787;wecC;WecC;
+b3786;wecB;WecB;
+b0596;entA;EntA;(NOT (Fur))
+b3791;wecE;WecE;
+b0593;entC;EntC;(NOT (Fur))
+b0595;entB;EntB;(NOT (Fur))
+b3790;wecD;WecD;
+b0594;entE;EntE;(NOT (Fur))
+b3648;gmk;Gmk;
+b3640;dut;Dut;
+b0386;proC;ProC;
+b3642;pyrE;PyrE;(NOT (ura(e)>0 OR gua(e)>0))
+b3772;ilvA;IlvA;
+b3771;ilvD;IlvD;
+b3774;ilvC;IlvC;(IlvY)
+b3773;ilvY;IlvY;(NOT val-L(e)>0 )
+b0388;aroL;AroL;(NOT(  (TyrR AND (tyr-L(e)>0)) OR (TyrR AND (tyr-L(e)>0) AND TrpR) ))
+b3973;birA;BirA;(btn(e)>0)
+b3974;coaA;CoaA;
+b0583;entD;EntD;(NOT (Fur))
+b4265;idnT;IdnT;(IdnR)
+b4264;idnR;IdnR;((idon-L(e)>0) OR (5dglcn(e)>0))
+b0586;entF;EntF;
+b3972;murB;MurB;
+b2599;pheA;PheA;(NOT (phe-L(e)>0) )
+b3769;ilvM;IlvM;(NOT( leu-L(e)>0 OR ile-L(e)>0 OR val-L(e)>0) AND Lrp)
+b3768;ilvG_2;IlvG_2;(NOT( leu-L(e)>0 OR ile-L(e)>0 OR val-L(e)>0) AND Lrp)
+b3767;ilvG_1;IlvG_1;(NOT( leu-L(e)>0 OR ile-L(e)>0 OR val-L(e)>0) AND Lrp)
+b3653;gltS;GltS;(asp-L(e)>0)
+b4268;idnK;IdnK;
+b4266;idnO;IdnO;(IdnR)
+b4267;idnD;IdnD;(IdnR)
+b3654;yicE;YicE;
+b3770;ilvE;IlvE;
+b3962;sthA;SthA;
+b3960;argH;ArgH;(NOT ArgR)
+b3961;oxyR;OxyR;(h2o2(e)>0)
+b0381;ddlA;DdlA;
+b0576;pheP;PheP;
+b3966;btuB;BtuB;
+b3967;murI;MurI;
+b3460;livJ;LivJ;(NOT( leu-L(e)>0) OR Lrp)
+b3258;panF;PanF;
+b0181;lpxA;LpxA;
+b0182;lpxB;LpxB;
+b3255;accB;AccB;
+b0180;fabZ;FabZ;(NOT( Stringent) OR CpxR OR RpoE OR FadR2)
+b3256;accC;AccC;
+b2914;rpiA;RpiA;
+b2917;sbm;Sbm;
+b2913;serA;SerA;
+b3052;rfaE;RfaE;
+b2919;ygfG;YgfG;
+b3261;fis;Fis;(Growth>0)
+b3456;livM;LivM;(NOT( leu-L(e)>0) OR Lrp)
+b3457;livH;LivH;(NOT( leu-L(e)>0) OR Lrp)
+b0179;lpxD;LpxD;
+b3458;livK;LivK;(NOT( leu-L(e)>0) OR Lrp)
+b3452;ugpA;UgpA;(Crp OR PhoB)
+b1662;ribE;RibE;
+b3453;ugpB;UgpB;(Crp OR PhoB)
+b0175;cdsA;CdsA;
+b3454;livF;LivF;(NOT( leu-L(e)>0) OR Lrp)
+b0174;uppS;UppS;
+b3455;livG;LivG;(NOT( leu-L(e)>0) OR Lrp)
+b3451;ugpE;UgpE;(Crp OR PhoB)
+b2920;ygfH;YgfH;
+b3450;ugpC;UgpC;(Crp OR PhoB)
+b2927;epd;Epd;(Crp)
+b2799;fucO;FucO;(((((FucR) OR (rmn(e)>0)) AND (NOT (o2(e)>0))) AND Crp) OR (((FucR) OR (rmn(e)>0)) AND (NOT (o2(e)>0))))
+b2796;sdaC;SdaC;(Crp OR (NOT (Lrp) AND (leu-L(e)>0) AND Crp))
+b2925;fbaA;FbaA;
+b2797;sdaB;SdaB;(ON)
+b2926;pgk;Pgk;(ON)
+b3058;folB;FolB;
+b3063;ygjE;YgjE;
+b3061;ttdA;TtdA;(NOT( o2(e)>0) AND (tartr-L(e)>0))
+b3062;ttdB;TtdB;(NOT( o2(e)>0) AND (tartr-L(e)>0))
+b1676;pykF;PykF;(NOT( Cra))
+b2518;ndk;Ndk;
+b0186;ldcC;LdcC;
+b0185;accA;AccA;
+b2515;gcpE;GcpE;
+b0693;speF;SpeF;
+b0694;kdpE;KdpE;(KdpD)
+b0692;potE;PotE;
+b2935;tktA;TktA;
+b0697;kdpB;KdpB;(KdpE)
+b0698;kdpA;KdpA;(KdpE)
+b2937;speB;SpeB;
+b0695;kdpD;KdpD;(NOT (k(e)>1))
+b2938;speA;SpeA;(NOT (PurR))
+b0696;kdpC;KdpC;(KdpE)
+b2540;hcaC;HcaC;(HcaR AND (NOT( LBMedia) ))
+b2542;hcaD;HcaD;(HcaR AND (NOT( LBMedia) ))
+b2541;hcaB;HcaB;(HcaR AND (NOT( LBMedia) ))
+b3073;ygjG;YgjG;
+b1416;gapC_2;GapC_2;
+b0199;abc;Abc;(NOT MetJ)
+b1417;gapC_1;GapC_1;
+b0198;yaeE;YaeE;(NOT MetJ)
+b0197;yaeC;YaeC;(NOT MetJ)
+b3281;aroE;AroE;
+b1415;aldA;AldA;
+b3266;acrF;AcrF;
+b3265;acrE;AcrE;
+b2942;metK;MetK;
+b2943;galP;GalP;((NOT (GalR)) OR (GalS) AND (Crp OR NOT (Crp)))
+b2947;gshB;GshB;
+b2530;iscS;IscS;
+b2533;suhB;SuhB;
+b1692;ydiB;YdiB;
+b2539;hcaF;HcaF;(HcaR AND (NOT( LBMedia) ))
+b1693;aroD;AroD;
+b2538;hcaE;HcaE;(HcaR AND (NOT( LBMedia) ))
+b2537;hcaR;HcaR;(pppn(e)>0)
+b2536;hcaT;HcaT;
+b2764;cysJ;CysJ;(CysB)
+b2763;cysI;CysI;(CysB)
+b3089;sstT;SstT;
+b2762;cysH;CysH;(CysB)
+b2957;ansB;AnsB;(Fnr AND Crp)
+b3212;gltB;GltB;( (Lrp AND NOT (leu-L(e)>0)) OR NOT( NRI_hi AND ((glu-L(e)>0) OR (arg-L(e)>0) OR (asp-L(e)>0) OR (his-L(e)>0) OR (pro-L(e)>0) )))
+b3213;gltD;GltD;( (Lrp AND NOT (leu-L(e)>0)) OR NOT( NRI_hi AND ((glu-L(e)>0) OR (arg-L(e)>0) OR (asp-L(e)>0) OR (his-L(e)>0) OR (pro-L(e)>0) )))
+b3091;uxaA;UxaA;(NOT ExuR)
+b3093;exuT;ExuT;(NOT ExuR)
+b3092;uxaC;UxaC;(NOT ExuR)
+b2563;acpS;AcpS;
+b2564;pdxJ;PdxJ;(RpoE)
+b3094;exuR;ExuR;(NOT( GUI1>0) AND NOT( GUI2>0) AND NOT( MANAO>0) AND NOT( TAGURr>0) AND NOT( GUI1<0) AND NOT( GUI2<0) AND NOT( MANAO<0) AND NOT( TAGURr<0))
+b2752;cysD;CysD;(CysB)
+b2751;cysN;CysN;(CysB)
+b2750;cysC;CysC;(CysB)
+b2965;speC;SpeC;(NOT (Crp))
+b2964;nupG;NupG;(Crp OR NOT (CytR) OR NOT (DeoR))
+b3493;pitA;PitA;
+b3202;rpoN;RpoN;(ON)
+b2557;purL;PurL;(NOT (PurR))
+b2553;glnB;GlnB;(Lrp)
+b2551;glyA;GlyA;(NOT (gly(e)>0) OR MetR OR NOT (PurR))
+b2781;mazG;MazG;
+b2976;glcB;GlcB;(NOT (ArcA) AND (GlcC))
+b2979;glcD;GlcD;
+b2978;glcF;GlcF;
+b2788;ygcY;YgcY;
+b2787;gudD;GudD;(SdaR)
+b2789;gudP;GudP;
+b3236;mdh;Mdh;(NOT( ArcA))
+b3237;argR;ArgR;(arg-L(e)>0)
+b2975;glcA;GlcA;(NOT ArcA AND GlcC)
+b2585;pssA;PssA;
+b2587;kgtP;KgtP;
+b2988;gsp;Gsp;
+b2987; pitB; pitB;(NOT (PhoB))
+b3223;nanE;NanE;
+b3224;nanT;NanT;
+b2779;eno;Eno;
+b2980;glcC;GlcC;((ac(e)>0) OR (glyclt(e)>0))
+b3222;nanK;NanK;
+b3225;nanA;NanA;
+b2574;nadB;NadB;(NOT (NadR))
+b2573;rpoE;RpoE;(heatshock)
+b2780;pyrG;PyrG;
+b1476;fdnI;FdnI;(Fnr OR NarL)
+b1479;sfcA;SfcA;
+b1474;fdnG;FdnG;(Fnr OR NarL)
+b1475;fdnH;FdnH;(Fnr OR NarL)
+b2131;yehZ;YehZ;
+b2130;yehY;YehY;
+b0638;phpB;PhpB;
+b2997;hybO;HybO;(FhlA AND RpoN AND (NOT (o2(e)>0)))
+b0639;nadD;NadD;
+b2994;hybC;HybC;(FhlA AND RpoN AND (NOT (o2(e)>0)))
+b2128;yehW;YehW;
+b2723;hycC;HycC;(FhlA AND RpoN AND (NOT (o2(e)>0)))
+b2724;hycB;HycB;(FhlA AND RpoN AND (NOT (o2(e)>0)))
+b2721;hycE;HycE;(FhlA AND RpoN AND (NOT (o2(e)>0)))
+b2722;hycD;HycD;(FhlA AND RpoN AND (NOT (o2(e)>0)))
+b2720;hycF;HycF;(FhlA AND RpoN AND (NOT (o2(e)>0)))
+b2129;yehX;YehX;
+b1865;ntpA;NtpA;
+b1469;narU;NarU;
+b1873;torY;TorY;
+b1872;torZ;TorZ;
+b2719;hycG;HycG;(FhlA AND RpoN AND (NOT (o2(e)>0)))
+b1602;pntB;PntB;
+b1603;pntA;PntA;
+b1605;arcD;ArcD;
+b0894;dmsA;DmsA;(Fnr AND NOT NarL)
+b0896;dmsC;DmsC;(Fnr AND NOT NarL)
+b0895;dmsB;DmsB;(Fnr AND NOT NarL)
+b0619;dpiB;DpiB;(cit(e)>0)
+b2151;galS;GalS;( NOT ( lcts(e)>0 ) OR NOT (gal(e)>0) )
+b2150;mglB;MglB;(Crp AND NOT (GalS))
+b2153;folE;FolE;
+b2143;cdd;Cdd;(Crp AND NOT (CytR))
+b2747;ispD;IspD;
+b1216;chaA;ChaA;
+b0612;citT;CitT;(CitB AND (NOT (o2(e)>0)))
+b2746;ispF;IspF;
+b0615;citF;CitF;(CitB)
+b0616;citE;CitE;(CitB)
+b2148;mglC;MglC;(Crp AND NOT (GalS))
+b0617;citD;CitD;(CitB)
+b2149;mglA;MglA;(Crp AND NOT (GalS))
+b1210;hemA;HemA;
+b1215;kdsA;KdsA;
+b2741;rpoS;RpoS;(NOT (Growth>0))
+b1612;fumA;FumA;(NOT( ArcA OR Fnr))
+b1613;manA;ManA;
+b1611;fumC;FumC;(MarA OR Rob OR SoxS AND (NOT( ArcA)))
+b1208;ispE;IspE;
+b1207;prsA;PrsA;(NOT PurR) 
+b2132;bglX;BglX;
+b2133;dld;Dld;
+b1897;otsB;OtsB;(RpoS)
+b2738;ygbL;YgbL;
+b1896;otsA;OtsA;(RpoS)
+b1200;dhaK1;DhaK1;
+b1899;araH_1;AraH_1;(AraC OR (AraC AND Crp))
+b1898;araH_2;AraH_2;(AraC OR (AraC AND Crp))
+b1493;gadB;GadB;((NOT (Growth>0)) OR (pH<4) )
+b0620;dpiA;DpiA;(CitA)
+b1492;xasA;XasA;
+b0621;dcuC;DcuC;(Fnr OR ArcA)
+b2731;fhlA;FhlA;((NOT (o2(e)>0)) AND (NOT (no3(e)>0)) AND (NOT (no2(e)>0)) AND (NOT (tmao(e)>0)) AND (NOT (dmso(e)>0)) AND (for(e)>0))
+b1620;malI;MalI;(NOT (malt(e)>0))
+b1622;malY;MalY;(NOT (MalI))
+b1621;malX;MalX;((MalT AND Crp) OR MalT)
+b0871;poxB;PoxB;((NOT (Growth>0)) AND (RpoS))
+b1623;add;Add;((ade(e)>0) OR (hxan(e)>0))
+b0870;ltaA;LtaA;
+b0674;asnB;AsnB;
+b3008;metC;MetC;(NOT MetJ)
+b1236;galU;GalU;
+b0676;nagC;NagC;(NOT( (acgam(e)>0) OR AGDC>0))
+b1827;kdgR;KdgR;(NOT( 2ddglcn(e)>0) AND NOT( MNNH>0) AND NOT( ALTRH>0))
+b1232;purU;PurU;
+b2169;fruB;FruB;(NOT (Cra))
+b1238;tdk;Tdk;
+b0678;nagB;NagB;(NOT (NagC) OR (gam(e)>0))
+b0677;nagA;NagA;(NOT (NagC))
+b2168;fruK;FruK;(NOT (Cra))
+b0679;nagE;NagE;(NOT (NagC))
+b2167;fruA;FruA;(NOT (Cra))
+b0888;trxB;TrxB;
+b0889;lrp;Lrp;(NOT leu-L(e)>0) 
+b1638;pdxH;PdxH;
+b1636;pdxY;PdxY;
+b1225;narH;NarH;(Fnr AND NarL)
+b1226;narJ;NarJ;(Fnr AND NarL)
+b1223;narK;NarK;(Fnr OR NarL)
+b3018;plsC;PlsC;
+b1224;narG;NarG;(Fnr AND NarL)
+b1221;narL;NarL;((no3(e)>0) OR (no2(e)>0))
+b0683;fur;Fur;((fe2(e)>0) AND (OxyR OR SoxS))
+b3012;yqhE;YqhE;
+b2156;lysP;LysP;
+b1227;narI;NarI;(Fnr AND NarL)
+b0688;pgm;Pgm;
+b0854;potF;PotF;
+b0855;potG;PotG;
+b0856;potH;PotH;
+b0857;potI;PotI;
+b2507;guaA;GuaA;(NOT (PurR AND Crp))
+b2508;guaB;GuaB;(NOT (PurR AND Crp))
+b1646;sodC;SodC;(NOT( Growth>0) AND NOT Fnr)
+b1260;trpA;TrpA;(NOT TrpR)
+b1262;trpC;TrpC;(NOT TrpR)
+b1261;trpB;TrpB;(NOT TrpR)
+b2500;purN;PurN;(NOT (PurR))
+b0652;gltL;GltL;(NOT (glc-D(e)>0))
+b4407;thiS;ThiS;
+b0654;gltJ;GltJ;(NOT (glc-D(e)>0))
+b1849;purT;PurT;(NOT (PurR))
+b0653;gltK;GltK;(NOT (glc-D(e)>0))
+b2704;srlB;SrlB;((NOT GutR) AND (NOT( (glcn(e)>0) OR (glc-D(e)>0) OR (arab-L(e)>0) OR (xyl-D(e)>0) OR (rib-D(e)>0) OR (mal-L(e)>0) OR (glyc(e)>0))))
+b0655;gltI;GltI;(NOT (glc-D(e)>0))
+b2703;srlE;SrlE;((NOT GutR) AND (NOT( (glcn(e)>0) OR (glc-D(e)>0) OR (arab-L(e)>0) OR (xyl-D(e)>0) OR (rib-D(e)>0) OR (mal-L(e)>0) OR (glyc(e)>0))))
+b2702;srlA;SrlA;((NOT GutR) AND (NOT( (glcn(e)>0) OR (glc-D(e)>0) OR (arab-L(e)>0) OR (xyl-D(e)>0) OR (rib-D(e)>0) OR (mal-L(e)>0) OR (glyc(e)>0))))
+b4401;arcA;ArcA;( NOT ( o2(e)>0 ) )
+b1014;putA;PutA;( (pro-L(e)>0) OR Crp OR Nac)
+b1015;putP;PutP;( (pro-L(e)>0) OR Crp OR Nac)
+b2707;srlR;SrlR;(NOT (sbt-D(e)>0))
+b2706;gutM;GutM;(ON)
+b2705;srlD;SrlD;(GutM AND (NOT GutR) AND (NOT( (glcn(e)>0) OR (glc-D(e)>0) OR (arab-L(e)>0) OR (xyl-D(e)>0) OR (rib-D(e)>0) OR (mal-L(e)>0) OR (glyc(e)>0))))
+b1651;gloA;GloA;
+b0864;artP;ArtP;
+b1442;ydcU;YdcU;
+b1658;purR;PurR;((hxan(e)>0) OR (gua(e)>0))
+b1441;ydcT;YdcT;
+b1440;ydcS;YdcS;
+b1656;sodB;SodB;
+b0862;artQ;ArtQ;
+b3041;ribB;RibB;
+b0860;artJ;ArtJ;
+b1443;ydcV;YdcV;
+b0861;artM;ArtM;
+b1241;adhE;AdhE;(NOT (o2(e)>0) OR (NOT ((o2(e)>0) AND (Cra))) OR (Fis) OR NOT (NarL) OR (RpoS))
+b1854;pykA;PykA;
+b1855;msbB;MsbB;
+b0662;ubiF;UbiF;
+b1002;agp;Agp;
+b1249;cls;Cls;
+b1852;zwf;Zwf;
+b1006;ycdG;YcdG;
+b1850;eda;Eda;((ON) OR (NOT (GntR)))
+b1851;edd;Edd;(NOT (GntR))
+b0420;dxs;Dxs;
+b0421;ispA;IspA;
+b0423;thiI;ThiI;
+b0425;panE;PanE;
+b0428;cyoE;CyoE;(NOT (ArcA OR Fnr))
+b0429;cyoD;CyoD;(NOT (ArcA OR Fnr))
+b0840;deoR;DeoR;(NOT( (PPM2>0) OR (PPM2<0)) ) 
+b0019;nhaA;NhaA;((NhaR) OR (RpoS))
+b4111;proP;ProP;(NOT (Crp) AND Fis AND RpoS)
+b4301;sgcE;SgcE;
+b0415;ribH;RibH;
+b0414;ribD;RibD;
+b0417;thiL;ThiL;
+b0418;pgpA;PgpA;
+b0020;nhaR;NhaR;(na1(e)>0)
+b0025;ribF;RibF;
+b0029;lytB;LytB;
+b0828;ybiK;YbiK;
+b4122;fumB;FumB;((Fnr) OR NOT (Crp) OR (DcuR) OR NOT (NarL))
+b4120;melB;MelB;((MelR) OR (MelR AND Crp))
+b1814;sdaA;SdaA;((gly(e)>0 OR leu-L(e)>0 OR NOT (o2(e)>0)) AND ((NOT Lrp) OR (Lrp AND leu-L(e)>0)))
+b0040;caiT;CaiT;(Crp AND CaiF)
+b1817;manX;ManX;(((NOT( (glcn(e)>0) OR (glc-D(e)>0) OR (arab-L(e)>0) OR (xyl-D(e)>0) OR (rib-D(e)>0) OR (mal-L(e)>0) OR (glyc(e)>0) OR (sbt-D(e)>0) OR (lac-D(e)>0)))) OR (NOT (Mlc)))
+b1812;pabB;PabB;
+b0036;caiD;CaiD;(Crp AND CaiF)
+b0038;caiB;CaiB;(Crp AND CaiF)
+b0032;carA;CarA;(NOT ArgR)
+b1818;manY;ManY;(((NOT( (glcn(e)>0) OR (glc-D(e)>0) OR (arab-L(e)>0) OR (xyl-D(e)>0) OR (rib-D(e)>0) OR (mal-L(e)>0) OR (glyc(e)>0) OR (sbt-D(e)>0) OR (lac-D(e)>0)))) OR (NOT (Mlc)))
+b0031;dapB;DapB;(NOT lys-L(e)>0)
+b1819;manZ;ManZ;(((NOT( (glcn(e)>0) OR (glc-D(e)>0) OR (arab-L(e)>0) OR (xyl-D(e)>0) OR (rib-D(e)>0) OR (mal-L(e)>0) OR (glyc(e)>0) OR (sbt-D(e)>0) OR (lac-D(e)>0)))) OR (NOT (Mlc)))
+b0034;caiF;CaiF;(Fnr AND Crp AND NOT NarL)
+b0033;carB;CarB;(NOT ArgR)
+b0825;fsa;Fsa;
+b4119;melA;MelA;((MelR) OR (MelR AND Crp))
+b4118;melR;MelR;((melib(e)>0) OR (melib(e)>0 AND Crp))
+b4117;adiA;AdiA;(AdiY)
+b4116;adiY;AdiY;((pH<7) AND (NOT (o2(e)>0)) AND NOT (RichMedium))
+b4321;gntP;GntP;(Crp AND NOT (glcn(e)>0))
+b4322;uxuA;UxuA;(NOT ExuR AND NOT UxuR)
+b4323;uxuB;UxuB;(NOT ExuR AND NOT UxuR)
+b0431;cyoB;CyoB;(NOT (ArcA OR Fnr))
+b4324;uxuR;UxuR;(NOT( MANAO>0) AND NOT( GUI1>0) AND NOT( MANAO<0) AND NOT( GUI1<0))
+b0432;cyoA;CyoA;(NOT (ArcA OR Fnr))
+b4131;cadA;CadA;(ArcA OR CadC)
+b0430;cyoC;CyoC;(NOT (ArcA OR Fnr))
+b4132;cadB;CadB;(ArcA OR CadC)
+b4133;cadC;CadC;(lys-L(e)>0)
+b0052;pdxA;PdxA;(RpoE)
+b1805;fadD;FadD;(NOT (FadR2) OR NOT (ArcA))
+b1801;yeaV;YeaV;
+b0049;apaH;ApaH;
+b0048;folA;FolA;
+b4124;dcuR;DcuR;( DcuS )
+b4123;dcuB;DcuB;((((NOT( (glcn(e)>0) OR (glc-D(e)>0) OR (arab-L(e)>0) OR (xyl-D(e)>0) OR (rib-D(e)>0) OR (mal-L(e)>0) OR (glyc(e)>0) OR (sbt-D(e)>0) OR (lac-D(e)>0) OR (man(e)>0)))) AND (Fnr) AND (DcuR)) AND NOT (NarL))
+b4125;dcuS;DcuS;( (succ(e)>0) OR (asp-L(e)>0) OR (fum(e)>0) OR (mal-L(e)>0) )
+b0811;glnH;GlnH;
+b0810;glnP;GlnP;
+b1186;nhaB;NhaB;
+b1187;fadR;FadR;( glc-D(e)>0 OR NOT (ac(e)>0 ) )
+b1189;dadA;DadA;(ala-L(e)>0 AND NOT Crp)
+b0809;glnQ;GlnQ;
+b1385;feaB;FeaB;(FeaR)
+b1190;dadX;DadX;(((ala-L(e)>0) OR (ala-D(e)>0)) AND Crp)
+b1384;feaR;FeaR;(Crp)
+b1386;tynA;TynA;(FeaB)
+b1199;dhaK2;DhaK2;
+b1197;treA;TreA;(RpoS)
+b1198;dhaH;DhaH;
+b3809;dapF;DapF;
+b3806;cyaA;CyaA;(NOT Crp)
+b1398;paaK;PaaK;
+b3805;hemC;HemC;
+b3804;hemD;HemD;
+b3803;hemX;HemX;
+b0403;malZ;MalZ;(MalT)
+b2219;atoS;AtoS;(acac(e)>0)
+b0401;brnQ;BrnQ;
+b0400;phoR;PhoR;(pi(e)<0)
+b2210;mqo;Mqo;(NOT ArcA)
+b0200;yaeD;YaeD;
+b3833;ubiE;UbiE;
+b3831;udp;Udp;(NOT (CytR) OR Crp)
+b3835;ubiB;UbiB;
+b0207;yafB;YafB;
+b2224;atoB;AtoB;(AtoC)
+b2223;atoE;AtoE;(AtoC)
+b2222;atoA;AtoA;(AtoC)
+b2221;atoD;AtoD;(AtoC)
+b2220;atoC;AtoC;(AtoS)
+b0008;talB;TalB;
+b3821;pldA;PldA;
+b0007;yaaJ;YaaJ;
+b0004;thrC;ThrC;(NOT (thr-L(e)>0 OR ile-L(e)>0))
+b0002;thrA;ThrA;(NOT (thr-L(e)>0 OR ile-L(e)>0))
+b3825;pldB;PldB;
+b0003;thrB;ThrB;(NOT (thr-L(e)>0 OR ile-L(e)>0))
+b3828;metR;MetR;(NOT (met-L(e)>0))
+b3829;metE;MetE;((NOT MetJ) AND MetR)
+b2476;purC;PurC;(NOT (PurR))
+b2478;dapA;DapA;
+b2479;gcvR;GcvR;(NOT (gly(e)>0))
+b4384;deoD;DeoD;((NOT DeoR) OR ((NOT DeoR) AND (NOT CytR)) OR (ins(e)>0) OR (gua(e)>0))
+b0221;fadF;FadF;(NOT (FadR2) OR NOT (ArcA))
+b4383;deoB;DeoB;((NOT DeoR) OR ((NOT DeoR) AND (Crp) AND (NOT CytR)) OR ((ins(e)>0) OR (gua(e)>0)))
+b4382;deoA;DeoA;(NOT (DeoR OR CytR) AND Crp)
+b3850;hemG;HemG;
+b4381;deoC;DeoC;((NOT DeoR) OR ((NOT DeoR) AND (Crp) AND (NOT CytR)))
+b0222;gmhA;GmhA;
+b3849;trkH;TrkH;
+b3845;fadA;FadA;(NOT (FadR2) OR NOT (ArcA))
+b3846;fadB;FadB;(NOT (FadR2) OR NOT (ArcA))
+b3843;yigC;YigC;
+b4396;rob;Rob;(dipyridyl)
+b4395;gpmB;GpmB;
+b4393;trpR;TrpR;(trp-L(e)>0)
+b0212;gloB;GloB;
+b4390;nadR;NadR;(highNAD)
+b4198;sgaE;SgaE;
+b4196;sgaH;SgaH;
+b4197;sgaU;SgaU;
+b4388;serB;SerB;
+b2492;focB;FocB;(ArcA OR Fnr AND (Crp OR NOT (NarL)))
+b2499;purM;PurM;(NOT (PurR))
+b2498;upp;Upp;
+b2497;uraA;UraA;
+b3870;glnA;GlnA;(Crp AND RpoN)
+b3500;gor;Gor;(OxyR OR RpoS)
+b0243;proA;ProA;
+b0242;proB;ProB;
+b3869;glnL;GlnL;(ON)
+b3519;treF;TreF;(RpoS)
+b3868;glnG;GlnG;(NOT (nh4(e)>2))
+b0238;gpt;Gpt;
+b3517;gadA;GadA;((NOT (Growth>0 ) AND NOT Crp) OR (pH<4) )
+b4138;dcuA;DcuA;
+b4139;aspA;AspA;((Crp AND NOT (Fnr)) OR Fnr)
+b3893;fdoH;FdoH;((o2(e)>0) OR ((NOT (o2(e)>0) AND (no3(e)>0))))
+b3892;fdoI;FdoI;((o2(e)>0) OR ((NOT (o2(e)>0) AND (no3(e)>0))))
+b3894;fdoG;FdoG;((o2(e)>0) OR ((NOT (o2(e)>0) AND (no3(e)>0))))
+b3526;kdgK;KdgK;(NOT KdgR)
+b3528;dctA;DctA;((((NOT( (glcn(e)>0) OR (glc-D(e)>0) OR (arab-L(e)>0) OR (xyl-D(e)>0) OR (rib-D(e)>0) OR (mal-L(e)>0) OR (glyc(e)>0) OR (sbt-D(e)>0) OR (lac-D(e)>0) OR (man(e)>0)))) AND NOT( ArcA) AND (DcuR)) AND RpoN)
+b0469;apt;Apt;
+b4154;frdA;FrdA;(Fnr OR DcuR OR NOT (NarL))
+b4153;frdB;FrdB;(Fnr OR DcuR OR NOT (NarL))
+b4152;frdC;FrdC;(Fnr OR DcuR OR NOT (NarL))
+b0451;amtB;AmtB;
+b4151;frdD;FrdD;(Fnr OR DcuR OR NOT (NarL))
+b2907;ubiH;UbiH;
+b2904;gcvH;GcvH;((Fis AND NOT PdhR) AND ((NOT( GcvR) AND GcvA) OR Lrp OR NOT PurR))
+b2903;gcvP;GcvP;((Fis AND NOT PdhR) AND ((NOT( GcvR) AND GcvA) OR Lrp OR NOT PurR))
+b2905;gcvT;GcvT;((Fis AND NOT PdhR) AND ((NOT( GcvR) AND GcvA) OR Lrp OR NOT PurR))
+b2901;bglA;BglA;
+b4160;psd;Psd;
+b0485;ybaS;YbaS;
+b0480;ushA;UshA;
+b0273;argF;ArgF;(NOT ArgR)
+b3553;yiaE;YiaE;
+b3551;bisC;BisC;
+b0475;hemH;HemH;
+b0477;gsk;Gsk;
+b4177;purA;PurA;(NOT (PurR) OR RpoE) 
+b0474;adk;Adk;

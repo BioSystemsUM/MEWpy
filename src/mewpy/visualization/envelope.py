@@ -5,7 +5,7 @@ from mewpy.simulation import get_simulator
 
 def flux_envelope(model, r_x, r_y, steps=10, constraints=None):
     """ Calculate the flux envelope for a pair of reactions. 
-        Adapted from REFRAMED.
+        Adapted from REFRAMED to be compatible both with REFRAMED and COBRApy.
 
     Arguments:
         model : the model or simulator

@@ -21,18 +21,20 @@ class SolutionInterface(ABC):
 
 class Solution(SolutionInterface):
 
-    def __init__(self, values, fitness, constraints=None):
+    def __init__(self, values, fitness, constraints=None, is_maximize = True):
         """
         EA Solution
 
         args:
-            candidate: a set() representation of the solution 
+            values: representation of the solution 
             fitness:  a list of fitness values
+            constraints: decoding of the representation into metabolic constraints
+            is_maximize: if the solution results from a maximization problem
         """
         self.values = values
         self.fitness = fitness
-        self.constraints = OrderedDict() if constraints is None else constraints
-        self._is_maximize = True
+        self.constraints = {} if constraints is None else dict(constraints)
+        self._is_maximize = is_maximize
 
     def get_fitness(self):
         return self.fitness
@@ -44,10 +46,13 @@ class Solution(SolutionInterface):
         return self.constraints
 
     def __str__(self):
-        return f"{self.fitness}\n{self.constraints}"
+        return f"{self.fitness}\n{self.values}"
 
     def __repr__(self):
-        return f"{self.fitness}\n{self.constraints}"
+        return f"{self.fitness}\n{self.values}"
+
+    def __eq__(self, solution):
+        return set(self.values) == set(solution.values)
 
     def __gt__(self, solution) -> bool:
         if isinstance(solution, self.__class__):
@@ -75,6 +80,9 @@ class Solution(SolutionInterface):
         fitness = self.fitness.copy()
         new_solution = Solution(values, fitness)
         return new_solution
+
+    def __hash__(self):
+        return hash(str(self.values))
 
 
 class AbstractEA():
@@ -166,7 +174,7 @@ def dominance_test(solution1, solution2, maximize=True):
     return result
 
 
-def non_dominated_population(population, maximize=True, filter_duplicate=False):
+def non_dominated_population(population, maximize=True, filter_duplicate=True):
     """
     returns the non dominated solutions from the population.
     """
@@ -195,19 +203,47 @@ def filter_duplicates(population):
     """ Filters equal solutions from a population
     """
     def remove_equal(individual, population):
-        to_remove = []
-        for i in range(len(population)):
-            other = population[i]
-            if individual.fitness == other.fitness and set(individual.get_representation()) == set(other.get_representation()):
-                to_remove.append(i)
-        for i in to_remove:
-            del population[i]
-        return population
-
+        filtered = []
+        for other in population:
+            if individual != other:
+                filtered.append(other)
+        return filtered
+    
     fitered_list = []
     l = population
     while len(l) > 1:
         individual = l[0]
         fitered_list.append(individual)
-        remove_equal(individual, l[1:])
+        l = remove_equal(individual, l)
+    if l:
+        fitered_list.extend(l)
     return fitered_list
+
+
+
+def cmetric(pf1,pf2,maximize = True):
+    """
+    Computes the c-metric quality indicator
+    :param pf1: first pareto front
+    :param pf2: second pareto front
+
+    returns r1,r2,pf1_2,pf2_1
+        r1: percentage of solutions on pf2 dominated by some solution on pf1
+        r2: percentage of solutions on pf1 dominated by some solution on pf2
+        pf1_2: solutions on pf2 dominated by some solution on pf1
+        pf2_1: solutions on pf1 dominated by some solution on pf2
+    """
+    # solutions on pf2 dominated by some solution on pf1 
+    pf1_2 = set()
+    # solutions on pf1 dominated by some solution on pf2 
+    pf2_1 = set()
+    for s1 in pf1:
+        for s2 in pf2:
+            d = dominance_test(s1,s2,maximize=maximize)
+            if d ==1 : 
+                pf1_2.add(s2)
+            elif d == -1:
+                pf2_1.add(s1)
+    r1 = len(pf1_2)/len(pf2)
+    r2 = len(pf2_1)/len(pf1)
+    return r1,r2, pf1_2,pf2_1

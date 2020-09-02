@@ -8,6 +8,7 @@ from itertools import chain
 import pandas as pd
 import numpy as np
 from math import isinf
+import logging
 import copy
 import os
 import re
@@ -43,24 +44,28 @@ class ModelList(object):
             raise KeyError('model name must be one of {}'.format(', '.join(list(self.model_files))))
         if file_name not in self.models:
             model = load_cbmodel(os.path.join(os.path.dirname(__file__), 'data/{}'.format(file_name)))
-            met_copy = AttrOrderedDict()
-            for key, val in model.metabolites.items():
-                k = key.replace('__91__', '_').replace('__93__', '') 
-                val.id = k
-                met_copy[k] = val
-            model.metabolites = met_copy
-            for rxn in model.reactions.keys():
-                stoi = model.reactions[rxn].stoichiometry
-                nstoi = OrderedDict()
-                for key , v in stoi.items():
-                    k = key.replace('__91__', '_').replace('__93__', '')
-                    nstoi[k] = v
-                model.reactions[rxn].stoichiometry = nstoi
-            for rxn in model.reactions.values():
-                if isinf(rxn.ub):
-                    rxn.ub = ModelConstants.REACTION_UPPER_BOUND
+            self.simplify_model(model)
             self.models[file_name] = model
         return self.models[file_name]
+
+
+    def simplify_model(self,model):
+        met_copy = AttrOrderedDict()
+        for key, val in model.metabolites.items():
+            k = key.replace('__91__', '_').replace('__93__', '') 
+            val.id = k
+            met_copy[k] = val
+        model.metabolites = met_copy
+        for rxn in model.reactions.keys():
+            stoi = model.reactions[rxn].stoichiometry
+            nstoi = OrderedDict()
+            for key , v in stoi.items():
+                k = key.replace('__91__', '_').replace('__93__', '')
+                nstoi[k] = v
+            model.reactions[rxn].stoichiometry = nstoi
+        for rxn in model.reactions.values():
+            if isinf(rxn.ub):
+                rxn.ub = ModelConstants.REACTION_UPPER_BOUND
 
 
     def protein_properties(self):
@@ -116,13 +121,17 @@ class GeckoModel(CBModel):
                  sigma=0.46, c_base=0.3855, gam=36.6, amino_acid_polymerization_cost=37.7,
                  carbohydrate_polymerization_cost=12.8, biomass_reaction_id='r_4041',
                  protein_reaction_id='r_4047', carbohydrate_reaction_id='r_4048',
-                 protein_pool_exchange_id='prot_pool_exchange', common_protein_pool_id='prot_pool'):
+                 protein_pool_exchange_id='prot_pool_exchange', common_protein_pool_id='prot_pool',
+                 reaction_prefix = ''):
         
         # load predifined models
+        model_list = ModelList()
         if isinstance(model, string_types):
-            model_list = ModelList()
             model = model_list.__getitem__(model)
-        
+        elif isinstance(model, CBModel):
+            model_list.simplify_model(model)
+        else:
+            raise ValueError('Model should be a string denomination or a CBModel instance')
                
         super(GeckoModel,self).__init__(model.id)
 
@@ -132,13 +141,6 @@ class GeckoModel(CBModel):
         self.reactions = copy.deepcopy(model.reactions)
         self.genes = copy.deepcopy(model.genes)
 
-        #... just to make sure ...
-        for reaction in model.reactions.values():
-            if isinf(reaction.lb):
-                reaction.lb = 0.0
-            if isinf(reaction.ub):
-                reaction.ub = ModelConstants.REACTION_UPPER_BOUND
-
 
         # biomass reaction id (str)
         if biomass_reaction_id not in self.reactions:
@@ -146,15 +148,19 @@ class GeckoModel(CBModel):
         self.biomass_reaction = biomass_reaction_id
         
         # protein reaction id (CBReaction) 
-        if protein_reaction_id not in self.reactions:
-            raise RuntimeError(f"Reaction {protein_reaction_id} is not in the model")
-        self.protein_reaction = self.reactions[protein_reaction_id]
+        try:
+            self.protein_reaction = self.reactions[protein_reaction_id]
+        except KeyError:
+            logging.warning(f"Protein reaction {protein_reaction_id} is not in the model")
+        
 
         # carbohydrate reaction id (CBReaction) 
-        if carbohydrate_reaction_id not in self.reactions:
-            raise RuntimeError(f"Reaction {carbohydrate_reaction_id} is not in the model")
-        self.carbohydrate_reaction = self.reactions[carbohydrate_reaction_id]
-
+        try:
+            self.carbohydrate_reaction = self.reactions[carbohydrate_reaction_id]
+        except KeyError:
+            logging.warning(f"Carbohydrate reaction {carbohydrate_reaction_id} is not in the model")
+        
+        
         # protein properties DataFrame
         if protein_properties:
             self.protein_properties = protein_properties
@@ -183,8 +189,10 @@ class GeckoModel(CBModel):
         
     
         # multi-pool
-        self.protein_exchange_re = re.compile(r'^prot_(.*)_exchange$')
-        self.pool_protein_exchange_re = re.compile(r'^draw_prot_(.*)$')
+        s_protein_exchange = "^"+reaction_prefix+"prot_(.*)_exchange$"
+        self.protein_exchange_re = re.compile(s_protein_exchange)
+        s_pool_protein_exchange = "^"+reaction_prefix+"draw_prot_(.*)$"
+        self.pool_protein_exchange_re = re.compile(s_pool_protein_exchange)
         self.concentrations = pd.Series(np.nan, index=self.proteins)
         
         # passed parameters
@@ -382,7 +390,65 @@ class GeckoModel(CBModel):
 
 
     
-    
+    def adjust_pool_bounds(self, min_objective=0.05, inplace=False, tolerance=1e-9):
+        """Adjust protein pool bounds minimally to make model feasible.
+
+        Bounds from measurements can make the model non-viable or even infeasible. Adjust these minimally by minimizing
+        the positive deviation from the measured values.
+
+        Parameters
+        ----------
+        min_objective : float
+            The minimum value of for the ojective for calling the model viable.
+        inplace : bool
+            Apply the adjustments to the model.
+        tolerance : float
+            Minimum non-zero value. Solver specific value.
+
+        Returns
+        -------
+        pd.DataFrame
+            Data frame with the series 'original' bounds and the new 'adjusted' bound, and the optimized 'addition'.
+
+        """
+        from reframed.solvers import solver_instance
+        solver = solver_instance(self)
+        solver.add_constraint(
+            'constraint_objective', self.get_objective, sense='>', rhs=min_objective)
+        for pool in self.individual_protein_exchanges:
+            solver.add_variable('pool_diff_' + pool.id, lb=0)
+            solver.add_variable('measured_bound_' + pool.id,
+                                lb=pool.upper_bound, ub=pool.upper_bound)
+
+        """
+        with self.model as model:
+            problem = model.problem
+            constraint_objective = problem.Constraint(model.objective.expression, name='constraint_objective',
+                                                      lb=min_objective)
+            to_add = [constraint_objective]
+            new_objective = S.Zero
+            for pool in model.individual_protein_exchanges:
+                ub_diff = problem.Variable('pool_diff_' + pool.id, lb=0, ub=None)
+                current_ub = problem.Variable('measured_bound_' + pool.id, lb=pool.upper_bound, ub=pool.upper_bound)
+                constraint = problem.Constraint(pool.forward_variable - current_ub - ub_diff, ub=0,
+                                                name='pool_ub_' + pool.id)
+                to_add.extend([ub_diff, current_ub, constraint])
+                new_objective += ub_diff
+                pool.bounds = 0, 1000.
+            model.add_cons_vars(to_add)
+            model.objective = problem.Objective(new_objective, direction='min')
+            model.slim_optimize(error_value=None)
+            primal_values = model.solver.primal_values
+        adjustments = [(pool.id, primal_values['pool_diff_' + pool.id], pool.upper_bound)
+                       for pool in model.individual_protein_exchanges
+                       if primal_values['pool_diff_' + pool.id] > tolerance]
+        result = pd.DataFrame(adjustments, columns=['reaction', 'addition', 'original'])
+        result['adjusted'] = result['addition'] + result['original']
+        if inplace:
+            for adj in result.itertuples():
+                model.reactions.get_by_id(adj.reaction).upper_bound = adj.adjusted
+        return result
+        """
 
 
     @property
@@ -494,7 +560,8 @@ class GeckoModel(CBModel):
     @property
     def protein_rev_reactions(self):
         """
-            Pairs of reverse reactions associated with a protein
+        Pairs of reverse reactions associated with a protein
+        
         Returns
         ------
         dictionaty  

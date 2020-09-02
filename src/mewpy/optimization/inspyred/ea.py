@@ -1,6 +1,5 @@
-from mewpy.utils.process import MultiProcessorEvaluator, cpu_count, DaskEvaluator
+from mewpy.utils.process import MultiProcessorEvaluator, cpu_count 
 from mewpy.utils.constants import EAConstants, ModelConstants
-from mewpy.problems import Strategy
 from mewpy.optimization.ea import AbstractEA, Solution
 from mewpy.optimization.inspyred.problem import InspyredProblem
 from mewpy.optimization.inspyred import operators as op
@@ -20,12 +19,14 @@ class EA(AbstractEA):
         *max_generations* (int): the number of iterations of the EA (stopping criteria) 
     """
 
-    def __init__(self, problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS, mp=True, visualizer=False):
+    def __init__(self, problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS, mp=True, visualizer=False, algorithm = None):
 
         super(EA, self).__init__(problem, initial_population=initial_population,
-                                 max_generations=max_generations, visualizer=visualizer)
+                                 max_generations=max_generations, mp=mp, visualizer=visualizer)
 
+        self.algorithm = algorithm
         self.ea_problem = InspyredProblem(self.problem)
+        from mewpy.problems import Strategy
         if self.problem.strategy == Strategy.OU:
             self.variators = [op.uniform_crossover_OU,
                               op.grow_mutation_OU,
@@ -73,7 +74,7 @@ class EA(AbstractEA):
                     mp_evaluator = RayEvaluator(self.ea_problem, nmp)
                 except:
                     Warning(
-                        "Multiprocessing with persistente solver requires ray (pip install ray).")
+                        "Multiprocessing with persistente solver requires ray (pip install ray). Linux only")
                     mp_evaluator = MultiProcessorEvaluator(
                         self.ea_problem.evaluate, nmp)
             self.evaluator = mp_evaluator.evaluate
@@ -154,7 +155,8 @@ class EA(AbstractEA):
             else:
                 obj = population[i].fitness
             val = population[i].candidate
+            values = self.problem.translate(val)
             const = self.problem.decode(val)
-            solution = Solution(val, obj, const)
+            solution = Solution(values, obj, const)
             p.append(solution)
         return p

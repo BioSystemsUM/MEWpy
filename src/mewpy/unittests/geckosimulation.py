@@ -1,7 +1,7 @@
 """
 ##################################################################
 
-GECKO over REFRAMED tests
+GECKO over REFRAMED
 
 ##################################################################
 """
@@ -44,7 +44,7 @@ def simulation_two():
     """
     model = GeckoModel('single-pool')
     simulation = GeckoSimulation(model)
-    essential_prot = simulation.essential_proteins
+    essential_prot = simulation.essential_proteins('draw_prot_')
     with open('target-prot-single-pool.txt','w') as f:
         for p in model.proteins:
             if p not in essential_prot:
@@ -71,7 +71,7 @@ def simulation_three():
     result = simulation.simulate(constraints=constraints)
     
     from mewpy.optimization.evaluation import WYIELD, BPCY, TargetFlux
-    evaluator_1 = WYIELD("r_2111", "r_2056", parsimonious = True)
+    evaluator_1 = WYIELD("r_2111", "r_2056")
     print(evaluator_1.get_fitness(result,None))
     evaluator_2 = BPCY("r_2111", "r_2056", "r_1714_REV", method=SimulationMethod.lMOMA ,reference=reference)
     print(evaluator_2.get_fitness(result,None))
@@ -169,12 +169,83 @@ def simulation_four():
     print(len(reactions))
 
 
+def gecko_ec():
+    import os
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    PATH = os.path.join(dir_path, '../../../examples/models/gecko/')
+    DATA_FILE = os.path.join(PATH, 'eciML1515_batch.xml')
+    from reframed.io.sbml import load_cbmodel
+    m = load_cbmodel(DATA_FILE)
+    model = GeckoModel(m, biomass_reaction_id='R_BIOMASS_Ec_iML1515_core_75p37M',protein_pool_exchange_id='R_prot_pool_exchange',reaction_prefix='R_')
+    model.set_objective({'R_BIOMASS_Ec_iML1515_core_75p37M': 1.0})
+    
+    # change protein pool bound (suggested by Leslie)
+    # model.reactions['R_prot_pool_exchange'].ub = 0.26 
+    from mewpy.simulation import get_simulator, SimulationMethod
+ 
+    c = {'P32131': 0.125, 'P45425': 32, 'P0A6E1': 32, 'P0A9I8': 0, 'P52643': 4, 'P37661': 0.125}
+    
+    from mewpy.optimization.evaluation import BPCY, WYIELD
+    from mewpy.problems import GeckoOUProblem
+    # the evaluation (objective) functions
+    evaluator_1 = BPCY("R_BIOMASS_Ec_iML1515_core_75p37M", 'R_EX_tyr__L_e',
+                       method=SimulationMethod.pFBA)
+    # FVA MAX is strangely very high... changing the default alpha (0.3) to compensate..
+    evaluator_2 = WYIELD("R_BIOMASS_Ec_iML1515_core_75p37M", 'R_EX_tyr__L_e', alpha= 0.01 )
+    
+    # The optimization problem
+    problem = GeckoOUProblem(model,
+                              fevaluation=[evaluator_1, evaluator_2],
+                              envcond={},
+                              prot_prefix='R_draw_prot_',
+                              candidate_max_size=30)
+    
+
+    #c1 = problem.translate(c,reverse=True)
+    #print(c1)
+    #c2 = problem.decode(c1)
+    #print(c2)
+    sim = get_simulator(model)
+    
+    #c2 = {'R_draw_prot_P0AFV4': 0.0, 'R_draw_prot_P67910': (0.0, 0.0), 'R_draw_prot_P02924': (0.0, 0.0), 'R_draw_prot_P07639': (1.1271272290940493e-07, 10000), 'R_draw_prot_P39172': 0.0, 'R_draw_prot_P0AER3': (0.0, 10000), 'R_draw_prot_P0A991': (0.0, 10000), 'R_draw_prot_P0ACD8': (0.0, 0.0), 'R_draw_prot_P00805': (0.0, 10000), 'R_draw_prot_P28635': (0.0, 0.0), 'R_draw_prot_P33593': (0.0, 0.0), 'R_draw_prot_P0A9H5': (0.0, 10000), 'R_draw_prot_P0A6L4': (0.0, 10000), 'R_draw_prot_P60560': (0.0, 10000), 'R_draw_prot_P37001': 0.0, 'R_draw_prot_P37355': (0.0, 0.0), 'R_draw_prot_P0AEE5': (0.0, 0.0), 'R_draw_prot_P0ABA0': (0.0, 0.0), 'R_draw_prot_P0ABK5': (0.0, 10000)}
+    c2 = {'R_draw_prot_P69922': (0.0, 10000), 'R_draw_prot_P32176': (0.0, 0.0), 'R_draw_prot_P11349': (0.0, 10000), 'R_draw_prot_P37646': 0.0, 'R_draw_prot_P76577': (0.0, 0.0), 'R_draw_prot_P77788': (0.0, 0.0), 'R_draw_prot_P0AG20': (0.0, 10000), 'R_draw_prot_P63224': 0.0, 'R_draw_prot_P62623': (0.0, 3.28753677758505e-07), 'R_draw_prot_P10907': (0.0, 0.0), 'R_draw_prot_P0AER5': (0.0, 0.0), 'R_draw_prot_P27254': (0.0, 10000), 'R_draw_prot_P0A6E1': (4.0254906190734055e-05, 10000), 'R_draw_prot_P0A924': 0.0, 'R_draw_prot_P32055': (0.0, 10000), 'R_draw_prot_P21179': 0.0, 'R_draw_prot_P10378': 0.0}
+
+    print("\nFBA")
+    res = sim.simulate(method=SimulationMethod.FBA,constraints=c2)
+    print(res)
+    print("Biomass:",res.fluxes['R_BIOMASS_Ec_iML1515_core_75p37M'])
+    print("TYR:",res.fluxes['R_EX_tyr__L_e'])
+    
+    print("\npFBA")
+    res = sim.simulate(method=SimulationMethod.pFBA,constraints=c2)
+    print(res)
+    print("Biomass:",res.fluxes['R_BIOMASS_Ec_iML1515_core_75p37M'])
+    print("TYR:",res.fluxes['R_EX_tyr__L_e'])
+    
+    print("\nlMOMA")
+    res = sim.simulate(method=SimulationMethod.lMOMA,constraints=c2)
+    print(res)
+    print("Biomass:",res.fluxes['R_BIOMASS_Ec_iML1515_core_75p37M'])
+    print("TYR:",res.fluxes['R_EX_tyr__L_e'])
+
+    print("\nMOMA")
+    res = sim.simulate(method=SimulationMethod.MOMA,constraints=c2)
+    print(res)
+    print("Biomass:",res.fluxes['R_BIOMASS_Ec_iML1515_core_75p37M'])
+    print("TYR:",res.fluxes['R_EX_tyr__L_e'])
+
+    print("\nFVA")
+    res = sim.FVA(reactions=['R_EX_tyr__L_e'],constraints=c2)
+    print(res)
+
+
 if __name__ == "__main__":
     #simulation_one()
     #simulation_two()
     #simulation_three()
     #test_basic_gecko_adjustment()
     #test_gecko_adjustment_sanchez_etal()
-    simulation_four()
+    #simulation_four()
     
+    gecko_ec()
     

@@ -11,7 +11,7 @@ from mewpy.utils.constants import ModelConstants
 from mewpy.utils.parsing import evaluate_expression_tree
 from collections import OrderedDict
 from warnings import warn
-
+import numpy as np
 
 class CobraModelContainer(ModelContainer):
     def __init__(self, model: Model):
@@ -34,6 +34,10 @@ class CobraModelContainer(ModelContainer):
     @property
     def medium(self):
         return self.model.medium
+
+    @property
+    def compartments(self):
+        return self.model._compartments
 
     def get_gpr(self, reaction_id):
         """Returns the gpr rule (str) for a given reaction ID.
@@ -69,6 +73,7 @@ class Simulation(CobraModelContainer, Simulator):
         self.solver = solver
         self._essential_reactions = None
         self._essential_genes = None
+        self._gene_to_reaction = None
         self._reference = reference
         self.__status_mapping = {
             'optimal': SStatus.OPTIMAL,
@@ -153,22 +158,159 @@ class Simulation(CobraModelContainer, Simulator):
         Returns 
             reaction identifier or None
         """
-        rxn = self.model.reactions[reaction_id]
+        rxn = self.model.reactions.get_by_id(reaction_id)
         reactions = self.reactions
-        if rxn.lb < 0:
-            rxn.reversible = True
+        if rxn.lower_bound < 0:
             return reaction_id
         else:
-            for a, b in self.reverse_sintax:
-                n = len(reaction_id)-len(a)
-                m = len(reaction_id)-len(b)
-                if reaction_id[n:] == a and reactions[reaction_id[:n]+b]:
-                    return reaction_id[:n]+b
-                elif reaction_id[m:] == b and reactions[reaction_id[:m]+a]:
-                    return reaction_id[:m]+a
-                else:
-                    continue
-            return None
+            rev = rxn.reverse_id
+            if rev in reactions:
+                return rev
+        return None
+
+    def gene_reactions(self):
+        """
+        returns a map of genes to reactions
+        """
+        if not self._gene_to_reaction:
+            gr = OrderedDict()
+            for rxn_id in self.reactions:
+                rxn = self.model.reactions.get_by_id(rxn_id)
+                genes = rxn.genes
+                for g in genes:
+                    if g in gr.keys():
+                        gr[g.id].append(rxn_id)
+                    else:
+                        gr[g.id] = [rxn_id]
+            self._gene_to_reaction = gr
+        return self._gene_to_reaction
+
+    def get_reactions_for_genes(self, genes):
+        if not self._gene_to_reaction:
+            self.gene_reactions()
+        reactions = []
+        for gene in genes:
+            if gene in self._gene_to_reaction.keys():
+                reactions.extend(self._gene_to_reaction[gene])
+        return reactions
+
+    def get_reaction_metabolites(self, reaction):
+        '''
+        Returns all metabolites of a given reaction
+        :param reaction: reaction (str)
+        :return: metabolites (dict)
+        '''
+        return self.model.reactions.get_by_id(reaction).metabolites
+
+    def is_reactant(self, reaction, metabolite):
+        '''
+        Returns if a metabolite is reactant into a given reaction
+        :param reaction: reaction (str)
+        :param metabolite: metabolite (str)
+        :return: bool
+        '''
+
+        return self.model.metabolites.get_by_id(metabolite) in self.model.reactions.get_by_id(reaction).reactants
+
+    def is_product(self, reaction, metabolite):
+        '''
+        Returns if a metabolite is product into a given reaction
+        :param reaction: reaction (str)
+        :param metabolite: metabolite (str)
+        :return: bool
+        '''
+
+        return self.model.metabolites.get_by_id(metabolite) in self.model.reactions.get_by_id(reaction).products
+
+    def get_metabolite_reactions(self, metabolite):
+
+        return [reaction.id for reaction in self.model.metabolites.get_by_id(metabolite).reactions]
+
+
+    def get_S(self):
+
+        """
+        Returns the S matrix as a numpy array
+
+        :returns:
+            S matrix, np.array
+
+        """
+        S = np.zeros((len(self.metabolites), len(self.reactions)))
+
+        # usually there are more reactions than metabolites, but is far more easy to build S from reactions
+        m_ids = {metabolite: i for i, metabolite in enumerate(self.model.metabolites)}
+
+        for i, reaction in enumerate(self.model.reactions):
+            for metabolite, coef in reaction.metabolites.items():
+                S[m_ids[metabolite], i] = coef
+
+        return S
+
+
+    def get_reaction_bounds(self, reaction):
+
+        """
+        Returns the bounds for a given reaction.
+
+        :param reaction: str, reaction ID
+
+        :return: lb(s), ub(s), tuple
+        """
+
+        if reaction in self.constraints:
+            lb, ub = self.constraints[reaction]
+        elif reaction in self.environmental_conditions:
+            lb, ub = self.environmental_conditions[reaction]
+        else:
+            lb, ub = self.model.reactions.get_by_id(reaction).bounds
+
+        return lb if lb > -np.inf else -999999, ub if ub < np.inf else 999999
+
+
+    def get_bounds(self):
+
+        """
+        Returns the whole set of lower and upper bounds as numpy arrays
+
+        :returns:
+            lb(s), ub(s), tuple of lists
+
+        """
+
+        lbs, ubs = list(zip(*[self.get_reaction_bounds(reaction) for reaction in self.reactions]))
+
+        return list(lbs), list(ubs)
+
+    def get_boundary_reaction(self, metabolite):
+
+        """
+        Finds the boundary reaction associated with an extracellular metabolite.
+        If none is found, None is returned
+
+        :param metabolite: str, metabolite ID
+
+        :returns:
+            reaction, str
+            None
+        """
+
+        for reaction in self.model.metabolites.get_by_id(metabolite).reactions:
+
+            if reaction.id in self.model.exchanges \
+                    or reaction.id in self.medium \
+                    or reaction.boundary\
+                    or (len(reaction.products) == 0):
+                return reaction.id
+        return None
+
+
+    def get_objective(self):
+        from cobra.util.solver import linear_reaction_coefficients
+        return list(map(lambda x: x.id, linear_reaction_coefficients(self.model).keys()))
+
+
+
 
     def simulate(self, objective=None, method=SimulationMethod.FBA, maximize=True, constraints=None, reference=None, scalefactor=None):
         '''
@@ -240,7 +382,7 @@ class Simulation(CobraModelContainer, Simulator):
         """ Run Flux Variability Analysis (FVA).
 
         Arguments:
-            model (CBModel): a constraint-based model
+            model (Model): a constraint-based model
             obj_frac (float): minimum fraction of the maximum growth rate (default 0.0, max: 1.0)
             reactions (list): list of reactions to analyze (default: all)
             constraints (dict): additional constraints (optional)
@@ -260,6 +402,9 @@ class Simulation(CobraModelContainer, Simulator):
                 float(df.loc[r_id][0]), float(df.loc[r_id][1])]
         return variability
 
+    def set_objective(self, reaction):
+        self.model.objective = reaction
+
 
 class GeckoSimulation(Simulation):
     """
@@ -276,8 +421,8 @@ class GeckoSimulation(Simulation):
     def proteins(self):
         return list(self.model.proteins)
 
-    @property
-    def essential_proteins(self, min_growth=0.01):
+
+    def essential_proteins(self,protein_prefix, min_growth=0.01):
         if self._essential_proteins is not None:
             return self._essential_proteins
         wt_solution = self.simulate()
@@ -285,7 +430,7 @@ class GeckoSimulation(Simulation):
         self._essential_proteins = []
         proteins = self.model.proteins
         for p in proteins:
-            rxn = "draw_prot_{}".format(p)
+            rxn = "{}{}".format(protein_prefix,p)
             res = self.simulate(constraints={rxn: 0})
             if res:
                 if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) or res.status == SStatus.INFEASIBLE:

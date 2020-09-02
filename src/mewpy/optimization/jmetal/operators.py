@@ -280,7 +280,31 @@ class SingleMutationOU(Mutation[OUSolution]):
             solution.variables = mutant
         return solution
 
+    def get_name(self):
+        return 'Single Mutation KO'
+
+    
+class SingleMutationOULevel(Mutation[OUSolution]):
+    """
+    Mutates the expression level of a single element
+    """
+    def __init__(self, probability: float = 0.1):
+        super(SingleMutationOULevel, self).__init__(probability = probability)
+        
+    def execute(self, solution: Solution) -> Solution:
+        if random.random() <= self.probability:
+            mutant = copy.copy(solution.variables)
+            index = random.randint(0, len(mutant) - 1)
+            idx, idy = mutant[index] 
+            lv = random.randint(solution.lower_bound[1],solution.upper_bound[1])
+            while lv == idy:
+                lv = random.randint(solution.lower_bound[1],solution.upper_bound[1])
+            mutant[index] = (idx,lv)
+            solution.variables = mutant
+        return solution
+
 
 
     def get_name(self):
         return 'Single Mutation KO'
+

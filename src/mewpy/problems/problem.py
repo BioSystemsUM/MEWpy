@@ -1,19 +1,21 @@
-from enum import Enum
+from enum import IntEnum
 from abc import ABC, abstractmethod
 from mewpy.utils.constants import EAConstants, ModelConstants
+from mewpy.optimization.ea import Solution
 from mewpy.simulation import get_simulator
 from collections import OrderedDict
 import warnings
 import numpy as np
 import copy
+import logging
 
 
-class Strategy(Enum):
+class Strategy(IntEnum):
     """
     The available optimization strategies
     """
-    KO = 'KO'
-    OU = 'OU'
+    KO = 1
+    OU = 2
 
 
 class KOBounder(object):
@@ -101,9 +103,16 @@ class AbstractProblem(ABC):
         for f in self.fevaluation:
             methods.extend(f.required_simulations())
         self.methods = list(set(methods))
-
+            
+        
+        
     @abstractmethod
     def generator(self, random, args):
+        """The generator function for the problem."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def translate(self, candidate, reverse=False):
         """The generator function for the problem."""
         raise NotImplementedError
 
@@ -113,7 +122,7 @@ class AbstractProblem(ABC):
         raise NotImplementedError
 
     def get_name(self):
-        """The decoder function for the problem."""
+        """The problem name."""
         return self.__class__.__name__
 
     def pre_process(self):
@@ -166,14 +175,17 @@ class AbstractProblem(ABC):
     def get_persistent_constraints(self):
         return self.persistent_constraints
 
-    def evaluate_solution(self, solution):
+    def evaluate_solution(self, solution, decode = True):
         """
         Evaluates a single solution, a list of constraints
         returns a list of fitness
         """
         p = []
         # decoded constraints
-        constraints = self.decode(solution)
+        if decode:
+            constraints = self.decode(solution)
+        else:
+            constraints = solution
         # pre simulation
         simulation_results = OrderedDict()
         try:
@@ -188,45 +200,33 @@ class AbstractProblem(ABC):
         except Exception as e:
             for f in self.fevaluation:
                 p.append(f.worst_fitness)
-            warnings.warn(
-                f"Solution couldn't be evaluated [{e}]\n {constraints}")
+            if EAConstants.DEBUG:    
+                warnings.warn(f"Solution couldn't be evaluated [{e}]\n {constraints}")
         return p
 
     @property
     def is_maximization(self):
         return all([f.maximize for f in self.fevaluation])
 
-    def simplify(self, solution, tolerance=1e-6):
+    def simplify(self, solution, tolerance=1e-6,):
         """
-        Simplify a solution by removing the modification that not affect the final fitness value.
+        Simplify a solution by removing the modification that do not affect the final fitness value.
         Args:
             solution : the solution to be simplified
             tolerance: max allowed objective difference values for two solutions to be considered diferent.
                        Tolerance may be defined by a single float value, or per objective by means of a list of floats
                        of size equal to the number of objectives.
-        Returns: a list of simplified constraints
+        Returns: a list of simplified solutions
         """
 
-        constraints = dict(copy.copy(self.get_constraints(solution)))
-        constraints_to_remove = []
-        if self.number_of_objectives == 1:
-            fitness = [solution.fitness]
-        else:
-            fitness = solution.fitness
-        for key in constraints.keys():
-            simul_constraints = copy.copy(constraints)
-            del simul_constraints[key]
-            # pre simulation
-            simulation_results = OrderedDict()
-            for method in self.methods:
-                simulation_result = self.simulator.simulate(
-                    constraints=simul_constraints, method=method, scalefactor=self.scalefactor)
-                simulation_results[method] = simulation_result
-            # apply the evaluation function(s)
-            fit = []
-            for f in self.fevaluation:
-                fit.append(f(simulation_results, solution,
-                             scalefactor=self.scalefactor))
+        values = self.translate(solution.values, reverse=True)
+        fitness = self.evaluate_solution(values)
+        one_to_remove = {}
+        ### single removal
+        for entry in values:
+            simul_constraints = copy.copy(values)
+            simul_constraints.remove(entry)
+            fit = self.evaluate_solution(simul_constraints)
             diff = np.abs(np.array(fit)-np.array(fitness))
             is_equal = False
             if isinstance(tolerance, float):
@@ -234,10 +234,37 @@ class AbstractProblem(ABC):
             else:
                 is_equal = np.all(diff <= np.array(tolerance))
             if is_equal:
-                constraints_to_remove.append(key)
-        for key in constraints_to_remove:
-            del constraints[key]
-        return constraints
+                one_to_remove[entry]= fit
+        
+        simul_constraints = copy.copy(values)
+        for entry in one_to_remove.keys():
+            simul_constraints.remove(entry)
+        
+        # test all simoulateous removal
+        fit = self.evaluate_solution(simul_constraints)
+        diff = np.abs(np.array(fit)-np.array(fitness))
+        is_equal = False
+        if isinstance(tolerance, float):
+            is_equal = np.all(diff <= tolerance)
+        else:
+            is_equal = np.all(diff <= np.array(tolerance))
+        
+        if is_equal:
+            v = self.translate(simul_constraints)
+            c = self.decode(simul_constraints)
+            simplification = Solution(v, fitness, c)
+            return [simplification]
+        else:
+            res = []
+            for entry, fit in one_to_remove.items():
+                simul_constraints = copy.copy(values)
+                simul_constraints.remove(entry)
+                v = self.translate(simul_constraints)
+                c = self.decode(simul_constraints)
+                simplification = Solution(v, fitness, c)
+                res.append(simplification)
+            return res
+            
 
 
 class AbstractKOProblem(AbstractProblem):
@@ -258,7 +285,7 @@ class AbstractKOProblem(AbstractProblem):
         candidate_min_size (int) : The candidates maximum size.
         target (list): List of target reactions.
         non_target (list): List of non target reactions. Not considered if a target list is provided.
-        scalefactor (floaf): a scaling factor to be used in the LP formulation. 
+        scalefactor (floaf): a scaling factor to be used in the LP formulation.
     """
 
     def __init__(self, model, fevaluation=None, **kwargs):
@@ -274,7 +301,7 @@ class AbstractKOProblem(AbstractProblem):
     @property
     def bounder(self):
         """
-        The KO list index bounder  
+        The KO list index bounder
         """
         if self._bounder is None:
             max = len(self.target_list)-1
@@ -292,9 +319,22 @@ class AbstractKOProblem(AbstractProblem):
             solution.add(random.randint(0, len(self.target_list)-1))
         return solution
 
+    def translate(self, candidate, reverse=False):
+        """
+        Translates a candidate solution in problem specific representation to
+        an iterable of ids, or (ids, folds).
+        Arguments:
+            candidate (iterable): the candidate representation.
+            reverse (boolean): performs the reverse translation.
+        """
+        if not reverse:
+            return {self.target_list[idx] for idx in candidate}
+        else:
+            return [self.target_list.index(k) for k in candidate]
+
 
 class AbstractOUProblem(AbstractProblem):
-    """ Base class for Over/Under expression optimization problems 
+    """ Base class for Over/Under expression optimization problems
 
     arguments:
 
@@ -304,7 +344,7 @@ class AbstractOUProblem(AbstractProblem):
     **args:
 
         envcond (OrderedDict): environmental conditions
-        constraints (OrderedDict): additional constraints to be applied to the model 
+        constraints (OrderedDict): additional constraints to be applied to the model
         candidate_min_size : The candidate minimum size (Default EAConstants.MIN_SOLUTION_SIZE)
         candidate_max_size : The candidate maximum size (Default EAConstants.MAX_SOLUTION_SIZE)
         non_target (list): list of non target reactions
@@ -328,7 +368,7 @@ class AbstractOUProblem(AbstractProblem):
     @property
     def bounder(self):
         """
-        The list and levels index bounder  
+        The list and levels index bounder
         """
         if self._bounder is None:
             max_idx = len(self.target_list)-1
@@ -381,7 +421,7 @@ class AbstractOUProblem(AbstractProblem):
             constraints[rxn] = self.ou_constraint(lv, fluxe_wt)
         else:
             # there's a reverse reaction...
-            # one of the two reactions needs to be KO, the one with no (or lesser) flux in the wt
+            # one of the two reactions needs to be KO, the one with no (or lesser if the model has issues) flux in the wt
             rev_fluxe_wt = self.reference[rev_rxn]
             if abs(fluxe_wt) >= abs(rev_fluxe_wt):
                 ko_rxn, ou_rxn, fwt = rev_rxn, rxn, fluxe_wt
@@ -390,3 +430,18 @@ class AbstractOUProblem(AbstractProblem):
             constraints[ko_rxn] = (0, 0)
             constraints[ou_rxn] = self.ou_constraint(lv, fwt)
         return constraints
+
+    def translate(self, candidate, reverse=False):
+        """
+        Translates a candidate solution in problem specific representation to 
+        an iterable of ids, or (ids, folds).
+        Arguments:
+            candidate (iterable): the candidate representation.
+            reverse (boolean): performs the reverse translation.
+        """
+        if not reverse:
+            return {self.target_list[idx]: self.levels[lv_idx]
+                    for idx, lv_idx in candidate}
+        else:
+            return [(self.target_list.index(k), self.levels.index(lv))
+                    for k, lv in candidate.items()]

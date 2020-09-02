@@ -76,6 +76,13 @@ class KOSolution(Solution[int], SolutionInterface):
     def __str__(self):
         return " ".join((self.variables))
 
+    
+    def __getitem__(self,idx):
+        return self.objectives[idx]
+
+    def __len__(self):
+        return len(self.objectives)
+
 
 class OUSolution(Solution[IntTupple], SolutionInterface):
     """
@@ -139,10 +146,19 @@ class OUSolution(Solution[IntTupple], SolutionInterface):
         return " ".join((self.variables))
 
 
+    def __getitem__(self,idx):
+        return self.objectives[idx]
+
+    def __len__(self):
+        return len(self.objectives)
+
+
+
 class JMetalKOProblem(Problem[KOSolution]):
 
     def __init__(self, problem):
         self.problem = problem
+        self.number_of_objectives = len(self.problem.fevaluation)
         self.obj_directions = []
         self.obj_labels = []
         for f in self.problem.fevaluation:
@@ -184,6 +200,7 @@ class JMetalOUProblem(Problem[OUSolution]):
 
     def __init__(self, problem):
         self.problem = problem
+        self.number_of_objectives = len(self.problem.fevaluation)
         self.obj_directions = []
         self.obj_labels = []
         for f in self.problem.fevaluation:

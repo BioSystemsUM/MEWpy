@@ -1,5 +1,5 @@
 from mewpy.utils.constants import EAConstants
-
+from .ea import Solution
 
 engines = dict()
 
@@ -16,8 +16,13 @@ except ImportError:
     pass
 
 
-default_engine = None
+algorithms ={ 'inspyred' : ['NSGAII'],
+              'jmetal': ['NSGAII','SPEA2','NSGAIII']
+            }
 
+
+default_engine = None
+preferred_EA = 'NSGAII'
 
 def get_default_engine():
 
@@ -39,10 +44,6 @@ def get_default_engine():
     return default_engine
 
 
-def get_available_engines():
-    return list(engines.keys())
-
-
 def set_default_engine(enginename):
     """ Sets default EA engine.
     Arguments:
@@ -55,6 +56,33 @@ def set_default_engine(enginename):
         default_engine = enginename.lower()
     else:
         raise RuntimeError(f"EA engine {enginename} not available.")
+
+
+def set_preferred_EA(algorithm):
+    "Defines de preferred MOEA."
+    global preferred_EA
+    global default_engine
+
+    if algorithm in algorithms[get_default_engine()]:
+        preferred_EA = algorithm
+    else:
+        for eng in engines.keys():
+            if algorithm in algorithms[eng]:
+                preferred_EA = algorithm            
+                default_engine = eng
+                return
+        raise ValueError(f"Algorithm {algorithm} is unavailable.")
+
+
+def get_preferred_EA():
+    global preferred_EA
+    return preferred_EA
+
+
+def get_available_engines():
+    return list(engines.keys())
+
+
 
 
 def EA(problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS, mp=True, visualizer=False):
@@ -72,4 +100,4 @@ def EA(problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIO
     if len(engines) == 0:
         raise RuntimeError('Inspyred or JMetal packages are required.')
     engine = engines[get_default_engine()]
-    return engine(problem, initial_population=initial_population, max_generations=max_generations, mp=mp, visualizer=visualizer)
+    return engine(problem, initial_population=initial_population, max_generations=max_generations, mp=mp, visualizer=visualizer,algorithm=get_preferred_EA())

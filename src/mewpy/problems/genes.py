@@ -1,7 +1,10 @@
 from .problem import AbstractKOProblem, AbstractOUProblem
 from mewpy.utils.parsing import GeneEvaluator, build_tree, Boolean
 from collections import OrderedDict
+from mewpy.utils.constants import EAConstants
+import logging
 
+logger = logging.getLogger('mewpy.problems.genes')
 
 class GKOProblem(AbstractKOProblem):
     """
@@ -90,12 +93,6 @@ class GOUProblem(AbstractOUProblem):
         gr_constraints = OrderedDict()
         genes = {self.target_list[idx]: self.levels[lv_idx]
                  for idx, lv_idx in candidate}
-        # get all reaction in which the genes intervene
-        g_r = self.simulator.gene_reactions()
-        reactions = []
-        for g in genes:
-            reactions.extend(g_r[g])
-        reactions = set(reactions)
         # evaluate gpr
         if not self._operators:
             self._operators = (lambda x, y: min(x, y), lambda x, y: max(x, y))
@@ -109,6 +106,9 @@ class GOUProblem(AbstractOUProblem):
                 # apply the operators to obtain a level for the reaction
                 # if a gene as no level associated its factor is 1 (see GeneEvaluator)
                 lv = tree.evaluate(evaluator.f_operand, evaluator.f_operator)
+                # debugging 
+                logger.debug(f"{gpr}\n{genes}\nlevel:{lv}\n")
+                
                 # adds the reaction constraint
                 rev_rxn = self.simulator.reverse_reaction(rxn_id)
                 # skips if the reverse reaction was already processed

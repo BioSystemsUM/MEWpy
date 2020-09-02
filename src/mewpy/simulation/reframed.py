@@ -13,6 +13,7 @@ from mewpy.simulation.simulation import Simulator, SimulationResult, ModelContai
 from mewpy.utils.constants import ModelConstants
 from mewpy.utils.parsing import evaluate_expression_tree
 from collections import OrderedDict
+import numpy as np
 
 
 class CBModelContainer(ModelContainer):
@@ -33,6 +34,10 @@ class CBModelContainer(ModelContainer):
     @property
     def metabolites(self):
         return list(self.model.metabolites.keys())
+
+    @property
+    def compartments(self):
+        return self.model.compartments
 
     def get_gpr(self, reaction_id):
         """Returns the gpr rule (str) for a given reaction ID.
@@ -82,9 +87,11 @@ class Simulation(CBModelContainer, Simulator):
         if not isinstance(model, CBModel):
             raise ValueError(
                 "Model is None or is not an instance of REFRAMED CBModel")
-
         self.model = model
-        self.objective = self.model.get_objective() if objective is None else objective
+        try:
+            self.objective = self.model.get_objective() if objective is None else objective
+        except:
+            self.objective = None
         self.environmental_conditions = OrderedDict() if envcond is None else envcond
         self.constraints = OrderedDict() if constraints is None else constraints
         self.solver = solver
@@ -92,6 +99,11 @@ class Simulation(CBModelContainer, Simulator):
         self._essential_genes = None
         self._reference = reference
         self._gene_to_reaction = None
+        self.solver = solver
+        self._reset_solver = ModelConstants.RESET_SOLVER
+        self.reverse_sintax = [('_b', '_f')]
+        self._index_metabolites_reactions = None
+        self._m_r_lookup = None
 
         self.__status_mapping = {
             s_status.OPTIMAL: SStatus.OPTIMAL,
@@ -101,10 +113,6 @@ class Simulation(CBModelContainer, Simulator):
             s_status.UNKNOWN: SStatus.UNKNOWN,
             s_status.SUBOPTIMAL: SStatus.SUBOPTIMAL
         }
-
-        self.solver = solver
-        self._reset_solver = ModelConstants.RESET_SOLVER
-        self.reverse_sintax = [('_b', '_f')]
 
     @property
     def reference(self):
@@ -130,6 +138,8 @@ class Simulation(CBModelContainer, Simulator):
 
     @property
     def essential_genes(self, min_growth=0.01):
+        """
+        """
         if self._essential_genes is not None:
             return self._essential_genes
         self._essential_genes = []
@@ -161,8 +171,28 @@ class Simulation(CBModelContainer, Simulator):
                 active_reactions.append(r_id)
         return active_reactions
 
-    def get_uptake_reactions(self):
 
+    def update(self):
+        self.model.update()
+
+    def add_reaction(self,reaction,replace=True):
+        self.model.add_reaction(reaction,replace=replace)    
+
+    def remove_reaction(self, r_id):
+        self.model.remove_reaction(r_id)
+
+    def get_metabolite_reactions(self, metabolite):
+        if not self._index_metabolites_reactions:
+            self.__index_metabolites_reactions__()
+        return self._index_metabolites_reactions[metabolite]
+
+    def get_metabolite_compartement(self, metabolite):
+        return self.model.metabolites[metabolite].compartment
+
+    def get_uptake_reactions(self):
+        """
+        List of uptake reactions
+        """
         drains = self.get_drains()
         reacs = [r for r in drains if self.model.reactions[r].reversible or
                  ((self.model.reactions[r].lb is None or self.model.reactions[r].lb < 0)and len(self.model.reactions[r].get_substrates()) > 0) or
@@ -216,6 +246,159 @@ class Simulation(CBModelContainer, Simulator):
             self._gene_to_reaction = gr
         return self._gene_to_reaction
 
+    def get_reactions_for_genes(self, genes):
+        """
+        Returns the list of reactions catalysed by a list of genes
+
+        Arguments:
+            A list of gene IDs
+
+        """
+        if not self._gene_to_reaction:
+            self.gene_reactions()
+        reactions = []
+        for gene in genes:
+            reactions.extend(self._gene_to_reaction[gene])
+        return reactions
+
+    def get_reaction_metabolites(self, reaction):
+        '''
+        Returns all metabolites of a given reaction
+        :param reaction: reaction (str)
+        :return: metabolites (dict)
+        '''
+        return self.model.reactions[reaction].stoichiometry
+
+    def is_reactant(self, reaction, metabolite):
+        '''
+        Returns if a metabolite is reactant into a given reaction
+        :param reaction: reaction (str)
+        :param metabolite: metabolite (str)
+        :return: bool
+        '''
+        if metabolite not in self.model.reactions[reaction].stoichiometry:
+            raise KeyError("{} not in {}".format(metabolite, reaction))
+        return self.model.reactions[reaction].stoichiometry[metabolite] < 0.0
+
+    def is_product(self, reaction, metabolite):
+        '''
+        Returns if a metabolite is product into a given reaction
+        :param reaction: reaction (str)
+        :param metabolite: metabolite (str)
+        :return: bool
+        '''
+        if metabolite not in self.model.reactions[reaction].stoichiometry:
+            raise KeyError("{} not in {}".format(metabolite, reaction))
+        return self.model.reactions[reaction].stoichiometry[metabolite] > 0.0
+
+    def __index_metabolites_reactions__(self):
+        self._index_metabolites_reactions = {}
+        for reaction in self.reactions:
+            metabolites = self.get_reaction_metabolites(reaction)
+            for metabolite in metabolites:
+                if metabolite in self._index_metabolites_reactions:
+                    self._index_metabolites_reactions[metabolite].append(
+                        reaction)
+                else:
+                    self._index_metabolites_reactions[metabolite] = [reaction]
+
+
+    def metabolite_reaction_lookup(self, force_recalculate=False):
+        """ Return the network topology as a nested map from metabolite to reaction to coefficient
+        Returns:
+            dict: lookup table
+        """
+
+        if not self._m_r_lookup or force_recalculate:
+            self._m_r_lookup = OrderedDict([(m_id, OrderedDict()) for m_id in self.metabolites])
+
+            for r_id, reaction in self.model.reactions.items():
+                for m_id, coeff in reaction.stoichiometry.items():
+                    self._m_r_lookup[m_id][r_id] = coeff
+
+        return self._m_r_lookup
+
+
+    
+    def set_objective(self, reaction):
+        self.model.set_objective({reaction: 1})
+
+    
+    def get_objective(self):
+        return list(self.objective.keys())
+
+
+    def get_S(self):
+        """
+        Returns the S matrix as a numpy array
+        :returns:
+            S matrix, np.array
+        """
+
+        return np.array(self.model.stoichiometric_matrix())
+
+
+    def get_reaction_bounds(self, reaction):
+
+        """
+        Returns the bounds for a given reaction.
+        :param reaction: str, reaction ID
+        :return: lb(s), ub(s), tuple
+        """
+
+        if reaction in self.constraints:
+            lb, ub = self.constraints[reaction]
+        elif reaction in self.environmental_conditions:
+            lb, ub = self.environmental_conditions[reaction]
+        else:
+            lb, ub = self.model.reactions[reaction].lb, self.model.reactions[reaction].ub
+
+        return lb if lb > -np.inf else -999999, ub if ub < np.inf else 999999
+
+
+
+    def get_bounds(self):
+        """
+        Returns the whole set of lower and upper bounds as numpy arrays
+
+        :returns:
+            lb(s), ub(s), tuple of lists
+
+        """
+
+        lbs, ubs = list(zip(*[self.get_reaction_bounds(reaction) for reaction in self.model.reactions]))
+        return list(lbs), list(ubs)
+
+
+
+    def get_boundary_reaction(self, metabolite):
+
+        """
+        Finds the boundary reaction associated with an extracellular metabolite.
+        If none is found, None is returned
+
+        :param metabolite: str, metabolite ID
+
+        :returns:
+            reaction, str
+            None
+        """
+
+        # reaction.reaction_type.value == 'exchange'
+        # len(reaction.stoichiometry) == 1
+
+        for reaction in self.get_metabolite_reactions(metabolite):
+
+            if reaction in self.medium or self.model.reactions[reaction].reaction_type.value == 'exchange' \
+                    or len(self.model.reactions[reaction].stoichiometry) == 1:
+                return reaction
+
+        return None
+
+    
+    
+    
+    
     def simulate(self, objective=None, method=SimulationMethod.FBA, maximize=True, constraints=None, reference=None, scalefactor=None, solver=None):
         '''
             Simulates the application of constraints using the specified method.
@@ -249,8 +432,7 @@ class Simulation(CBModelContainer, Simulator):
 
         # scales the model if a scalling factor is defined.
         # ... for now resets the solver...
-        # ... scalling should be impelemented at the solver level...
-        # ... messing with the model is not a good idea, maybe using a clone instead.
+        # ... scalling should be implemented at the solver level.
         if scalefactor:
             a_solver = None
             for _, rxn in self.model.reactions.items():
@@ -310,7 +492,7 @@ class Simulation(CBModelContainer, Simulator):
                                   simul_constraints=constraints, maximize=maximize)
         return result
 
-    def FVA(self, obj_frac=0, reactions=None, constraints=None, loopless=False, internal=None, solver=None):
+    def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None):
         """ Run Flux Variability Analysis (FVA).
 
         Arguments:
@@ -329,6 +511,8 @@ class Simulation(CBModelContainer, Simulator):
         return FVA(self.model, obj_frac=obj_frac, reactions=reactions,
                    constraints=constraints, loopless=loopless, internal=internal, solver=solver)
 
+    
+
 
 class GeckoSimulation(Simulation):
 
@@ -345,67 +529,8 @@ class GeckoSimulation(Simulation):
     def protein_rev_reactions(self):
         return self.model.protein_rev_reactions
 
-    def adjust_pool_bounds(self, min_objective=0.05, inplace=False, tolerance=1e-9):
-        """Adjust protein pool bounds minimally to make model feasible.
-
-        Bounds from measurements can make the model non-viable or even infeasible. Adjust these minimally by minimizing
-        the positive deviation from the measured values.
-
-        Parameters
-        ----------
-        min_objective : float
-            The minimum value of for the ojective for calling the model viable.
-        inplace : bool
-            Apply the adjustments to the model.
-        tolerance : float
-            Minimum non-zero value. Solver specific value.
-
-        Returns
-        -------
-        pd.DataFrame
-            Data frame with the series 'original' bounds and the new 'adjusted' bound, and the optimized 'addition'.
-
-        """
-
-        solver = solver_instance(self.model)
-        solver.add_constraint(
-            'constraint_objective', self.model.get_objective, sense='>', rhs=min_objective)
-        for pool in self.model.individual_protein_exchanges:
-            solver.add_variable('pool_diff_' + pool.id, lb=0)
-            solver.add_variable('measured_bound_' + pool.id,
-                                lb=pool.upper_bound, ub=pool.upper_bound)
-
-        """
-        with self.model as model:
-            problem = model.problem
-            constraint_objective = problem.Constraint(model.objective.expression, name='constraint_objective',
-                                                      lb=min_objective)
-            to_add = [constraint_objective]
-            new_objective = S.Zero
-            for pool in model.individual_protein_exchanges:
-                ub_diff = problem.Variable('pool_diff_' + pool.id, lb=0, ub=None)
-                current_ub = problem.Variable('measured_bound_' + pool.id, lb=pool.upper_bound, ub=pool.upper_bound)
-                constraint = problem.Constraint(pool.forward_variable - current_ub - ub_diff, ub=0,
-                                                name='pool_ub_' + pool.id)
-                to_add.extend([ub_diff, current_ub, constraint])
-                new_objective += ub_diff
-                pool.bounds = 0, 1000.
-            model.add_cons_vars(to_add)
-            model.objective = problem.Objective(new_objective, direction='min')
-            model.slim_optimize(error_value=None)
-            primal_values = model.solver.primal_values
-        adjustments = [(pool.id, primal_values['pool_diff_' + pool.id], pool.upper_bound)
-                       for pool in model.individual_protein_exchanges
-                       if primal_values['pool_diff_' + pool.id] > tolerance]
-        result = pd.DataFrame(adjustments, columns=['reaction', 'addition', 'original'])
-        result['adjusted'] = result['addition'] + result['original']
-        if inplace:
-            for adj in result.itertuples():
-                model.reactions.get_by_id(adj.reaction).upper_bound = adj.adjusted
-        return result
-        """
-    @property
-    def essential_proteins(self, min_growth=0.01):
+    
+    def essential_proteins(self, protein_prefix, min_growth=0.01):
         if self._essential_proteins is not None:
             return self._essential_proteins
         wt_solution = self.simulate()
@@ -413,12 +538,13 @@ class GeckoSimulation(Simulation):
         self._essential_proteins = []
         proteins = self.model.proteins
         for p in proteins:
-            rxn = "draw_prot_{}".format(p)
+            rxn = "{}{}".format(protein_prefix,p)
             res = self.simulate(constraints={rxn: 0})
             if res:
                 if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) or res.status == SStatus.INFEASIBLE:
                     self._essential_proteins.append(rxn)
         return self._essential_proteins
+
 
     def protein_reactions(self, protein):
         """

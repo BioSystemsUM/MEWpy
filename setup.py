@@ -4,16 +4,17 @@ files = ["model/data/*"]
 
 setup(
     name='mewpy',
-    version='0.0.3',
+    version='0.0.4',
     package_dir={'': 'src'},
     packages=find_packages('src'),
     include_package_data=True,
     install_requires=[
         'inspyred',
         'reframed',
-        'jmetalpy'],
-    author='Vítor Pereira',
-    author_email='vitor.pereira@algoritmi.uminho.pt',
+        'jmetalpy',
+        'cobamp'],
+    author='BiSBII CEB University of Minho',
+    author_email='vpereira@ceb.uminho.pt',
     description='mewpy - Metabolic Engineering in Python ',
     license='Apache License Version 2.0',
     keywords='strain optimization',

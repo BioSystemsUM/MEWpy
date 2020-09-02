@@ -63,19 +63,3 @@ class RegulatoryVariable:
 
         else:
             self._aliases = value
-
-    def knock_out(self):
-
-        # TODO: Should it be here?
-
-        pass
-
-    def remove_from_model(self):
-
-        # TODO: Should it be here?
-
-        pass
-
-    def evaluate(self, state):
-
-        pass

@@ -42,8 +42,8 @@ class RegGene(RegulatoryVariable):
         id (int): OptRAM ID
         cbm_name (str): the gene corresponding name in the constraint base model (G_XXXXX)
 
-
     """
+
 
     def __init__(self, name, row, optramid, aliases=None):
         super().__init__(name=name, aliases=aliases)
@@ -74,8 +74,8 @@ class OptRAMRegModel:
         args: 
 
             Genes (dic) : A dictionary of Gene objects
-            tfs (dic) : A dictonary of transcription factors (TF) objects
-            regnet (DataFrame): A panda dataframe containing a matix of Genes TFs coeficientes 
+            tfs (dic) : A dictionary of transcription factors (TF) objects
+            regnet (DataFrame): A panda dataframe containing a matrix of Genes TFs coefficients
         """
         self.genes = genes
         self.tfs = tfs
@@ -91,7 +91,7 @@ class OptRamProblem(AbstractOUProblem):
 
     def __init__(self, model, fevaluation, regmodel, **kwargs):
         """
-        EA OptRam problem 
+        EA OptRam problem
         """
         super(OptRamProblem, self).__init__(model, fevaluation, **kwargs)
         self.regmodel = regmodel

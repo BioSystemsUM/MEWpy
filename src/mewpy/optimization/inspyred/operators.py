@@ -303,3 +303,43 @@ def single_mutation_OU(random, candidate, args):
     mutantL[index] = (idx, lv)
     mutant = set(mutantL)
     return mutant
+
+
+
+
+@mutator
+def single_mutation_OU_level(random, candidate, args):
+    """Returns the mutant produced by one mutation on the candidate (when the representation is a set of (int,int)).
+    The candidate size is maintained.
+
+    Parameters
+    ----------
+    random  : the random number generator object
+    candidate : the candidate solution
+    args : a dictionary of keyword arguments
+
+    Returns
+    -------
+    out : new candidate
+
+    Optional keyword arguments in args:
+
+    - *mutation_rate* -- the rate at which mutation is performed (default 0.1)
+    """
+
+    bounder = args["_ec"].bounder
+    mutRate = args.setdefault("mutation_rate", 0.1)
+    if random.random() > mutRate:
+        return candidate
+    mutant = copy.copy(candidate)
+    index = random.randint(0, len(mutant) - 1) if len(mutant) > 1 else 0
+    # the first idx has a 50% chance of beeing mutated
+    # the second always mutates
+    mutantL = list(mutant)
+    idx, idy = mutantL[index]
+    lv = random.randint(bounder.lower_bound[1], bounder.upper_bound[1])
+    while lv == idy:
+        lv = random.randint(bounder.lower_bound[1], bounder.upper_bound[1])
+    mutantL[index] = (idx, lv)
+    mutant = set(mutantL)
+    return mutant

@@ -5,7 +5,8 @@ from enum import Enum
 
 map_model_simulator = {
     'geckopy.gecko.GeckoModel': ('mewpy.simulation.cobra',    'GeckoSimulation'),
-    'mewpy.model.gecko.GeckoModel': ('mewpy.simulation.reframed', 'GeckoSimulation')
+    'mewpy.model.gecko.GeckoModel': ('mewpy.simulation.reframed', 'GeckoSimulation'),
+    'mewpy.model.smoment.SMomentModel': ('mewpy.simulation.reframed', 'GeckoSimulation')
 }
 
 
@@ -36,7 +37,7 @@ def get_simulator(model, envcond=None, constraints=None, reference=None):
                 from .cobra import Simulation
                 instance = Simulation(
                     model, envcond=envcond, constraints=constraints, reference=reference)
-        except:
+        except ImportError:
             pass
         if not instance:
             try:
@@ -45,10 +46,10 @@ def get_simulator(model, envcond=None, constraints=None, reference=None):
                     from .reframed import Simulation
                     instance = Simulation(
                         model, envcond=envcond, constraints=constraints, reference=reference)
-            except:
+            except ImportError:
                 pass
-        if not instance:
-            raise ValueError(f"The model [{name}] has no defined simulator.")
+    if not instance:
+        raise ValueError(f"The model [{name}] has no defined simulator.")
     return instance
 
 

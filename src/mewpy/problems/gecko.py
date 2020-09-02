@@ -5,7 +5,7 @@ from collections import OrderedDict
 import warnings
 
 
-class GeckoRKOProblem(AbstractKOProblem):
+class GeckoKOProblem(AbstractKOProblem):
     """
     Gecko KnockOut Optimization Problem 
 
@@ -20,7 +20,7 @@ class GeckoRKOProblem(AbstractKOProblem):
         envcond (OrderedDict): environmental conditions.
         constraints (OrderedDict): additional constraints to be applied to the model.
         candidate_min_size (int) : The candidates minimum size.
-        candidate_min_size (int) : The candidates maximum size.
+        candidate_max_size (int) : The candidates maximum size.
         target (list): List of target reactions.
         non_target (list): List of non target reactions. Not considered if a target list is provided.
         scalefactor (floaf): a scaling factor to be used in the LP formulation. 
@@ -32,7 +32,7 @@ class GeckoRKOProblem(AbstractKOProblem):
 
     def __init__(self, model, fevaluation=None, **kwargs):
         # if isinstance(model,GeckoModel):
-        super(GeckoRKOProblem, self).__init__(
+        super(GeckoKOProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
         # else:
         #    raise Exception("The model should be an instance of GeckoModel")
@@ -43,12 +43,9 @@ class GeckoRKOProblem(AbstractKOProblem):
         """
         If not provided, targets are all non essential proteins.
         """
-
-        print('building target list')
-
         proteins = set(self.simulator.proteins)
         # as draw_prot_XXXXXX
-        ess = self.simulator.essential_proteins
+        ess = self.simulator.essential_proteins(self.prot_prefix)
         # remove 'draw_prot_'
         n = len(self.prot_prefix)
         essential = set([p[n:] for p in ess])
@@ -72,7 +69,7 @@ class GeckoRKOProblem(AbstractKOProblem):
         return constraints
 
 
-class GeckoROUProblem(AbstractOUProblem):
+class GeckoOUProblem(AbstractOUProblem):
     """
     Gecko Under/Over expression Optimization Problem 
 
@@ -86,7 +83,7 @@ class GeckoROUProblem(AbstractOUProblem):
         envcond (OrderedDict): environmental conditions.
         constraints (OrderedDict): additional constraints to be applied to the model.
         candidate_min_size (int) : The candidates minimum size.
-        candidate_min_size (int) : The candidates maximum size.
+        candidate_max_size (int) : The candidates maximum size.
         target (list): List of target reactions.
         non_target (list): List of non target reactions. Not considered if a target list is provided.
         scalefactor (floaf): a scaling factor to be used in the LP formulation.
@@ -100,7 +97,7 @@ class GeckoROUProblem(AbstractOUProblem):
 
     def __init__(self, model, fevaluation=None, **kwargs):
         # if isinstance(model,GeckoModel):
-        super(GeckoROUProblem, self).__init__(
+        super(GeckoOUProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
         # else:
         #    raise Exception("The model should be an instance of GeckoModel")
@@ -156,7 +153,6 @@ class GeckoROUProblem(AbstractOUProblem):
                     if prot in self.prot_rev_reactions.keys():
                         reactions = self.prot_rev_reactions[prot]
                         for r, r_rev in reactions:
-                            # TODO: ... check if a rule can be set when both wt fluxes are 0.0
                             if self.reference[r] == 0 and self.reference[r_rev] == 0:
                                 continue
                             elif self.reference[r] > 0 and self.reference[r_rev] == 0:

@@ -9,7 +9,7 @@ from geckopy.gecko import GeckoModel
 from mewpy.simulation.cobra import GeckoSimulation
 from mewpy.simulation import SimulationMethod
 from mewpy.simulation.simulation import SimulationResult
-from mewpy.problems.gecko import GeckoRKOProblem, GeckoROUProblem
+from mewpy.problems.gecko import GeckoKOProblem, GeckoOUProblem
 from mewpy.optimization.evaluation import BPCY, WYIELD, TargetFlux
 from mewpy.optimization import EA
 import mewpy.utils.utilities as utl
@@ -34,7 +34,7 @@ def gecko_ko(compound, display=False, filename=None):
     envcond = OrderedDict()
 
     # the evaluation (objective) functions
-    evaluator_1 = WYIELD("r_2111", compound, parsimonious=True)
+    evaluator_1 = WYIELD("r_2111", compound)
     evaluator_2 = BPCY("r_2111", compound, uptake="r_1714_REV",
                        method=SimulationMethod.lMOMA)
 
@@ -42,7 +42,7 @@ def gecko_ko(compound, display=False, filename=None):
     # Notes:
     #  - A scale factor for the LP can be defined by setting the 'scalefactor' acordingly.
     #  - The scale factor is only used in the solver context and all results are scale free.
-    problem = GeckoRKOProblem(model,
+    problem = GeckoKOProblem(model,
                               fevaluation=[evaluator_1, evaluator_2],
                               envcond=envcond,
                               scalefactor=None,
@@ -77,7 +77,7 @@ def gecko_ou(compound, display=False, filename=None):
     reference = res.fluxes
 
     # the evaluation (objective) functions
-    evaluator_1 = WYIELD("r_2111", compound, parsimonious=False)
+    evaluator_1 = WYIELD("r_2111", compound)
     evaluator_2 = BPCY("r_2111", compound, uptake="r_1714_REV",
                        method=SimulationMethod.lMOMA, reference=reference)
 
@@ -85,7 +85,7 @@ def gecko_ou(compound, display=False, filename=None):
     # Notes:
     #  - A scale factor for the LP can be defined by setting the 'scalefactor' acordingly.
     #  - The scale factor is only used in the solver context and all results are scale free.
-    problem = GeckoROUProblem(model,
+    problem = GeckoOUProblem(model,
                               fevaluation=[evaluator_1, evaluator_2],
                               envcond=envcond,
                               reference=reference,

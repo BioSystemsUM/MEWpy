@@ -49,6 +49,14 @@ class ModelContainer:
         """
         raise NotImplementedError
 
+    def summary(self):
+        print(f"Metabolites: {len(self.metabolites)}")
+        print(f"Reactions: {len(self.reactions)}")
+        print(f"Gense: {len(self.genes)}")
+
+    def set_objective(self, reaction):
+        raise NotImplementedError
+
 
 class Simulator(ModelContainer):
     """

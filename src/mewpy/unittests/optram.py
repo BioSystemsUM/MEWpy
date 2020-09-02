@@ -1,54 +1,57 @@
-from mewpy.regulation.optram import *
-from reframed.io.sbml import load_cbmodel
-from mewpy.simulation import SimulationMethod
+from mewpy.regulation.optram import OptRAMRegModel, OptRamProblem, load_optram
+from mewpy.simulation import SimulationMethod, get_simulator
 from mewpy.optimization.evaluation import BPCY_FVA, BPCY, WYIELD
 from mewpy.optimization import EA
+from time import time
 import os
 
 
 def test():
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    PATH = os.path.join(dir_path, '../../../examples/models/')
+    PATH = os.path.join(dir_path, '../../../examples/models/optram/')
     gene_file = os.path.join(PATH, 'mgene.csv')
     ft_file = os.path.join(PATH, 'TFnames.csv')
     matrix_file = os.path.join(PATH, 'regnet.csv')
-    model_file = os.path.join(PATH, 'iMM904SL_v6.xml')
+    model_file = os.path.join(PATH, 'yeast_7.6-optram.xml')
 
-    BIOMASS_ID = 'R_biomass_SC5_notrace'
-    PRODUCT_ID = 'R_EX_succ_e_'
-    GLC = 'R_EX_glc_e_'
+    BIOMASS_ID = 'r_2111'
+    PRODUCT_ID = 'r_1912'
+    GLC = 'r_1714'
+
+    envcond = {GLC:(-10,0)}
 
     # adds the prefix 'G_' to genes. Only for REFRAMED models
     regnet = load_optram(gene_file, ft_file, matrix_file, gene_prefix='G_')
-
-    model = load_cbmodel(model_file, flavor='cobra')
+    #from cobra.io import read_sbml_model
+    #model = read_sbml_model(model_file)
+    
     # the general objective is to maximize the target
-    old_obj = model.get_objective().keys()
-    obj = {key: 0 for key in old_obj if key != BIOMASS_ID}
-    obj[BIOMASS_ID] = 1
-    model.set_objective(obj)
-
+    from reframed.io.sbml import load_cbmodel
+    model = load_cbmodel(model_file)
+    model.set_objective({BIOMASS_ID:1})
+    
     evaluator_1 = BPCY(BIOMASS_ID, PRODUCT_ID, method=SimulationMethod.lMOMA)
     evaluator_2 = WYIELD(BIOMASS_ID, PRODUCT_ID, parsimonious=True)
-    # evaluation function used in the OptRAM paper.
-    evaluator_3 = BPCY_FVA(BIOMASS_ID, PRODUCT_ID,
-                           uptake=GLC, method=SimulationMethod.pFBA)
+    
+    # OptRAM problem
+    problem = OptRamProblem(model, [evaluator_1, evaluator_2],
+                            regnet, envcond = envcond, candidate_min_size=10, candidate_max_size=30)
 
-    problem = OptRamProblem(model, [evaluator_1, evaluator_2, evaluator_3],
-                            regnet, candidate_min_size=4, candidate_max_size=6)
-    # print(problem.target_list)
+    #print(problem.target_list)
+    #print("\n\n")
+    #print(problem.simulator.genes)    
+    #print("\n\n")
+    #print(set(problem.target_list).intersection(set(problem.simulator.genes)))
 
-    #A = set(model.genes.keys())
-    #B = set(regnet.genes.keys())
-    #C = A.intersection(B)
-    # print(A-B)
-    # print(B-A)
-    # print(len(C))
 
-    ea = EA(problem, max_generations=100, mp=True)
+    ea = EA(problem, max_generations=3, mp=True)
     final_pop = ea.run()
+    import mewpy.utils.utilities as utl
+    millis = int(round(time() * 1000))
+    filename = "OPTRAM{}_OU_{}.csv".format('TRP', millis)
+    utl.population_to_csv(problem, final_pop, filename, simplify=False)
 
 
 if __name__ == "__main__":
-
-    test()
+    for _ in range(1):
+        test()
