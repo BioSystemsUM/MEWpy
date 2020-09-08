@@ -13,9 +13,9 @@ def test1(compound = 'R_EX_tyr__L_e'):
     """
     DIR = os.path.dirname(os.path.realpath(__file__))
     PATH = os.path.join(DIR, '../../../examples/models/autopacmen/')
-    DATA_FILE = os.path.join(PATH, "iJO1366_sMOMENT_2019_06_25_GECKO_ANALOGON.xml")
+    DATA_FILE = os.path.join(PATH, "iJO1366_2019_06_25_GECKO.xml")
 
-    model = SMomentModel(DATA_FILE)
+    model = SMomentModel(DATA_FILE, enzyme_reaction_prefix='R__TG_ER_')
 
     print(model.proteins)
 
@@ -24,7 +24,7 @@ def test1(compound = 'R_EX_tyr__L_e'):
     solution = sim.simulate()
     print(solution)
     print('Wild type tyrosine production :',solution.fluxes['R_EX_tyr__L_e'])
-
+    
     from mewpy.optimization.evaluation import BPCY,WYIELD
     from mewpy.simulation import SimulationMethod  
     from collections import OrderedDict
@@ -43,7 +43,7 @@ def test1(compound = 'R_EX_tyr__L_e'):
                               fevaluation=[evaluator_1, evaluator_2],
                               envcond=envcond,
                               candidate_max_size=6,
-                              prot_prefix='R_ENZYME_DELIVERY_')
+                              prot_prefix='R__TG_ER_')
 
     # A new instance of the EA optimizer
     from mewpy.optimization import EA
@@ -57,7 +57,7 @@ def test1(compound = 'R_EX_tyr__L_e'):
     millis = int(round(time() * 1000))
     filename = "sMOMEMT{}_OU_{}.csv".format(compound, millis)
     utl.population_to_csv(problem, final_pop, filename, simplify=False)
-
+    
     
 
 
@@ -67,7 +67,7 @@ def test2(filename = None):
 
     The model defines a linear constraint over the protein pool as reactant.
     May be treated as a regular GSM 
-    
+
     """
     DIR = os.path.dirname(os.path.realpath(__file__))
     PATH = os.path.join(DIR, '../../../examples/models/autopacmen/')
@@ -123,5 +123,5 @@ def test2(filename = None):
 
 
 if  __name__ == "__main__":
-    for i in range(10):
-        test2(f'smoment_{i}.csv')
+    for i in range(1):
+        test1()

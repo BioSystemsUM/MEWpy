@@ -16,8 +16,7 @@ import re
 
 
 class ModelList(object):
-    '''
-    Auxilary class to load predifined ecYeast7 models
+    '''Auxilary class to load predifined ecYeast7 models
     '''
 
 

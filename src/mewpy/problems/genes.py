@@ -15,7 +15,7 @@ class GKOProblem(AbstractKOProblem):
         * model* (metabolic model): the constraint metabolic model
         * fevaluation* (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness
 
-    **args:
+    args:
 
         *envcond* (OrderedDict): environmental conditions
         *constraints* (OrderedDict): additional constraints to be applied to the model 
@@ -51,15 +51,14 @@ class GKOProblem(AbstractKOProblem):
 
 
 class GOUProblem(AbstractOUProblem):
-    """
-    Gene Over/Under expression Optimization Problem
+    """Gene Over/Under expression Optimization Problem
 
     args:
 
         model (metabolic model): The constraint based metabolic model.
         fevaluation (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness
 
-    **kwargs:
+    kwargs:
 
         envcond (OrderedDict): environmental conditions.
         constraints (OrderedDict): additional constraints to be applied to the model.

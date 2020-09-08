@@ -240,12 +240,12 @@ def gecko_ec():
 
 
 if __name__ == "__main__":
-    #simulation_one()
+    simulation_one()
     #simulation_two()
     #simulation_three()
     #test_basic_gecko_adjustment()
     #test_gecko_adjustment_sanchez_etal()
     #simulation_four()
     
-    gecko_ec()
+    #gecko_ec()
     

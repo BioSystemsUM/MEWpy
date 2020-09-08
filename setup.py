@@ -2,12 +2,19 @@ from setuptools import setup, find_packages
 
 files = ["model/data/*"]
 
+with open('README.rst') as readme_file:
+    readme = readme_file.read()
+
+#with open('HISTORY.rst') as history_file:
+#    history = history_file.read()
+
 setup(
     name='mewpy',
     version='0.0.4',
     package_dir={'': 'src'},
     packages=find_packages('src'),
     include_package_data=True,
+    zip_safe=False,
     install_requires=[
         'inspyred',
         'reframed',

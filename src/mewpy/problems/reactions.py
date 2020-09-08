@@ -11,7 +11,7 @@ class RKOProblem(AbstractKOProblem):
         model (metabolic model): The constraint based metabolic model.
         fevaluation (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness
 
-    **kwargs:
+    kwargs:
 
         envcond (OrderedDict): environmental conditions.
         constraints (OrderedDict): additional constraints to be applied to the model.
@@ -58,7 +58,7 @@ class ROUProblem(AbstractOUProblem):
         * model* (metabolic model): the constraint metabolic model
         * fevaluation* (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness
 
-    **args:
+    args:
 
         *envcond* (OrderedDict): environmental conditions
         *constraints* (OrderedDict): additional constraints to be applied to the model 

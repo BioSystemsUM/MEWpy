@@ -6,8 +6,7 @@ import warnings
 
 
 class GeckoKOProblem(AbstractKOProblem):
-    """
-    Gecko KnockOut Optimization Problem 
+    """Gecko KnockOut Optimization Problem 
 
     args:
 
@@ -15,7 +14,7 @@ class GeckoKOProblem(AbstractKOProblem):
         fevaluation (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness
 
 
-    **kwargs:
+    kwargs:
 
         envcond (OrderedDict): environmental conditions.
         constraints (OrderedDict): additional constraints to be applied to the model.
@@ -28,6 +27,7 @@ class GeckoKOProblem(AbstractKOProblem):
 
     Note:
      Targets as well as non target proteins are defined using their prot id, ex 'P0351', and not by the associated draw reaction id, ex 'draw_prot_P0351'. 
+    
     """
 
     def __init__(self, model, fevaluation=None, **kwargs):
@@ -78,7 +78,7 @@ class GeckoOUProblem(AbstractOUProblem):
         model (metabolic model): The constraint based metabolic model.
         fevaluation (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness
 
-    **kwargs:
+    kwargs:
 
         envcond (OrderedDict): environmental conditions.
         constraints (OrderedDict): additional constraints to be applied to the model.
