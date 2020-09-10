@@ -3,17 +3,10 @@
 
 # You can set these variables from the command line, and also
 # from the environment for the first two.
-<<<<<<< HEAD
 SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = .
 BUILDDIR      = build
-=======
-SPHINXOPTS    =
-SPHINXBUILD   = sphinx-build
-SOURCEDIR     = source
-BUILDDIR      = ../docs/
->>>>>>> 70548ff9d263264651c9f0f949bbc8bb34948f87
 
 # Put it first so that "make" without argument is like "make help".
 help:
