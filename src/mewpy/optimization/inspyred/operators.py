@@ -11,13 +11,11 @@ def shrink_mutation(random, candidate, args):
     """Returns the mutant produced by shrink mutation on the candidate.
     If a candidate solution has length of 1, this function leaves it unchanged.
 
-    Args:
-        random  : the random number generator object
-        candidate : the candidate solution
-        args : a dictionary of keyword arguments
-
-    Returns:
-        set: new candidate
+    
+    :param random: the random number generator object. Must implement random().
+    :param candidate: the candidate solution.
+    :parm args: a dictionary of keyword arguments.
+    :returns: A set of new candidate
 
     Notes:
         Optional keyword arguments in args:
@@ -41,14 +39,12 @@ def uniform_crossover_KO(random, mom, dad, args):
     - both children have at least one element;
     - elements present in only one parent have equal probability to be present in child 1 or child 2 (after each child has at least one element).
 
-    Args:
-        random : the random number generator object
-        mom : the first parent candidate
-        dad : the second parent candidate
-        args : a dictionary of keyword arguments
-
-    Returns:
-        Return the offspring of the candidates given as argument.
+    
+    :param random: the random number generator object. Must implement random().
+    :param mom: the first parent candidate
+    :param dad: the second parent candidate
+    :param args: a dictionary of keyword arguments.
+    :returns: Return the offspring of the candidates given as argument.
 
     Notes:
         Optional keyword arguments in args:
@@ -93,14 +89,11 @@ def uniform_crossover_OU(random, mom, dad, args):
     - both children have at least one element;
     - elements present in only one parent have equal probability to be present in child 1 or child 2 (after each child has at least one element).
 
-    Args:
-        random : the random number generator object
-        mom : the first parent candidate
-        dad : the second parent candidate
-        args : a dictionary of keyword arguments
-
-    Returns:
-        Returns the offspring of the candidates given as argument.
+    :param random: the random number generator object. Must implement random().
+    :param mom: the first parent candidate
+    :param dad: the second parent candidate
+    :param args: a dictionary of keyword arguments.
+    :returns: Return the offspring of the candidates given as argument.
 
     Notes:
         Optional keyword arguments in args:
@@ -163,15 +156,11 @@ def grow_mutation_KO(random, candidate, args):
     """Returns the mutant produced by a grow mutation on the candidate (when the representation is a set of integers).
     If a candidate solution has the maximum size candidate allowed, this function leaves it unchanged.
 
-    Parameters:
     
-    random  : the random number generator object
-    candidate : the candidate solution
-    args : a dictionary of keyword arguments
-
-    Returns:
-    
-    set: new candidate
+    :param random: the random number generator object.
+    :param candidate: the candidate solution.
+    :param args: a dictionary of keyword arguments.
+    :returns: A set with a new candidate.
 
     Notes:
     
@@ -197,15 +186,10 @@ def grow_mutation_OU(random, candidate, args):
     """Returns the mutant produced by a grow mutation on the candidate (when the representation is a set of integers).
     If a candidate solution has the maximum size candidate allowed, this function leaves it unchanged.
 
-    Parameters
-    
-    random  : the random number generator object
-    candidate : the candidate solution
-    args : a dictionary of keyword arguments
-
-    Returns:
-
-    set: new candidate
+    :param random: the random number generator object.
+    :param candidate: the candidate solution.
+    :param args: a dictionary of keyword arguments.
+    :returns: A set with a new candidate.
 
     Notes:
     
@@ -235,15 +219,10 @@ def single_mutation_KO(random, candidate, args):
     """Returns the mutant produced by a single mutation on the candidate (when the representation is a set of integers).
     The candidate size is maintained.
 
-    Parameters
-    
-    random  : the random number generator object
-    candidate : the candidate solution
-    args : a dictionary of keyword arguments
-
-    Returns
-    
-    out : new candidate
+    :param random: the random number generator object.
+    :param candidate: the candidate solution.
+    :param args: a dictionary of keyword arguments.
+    :returns: A set with a new candidate.
 
     Optional keyword arguments in args:
 
@@ -270,15 +249,10 @@ def single_mutation_OU(random, candidate, args):
     """Returns the mutant produced by one mutation on the candidate (when the representation is a set of (int,int)).
     The candidate size is maintained.
 
-    Parameters
-    
-    random  : the random number generator object
-    candidate : the candidate solution
-    args : a dictionary of keyword arguments
-
-    Returns
-    
-    out : new candidate
+    :param random: the random number generator object.
+    :param candidate: the candidate solution.
+    :param args: a dictionary of keyword arguments.
+    :returns: A set with a new candidate.
 
     Optional keyword arguments in args:
 
@@ -319,15 +293,11 @@ def single_mutation_OU_level(random, candidate, args):
     """Returns the mutant produced by one mutation on the candidate (when the representation is a set of (int,int)).
     The candidate size is maintained.
 
-    Parameters
+    :param random: the random number generator object.
+    :param candidate: the candidate solution.
+    :param args: a dictionary of keyword arguments.
+    :returns: A set with a new candidate.
 
-    random  : the random number generator object
-    candidate : the candidate solution
-    args : a dictionary of keyword arguments
-
-    Returns
-
-    out : new candidate
 
     Optional keyword arguments in args:
 

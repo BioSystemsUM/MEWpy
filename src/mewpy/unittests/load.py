@@ -53,7 +53,8 @@ def load_gecko():
     simul.summary()
 
 
-load_cobra()
-load_gecko()
-# load_reframed()
-# load_ec_gecko()
+if __name__ == "__main__":
+    load_cobra()
+    load_gecko()
+    load_reframed()
+    load_ec_gecko()

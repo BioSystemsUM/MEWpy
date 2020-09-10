@@ -23,7 +23,16 @@ ITERATIONS = 100
 
 
 def ec_gecko_ko(compound, display=False, filename=None):
-    """ EC Gecko KO example
+    """ GECKO enzyme deletion example. 
+    It runs a multi objective optimization for the increased production of a certain compound on E. Coli.
+    The GECKO model is the yeast model companion from the GECKO paper "Improving the phenotype predictions
+    of a yeast genome‐scale metabolic model by incorporating enzymatic constraints" https://doi.org/10.15252/msb.20167411. 
+    Runs over the MEWpy implementation.
+    
+    :param compound: A target reaction identifier.
+    :param display: Prints the best solution.
+    :param filename: If given, saves the results as csv to filename.
+         
     """
 
     import os
@@ -35,8 +44,7 @@ def ec_gecko_ko(compound, display=False, filename=None):
     
     model = GeckoModel(m, biomass_reaction_id='R_BIOMASS_Ec_iML1515_core_75p37M',protein_pool_exchange_id='R_prot_pool_exchange',reaction_prefix='R_')
     model.set_objective({'R_BIOMASS_Ec_iML1515_core_75p37M': 1.0})
-    # Leslie suggestion to approximate growth to values described in the literature
-    model.reactions['R_prot_pool_exchange'].ub = 0.26 
+    
     
     envcond = OrderedDict()
 
@@ -70,7 +78,16 @@ def ec_gecko_ko(compound, display=False, filename=None):
     
 
 def ec_gecko_ou(compound, display=False, filename=None):
-    """ EC Gecko example
+    """ GECKO enzyme over/under expression example. 
+    It runs a multi objective optimization for the increased production of a certain compound on E. Coli.
+    The GECKO model is the yeast model companion from the GECKO paper "Improving the phenotype predictions
+    of a yeast genome‐scale metabolic model by incorporating enzymatic constraints" https://doi.org/10.15252/msb.20167411. 
+    Runs over the MEWpy implementation.
+    
+    :param compound: A target reaction identifier.
+    :param display: Prints the best solution.
+    :param filename: If given, saves the results as csv to filename.
+         
     """
     # define the default solver
     #from reframed.solvers import set_default_solver

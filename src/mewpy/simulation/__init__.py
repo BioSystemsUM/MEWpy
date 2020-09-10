@@ -15,12 +15,13 @@ def get_simulator(model, envcond=None, constraints=None, reference=None):
     Returns a simulator instance for the model
     The simulator instance is model dependent.
 
-    This function is invoked by a EA optimization Problem and by evaluation function instances.
+    This function is invoked by a EA optimization problem and by evaluation function instances.
 
-    arguments:
-        model : the model
-        envcond (dic) : a dictionary of environmental conditions
-        contrainsts (dic) : a dictionary of additional persistent constraints
+    
+    :param model : the model
+    :param dic envcond: A dictionary of environmental conditions.
+    :param dic contrainsts: A dictionary of additional persistent constraints.
+    :returns: An instance of Simulator
     """
     instance = None
     name = f"{model.__class__.__module__}.{model.__class__.__name__}"
@@ -55,9 +56,12 @@ def get_simulator(model, envcond=None, constraints=None, reference=None):
 
 def get_container(model):
     """
-    Returns a container for a given model sharing a common interface
+    Returns a container for a given model sharing a common interface.
+    A container does not perform any task, it only serves as a basic interface with a phenotype simulator.
 
-    :param model 
+    :param model: A metabolic model instance.
+    :returns: A container.
+     
     """
     try:
         from reframed.core.cbmodel import CBModel

@@ -8,20 +8,21 @@ logger = logging.getLogger('mewpy.problems.genes')
 
 class GKOProblem(AbstractKOProblem):
     """
-    Gene Knockout Optimization Problem
+    Gene Knockout Optimization Problem.
 
-    arguments:
+    :param model: The constraint metabolic model.
+    :param list fevaluation: A list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness.
 
-        * model* (metabolic model): the constraint metabolic model
-        * fevaluation* (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness
+    Optional:
 
-    args:
-
-        *envcond* (OrderedDict): environmental conditions
-        *constraints* (OrderedDict): additional constraints to be applied to the model 
-        *candidate_min_size* : The candidate minimum size (Default EAConstants.MIN_SOLUTION_SIZE)
-        *candidate_max_size* : The candidate maximum size (Default EAConstants.MAX_SOLUTION_SIZE)
-        *non_target* (list): list of non target genes
+    :param OrderedDict envcond: Environmental conditions.
+    :param OrderedDict constraints: Additional constraints to be applied to the model. 
+    :param int candidate_min_size: The candidate minimum size (Default EAConstants.MIN_SOLUTION_SIZE)
+    :param int candidate_max_size: The candidate maximum size (Default EAConstants.MAX_SOLUTION_SIZE)
+    :param list target: List of modification target genes.
+    :param list non_target: List of non target genes. Not considered if a target list is provided.
+    :param float scalefactor: A scaling factor to be used in the LP formulation.
+    
     """
 
     def __init__(self, model, fevaluation=None, **kwargs):
@@ -53,22 +54,21 @@ class GKOProblem(AbstractKOProblem):
 class GOUProblem(AbstractOUProblem):
     """Gene Over/Under expression Optimization Problem
 
-    args:
+    :param model: The constraint metabolic model.
+    :param list fevaluation: A list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness.
 
-        model (metabolic model): The constraint based metabolic model.
-        fevaluation (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness
+    Optional:
 
-    kwargs:
-
-        envcond (OrderedDict): environmental conditions.
-        constraints (OrderedDict): additional constraints to be applied to the model.
-        candidate_min_size (int) : The candidates minimum size.
-        candidate_min_size (int) : The candidates maximum size.
-        target (list): List of target reactions.
-        non_target (list): List of non target reactions. Not considered if a target list is provided.
-        scalefactor (floaf): a scaling factor to be used in the LP formulation.
-        reference (dic): Dictionary of flux values to be used in the over/under expression values computation.
-        operators (tuple of function): (and, or) operations. Default (MIN, MAX) 
+    :param OrderedDict envcond: Environmental conditions.
+    :param OrderedDict constraints: Additional constraints to be applied to the model. 
+    :param int candidate_min_size: The candidate minimum size (Default EAConstants.MIN_SOLUTION_SIZE)
+    :param int candidate_max_size: The candidate maximum size (Default EAConstants.MAX_SOLUTION_SIZE)
+    :param list target: List of modification target genes.
+    :param list non_target: List of non target genes. Not considered if a target list is provided.
+    :param float scalefactor: A scaling factor to be used in the LP formulation.
+    :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
+    :param tuple operators: (and, or) operations. Default (MIN, MAX).
+    :param list levels: Over/under expression levels (Default EAConstants.LEVELS)
 
     """
 

@@ -8,22 +8,20 @@ import warnings
 class GeckoKOProblem(AbstractKOProblem):
     """Gecko KnockOut Optimization Problem 
 
-    Parameters:
-
-    :param model (metabolic model): The constraint based metabolic model.
-    :param fevaluation (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness.
+    :param model: The constraint based metabolic model.
+    :param list fevaluation: a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness.
 
 
-    kwargs:
+    Optional:
 
-    :param envcond (OrderedDict): environmental conditions.
-    :param constraints (OrderedDict): additional constraints to be applied to the model.
-    :param candidate_min_size (int): The candidates minimum size.
-    :param candidate_max_size (int): The candidates maximum size.
-    :param target (list): List of target reactions.
-    :param non_target (list): List of non target reactions. Not considered if a target list is provided.
-    :param scalefactor (floaf): a scaling factor to be used in the LP formulation. 
-    :param prot_prefix (str): the protein draw reaction prefix. Default `draw_prot_`  
+    :param OrderedDict envcond: environmental conditions.
+    :param OrderedDict constraints: additional constraints to be applied to the model.
+    :param int candidate_min_size: The candidates minimum size.
+    :param int candidate_max_size: The candidates maximum size.
+    :param list target: List of target reactions.
+    :param list non_target: List of non target reactions. Not considered if a target list is provided.
+    :param float scalefactor: a scaling factor to be used in the LP formulation. 
+    :param str prot_prefix: the protein draw reaction prefix. Default `draw_prot_`  
 
 
     Note:
@@ -75,23 +73,22 @@ class GeckoOUProblem(AbstractOUProblem):
     """
     Gecko Under/Over expression Optimization Problem 
 
-    Parameters:
-
+  
     :param model (metabolic model): The constraint based metabolic model.
     :param fevaluation (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness.
 
 
-    kwargs:
+    Optional:
 
-    :param envcond (OrderedDict): environmental conditions.
-    :param constraints (OrderedDict): additional constraints to be applied to the model.
-    :param candidate_min_size (int): The candidates minimum size.
-    :param candidate_max_size (int): The candidates maximum size.
-    :param target (list): List of target reactions.
-    :param non_target (list): List of non target reactions. Not considered if a target list is provided.
-    :param scalefactor (floaf): a scaling factor to be used in the LP formulation.
-    :param reference (dic): Dictionary of flux values to be used in the over/under expression values computation. 
-    :param prot_prefix (str): the protein draw reaction prefix. Default `draw_prot_`.
+    :param OrderedDict envcond: environmental conditions.
+    :param OrderedDict constraints: additional constraints to be applied to the model.
+    :param int candidate_min_size: The candidates minimum size.
+    :param int candidate_max_size: The candidates maximum size.
+    :param list target: List of target reactions.
+    :param list non_target: List of non target reactions. Not considered if a target list is provided.
+    :param float scalefactor: a scaling factor to be used in the LP formulation.
+    :param dic reference: Dictionary of flux values to be used in the over/under expression values computation. 
+    :param str prot_prefix: the protein draw reaction prefix. Default `draw_prot_`.
 
 
     Note:

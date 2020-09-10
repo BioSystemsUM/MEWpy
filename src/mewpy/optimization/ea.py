@@ -4,7 +4,8 @@ from collections import OrderedDict
 
 
 class SolutionInterface(ABC):
-
+    """ An interface for EA solutions.
+    """
     @abstractmethod
     def get_fitness(self):
         """
@@ -24,13 +25,11 @@ class Solution(SolutionInterface):
     def __init__(self, values, fitness, constraints=None, is_maximize = True):
         """
         EA Solution
-
-        Parameters:
         
-        values: representation of the solution 
-        fitness:  a list of fitness values
-        constraints: decoding of the representation into metabolic constraints
-        is_maximize: if the solution results from a maximization problem
+        :param values: Representation of the solution 
+        :param fitness:  A list of fitness values
+        :param constraints: Decoding of the representation into metabolic constraints
+        :param is_maximize: If the solution results from a maximization problem
         
         """
         self.values = values
@@ -134,18 +133,13 @@ class AbstractEA():
 def dominance_test(solution1, solution2, maximize=True):
     """
     Testes Pareto dominance
-    
-    Parameters:
         
-    solution1 : The first solution 
-    solution2 : The second solution
-    maximize (bool): maximization (True) or minimization (False)
-
-    returns:
-     
-    1 : if the first solution dominates the second 
-    -1 : if the second solution dominates the first
-    0 : if non of the solutions dominates the other
+    :param solution1: The first solution.
+    :param solution2: The second solution.
+    :param maximize: (bool) maximization (True) or minimization (False)
+    :returns:   1 : if the first solution dominates the second;
+                -1 : if the second solution dominates the first;
+                0 : if non of the solutions dominates the other.
     
     """
     best_is_one = 0
@@ -228,20 +222,16 @@ def filter_duplicates(population):
 
 def cmetric(pf1,pf2,maximize = True):
     """
-    Computes the c-metric quality indicator
+    Computes the c-metric quality indicator.
     
-    Parameters:
-    
-    pf1: first pareto front
-    pf2: second pareto front
-
-    Returns: 
-    
-    r1,r2,pf1_2,pf2_1
-    r1: percentage of solutions on pf2 dominated by some solution on pf1
-    r2: percentage of solutions on pf1 dominated by some solution on pf2
-    pf1_2: solutions on pf2 dominated by some solution on pf1
-    pf2_1: solutions on pf1 dominated by some solution on pf2
+    :param pf1: The first pareto front.
+    :param pf2: The second pareto front.
+    :param maximize: (bool) maximization (True) or minimization (False).
+    :returns: r1,r2,pf1_2,pf2_1
+                r1: percentage of solutions on pf2 dominated by some solution on pf1;
+                r2: percentage of solutions on pf1 dominated by some solution on pf2;
+                pf1_2: solutions on pf2 dominated by some solution on pf1;
+                pf2_1: solutions on pf1 dominated by some solution on pf2.
     
     """
     # solutions on pf2 dominated by some solution on pf1 

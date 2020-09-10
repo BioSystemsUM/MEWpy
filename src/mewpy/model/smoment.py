@@ -7,8 +7,7 @@ import copy
 class SMomentModel(CBModel):
 
     def __init__(self,model, enzyme_reaction_prefix = "R_ENZYME_DELIVERY_"):
-        """
-        SMomentModel an extension of REFRAMED CBModel for sMoment 
+        """SMomentModel an extension of REFRAMED CBModel for sMOMENT models.
 
         :param model: a path to a CBM xml file or an instance of REFRAMED SBModel
         :param enzyme_reaction_prefix: str enzyme prefix

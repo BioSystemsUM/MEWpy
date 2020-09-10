@@ -7,9 +7,9 @@ import os
 
 def test1(compound = 'R_EX_tyr__L_e'):
     """
-    AutoPACMEN GECKO like models.
-
-    Enzymes are defined as pseudo reactants
+    AutoPACMEN, "Automatic construction of metabolic models with enzyme constraints" (https://doi.org/10.1186/s12859-019-3329-9), is able to construct GECKO like models.
+    This example optimizes the production of a compound using the E. coli autoPACMEN model where enzymes are defined as pseudo reactants.
+    
     """
     DIR = os.path.dirname(os.path.realpath(__file__))
     PATH = os.path.join(DIR, '../../../examples/models/autopacmen/')
@@ -61,12 +61,12 @@ def test1(compound = 'R_EX_tyr__L_e'):
     
 
 
-def test2(filename = None):
+def test2(compoud = 'R_EX_tyr__L_e',filename = None):
     """
-    AutoPACMEN sMOMENT models.
-
-    The model defines a linear constraint over the protein pool as reactant.
-    May be treated as a regular GSM 
+    AutoPACMEN, "Automatic construction of metabolic models with enzyme constraints" (https://doi.org/10.1186/s12859-019-3329-9), is able to construct GECKO like models.
+    This example optimizes the production of a compound using the E. coli autoPACMEN model where enzymes are defined as pseudo reactants.
+    The model defines a linear constraint over the protein pool as reactant, by adding the protein pool as a metabolite in the stochiometric matrix.
+    Therefore, the model may be treated as a regular GSM. 
 
     """
     DIR = os.path.dirname(os.path.realpath(__file__))
@@ -102,8 +102,7 @@ def test2(filename = None):
 
     # implements a knockout over genes that encode enzymes
     BIOMASS_ID = 'R_BIOMASS_Ec_iJO1366_WT_53p95M'
-    PRODUCT_ID = 'R_EX_tyr__L_e'
-
+    PRODUCT_ID = compoud
     from mewpy.optimization.evaluation import BPCY,WYIELD,TargetFlux
     from mewpy.simulation import SimulationMethod  
     evaluator_1 = BPCY(BIOMASS_ID, PRODUCT_ID, method=SimulationMethod.lMOMA)

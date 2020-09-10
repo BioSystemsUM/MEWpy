@@ -64,12 +64,10 @@ class OUBounder(object):
 
 class AbstractProblem(ABC):
     """
-    Optimization Problem base class
+    Base class for optimization problems.
 
-    Parameters:
-
-    model (metabolic model)
-    fevaluation (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness
+    :param model: A Metabolic model.
+    :param list fevaluation: A list of callable EvaluationFunctions.
 
     """
 
@@ -212,14 +210,10 @@ class AbstractProblem(ABC):
         """
         Simplify a solution by removing the modification that do not affect the final fitness value.
         
-        Parameters:
+        :param solution: the solution to be simplified
+        :param float tolerance: max allowed objective difference values for two solutions to be considered diferent. Tolerance may be defined by a single float value, or per objective by means of a list of floats of size equal to the number of objectives.
+        :returns: A list of simplified solutions.
         
-        solution : the solution to be simplified
-        tolerance: max allowed objective difference values for two solutions to be considered diferent. Tolerance may be defined by a single float value, or per objective by means of a list of floats of size equal to the number of objectives.
-        
-        Returns: 
-        
-        a list of simplified solutions
         """
 
         values = self.translate(solution.values, reverse=True)
@@ -272,23 +266,10 @@ class AbstractProblem(ABC):
 
 class AbstractKOProblem(AbstractProblem):
     """
-    Base class for Knockout optimization problems
+    Base class for Knockout optimization problems.
 
-    Parameters
-
-    model (metabolic model): The constraint based metabolic model.
-    fevaluation (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness
-
-
-    kwargs options:
-
-    envcond (OrderedDict): environmental conditions.
-    constraints (OrderedDict): additional constraints to be applied to the model.
-    candidate_min_size (int) : The candidates minimum size.
-    candidate_min_size (int) : The candidates maximum size.
-    target (list): List of target reactions.
-    non_target (list): List of non target reactions. Not considered if a target list is provided.
-    scalefactor (floaf): a scaling factor to be used in the LP formulation.
+    :param model: The constraint metabolic model.
+    :param list fevaluation: A list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness.
     
     """
 
@@ -343,21 +324,14 @@ class AbstractKOProblem(AbstractProblem):
 class AbstractOUProblem(AbstractProblem):
     """ Base class for Over/Under expression optimization problems
 
-    Parameters:
-
-    :param model: the constraint metabolic model
-    :param fevaluation: a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness
-
-    Options:
-
-    envcond (OrderedDict): environmental conditions
-    constraints (OrderedDict): additional constraints to be applied to the model
-    candidate_min_size : The candidate minimum size (Default EAConstants.MIN_SOLUTION_SIZE)
-    candidate_max_size : The candidate maximum size (Default EAConstants.MAX_SOLUTION_SIZE)
-    non_target (list): list of non target reactions
-    levels (list): over/under expression levels (Default EAConstants.LEVELS)
-    reference (dic): dictionary of reference flux values
-
+    :param model: The constraint metabolic model.
+    :param list fevaluation: A list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness.
+    
+    Optional:
+    
+    :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
+    :param list levels: Over/under expression levels (Default EAConstants.LEVELS)
+    
     """
 
     def __init__(self, model, fevaluation=None, **kwargs):
@@ -413,6 +387,10 @@ class AbstractOUProblem(AbstractProblem):
         Converts a (reaction, level) pair into a constraint
         If a reaction is reversible, the direction with no or less wild type flux
         is knocked out.
+        
+        :param rxn: The reaction identifier.
+        :param lv: the wild type multiplier factor. The reaction bounds are altered accordingly.
+        
         """
         constraints = {}
         fluxe_wt = self.reference[rxn]
@@ -444,8 +422,8 @@ class AbstractOUProblem(AbstractProblem):
         an iterable of ids, or (ids, folds).
 
         
-        :param candidate (iterable): the candidate representation.
-        :param reverse (boolean): performs the reverse translation.
+        :param iterable candidate: The candidate representation.
+        :param boolean reverse: Performs the reverse translation.
         """
         if not reverse:
             return {self.target_list[idx]: self.levels[lv_idx]

@@ -12,11 +12,10 @@ import inspyred
 class EA(AbstractEA):
     """
     EA running helper
-
-    arguments
-        *problem*: the optimization problem
-        *initial_population* (list): the EA initial population
-        *max_generations* (int): the number of iterations of the EA (stopping criteria) 
+    
+    :param problem: the optimization problem.
+    :param initial_population: (list) the EA initial population.
+    :param max_generations: (int) the number of iterations of the EA (stopping criteria).
     """
 
     def __init__(self, problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS, mp=True, visualizer=False, algorithm = None):

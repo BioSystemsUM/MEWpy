@@ -11,28 +11,32 @@ class ModelContainer:
     @property
     def reactions(self):
         """
-        Returns a list of reaction identifiers
+        :returns: A list of reaction identifiers.
+        
         """
         raise NotImplementedError
 
     @property
     def genes(self):
         """
-        Returns a list of gene identifiers
+        :returns: A list of gene identifiers.
+        
         """
         raise NotImplementedError
 
     @property
     def proteins(self):
         """
-        Returns a list of proteins identifiers
+        :returns: A list of proteins identifiers.
+        
         """
         raise NotImplementedError
 
     @property
     def metabolites(self):
         """
-        Returns a list of metabolite identifiers
+        :returns: A list of metabolite identifiers.
+        
         """
         raise NotImplementedError
 
@@ -45,7 +49,7 @@ class ModelContainer:
 
     def get_gpr(self, reaction_id):
         """
-        Returns a reaction gpr if exists None otherwise.
+        :returns: A reaction gpr if exists None otherwise.
         """
         raise NotImplementedError
 
@@ -65,14 +69,19 @@ class Simulator(ModelContainer):
 
     @abstractclassmethod
     def simulate(self, objective=None, method=SimulationMethod.FBA, maximize=True, constraints=None, reference=None, solver=None, **kwargs):
-        """
-        Returns a SimulationResult
+        """Abstract method to run a phenotype simulation.
+        
+        :returns: A SimulationResult.
+        
         """
         raise NotImplementedError
 
     @abstractclassmethod
     def FVA(self, obj_frac=0, reactions=None, constraints=None, loopless=False, internal=None, solver=None):
-        """ Run Flux Variability Analysis (FVA).
+        """ Abstract method to run Flux Variability Analysis (FVA).
+        
+        :returns: A dictionary of flux range values.
+        
         """
         raise NotImplementedError
 
@@ -81,8 +90,8 @@ class SimulationResult(object):
 
     def __init__(self, model, objective_value, fluxes=None, status=None, envcond=None, model_constraints=None, simul_constraints=None, maximize=True):
         """
-            class that represents simulation results and performs
-            operations over them.
+            Class that represents simulation results and performs operations over them.
+            
         """
         self.model = model
         self.objective_value = objective_value
@@ -113,11 +122,11 @@ class SimulationResult(object):
         return "objective: {}\nStatus: {}".format(self.objective_value, self.status)
 
     def get_net_conversion(self, biomassId=None):
-        '''
-           Returs a string representation of the net conversion
+        '''Returs a string representation of the net conversion.
 
-           args:
-                biosmassId (str) : optional  
+        :params str biosmassId: Biomass identifier (optional)
+        :returns: A string representation of the net conversion.
+          
         '''
 
         left = ""

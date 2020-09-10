@@ -11,19 +11,24 @@ import copy
 
 
 class ShrinkMutation(Mutation[Solution]):
-    """ Shrink mutation
+    """ Shrink mutation. A gene is removed from the solution.
 
-        args:
-            probability : float
-                the probability of mutation
-            min_size : int
-                the solution minimum size
+    :param probability: (float), The mutation probability.
+    :param min_size: (int) the solution minimum size.
+    
     """
     def __init__(self, probability: float = 0.1,  min_size :int = EAConstants.MIN_SOLUTION_SIZE):
         super(ShrinkMutation, self).__init__(probability = probability)
         self.min_size = min_size
 
     def execute(self, solution: Solution) -> Solution:
+        """
+        Apply the mutation.
+        
+        :param solution: The candidate solution to be mutated.
+        :returns: A mutated solution.
+        
+        """
         if random.random() <= self.probability and solution.number_of_variables > self.min_size:
             var = copy.copy(solution.variables)
             index = random.randint(0, len(var) - 1)
@@ -38,6 +43,12 @@ class ShrinkMutation(Mutation[Solution]):
 
 
 class GrowMutationKO(Mutation[KOSolution]):
+    """ Grow mutation. A gene is added to the solution.
+ 
+    :param probability: (float), The mutation probability.
+    :param min_size: (int) the solution minimum size.
+    
+    """
 
     def __init__(self, probability: float = 0.1,  max_size :int = EAConstants.MAX_SOLUTION_SIZE):
         super(GrowMutationKO, self).__init__(probability = probability)
@@ -45,6 +56,13 @@ class GrowMutationKO(Mutation[KOSolution]):
 
 
     def execute(self, solution: Solution) -> Solution:
+        """
+        Apply the mutation.
+        
+        :param solution: The candidate solution to be mutated.
+        :returns: A mutated solution.
+        
+        """
         if random.random() <= self.probability and solution.number_of_variables < self.max_size:
             mutant = copy.copy(solution.variables)
             newElem = random.randint(solution.lower_bound,solution.upper_bound)
@@ -63,6 +81,12 @@ class GrowMutationKO(Mutation[KOSolution]):
 
 
 class GrowMutationOU(Mutation[OUSolution]):
+    """ Grow mutation. A gene is added to the solution.
+ 
+    :param probability: (float), The mutation probability.
+    :param min_size: (int) the solution minimum size.
+    
+    """
 
     def __init__(self, probability: float = 0.1,  max_size :int = EAConstants.MAX_SOLUTION_SIZE):
         super(GrowMutationOU, self).__init__(probability = probability)
@@ -70,6 +94,13 @@ class GrowMutationOU(Mutation[OUSolution]):
 
 
     def execute(self, solution: Solution) -> Solution:
+        """
+        Apply the mutation.
+        
+        :param solution: The candidate solution to be mutated.
+        :returns: A mutated solution.
+        
+        """
         if random.random() <= self.probability and solution.number_of_variables < self.max_size:
             mutant = copy.copy(solution.variables)
             idx = random.randint(solution.lower_bound[0],solution.upper_bound[0])
@@ -90,15 +121,11 @@ class GrowMutationOU(Mutation[OUSolution]):
 
 
 class UniformCrossoverKO(Crossover[KOSolution,KOSolution]):
-    """
-        Uniform Crossover for KO solutions
+    """Uniform Crossover for KO solutions
 
-        args:
-
-            probability : float
-                the probability of crossover
-            max_size : int
-                the solution maximum size
+    :param probability: (float) The probability of crossover.
+    :param max_size: (int) The solution maximum size.
+    
     """
     def __init__(self, probability: float = 0.1, max_size: int = EAConstants.MAX_SOLUTION_SIZE):
         super(UniformCrossoverKO, self).__init__(probability=probability)
@@ -152,6 +179,12 @@ class UniformCrossoverKO(Crossover[KOSolution,KOSolution]):
 
 
 class MutationContainer(Mutation[Solution]):
+    """A container for the mutation operators.
+    
+    :param probability: (float) The probability of applying a mutation.
+    :param mutators: (list) The list of mutators.
+    
+    """
     
     def __init__(self,probability:float = 0.5, mutators = []):
         super(MutationContainer, self).__init__(probability=probability)

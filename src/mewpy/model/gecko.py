@@ -29,12 +29,8 @@ class ModelList(object):
 
     def __getitem__(self, item):
         """Get a bundled GECKO model.
-
-        Parameters:
         
-        item : basestring
-            Either 'single-pool' for the single-protein pool ecYeastGEM model or 'multi-pool' for individually modeled
-            protein pools.
+        :param item: basestring. Either 'single-pool' for the single-protein pool ecYeastGEM model or 'multi-pool' for individually modeled protein pools.
 
         """
         try:
@@ -76,35 +72,21 @@ class GeckoModel(CBModel):
 
     Implement a model class for Genome-scale model to account for Enzyme Constraints, using Kinetics and Omics [1]_.
 
-    Parameters:
+
     
-    model : str
-        A CBModel to apply protein constraints to. Can be 'single-pool' for the bundled ecYeast7 model using only
-        a single pool for all proteins, or 'multi-pool' for the model that has separate pools for all measured proteins.
-    protein_properties : pd.DataFrame
-        A data frame that defined molecular weight (g/mol) 'mw', for 'uniprot' proteins and their average
-        'abundance' in ppm.
-    sigma : float
-        The parameter adjusting how much of a protein pool can take part in reactions. Fitted parameter, default is
-        optimized for chemostat experiment in [1]_.
-    gam : float
-        The growth associated maintenance cost in mmol / gDW. Default fitted for yeast 8.1.3.
-    amino_acid_polymerization_cost : float
-        The cost for turning amino-acids in proteins in mmol / g. Default taken from [2]_.
-    carbohydrate_polymerization_cost : float
-        The cost for turning monosaccharides in polysaccharides in mmol / g. Default taken from [2]_.
-    c_base : float
-        The carbohydrate content at dilution rate 0.1 / h. Default taken from yeast 8.1.3.
-    biomass_reaction_id : str
-        The identifier for the biomass reaction
-    protein_reaction_id : str
-        The identifier for the protein reaction
-    carbohydrate_reaction_id : str
-        The identifier for the carbohydrate reaction
-    protein_pool_exchange_id : str
-        The identifier of the protein pool exchange reaction
-    common_protein_pool_id : str
-        The identifier of the metabolite representing the common protein pool
+    :param model: str, A CBModel to apply protein constraints to. Can be 'single-pool' for the bundled ecYeast7 model using only a single pool for all proteins, or 'multi-pool' for the model that has separate pools for all measured proteins. 
+    :param protein_properties: pd.DataFrame, A data frame that defined molecular weight (g/mol) 'mw', for 'uniprot' proteins and their average 'abundance' in ppm.
+    :param sigma: float, The parameter adjusting how much of a protein pool can take part in reactions. Fitted parameter, default is optimized for chemostat experiment in [1]_.
+    :param gam: float, The growth associated maintenance cost in mmol / gDW. Default fitted for yeast 8.1.3.
+    :param amino_acid_polymerization_cost: float, The cost for turning amino-acids in proteins in mmol / g. Default taken from [2]_.
+    :param carbohydrate_polymerization_cost: float, The cost for turning monosaccharides in polysaccharides in mmol / g. Default taken from [2]_.
+    :param c_base: float, The carbohydrate content at dilution rate 0.1 / h. Default taken from yeast 8.1.3.
+    :param biomass_reaction_id: str, The identifier for the biomass reaction.
+    :param protein_reaction_id: str, The identifier for the protein reaction. 
+    :param carbohydrate_reaction_id: str, The identifier for the carbohydrate reaction.
+    :param protein_pool_exchange_id: str, The identifier of the protein pool exchange reaction.
+    :param common_protein_pool_id: str, The identifier of the metabolite representing the common protein pool.
+
 
     References:
     
@@ -222,16 +204,9 @@ class GeckoModel(CBModel):
     def fraction_to_ggdw(self, fraction):
         """Convert protein measurements in mass fraction of total to g protein / g DW.
 
-        Parameters:
         
-        fraction: pd.Series
-            Data of protein measurements which are absolute quantitative fractions of the total amount of these
-            measured proteins. Normalized to sum == 1.
-
-        Returns:
-        
-        pd.Series
-            g protein / g DW for the measured proteins
+        :param fraction: pd.Series, Data of protein measurements which are absolute quantitative fractions of the total amount of these measured proteins. Normalized to sum == 1.
+        :returns: pd.Series, g protein / g DW for the measured proteins
 
         """
         # measurements should be quantitative fractions of the total measured proteins, normalized to unit-length
@@ -247,17 +222,11 @@ class GeckoModel(CBModel):
         Apply measurements in the form of fractions of total of the measured proteins, or directly as g / gDW. Must
         supply exactly one of `fractions` or `ggdw`.
 
-        Parameters:
         
-        fractions : pd.Series
-            Protein abundances in fraction of total (normalized to sum to 1). Ignored if `ggdw` is also supplied.
-        ggdw : pd.Series
-            Protein abundances in g / gDW
-        p_total : float
-            measured total protein fraction in cell in g protein / g DW. Should be measured for each experiment,
-            the default here is taken from [2]_.
-        p_base : float
-            protein content at dilution rate 0.1 / h in g protein / g DW. Default taken from yeast 8.1.3.
+        :param fractions: pd.Series, Protein abundances in fraction of total (normalized to sum to 1). Ignored if `ggdw` is also supplied.
+        :param ggdw: pd.Series, Protein abundances in g / gDW
+        :param p_total: float, measured total protein fraction in cell in g protein / g DW. Should be measured for each experiment, the default here is taken from [2]_.
+        :param p_base: float, protein content at dilution rate 0.1 / h in g protein / g DW. Default taken from yeast 8.1.3.
 
         References:
         
@@ -396,20 +365,11 @@ class GeckoModel(CBModel):
 
         Bounds from measurements can make the model non-viable or even infeasible. Adjust these minimally by minimizing
         the positive deviation from the measured values.
-
-        Parameters:
         
-        min_objective : float
-            The minimum value of for the ojective for calling the model viable.
-        inplace : bool
-            Apply the adjustments to the model.
-        tolerance : float
-            Minimum non-zero value. Solver specific value.
-
-        Returns:
-        
-        pd.DataFrame
-            Data frame with the series 'original' bounds and the new 'adjusted' bound, and the optimized 'addition'.
+        :param min_objective: float, The minimum value of for the ojective for calling the model viable.
+        :param inplace: bool, Apply the adjustments to the model.
+        :param tolerance: float, Minimum non-zero value. Solver specific value.
+        :returns: pd.DataFrame, Data frame with the series 'original' bounds and the new 'adjusted' bound, and the optimized 'addition'.
 
         """
         from reframed.solvers import solver_instance
@@ -456,10 +416,7 @@ class GeckoModel(CBModel):
     def measured_proteins(self):
         """Get the identifiers of the measured proteins.
 
-        Returns:
-        
-        frozenset
-            The identifiers for the unmeasured proteins.
+        :returns: frozenset, The identifiers for the unmeasured proteins.
 
         """
         return frozenset(self.concentrations[self.concentrations.notnull()].index)
@@ -468,10 +425,7 @@ class GeckoModel(CBModel):
     def unmeasured_proteins(self):
         """Get the identifiers of the proteins .
 
-        Returns:
-        
-        frozenset
-            The protein identifiers for the measured proteins.
+        :returns: frozenset, The protein identifiers for the measured proteins.
 
         """
         return frozenset(self.concentrations[self.concentrations.isnull()].index)
@@ -480,10 +434,7 @@ class GeckoModel(CBModel):
     def proteins(self):
         """Get all proteins.
 
-        Returns:
-        
-        frozenset
-           The set of all proteins identifiers.
+        :returns: frozenset, The set of all proteins identifiers.
 
         """
         return self.individual_proteins.union(self.pool_proteins)
@@ -492,10 +443,7 @@ class GeckoModel(CBModel):
     def individual_proteins(self):
         """Get the identifiers for the proteins with their individual abundance pool.
 
-        Returns:
-        
-        frozenset
-            The set of proteins that have a defined separate pool exchange reaction.
+        :returns: frozenset, The set of proteins that have a defined separate pool exchange reaction.
 
         """
         return frozenset(chain.from_iterable(re.findall(self.protein_exchange_re, rxn)
@@ -505,10 +453,7 @@ class GeckoModel(CBModel):
     def pool_proteins(self):
         """Get proteins modeled by common protein pool.
 
-        Returns:
-        
-        frozenset
-            The set of proteins that have a defined draw reaction.
+        :returns: frozenset, The set of proteins that have a defined draw reaction.
 
         """
         return frozenset(chain.from_iterable(re.findall(self.pool_protein_exchange_re, rxn)
@@ -518,10 +463,7 @@ class GeckoModel(CBModel):
     def individual_protein_exchanges(self):
         """Individual protein-exchange reactions.
 
-        Returns:
-        
-        frozenset
-            Set of protein exchange reactions with individual pools
+        :returns: frozenset, Set of protein exchange reactions with individual pools
 
         """
         return (frozenset(rxn for rxn in self.reactions.keys()
@@ -531,10 +473,7 @@ class GeckoModel(CBModel):
     def pool_protein_exchanges(self):
         """Protein-exchange reactions by single pool.
 
-        Returns:
-        
-        frozenset
-            Set of protein exchange reactions for single pool reactions.
+        :returns: frozenset, Set of protein exchange reactions for single pool reactions.
 
         """
         return (frozenset(rxn for rxn in self.reactions
@@ -548,10 +487,7 @@ class GeckoModel(CBModel):
         """Protein-exchange reactions.
             fs_matched_adjusted
         
-        Returns:
-        
-        frozenset
-            Set of protein exchange reactions (individual and common protein pool reactions)
+        :returns: frozenset, Set of protein exchange reactions (individual and common protein pool reactions).
 
         """
         return self.individual_protein_exchanges.union(self.pool_protein_exchanges)
@@ -564,10 +500,7 @@ class GeckoModel(CBModel):
         """
         Pairs of reverse reactions associated with a protein
         
-        Returns:
-        
-        dictionaty  
-            A dictionary which identifies for each protein (key) the list of reversible reactions pairs 
+        :returns: dictionaty, A dictionary which identifies for each protein (key) the list of reversible reactions pairs.
             
         """
         if not self._protein_rev_reactions:

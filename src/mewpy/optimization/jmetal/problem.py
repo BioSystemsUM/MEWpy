@@ -86,7 +86,7 @@ class KOSolution(Solution[int], SolutionInterface):
 
 class OUSolution(Solution[IntTupple], SolutionInterface):
     """
-    Class representing a KO solution
+    Class representing a Over/Under expression solution.
     """
 
     def __init__(self, lower_bound: List[int], upper_bound: List[int], number_of_variables: int, number_of_objectives: int):

@@ -7,9 +7,8 @@ import numpy
 def fitness_statistics(population):
     """Return the basic statistics of the population's fitness values.
 
-    Arguments:
 
-    - *population* -- the population of individuals 
+    :param population: A population of individuals 
 
     """
 
@@ -49,12 +48,12 @@ def results_observer(population, num_generations, num_evaluations, args):
     - fitness of candidate
     - the solution candidates
     - the solution encoded candidates
-
-    Args:
-        population (list): the population of Individuals
-        num_generations (int): the number of elapsed generations
-        num_evaluations (int): the number of evaluations already performed
-        args (dict): a dictionary of keyword arguments
+    
+    :param population: (list) the population of Individuals.
+    :param num_generations: (int) the number of elapsed generations.
+    :param num_evaluations: (int) the number of evaluations already performed.
+    :param args: (dict) a dictionary of keyword arguments.
+    
     """
 
     stats = fitness_statistics(population)
@@ -75,9 +74,7 @@ def results_observer(population, num_generations, num_evaluations, args):
 
 
 class VisualizerObserver():
-    """
-
-    """
+    
 
     def __init__(self, reference_front=None, reference_point=None, display_frequency=1, axis_labels=None, non_dominated=True, print_stats=True):
         self.figure = None
@@ -121,8 +118,12 @@ class VisualizerObserver():
 
 
 def non_dominated_population(population, maximize=True):
-    """
-    returns the non dominated solutions from the population.
+    """ The non dominated solutions from the population.
+    
+    :param population: A list of individuals.
+    :param maximize: (bool) Optimization direction.
+    :returns: a list of non-dominated solutions.
+    
     """
     population.sort(reverse=True)
     non_dominated = []
@@ -146,17 +147,16 @@ def dominance_test(solution1, solution2, maximize=True):
     """
     Testes Pareto dominance
     
-    Parameters:
     
-    solution1 : The first solution 
-    solution2 : The second solution
-    maximize (bool): maximization (True) or minimization (False)
+    
+    :param solution1: The first solution 
+    :param solution2: The second solution
+    :param maximize: (bool) maximization (True) or minimization (False)
 
-    Returns: 
-     
-    1 : if the first solution dominates the second 
-    -1 : if the second solution dominates the first
-    0 : if non of the solutions dominates the other
+    :returns: 1, if the first solution dominates the second; 
+            -1, if the second solution dominates the first;
+            0, if non of the solutions dominates the other.
+            
     """
     best_is_one = 0
     best_is_two = 0
