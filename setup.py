@@ -18,7 +18,7 @@ setup(
     install_requires=[
         'inspyred',
         'reframed',
-        'cobra',
+        'cobra==0.17.1',
         'jmetalpy',
         'cobamp'],
     author='BiSBII CEB University of Minho',
