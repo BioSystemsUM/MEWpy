@@ -25,11 +25,13 @@ class Solution(SolutionInterface):
         """
         EA Solution
 
-        args:
-            values: representation of the solution 
-            fitness:  a list of fitness values
-            constraints: decoding of the representation into metabolic constraints
-            is_maximize: if the solution results from a maximization problem
+        Parameters:
+        
+        values: representation of the solution 
+        fitness:  a list of fitness values
+        constraints: decoding of the representation into metabolic constraints
+        is_maximize: if the solution results from a maximization problem
+        
         """
         self.values = values
         self.fitness = fitness
@@ -98,9 +100,8 @@ class AbstractEA():
 
     def run(self):
         """ Runs the optimization for the defined problem.
-            The number of objectives is defined to be the number of evaluation
-            functions in fevalution. If there are more than one objective, 
-            NSGAII is used as optimization engine. 
+        The number of objectives is defined to be the number of evaluation functions in fevalution. If there are more than one objective, 
+        NSGAII is used as optimization engine. 
         """
 
         if self.problem.fevaluation is None or len(self.problem.fevaluation) == 0:
@@ -133,15 +134,19 @@ class AbstractEA():
 def dominance_test(solution1, solution2, maximize=True):
     """
     Testes Pareto dominance
-    args
-        solution1 : The first solution 
-        solution2 : The second solution
-        maximize (bool): maximization (True) or minimization (False)
+    
+    Parameters:
+        
+    solution1 : The first solution 
+    solution2 : The second solution
+    maximize (bool): maximization (True) or minimization (False)
 
-    returns 
-         1 : if the first solution dominates the second 
-        -1 : if the second solution dominates the first
-         0 : if non of the solutions dominates the other
+    returns:
+     
+    1 : if the first solution dominates the second 
+    -1 : if the second solution dominates the first
+    0 : if non of the solutions dominates the other
+    
     """
     best_is_one = 0
     best_is_two = 0
@@ -176,7 +181,7 @@ def dominance_test(solution1, solution2, maximize=True):
 
 def non_dominated_population(population, maximize=True, filter_duplicate=True):
     """
-    returns the non dominated solutions from the population.
+    Returns the non dominated solutions from the population.
     """
     #population.sort(reverse = True)
     non_dominated = []
@@ -224,14 +229,20 @@ def filter_duplicates(population):
 def cmetric(pf1,pf2,maximize = True):
     """
     Computes the c-metric quality indicator
-    :param pf1: first pareto front
-    :param pf2: second pareto front
+    
+    Parameters:
+    
+    pf1: first pareto front
+    pf2: second pareto front
 
-    returns r1,r2,pf1_2,pf2_1
-        r1: percentage of solutions on pf2 dominated by some solution on pf1
-        r2: percentage of solutions on pf1 dominated by some solution on pf2
-        pf1_2: solutions on pf2 dominated by some solution on pf1
-        pf2_1: solutions on pf1 dominated by some solution on pf2
+    Returns: 
+    
+    r1,r2,pf1_2,pf2_1
+    r1: percentage of solutions on pf2 dominated by some solution on pf1
+    r2: percentage of solutions on pf1 dominated by some solution on pf2
+    pf1_2: solutions on pf2 dominated by some solution on pf1
+    pf2_1: solutions on pf1 dominated by some solution on pf2
+    
     """
     # solutions on pf2 dominated by some solution on pf1 
     pf1_2 = set()

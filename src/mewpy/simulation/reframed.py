@@ -78,8 +78,8 @@ class CBModelContainer(ModelContainer):
 
 class Simulation(CBModelContainer, Simulator):
     """
-        Generic Simulation class for reframed CBModel.
-        Defines the simulation conditions.
+    Generic Simulation class for reframed CBModel.
+    Defines the simulation conditions.
     """
 
     def __init__(self, model: CBModel, objective=None, envcond=None, constraints=None,  solver=None, reference=None):
@@ -203,11 +203,14 @@ class Simulation(CBModelContainer, Simulator):
         """
         Identify if a reaction is reversible and returns the 
         reverse reaction if it is the case.
-
-        Returns 
-            reaction identifier or None
-        TODO: ... use regex instead  
+        
+        :param reaction_id: A reaction identifier
+        :return: reverse reaction identifier or None
+        
         """
+        
+        #TODO: ... use regex instead  
+        
         rxn = self.model.reactions[reaction_id]
         reactions = self.model.reactions
         if rxn.lb < 0:
@@ -251,7 +254,8 @@ class Simulation(CBModelContainer, Simulator):
         Returns the list of reactions catalysed by a list of genes
 
         Arguments:
-            A list of gene IDs
+        
+        A list of gene IDs
 
         """
         if not self._gene_to_reaction:
@@ -264,6 +268,7 @@ class Simulation(CBModelContainer, Simulator):
     def get_reaction_metabolites(self, reaction):
         '''
         Returns all metabolites of a given reaction
+        
         :param reaction: reaction (str)
         :return: metabolites (dict)
         '''
@@ -305,8 +310,7 @@ class Simulation(CBModelContainer, Simulator):
 
     def metabolite_reaction_lookup(self, force_recalculate=False):
         """ Return the network topology as a nested map from metabolite to reaction to coefficient
-        Returns:
-            dict: lookup table
+        :return: a dictionary lookup table
         """
 
         if not self._m_r_lookup or force_recalculate:
@@ -331,8 +335,7 @@ class Simulation(CBModelContainer, Simulator):
     def get_S(self):
         """
         Returns the S matrix as a numpy array
-        :returns:
-            S matrix, np.array
+        :return: S matrix, np.array
         """
 
         return np.array(self.model.stoichiometric_matrix())
@@ -361,8 +364,7 @@ class Simulation(CBModelContainer, Simulator):
         """
         Returns the whole set of lower and upper bounds as numpy arrays
 
-        :returns:
-            lb(s), ub(s), tuple of lists
+        :return: lb(s), ub(s), tuple of lists
 
         """
 
@@ -379,9 +381,7 @@ class Simulation(CBModelContainer, Simulator):
 
         :param metabolite: str, metabolite ID
 
-        :returns:
-            reaction, str
-            None
+        :returns: reaction, str or  None
         """
 
         # reaction.reaction_type.value == 'exchange'

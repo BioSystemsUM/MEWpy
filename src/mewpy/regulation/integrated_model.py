@@ -629,12 +629,10 @@ class IntegratedModel(RegulatoryModel):
         :param cbm_model: cobra or reframed model objects
         :param cbm_simulation_interface: mewpy simulation object
         :param identifier: str, integrated model identifier
-        :param initial_state: dict, initial state of the regulatory variables. If none, the state of all regulatory
-        variables is set to off (zero)
+        :param initial_state: dict, initial state of the regulatory variables. If none, the state of all regulatory variables is set to off (zero)
         :param filter_nan: bool, filter targets with empty rules
         :param sep: str, separator
-        :param id_col: int, index of the column of the regulatory variables identifiers (those that appear in the
-        regulatory rules)
+        :param id_col: int, index of the column of the regulatory variables identifiers (those that appear in the regulatory rules)
         :param rule_col: int, index of the column of the regulatory rules
         :param aliases_cols: int, index of the column of the regulatory variables aliases
         :param header: int or None, index of the header row or None if there is none
@@ -1334,10 +1332,8 @@ class IntegratedModel(RegulatoryModel):
         Method responsible for decoding the RFBA metabolic state, namely the state of all metabolic genes associated
         at least with one reaction in the GPRs rule.
 
-        :param state: dict, key is the id of the regulatory variable (metabolic target) while value can be 0,
-        1 or float (reactions and metabolites predicates)
-        :return: SimulationResult object, it contains the result of the simulate method available in the Simulation
-        object
+        :param state: dict, key is the id of the regulatory variable (metabolic target) while value can be 0, 1 or float (reactions and metabolites predicates)
+        :return: SimulationResult object, it contains the result of the simulate method available in the Simulation object
         """
 
         # This function decodes a given metabolic state (state of the metabolic genes) and simulates the cbm model
@@ -1395,8 +1391,7 @@ class IntegratedModel(RegulatoryModel):
         :param maximize: bool
         :param method: SimulationMethod object
         :param constraints: dict, additional constraints focused on the reactions
-        :return: SimulationResult object, it contains the result of the simulate method available in the Simulation
-        object
+        :return: SimulationResult object, it contains the result of the simulate method available in the Simulation object
         """
 
         self.objective = objective

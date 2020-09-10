@@ -233,7 +233,8 @@ class Simulation(CobraModelContainer, Simulator):
         Returns the S matrix as a numpy array
 
         :returns:
-            S matrix, np.array
+        
+        S matrix, np.array
 
         """
         S = np.zeros((len(self.metabolites), len(self.reactions)))
@@ -274,7 +275,8 @@ class Simulation(CobraModelContainer, Simulator):
         Returns the whole set of lower and upper bounds as numpy arrays
 
         :returns:
-            lb(s), ub(s), tuple of lists
+        
+        lb(s), ub(s), tuple of lists
 
         """
 
@@ -290,9 +292,7 @@ class Simulation(CobraModelContainer, Simulator):
 
         :param metabolite: str, metabolite ID
 
-        :returns:
-            reaction, str
-            None
+        :returns: reaction, str or None
         """
 
         for reaction in self.model.metabolites.get_by_id(metabolite).reactions:
@@ -314,15 +314,16 @@ class Simulation(CobraModelContainer, Simulator):
 
     def simulate(self, objective=None, method=SimulationMethod.FBA, maximize=True, constraints=None, reference=None, scalefactor=None):
         '''
-            Simulates the application of constraints using the specified method.
+        Simulates the application of constraints using the specified method.
 
-            arguments:
-            *objective* (dic): the simulation objective. If none, the model objective is used.
-            *method* (SimulationMethod):
-            *maximize* (boolean) : the optimization direction
-            *contraints* (dic): contraints to be applied to the model.
-            *reference* 
-            *scalefactor* (float) : a positive scaling factor. Default None 
+        Parameters
+        
+        *objective* (dic): the simulation objective. If none, the model objective is used.
+        *method* (SimulationMethod):
+        *maximize* (boolean) : the optimization direction
+        *contraints* (dic): contraints to be applied to the model.
+        *reference* 
+        *scalefactor* (float) : a positive scaling factor. Default None 
         '''
 
         if not objective:
@@ -382,16 +383,19 @@ class Simulation(CobraModelContainer, Simulator):
         """ Run Flux Variability Analysis (FVA).
 
         Arguments:
-            model (Model): a constraint-based model
-            obj_frac (float): minimum fraction of the maximum growth rate (default 0.0, max: 1.0)
-            reactions (list): list of reactions to analyze (default: all)
-            constraints (dict): additional constraints (optional)
-            loopless (bool): run looplessFBA internally (very slow) (default: false)
-            internal (list): list of internal reactions for looplessFBA (optional)
-            solver (Solver): pre-instantiated solver instance (optional)
+        
+        model (Model): a constraint-based model
+        obj_frac (float): minimum fraction of the maximum growth rate (default 0.0, max: 1.0)
+        reactions (list): list of reactions to analyze (default: all)
+        constraints (dict): additional constraints (optional)
+        loopless (bool): run looplessFBA internally (very slow) (default: false)
+        internal (list): list of internal reactions for looplessFBA (optional)
+        solver (Solver): pre-instantiated solver instance (optional)
 
         Returns:
-            dict: flux variation ranges
+        
+        dict: flux variation ranges
+        
         """
         from cobra.flux_analysis.variability import flux_variability_analysis
         df = flux_variability_analysis(
@@ -454,8 +458,9 @@ class GeckoSimulation(Simulation):
         Identify if a reaction is reversible and returns the 
         reverse reaction if it is the case
 
-        Returns 
-            reaction identifier or None
+        Returns: 
+        reaction identifier or None
+        
         """
         f, d = zip(*self.protein_rev_reactions.values())
         if reaction_id in f:
@@ -468,11 +473,11 @@ class GeckoSimulation(Simulation):
     @property
     def protein_rev_reactions(self):
         """
-            Pairs of reverse reactions associated with a protein
-        Returns
-        ------
-        dictionaty  
-            A dictionary which identifies for each protein (key) the list of reversible reactions pairs 
+        Pairs of reverse reactions associated with a protein
+        
+        Returns: 
+          
+        A dictionary which identifies for each protein (key) the list of reversible reactions pairs 
         """
         if not self._protein_rev_reactions:
             proteins = self.model.proteins

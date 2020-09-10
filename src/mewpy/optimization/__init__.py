@@ -46,8 +46,10 @@ def get_default_engine():
 
 def set_default_engine(enginename):
     """ Sets default EA engine.
-    Arguments:
-        enginename : (str) engine name (currently available: 'inspyred', 'jmetal')
+    
+    Parameters:
+    
+    enginename : (str) engine name (currently available: 'inspyred', 'jmetal')
     """
 
     global default_engine
@@ -89,12 +91,18 @@ def EA(problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIO
     """
     EA running helper
 
-    arguments
-        problem: the optimization problem
-        initial_population* (list): the EA initial population
-        max_generations (int): the number of iterations of the EA (stopping criteria)
-        mp (boolean): if should use multiprocessing
-        visualizer (boolean): if the pareto font should be displayed. Requires a graphic environment.
+    Parameters:
+    
+    problem: the optimization problem
+    initial_population* (list): the EA initial population
+    max_generations (int): the number of iterations of the EA (stopping criteria)
+    mp (boolean): if should use multiprocessing
+    visualizer (boolean): if the pareto font should be displayed. Requires a graphic environment.
+    
+    Returns:
+    
+    An instance of an EA optimizer.
+    
     """
 
     if len(engines) == 0:

@@ -631,6 +631,7 @@ class SRFBAModel(IntegratedModel):
         :param objective: None or dict, objective for the optimization. None for the current objective
         :param maximize: bool, direction for the optimization.
         :return: SimulationResult object, it contains the metabolic and regulatory states too.
+        
         Solutions are also stored under solution property
         """
 

@@ -8,25 +8,27 @@ import warnings
 class GeckoKOProblem(AbstractKOProblem):
     """Gecko KnockOut Optimization Problem 
 
-    args:
+    Parameters:
 
-        model (metabolic model): The constraint based metabolic model.
-        fevaluation (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness
+    :param model (metabolic model): The constraint based metabolic model.
+    :param fevaluation (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness.
 
 
     kwargs:
 
-        envcond (OrderedDict): environmental conditions.
-        constraints (OrderedDict): additional constraints to be applied to the model.
-        candidate_min_size (int) : The candidates minimum size.
-        candidate_max_size (int) : The candidates maximum size.
-        target (list): List of target reactions.
-        non_target (list): List of non target reactions. Not considered if a target list is provided.
-        scalefactor (floaf): a scaling factor to be used in the LP formulation. 
-        prot_prefix (str): the protein draw reaction prefix. Default 'draw_prot_'  
+    :param envcond (OrderedDict): environmental conditions.
+    :param constraints (OrderedDict): additional constraints to be applied to the model.
+    :param candidate_min_size (int): The candidates minimum size.
+    :param candidate_max_size (int): The candidates maximum size.
+    :param target (list): List of target reactions.
+    :param non_target (list): List of non target reactions. Not considered if a target list is provided.
+    :param scalefactor (floaf): a scaling factor to be used in the LP formulation. 
+    :param prot_prefix (str): the protein draw reaction prefix. Default `draw_prot_`  
+
 
     Note:
-     Targets as well as non target proteins are defined using their prot id, ex 'P0351', and not by the associated draw reaction id, ex 'draw_prot_P0351'. 
+    
+    Targets as well as non target proteins are defined using their prot id, ex  `P0351`, and not by the associated draw reaction id, ex `draw_prot_P0351`. 
     
     """
 
@@ -73,26 +75,28 @@ class GeckoOUProblem(AbstractOUProblem):
     """
     Gecko Under/Over expression Optimization Problem 
 
-    args:
+    Parameters:
 
-        model (metabolic model): The constraint based metabolic model.
-        fevaluation (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness
+    :param model (metabolic model): The constraint based metabolic model.
+    :param fevaluation (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness.
+
 
     kwargs:
 
-        envcond (OrderedDict): environmental conditions.
-        constraints (OrderedDict): additional constraints to be applied to the model.
-        candidate_min_size (int) : The candidates minimum size.
-        candidate_max_size (int) : The candidates maximum size.
-        target (list): List of target reactions.
-        non_target (list): List of non target reactions. Not considered if a target list is provided.
-        scalefactor (floaf): a scaling factor to be used in the LP formulation.
-        reference (dic): Dictionary of flux values to be used in the over/under expression values computation. 
-        prot_prefix (str): the protein draw reaction prefix. Default 'draw_prot_'  
+    :param envcond (OrderedDict): environmental conditions.
+    :param constraints (OrderedDict): additional constraints to be applied to the model.
+    :param candidate_min_size (int): The candidates minimum size.
+    :param candidate_max_size (int): The candidates maximum size.
+    :param target (list): List of target reactions.
+    :param non_target (list): List of non target reactions. Not considered if a target list is provided.
+    :param scalefactor (floaf): a scaling factor to be used in the LP formulation.
+    :param reference (dic): Dictionary of flux values to be used in the over/under expression values computation. 
+    :param prot_prefix (str): the protein draw reaction prefix. Default `draw_prot_`.
 
 
     Note:
-     Target as well as non target proteins are defined with their prot id, ex 'P0351', and with the associated reaction id, ex 'draw_prot_P0351'. 
+    Target as well as non target proteins are defined with their prot id, ex `P0351`, and with the associated reaction id, ex `draw_prot_P0351`. 
+    
     """
 
     def __init__(self, model, fevaluation=None, **kwargs):

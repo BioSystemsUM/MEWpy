@@ -66,7 +66,7 @@ class AbstractProblem(ABC):
     """
     Optimization Problem base class
 
-    parameters:
+    Parameters:
 
     model (metabolic model)
     fevaluation (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness
@@ -211,12 +211,15 @@ class AbstractProblem(ABC):
     def simplify(self, solution, tolerance=1e-6,):
         """
         Simplify a solution by removing the modification that do not affect the final fitness value.
-        Args:
-            solution : the solution to be simplified
-            tolerance: max allowed objective difference values for two solutions to be considered diferent.
-                       Tolerance may be defined by a single float value, or per objective by means of a list of floats
-                       of size equal to the number of objectives.
-        Returns: a list of simplified solutions
+        
+        Parameters:
+        
+        solution : the solution to be simplified
+        tolerance: max allowed objective difference values for two solutions to be considered diferent. Tolerance may be defined by a single float value, or per objective by means of a list of floats of size equal to the number of objectives.
+        
+        Returns: 
+        
+        a list of simplified solutions
         """
 
         values = self.translate(solution.values, reverse=True)
@@ -271,21 +274,22 @@ class AbstractKOProblem(AbstractProblem):
     """
     Base class for Knockout optimization problems
 
-    args:
+    Parameters
 
-        model (metabolic model): The constraint based metabolic model.
-        fevaluation (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness
+    model (metabolic model): The constraint based metabolic model.
+    fevaluation (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness
 
 
-    **kwargs:
+    kwargs options:
 
-        envcond (OrderedDict): environmental conditions.
-        constraints (OrderedDict): additional constraints to be applied to the model.
-        candidate_min_size (int) : The candidates minimum size.
-        candidate_min_size (int) : The candidates maximum size.
-        target (list): List of target reactions.
-        non_target (list): List of non target reactions. Not considered if a target list is provided.
-        scalefactor (floaf): a scaling factor to be used in the LP formulation.
+    envcond (OrderedDict): environmental conditions.
+    constraints (OrderedDict): additional constraints to be applied to the model.
+    candidate_min_size (int) : The candidates minimum size.
+    candidate_min_size (int) : The candidates maximum size.
+    target (list): List of target reactions.
+    non_target (list): List of non target reactions. Not considered if a target list is provided.
+    scalefactor (floaf): a scaling factor to be used in the LP formulation.
+    
     """
 
     def __init__(self, model, fevaluation=None, **kwargs):
@@ -323,9 +327,12 @@ class AbstractKOProblem(AbstractProblem):
         """
         Translates a candidate solution in problem specific representation to
         an iterable of ids, or (ids, folds).
-        Arguments:
-            candidate (iterable): the candidate representation.
-            reverse (boolean): performs the reverse translation.
+        
+        Parameters:
+        
+        candidate (iterable): the candidate representation.
+        reverse (boolean): performs the reverse translation.
+        
         """
         if not reverse:
             return {self.target_list[idx] for idx in candidate}
@@ -336,20 +343,20 @@ class AbstractKOProblem(AbstractProblem):
 class AbstractOUProblem(AbstractProblem):
     """ Base class for Over/Under expression optimization problems
 
-    arguments:
+    Parameters:
 
-        * model* (metabolic model): the constraint metabolic model
-        * fevaluation* (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness
+    :param model: the constraint metabolic model
+    :param fevaluation: a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness
 
-    **args:
+    Options:
 
-        envcond (OrderedDict): environmental conditions
-        constraints (OrderedDict): additional constraints to be applied to the model
-        candidate_min_size : The candidate minimum size (Default EAConstants.MIN_SOLUTION_SIZE)
-        candidate_max_size : The candidate maximum size (Default EAConstants.MAX_SOLUTION_SIZE)
-        non_target (list): list of non target reactions
-        levels (list): over/under expression levels (Default EAConstants.LEVELS)
-        reference (dic): dictionary of reference flux values
+    envcond (OrderedDict): environmental conditions
+    constraints (OrderedDict): additional constraints to be applied to the model
+    candidate_min_size : The candidate minimum size (Default EAConstants.MIN_SOLUTION_SIZE)
+    candidate_max_size : The candidate maximum size (Default EAConstants.MAX_SOLUTION_SIZE)
+    non_target (list): list of non target reactions
+    levels (list): over/under expression levels (Default EAConstants.LEVELS)
+    reference (dic): dictionary of reference flux values
 
     """
 
@@ -435,9 +442,10 @@ class AbstractOUProblem(AbstractProblem):
         """
         Translates a candidate solution in problem specific representation to 
         an iterable of ids, or (ids, folds).
-        Arguments:
-            candidate (iterable): the candidate representation.
-            reverse (boolean): performs the reverse translation.
+
+        
+        :param candidate (iterable): the candidate representation.
+        :param reverse (boolean): performs the reverse translation.
         """
         if not reverse:
             return {self.target_list[idx]: self.levels[lv_idx]

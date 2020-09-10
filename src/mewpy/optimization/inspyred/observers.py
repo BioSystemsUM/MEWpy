@@ -145,15 +145,18 @@ def non_dominated_population(population, maximize=True):
 def dominance_test(solution1, solution2, maximize=True):
     """
     Testes Pareto dominance
-    args
-        solution1 : The first solution 
-        solution2 : The second solution
-        maximize (bool): maximization (True) or minimization (False)
+    
+    Parameters:
+    
+    solution1 : The first solution 
+    solution2 : The second solution
+    maximize (bool): maximization (True) or minimization (False)
 
-    returns 
-         1 : if the first solution dominates the second 
-        -1 : if the second solution dominates the first
-         0 : if non of the solutions dominates the other
+    Returns: 
+     
+    1 : if the first solution dominates the second 
+    -1 : if the second solution dominates the first
+    0 : if non of the solutions dominates the other
     """
     best_is_one = 0
     best_is_two = 0

@@ -181,10 +181,10 @@ def framed_imc1010_model(dynamic=True):
     This model uses the E. coli metabolic model iJR904 available at https://www.ebi.ac.uk/biomodels/MODEL1507180060
     and published at https://doi.org/10.1186/gb-2003-4-9-r54
 
-        Some rules had to be adjusted though
-    iJR904 had to be adjusted, as it didn't match SR_FBA original publication or had errors
+    Some rules had to be adjusted though iJR904 had to be adjusted, as it didn't match SR_FBA original publication or had errors
 
     The following reactions were added as in the original publication:
+    
         - h2so: 2 o2_c + h2s_c -> (0, 999999) so4_c + 2 h_c
         - h2st: h2s_e <-> (-999999, 999999) h2s_c
         - h2s_ext: h2s_e -> (0, 999999)
@@ -195,12 +195,15 @@ def framed_imc1010_model(dynamic=True):
         - ppa_ext: ppa_e -> (0, 999999)
         - thym_ext: thym_e-> (0, 999999)
 
-    The following reactions were removed from iJR904, as they were duplicated or wrong
+
+    The following reactions were removed from iJR904, as they were duplicated or wrong:
         - GALU (duplicated GALUi (correct GPR))
+
 
     The following reactions were removed from SR-FBA orginal publication model, as they were duplicated or wrong:
         - ptrca (duplicated PTRCTA)
         - indolet (unbalanced and duplicated indolet2r)
+
 
     The following indirect mappings were found:
 
@@ -220,10 +223,11 @@ def framed_imc1010_model(dynamic=True):
     Others:
         - iJR904 has an additional reaction to ptrcta, namely ORNTA
 
-    Target genes with empty rules were set as ON in version 6. Alternatively, the state of all target genes can be
-    set to 1 using the initial state setter
+
+    Target genes with empty rules were set as ON in version 6. Alternatively, the state of all target genes can be set to 1 using the initial state setter
 
     :return: rfba model
+    
     """
 
     from reframed.io.sbml import load_cbmodel

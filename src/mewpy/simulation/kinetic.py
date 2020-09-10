@@ -12,6 +12,7 @@ import warnings
 def kinetic_solve(model, finalParameters, finalFactors, initialConc, timePoints):
     """
     Private function: auxiliary function required to avoid the pickling the solver.solve function
+    
     """
     finalRates = OrderedDict()
     f = model.get_ode(r_dict=finalRates, params=finalParameters, factors=finalFactors)
@@ -40,6 +41,7 @@ def kinetic_solve(model, finalParameters, finalFactors, initialConc, timePoints)
 class KineticThread(threading.Thread):
     """
     Solves the ODE inside a thread enabling to impose a timeout limit with thread.join(timeout)
+    
     """
     def __init__(self, model, parameters = None, final_factors = None, initial_concentrations = None, time_steps = None):
         super(KineticThread,self).__init__()
@@ -102,13 +104,16 @@ class KineticSimulation:
     def simulate(self, factors = None):
         """
         This method preform the phenotype simulation of the kinetic model, using the solverId method and applying the modifications present in the instance of overrideSimulProblem.
+    
         Parameters
-        -----------
+        
         factores (dict): Modification over the kinetic model.
+    
         Returns
-        --------
+        
         out : kineticSimulationResult
-            Returns an object of type kineticSimulationResult with the steady-state flux distribution and concentrations.
+        Returns an object of type kineticSimulationResult with the steady-state flux distribution and concentrations.
+    
         """
 
         final_factors = factors if factors is not None else {}

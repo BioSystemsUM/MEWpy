@@ -32,12 +32,12 @@ def str_constraints(constraints, separator=";"):
 
 def xml_constraints(constraints, separator=""):
     """ Converts a dictionary o constraints into a xml string representation.
-        Constraints may of the form  'key:value' or 'key:(value,value)'
+    Constraints may of the form  'key:value' or 'key:(value,value)'
 
-        parameters:
-            constrainst: dic
-                A dictionary of constraints
-            separator: str, optional
+
+    :param constrainst: dic, a dictionary of constraints
+    :param separator: str, optional
+    :return: a xml string representation
     """
     tokens = []
     tokens.append("<constraints>")
@@ -144,9 +144,11 @@ class Parser:
     def __init__(self, obj_labels):
         """
         Parser to retreive solutions saved as csv.
-        Arguments:
-            obj_labels (list): optimization objective labels
-            result_type (str): 'KO' or 'OU'
+        
+        Parameters
+        
+        obj_labels (list): optimization objective labels
+        result_type (str): 'KO' or 'OU'
         """
         self.obj_labels = obj_labels
         self.n_obj = len(obj_labels)
@@ -190,12 +192,14 @@ class Parser:
     def parse_results(self, path, separator=';', non_dominated=True, maximize=True, filter_duplicate=True, parse_constraints=True):
         """
         Parse all csv file in the path.
-        Arguments:
-            path (str): the path to the directory containing the csv files;
-            separator (str): the separator used in the csv files;
-            non_dominated (boolean): filter dominated solutions;
-            maximize (boolean): if the solutions are from a maximization problem;
-            filter_duplicate (boolean): remove duplicates solutions.
+        
+        Parameters
+        
+        path (str): the path to the directory containing the csv files;
+        separator (str): the separator used in the csv files;
+        non_dominated (boolean): filter dominated solutions;
+        maximize (boolean): if the solutions are from a maximization problem;
+        filter_duplicate (boolean): remove duplicates solutions.
 
         """
         for r, _, fl in os.walk(path):
@@ -220,15 +224,16 @@ class Parser:
         """
         Computes flux analisys for each solution contained in the population.
 
-        arguments:
-            model:
-            biomass(str): biomass reaction id
-            product(str): product reaction id
-            carbon_source(str): carbon source reaction id
-            envcond(dict): dictionary of environmental conditions. Default None
-            population(list): list of solutions. If none is given the parsed population is considered
-            minimal_growth(float): Solution with growth below "minimal_growth" are discarded. Default 0.0
-            minimal_product(float): Solution with product yield below "minimal_product" are discarded. Default 0.0
+        Parameters
+        
+        model:
+        biomass(str): biomass reaction id
+        product(str): product reaction id
+        carbon_source(str): carbon source reaction id
+        envcond(dict): dictionary of environmental conditions. Default None
+        population(list): list of solutions. If none is given the parsed population is considered
+        minimal_growth(float): Solution with growth below "minimal_growth" are discarded. Default 0.0
+        minimal_product(float): Solution with product yield below "minimal_product" are discarded. Default 0.0
 
         """
         ModelConstants.RESET_SOLVER = True
@@ -356,10 +361,11 @@ class Parser:
     def find_all_solution(self, target, population=None):
         """
         Finds all solutions containing the list of targets
+        
         Arguments:
-            targets (list): list of target ids
-            population: list of solution where to perform the search.
-                        If none is provided, the search is performed on the entire population.
+        
+        targets (list): list of target ids
+        population: list of solution where to perform the search. If none is provided, the search is performed on the entire population.
         """
         result = []
         if not isinstance(target, list):

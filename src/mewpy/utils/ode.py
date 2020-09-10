@@ -50,10 +50,10 @@ class ODESpySolver:
     def get_solver(self, func):
         """
         Returns the solver method from odespy package.
-        Args:
-            func: function
-            function with ODE system.
-        Returns: an instance of odeSolver
+        
+        :param func: function with ODE system.
+        :return: an instance of odeSolver
+        
         """
         try:
             import odespy

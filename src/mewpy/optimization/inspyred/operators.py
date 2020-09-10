@@ -163,17 +163,20 @@ def grow_mutation_KO(random, candidate, args):
     """Returns the mutant produced by a grow mutation on the candidate (when the representation is a set of integers).
     If a candidate solution has the maximum size candidate allowed, this function leaves it unchanged.
 
-    Args:
-        random  : the random number generator object
-        candidate : the candidate solution
-        args : a dictionary of keyword arguments
+    Parameters:
+    
+    random  : the random number generator object
+    candidate : the candidate solution
+    args : a dictionary of keyword arguments
 
     Returns:
-        set: new candidate
+    
+    set: new candidate
 
     Notes:
-        Optional keyword arguments in args:
-        - *mutation_rate* -- the rate at which mutation is performed (default 0.1)
+    
+    Optional keyword arguments in args:
+    - *mutation_rate* -- the rate at which mutation is performed (default 0.1)
     """
     bounder = args["_ec"].bounder
     mutRate = args.setdefault("gs_mutation_rate", 0.1)
@@ -194,17 +197,21 @@ def grow_mutation_OU(random, candidate, args):
     """Returns the mutant produced by a grow mutation on the candidate (when the representation is a set of integers).
     If a candidate solution has the maximum size candidate allowed, this function leaves it unchanged.
 
-    Args:
-        random  : the random number generator object
-        candidate : the candidate solution
-        args : a dictionary of keyword arguments
+    Parameters
+    
+    random  : the random number generator object
+    candidate : the candidate solution
+    args : a dictionary of keyword arguments
 
     Returns:
-        set: new candidate
+
+    set: new candidate
 
     Notes:
-        Optional keyword arguments in args:
-        - *mutation_rate* -- the rate at which mutation is performed (default 0.1)
+    
+    Optional keyword arguments in args:
+    - *mutation_rate* -- the rate at which mutation is performed (default 0.1)
+    
     """
     bounder = args["_ec"].bounder
     mutRate = args.setdefault("gs_mutation_rate", 0.1)
@@ -229,13 +236,13 @@ def single_mutation_KO(random, candidate, args):
     The candidate size is maintained.
 
     Parameters
-    ----------
+    
     random  : the random number generator object
     candidate : the candidate solution
     args : a dictionary of keyword arguments
 
     Returns
-    -------
+    
     out : new candidate
 
     Optional keyword arguments in args:
@@ -264,13 +271,13 @@ def single_mutation_OU(random, candidate, args):
     The candidate size is maintained.
 
     Parameters
-    ----------
+    
     random  : the random number generator object
     candidate : the candidate solution
     args : a dictionary of keyword arguments
 
     Returns
-    -------
+    
     out : new candidate
 
     Optional keyword arguments in args:
@@ -313,18 +320,19 @@ def single_mutation_OU_level(random, candidate, args):
     The candidate size is maintained.
 
     Parameters
-    ----------
+
     random  : the random number generator object
     candidate : the candidate solution
     args : a dictionary of keyword arguments
 
     Returns
-    -------
+
     out : new candidate
 
     Optional keyword arguments in args:
 
     - *mutation_rate* -- the rate at which mutation is performed (default 0.1)
+
     """
 
     bounder = args["_ec"].bounder

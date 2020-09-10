@@ -333,13 +333,11 @@ class BooleanEvaluator:
 
 
 class GeneEvaluator:
-    """An evaluator for genes
+    """An evaluator for genes expression.
 
-        arguments:
-            genes_value (dic): maps genes to values.
-                               If a gene is not in the dictionary, a default value of 1 is considered.
-            and_operator : function to be applied instead of (and', '&') (not case sensitive)
-            or_operator : function to be applied instead of ('or','|') (not case sensitive)
+        :param genes_value: A dictionary mapping genes to values. If a gene is not in the dictionary, a default value of 1 is considered.
+        :param and_operator: function to be applied instead of (and', '&') (not case sensitive)
+        :param or_operator: function to be applied instead of ('or','|') (not case sensitive)
     """
 
     def __init__(self, genes_value, and_operator, or_operator, prefix=""):
@@ -365,9 +363,9 @@ class GeneEvaluator:
 def build_tree(exp, rules):
     """ Builds a parsing syntax tree for basic mathematical expressions
 
-        parameters:
-            exp (str) : the expression to be parsed
-            rules (Syntax): defines the syntax rules
+        
+    :param exp: the expression to be parsed
+    :param rules: Sintax definition rules
     """
     replace_dic = rules.replace()
     exp_ = tokenize_infix_expression(exp)
@@ -472,8 +470,7 @@ def special_chars_filter(rule, special_chars=None):
 
 
     :param rule: str, the regulatory rule
-    :param special_chars: dict or None, special (or not) chars to be replaced. BOOL_SPECIAL_CHARS by default.
-    special_chars argument must have unique keys and unique values!!
+    :param special_chars: dict or None, special (or not) chars to be replaced. BOOL_SPECIAL_CHARS by default special_chars argument must have unique keys and unique values!!
     :returns: str, the new parsed rule
     :returns: dict, the occurred replacements {replace: special_char}
     """
@@ -594,7 +591,7 @@ def symbol_filter(expression, local_dict):
     For a given regulatory expression it identifies the regulatory variable and parses it out as a sympy symbol.
 
     :param expression: str, the regulatory expression
-    : param local_dict: dict, mapping between the variables in the expression and a Symbol Sympy's object
+    :param local_dict: dict, mapping between the variables in the expression and a Symbol Sympy's object
     :return: Symbol, the regulatory variable as a sympy Symbol object
     """
 
@@ -627,11 +624,11 @@ def variable_from_str(expression, filter=True, special_chars=None, replaces=None
 
     :param expression: str, expression
     :param filter: bool, if filter, special_chars_filter and starts_with_digit_filter are applied
-    :param special_chars: dict, dict or None, special (or not) chars to be replaced. BOOL_SPECIAL_CHARS is used by
-    default. special_chars argument must have unique keys and unique values!!
-    :param replaces: dict, replaces occurred for aliases construction. None is the default
-    :returns regulatory variable: Sympy Symbol, regulatory variable
-    :returns alias: dict, the new variable name map to the old one
+    :param special_chars: dict, dict or None, special (or not) chars to be replaced. BOOL_SPECIAL_CHARS is used by default. special_chars argument must have unique keys and unique values!!
+    :param replaces: dict, replaces occurred for aliases construction. None is the default  
+    :return: regulatory variable Sympy Symbol, regulatory variable
+    :return: alias: dict, the new variable name map to the old one
+    
     """
 
     if filter:
@@ -756,10 +753,8 @@ def boolean_rule_from_str(rule):
     :returns rule: str, parsed boolean rule
     :return elements: list, all elements in the rule (operators and operands)
     :return sympify: Sympy Boolean object Or, And or Not, Sympy Symbol object, or Sympy Integral object
-    :return symbols: dict, all regulatory variables in the regulatory rule. Keys stand for their new IDs and
-    values stand for their sympy symbols
-    :return symbols: dict, all regulatory variables in the regulatory rule. Keys stand for their new IDs and
-    values stand for their aliases
+    :return symbols: dict, all regulatory variables in the regulatory rule. Keys stand for their new IDs and values stand for their sympy symbols
+    :return symbols: dict, all regulatory variables in the regulatory rule. Keys stand for their new IDs and values stand for their aliases
     """
 
     regex_str = '|'.join(['(' + regex + '[0-9.]+)' + '|' +

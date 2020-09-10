@@ -30,8 +30,8 @@ class ModelList(object):
     def __getitem__(self, item):
         """Get a bundled GECKO model.
 
-        Parameters
-        ----------
+        Parameters:
+        
         item : basestring
             Either 'single-pool' for the single-protein pool ecYeastGEM model or 'multi-pool' for individually modeled
             protein pools.
@@ -76,8 +76,8 @@ class GeckoModel(CBModel):
 
     Implement a model class for Genome-scale model to account for Enzyme Constraints, using Kinetics and Omics [1]_.
 
-    Parameters
-    ----------
+    Parameters:
+    
     model : str
         A CBModel to apply protein constraints to. Can be 'single-pool' for the bundled ecYeast7 model using only
         a single pool for all proteins, or 'multi-pool' for the model that has separate pools for all measured proteins.
@@ -106,8 +106,8 @@ class GeckoModel(CBModel):
     common_protein_pool_id : str
         The identifier of the metabolite representing the common protein pool
 
-    References
-    ----------
+    References:
+    
     .. [1] Benjamin J. Sanchez, Cheng Zhang, Avlant Nilsson, Petri-Jaan Lahtvee, Eduard J. Kerkhoven, Jens Nielsen (
        2017). Improving the phenotype predictions of a yeast genome-scale metabolic model by incorporating enzymatic
        constraints. [Molecular Systems Biology, 13(8): 935, http://www.dx.doi.org/10.15252/msb.20167411
@@ -222,14 +222,14 @@ class GeckoModel(CBModel):
     def fraction_to_ggdw(self, fraction):
         """Convert protein measurements in mass fraction of total to g protein / g DW.
 
-        Parameters
-        ----------
-        fraction : pd.Series
+        Parameters:
+        
+        fraction: pd.Series
             Data of protein measurements which are absolute quantitative fractions of the total amount of these
             measured proteins. Normalized to sum == 1.
 
-        Returns
-        -------
+        Returns:
+        
         pd.Series
             g protein / g DW for the measured proteins
 
@@ -247,21 +247,21 @@ class GeckoModel(CBModel):
         Apply measurements in the form of fractions of total of the measured proteins, or directly as g / gDW. Must
         supply exactly one of `fractions` or `ggdw`.
 
-        Parameters
-        ----------
+        Parameters:
+        
         fractions : pd.Series
             Protein abundances in fraction of total (normalized to sum to 1). Ignored if `ggdw` is also supplied.
         ggdw : pd.Series
             Protein abundances in g / gDW
         p_total : float
             measured total protein fraction in cell in g protein / g DW. Should be measured for each experiment,
-            the default here is taken from [1]_.
+            the default here is taken from [2]_.
         p_base : float
             protein content at dilution rate 0.1 / h in g protein / g DW. Default taken from yeast 8.1.3.
 
-        References
-        ----------
-        .. [1] Benjamin J. Sanchez, Cheng Zhang, Avlant Nilsson, Petri-Jaan Lahtvee, Eduard J. Kerkhoven, Jens Nielsen (
+        References:
+        
+        .. [2] Benjamin J. Sanchez, Cheng Zhang, Avlant Nilsson, Petri-Jaan Lahtvee, Eduard J. Kerkhoven, Jens Nielsen (
            2017). Improving the phenotype predictions of a yeast genome-scale metabolic model by incorporating enzymatic
            constraints. [Molecular Systems Biology, 13(8): 935, http://www.dx.doi.org/10.15252/msb.20167411
 
@@ -313,6 +313,7 @@ class GeckoModel(CBModel):
         Proteins without their own protein pool are collectively constrained by the common protein pool. Remove
         protein pools for all proteins that don't have measurements, along with corresponding draw reactions,
         and add these to the common protein pool and reaction.
+        
         """
         new_reactions = []
         to_remove = []
@@ -361,6 +362,7 @@ class GeckoModel(CBModel):
 
         After changing the protein and carbohydrate content based on measurements, adjust the corresponding
         coefficients of the biomass reaction.
+        
         """
         for met in self.protein_reaction.stoichiometry:
             is_prot = 'protein' in self.metabolites[met].name
@@ -395,8 +397,8 @@ class GeckoModel(CBModel):
         Bounds from measurements can make the model non-viable or even infeasible. Adjust these minimally by minimizing
         the positive deviation from the measured values.
 
-        Parameters
-        ----------
+        Parameters:
+        
         min_objective : float
             The minimum value of for the ojective for calling the model viable.
         inplace : bool
@@ -404,8 +406,8 @@ class GeckoModel(CBModel):
         tolerance : float
             Minimum non-zero value. Solver specific value.
 
-        Returns
-        -------
+        Returns:
+        
         pd.DataFrame
             Data frame with the series 'original' bounds and the new 'adjusted' bound, and the optimized 'addition'.
 
@@ -419,43 +421,43 @@ class GeckoModel(CBModel):
             solver.add_variable('measured_bound_' + pool.id,
                                 lb=pool.upper_bound, ub=pool.upper_bound)
 
-        """
-        with self.model as model:
-            problem = model.problem
-            constraint_objective = problem.Constraint(model.objective.expression, name='constraint_objective',
-                                                      lb=min_objective)
-            to_add = [constraint_objective]
-            new_objective = S.Zero
-            for pool in model.individual_protein_exchanges:
-                ub_diff = problem.Variable('pool_diff_' + pool.id, lb=0, ub=None)
-                current_ub = problem.Variable('measured_bound_' + pool.id, lb=pool.upper_bound, ub=pool.upper_bound)
-                constraint = problem.Constraint(pool.forward_variable - current_ub - ub_diff, ub=0,
-                                                name='pool_ub_' + pool.id)
-                to_add.extend([ub_diff, current_ub, constraint])
-                new_objective += ub_diff
-                pool.bounds = 0, 1000.
-            model.add_cons_vars(to_add)
-            model.objective = problem.Objective(new_objective, direction='min')
-            model.slim_optimize(error_value=None)
-            primal_values = model.solver.primal_values
-        adjustments = [(pool.id, primal_values['pool_diff_' + pool.id], pool.upper_bound)
-                       for pool in model.individual_protein_exchanges
-                       if primal_values['pool_diff_' + pool.id] > tolerance]
-        result = pd.DataFrame(adjustments, columns=['reaction', 'addition', 'original'])
-        result['adjusted'] = result['addition'] + result['original']
-        if inplace:
-            for adj in result.itertuples():
-                model.reactions.get_by_id(adj.reaction).upper_bound = adj.adjusted
-        return result
-        """
+        
+        #with self.model as model:
+        #    problem = model.problem
+        #    constraint_objective = problem.Constraint(model.objective.expression, name='constraint_objective',
+        #                                              lb=min_objective)
+        #    to_add = [constraint_objective]
+        #    new_objective = S.Zero
+        #    for pool in model.individual_protein_exchanges:
+        #        ub_diff = problem.Variable('pool_diff_' + pool.id, lb=0, ub=None)
+        #        current_ub = problem.Variable('measured_bound_' + pool.id, lb=pool.upper_bound, ub=pool.upper_bound)
+        #        constraint = problem.Constraint(pool.forward_variable - current_ub - ub_diff, ub=0,
+        #                                        name='pool_ub_' + pool.id)
+        #        to_add.extend([ub_diff, current_ub, constraint])
+        #        new_objective += ub_diff
+        #        pool.bounds = 0, 1000.
+        #    model.add_cons_vars(to_add)
+        #    model.objective = problem.Objective(new_objective, direction='min')
+        #    model.slim_optimize(error_value=None)
+        #    primal_values = model.solver.primal_values
+        #adjustments = [(pool.id, primal_values['pool_diff_' + pool.id], pool.upper_bound)
+        #               for pool in model.individual_protein_exchanges
+        #               if primal_values['pool_diff_' + pool.id] > tolerance]
+        #result = pd.DataFrame(adjustments, columns=['reaction', 'addition', 'original'])
+        #result['adjusted'] = result['addition'] + result['original']
+        #if inplace:
+        #    for adj in result.itertuples():
+        #        model.reactions.get_by_id(adj.reaction).upper_bound = adj.adjusted
+        #return result
+        
 
 
     @property
     def measured_proteins(self):
         """Get the identifiers of the measured proteins.
 
-        Returns
-        -------
+        Returns:
+        
         frozenset
             The identifiers for the unmeasured proteins.
 
@@ -466,8 +468,8 @@ class GeckoModel(CBModel):
     def unmeasured_proteins(self):
         """Get the identifiers of the proteins .
 
-        Returns
-        -------
+        Returns:
+        
         frozenset
             The protein identifiers for the measured proteins.
 
@@ -478,8 +480,8 @@ class GeckoModel(CBModel):
     def proteins(self):
         """Get all proteins.
 
-        Returns
-        -------
+        Returns:
+        
         frozenset
            The set of all proteins identifiers.
 
@@ -490,8 +492,8 @@ class GeckoModel(CBModel):
     def individual_proteins(self):
         """Get the identifiers for the proteins with their individual abundance pool.
 
-        Returns
-        -------
+        Returns:
+        
         frozenset
             The set of proteins that have a defined separate pool exchange reaction.
 
@@ -503,8 +505,8 @@ class GeckoModel(CBModel):
     def pool_proteins(self):
         """Get proteins modeled by common protein pool.
 
-        Returns
-        -------
+        Returns:
+        
         frozenset
             The set of proteins that have a defined draw reaction.
 
@@ -516,8 +518,8 @@ class GeckoModel(CBModel):
     def individual_protein_exchanges(self):
         """Individual protein-exchange reactions.
 
-        Returns
-        -------
+        Returns:
+        
         frozenset
             Set of protein exchange reactions with individual pools
 
@@ -529,8 +531,8 @@ class GeckoModel(CBModel):
     def pool_protein_exchanges(self):
         """Protein-exchange reactions by single pool.
 
-        Returns
-        -------
+        Returns:
+        
         frozenset
             Set of protein exchange reactions for single pool reactions.
 
@@ -545,8 +547,9 @@ class GeckoModel(CBModel):
     def protein_exchanges(self):
         """Protein-exchange reactions.
             fs_matched_adjusted
-        Returns
-        -------
+        
+        Returns:
+        
         frozenset
             Set of protein exchange reactions (individual and common protein pool reactions)
 
@@ -561,10 +564,11 @@ class GeckoModel(CBModel):
         """
         Pairs of reverse reactions associated with a protein
         
-        Returns
-        ------
+        Returns:
+        
         dictionaty  
             A dictionary which identifies for each protein (key) the list of reversible reactions pairs 
+            
         """
         if not self._protein_rev_reactions:
             proteins = self.proteins

@@ -41,7 +41,10 @@ class InspyredProblem:
         """
         Evaluator 
         Note: shoudn't be dependent on args to ease multiprocessing
-        returns a list of Pareto fitness values of a candidate list
+        
+        Returns:
+        
+        a list of Pareto fitness values of a candidate list
         """
         fitness = []
         for candidate in candidates:

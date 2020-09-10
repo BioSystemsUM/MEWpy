@@ -3,8 +3,10 @@ import warnings
 from sympy.logic.boolalg import And, Or, Not
 from sympy.core.relational import StrictGreaterThan, StrictLessThan, GreaterThan, LessThan, Eq
 from sympy import sympify, symbols
+import os
 
-path = '../../../examples/models/regulation/e_coli_core.xml'
+DIR = os.path.dirname(os.path.realpath(__file__))
+PATH = os.path.join(DIR, '../../../examples/models/regulation/e_coli_core.xml')
 
 ASTNODE_BOOLEAN_OPERATORS = {
     libsbml.AST_LOGICAL_AND: And,
@@ -95,7 +97,7 @@ def readMathNode(ast_node):
         print('Moving on')
         return
 
-doc = libsbml.readSBML(path)
+doc = libsbml.readSBML(PATH)
 
 model = doc.getModel()
 

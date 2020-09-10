@@ -9,10 +9,15 @@ import warnings
 
 def load_sbml(filename):
     """ Loads an SBML file.
-        Arguments:
-            filename (str): SBML file path
-        Returns:
-            SBMLModel
+    
+    Parameters:
+    
+    filename (str): SBML file path
+    
+    Returns:
+    
+    SBMLModel
+            
     """
 
     if not os.path.exists(filename):
@@ -98,8 +103,10 @@ class ODEModel(Model):
 
     def __init__(self, model_id):
         """
-        Arguments:
-            model : a REFRAMED SBModel or COBRApy Model 
+        Parameters:
+        
+        model : a REFRAMED SBModel or COBRApy Model 
+            
         """
         super(ODEModel,self).__init__(model_id)
         self.concentrations = OrderedDict()
@@ -275,10 +282,18 @@ class ODEModel(Model):
 
     def build_ode(self, factors):
         """
-        Args:
-            factors (dict): The key is the parameter identifier and the value is the level of change values between 0 and 1 represent a under expression, above 1 a over
-        expression and 0 to represent the knockouts.
-        Returns: (str)  Returns  a string with the ode system.
+        Builds de ODE model
+        
+        Parameters:
+        
+            
+        factors (dict): The key is the parameter identifier and the value is the level of change values between 0 and 1 
+                        represent a under expression, above 1 a over expression and 0 to represent the knockouts.
+    
+        Returns:
+        
+        Returns  a string with the ode system.
+        
         """
 
         # factors: ["vmax1": 0, "vmax2"=2, "ENZYME_ID":0]
@@ -320,16 +335,21 @@ class ODEModel(Model):
                    '    return dxdt\n'
         return func_str
 
+
     def get_ode(self, r_dict=None, params=None, factors=None):
         """
         Build the ODE system.
-        Args:
-            r_dict (dict): This variable is used to store the reaction rates.
-            params (dict): Parameters and the new values used to replace the original parameters present in the SBML model.
-            factors (dict): The key is the parameter identifier and the value is the level of change values between
-            0 and 1 represent a under expression, above 1 a over expression and 0 to represent the knockouts.
+        
+        Parameters:
+        
+        r_dict (dict): This variable is used to store the reaction rates.
+        params (dict): Parameters and the new values used to replace the original parameters present in the SBML model.
+        factors (dict): The key is the parameter identifier and the value is the level of change values between 0 and 1 represent a under expression, above 1 a over expression and 0 to represent the knockouts.
+        
         Returns:
-            func: A function used to solve the ODE system.
+        
+        func: A function used to solve the ODE system.
+            
         """
 
         p = self.merge_constants()
@@ -356,8 +376,11 @@ class ODEModel(Model):
     def set_reactions_parameters_factors(self, map):
         """
         Set a new map with the parameters that can be changed for each reaction.
-        Args:
-            map (dict): The keys is the reaction identifier and the value a list of parameters which can be used to simulate modifications( KO, under/ over expression)
+        
+        Parameters:
+        
+        map (dict): The keys is the reaction identifier and the value a list of parameters which can be used to simulate modifications( KO, under/ over expression)
+        
         """
 
         self.reacParamsFactors = OrderedDict(map) if map else OrderedDict()
