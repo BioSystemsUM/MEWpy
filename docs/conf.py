@@ -12,11 +12,7 @@
 #
 import os
 import sys
-<<<<<<< HEAD:docs/conf.py
 sys.path.insert(0, os.path.abspath('../src/'))
-=======
-sys.path.insert(0, os.path.abspath('../../src/'))
->>>>>>> 70548ff9d263264651c9f0f949bbc8bb34948f87:docs/source/conf.py
 
 
 # -- Project information -----------------------------------------------------
