@@ -1,3 +1,4 @@
+python-libsbml
 reframed
 cobra==0.17.1
 inspyred

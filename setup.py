@@ -16,6 +16,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
+        'python-libsbml',
         'inspyred',
         'reframed',
         'cobra==0.17.1',
