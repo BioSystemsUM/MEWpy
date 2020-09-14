@@ -62,7 +62,7 @@ Installing from github:
 
 1. clone the repository 
   
-  ``git clone ``
+  ``git clone https://github.com/BioSystemsUM/mewpy.git``
 
 2. run ``python setup.py install``
 
