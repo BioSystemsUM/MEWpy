@@ -1,4 +1,4 @@
-mewpy
+MEWpy
 ======
 
 Metabolic Engineering Workbench 
@@ -8,11 +8,13 @@ This documents presents a brief description of the framework and the main option
 Documentation
 ~~~~~~~~~~~~~
 
-For documentation and API please check:
+For documentation and API please check: `https://mewpy.readthedocs.io <https://mewpy.readthedocs.io>`_
 
 
 Instalation
 ~~~~~~~~~~~
+
+pip install mewpy
 
 
 Credits and License
