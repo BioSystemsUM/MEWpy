@@ -1,8 +1,8 @@
 include README.md
 include LICENSE
 
-graft src/mewpy/model/data
+graft model/data
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co] 
-
+include mewpy/model/data/*
 recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif

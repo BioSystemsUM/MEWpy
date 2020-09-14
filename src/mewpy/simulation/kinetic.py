@@ -21,7 +21,7 @@ def kinetic_solve(model, finalParameters, finalFactors, initialConc, timePoints)
     solver = ODESpySolver(KineticConfigurations.SOLVER_METHOD).get_solver(func)
     solver.set_initial_condition(list(initialConc.values()))
     try:
-        X, t = solver.solve(timePoints)
+        X,_ = solver.solve(timePoints)
         #if solver returns a solution where any concentration is negative
         for c  in X[1]:
             if c < -1*SolverConfigurations.RELATIVE_TOL:

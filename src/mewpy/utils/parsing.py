@@ -70,7 +70,13 @@ sys.setrecursionlimit(100000)
 
 def evaluate_expression(expression, variables):
     """ Evaluates a logical expression (containing variables, 'and','or','(' and ')') 
-        against the presence (True) or absence (False) of propositions within a list.
+    against the presence (True) or absence (False) of propositions within a list. 
+    The evaluation is achieved usind python native eval function.
+    
+    :param str expression: The expression to be evaluated.
+    :param list variables: List of variables to be evaluated as True.
+    :returns: A boolean evaluation of the expression.    
+    
     """
     expression = expression.replace('(', '( ').replace(')', ' )')
     # Symbol conversion not mandatory
@@ -89,9 +95,13 @@ def evaluate_expression(expression, variables):
 
 
 def evaluate_expression_tree(expression, variables):
-    """ Evaluates a logical expression (containing variables, 'and','or', 'not','(' , ')') 
-        against the presence (True) or absence (False) of propositions within a list.
-        Assumes the correctness of the expression.
+    """ Evaluates a logical expression (containing variables, 'and','or', 'not','(' , ')') against the presence (True) or absence (False) of propositions within a list.
+    Assumes the correctness of the expression. The evaluation is achieved by means of a parsing tree.
+        
+    :param str expression: The expression to be evaluated.
+    :param list variables: List of variables to be evaluated as True.
+    :returns: A boolean evaluation of the expression.
+        
     """
     t = build_tree(expression, Boolean)
     evaluator = BooleanEvaluator(variables)
@@ -101,7 +111,11 @@ def evaluate_expression_tree(expression, variables):
 
 class Node(object):
     """
-    Binary syntax tree node
+    Binary syntax tree node.
+    
+    :param value: The node value.
+    :param left: The left node or None.
+    :param right: The right node or None.
     """
 
     def __init__(self, value, left=None, right=None):
@@ -123,19 +137,32 @@ class Node(object):
             return f"{str(self.value)} ( {str(self.left)} , {str(self.right)} )"
 
     def is_leaf(self):
+        """
+        :returns: True if the node is a leaf False otherwise. Both left and right are None.
+        """
         return not self.left and not self.right
 
     def is_empty_leaf(self):
+        """
+        :returns: True if the node is an empty leaf False otherwise.
+        """
         return self.value == EMPTY_LEAF
 
     def is_unary(self):
+        """
+        :returns: True if the node is a unary operation False otherwise.
+        """
         return (self.left.is_empty_leaf() and not self.right.is_empty_leaf()) or (
                 not self.left.is_empty_leaf() and self.right.is_empty_leaf())
 
     def is_binary(self):
+        """
+        :returns: True if the node is a binary operation False otherwise.
+        """
         return not self.left.is_empty_leaf() and not self.right.is_empty_leaf()
 
     def get_operands(self):
+        
         if self.is_leaf():
             if self.value == EMPTY_LEAF:
                 return set()
@@ -210,7 +237,8 @@ class Syntax:
 
 
 class Arithmetic(Syntax):
-
+    """Defines a basic arithmetic sintax.
+    """
     @staticmethod
     def is_operator(op):
         return op in ['+', '-', '*', '/', '^']
@@ -301,12 +329,12 @@ class Boolean(Syntax):
 
 
 class BooleanEvaluator:
-    """A boolean evaluator
-
-        arguments:
-            true_list (list): operands evaluated as True. Operands not in the list are evaluated as False
-            variables (dict): a dictionary mapping symbols to values. Used to evaluate conditions.
-        """
+    """A boolean evaluator.
+    
+    :param list true_list: Operands evaluated as True. Operands not in the list are evaluated as False
+    :param dict variables: A dictionary mapping symbols to values. Used to evaluate conditions.
+    
+    """
 
     def __init__(self, true_list=[], variables={}):
         self.true_list = true_list
@@ -335,9 +363,9 @@ class BooleanEvaluator:
 class GeneEvaluator:
     """An evaluator for genes expression.
 
-        :param genes_value: A dictionary mapping genes to values. If a gene is not in the dictionary, a default value of 1 is considered.
-        :param and_operator: function to be applied instead of (and', '&') (not case sensitive)
-        :param or_operator: function to be applied instead of ('or','|') (not case sensitive)
+    :param genes_value: A dictionary mapping genes to values. If a gene is not in the dictionary, a default value of 1 is considered.
+    :param and_operator: function to be applied instead of (and', '&') (not case sensitive)
+    :param or_operator: function to be applied instead of ('or','|') (not case sensitive)
     """
 
     def __init__(self, genes_value, and_operator, or_operator, prefix=""):
@@ -363,7 +391,6 @@ class GeneEvaluator:
 def build_tree(exp, rules):
     """ Builds a parsing syntax tree for basic mathematical expressions
 
-        
     :param exp: the expression to be parsed
     :param rules: Sintax definition rules
     """
@@ -530,23 +557,14 @@ def single_relational_filter(expression):
     """
 
     replace_dict = Boolean._SYMPY_RELATIONAL_REPLACE
-
     for condition in replace_dict:
-
         if condition in expression:
-
             expression = expression.replace(condition, replace_dict[condition])
-
         elif condition.upper() in expression:
-
             expression = expression.replace(condition.upper(), replace_dict[condition])
-
         elif condition.title() in expression:
-
             expression = expression.replace(condition.title(), replace_dict[condition])
-
         else:
-
             continue
 
     # first let's handle GreaterEqual LessEqual
@@ -555,19 +573,12 @@ def single_relational_filter(expression):
     res = list(regexp.finditer(expression))
 
     if len(res) == 1:
-
         return expression[0:res[0].start()], '(' + expression + ')'
-
     elif len(res) == 2:
-
         return expression[res[0].end():res[1].start()], '(' + expression + ')'
-
     elif len(res) > 2:
-
         raise ValueError("The condition {} cannot be parsed".format(expression))
-
     else:
-
         # Then let's handle Greater Less and Equal
         regex_str = '|'.join([regex for regex in BOOLEAN_RELATIONALS])
         regexp = re.compile(regex_str)
@@ -665,16 +676,6 @@ def variable_from_str(expression, filter=True, special_chars=None, replaces=None
     return sympify, aliases
 
 
-# # get tree
-# def get_tree(rule):
-#
-#     try:
-#
-#         return build_tree(rule, Boolean)
-#
-#     except:
-#
-#         return Node(rule)
 
 
 # relational filter
@@ -811,289 +812,3 @@ def boolean_rule_from_str(rule):
     return rule, elements, bool_tree, new_operands, aliases, new_conditionals
 
 
-# # Boolean regulatory rule from str
-# def boolean_rule_from_str(rule):
-#     """
-#     It creates a new parsed regulatory rule, list all its elements (operators and operands) and creates a sympy
-#     expression.
-#     It also identifies all regulatory variables and returns them.
-#
-#     The regulatory variables might be filtered and transformed with the special characters and starts with digit
-#     filters. The old regulatory variable ID is kept as an alias
-#
-#     :param rule: str, boolean rule
-#     :returns rule: str, parsed boolean rule
-#     :return elements: list, all elements in the rule (operators and operands)
-#     :return sympify: Sympy Boolean object Or, And or Not, Sympy Symbol object, or Sympy Integral object
-#     :return symbols: dict, all regulatory variables in the regulatory rule. Keys stand for their new IDs and
-#     values stand for their sympy symbols
-#     :return symbols: dict, all regulatory variables in the regulatory rule. Keys stand for their new IDs and
-#     values stand for their aliases
-#     """
-#
-#     rule, replaces = special_chars_filter(rule)
-#     rule, new_replaces = starts_with_digit_filter(rule)
-#     replaces.update(new_replaces)
-#
-#     rule = bitwise_rule_filter(rule)
-#     rule = relational_filter(rule)
-#
-#     elements = tokenize_infix_expression(rule)
-#
-#     symbols = {}
-#     aliases = {}
-#
-#     if len(elements) < 1:
-#         return rule, elements, None, lambda x: None, symbols, aliases
-#
-#     else:
-#
-#         sympify = parse_expr(rule, evaluate=False)
-#
-#         if isinstance(sympify, BooleanFalse) or isinstance(sympify, Zero):
-#
-#             return rule, elements, sympify, lambda x: 0, symbols, aliases
-#
-#         elif isinstance(sympify, BooleanTrue) or isinstance(sympify, One):
-#
-#             return rule, elements, sympify, lambda x: 1, symbols, aliases
-#
-#         else:
-#
-#             for sb in sympify.atoms():
-#
-#                 if isinstance(sb, Symbol):
-#
-#                     symbols[sb.name] = sb
-#
-#                     old_reg_name = ''.join(sb.name)
-#
-#                     for replace, special_char in replaces.items():
-#                         old_reg_name = old_reg_name.replace(replace, special_char)
-#
-#                     aliases[sb.name] = [old_reg_name]
-#
-#     return rule, elements, sympify, sympify.subs, symbols, aliases
-
-
-# # Boolean regulatory rule parser
-# def bool_regulatory_rule_parser(rule):
-#     """
-#     It creates a new parsed regulatory rule, list all its elements (operators and operands). It also identifies all
-#     regulatory variables and returns them in a dict object
-#
-#     :param rule: str, regulatory rule
-#     :returns parsed regulatory rule: str, parsed regulatory rule
-#     :return elements: list, all elements in the rule (operators and operands)
-#     :returns regulatory variables: dict, all regulatory variables in the regulatory rule (keys are the new id and
-#     values are tuples (Sympy symbol, alias))
-#     """
-#
-#     replace_dic = Boolean.SYMPY_REPLACE
-#
-#     new_rule, replaces = special_chars_filter(rule)
-#     new_rule, new_replaces = starts_with_digit_filter(new_rule)
-#     replaces.update(new_replaces)
-#
-#     exp = tokenize_infix_expression(new_rule)
-#
-#     parsed_str = ''
-#     exp_elements = []
-#     reg_vars = {}
-#
-#     for op in exp:
-#
-#         if op.lower() in replace_dic:
-#
-#             operator = replace_dic[op.lower()]
-#             exp_elements.append(operator)
-#             parsed_str += operator
-#
-#         elif op in BOOLEAN_OPERATORS + BOOLEAN_STATES:
-#
-#             exp_elements.append(op)
-#             parsed_str += op
-#
-#         elif op in [')', '(']:
-#
-#             exp_elements.append(op)
-#             parsed_str += op
-#
-#         else:
-#
-#             condition = single_relational_filter(op)
-#
-#             if condition:
-#
-#                 exp_elements.append(condition[1])
-#                 parsed_str += condition[1]
-#
-#                 op = condition[0]
-#
-#             else:
-#
-#                 exp_elements.append(op)
-#                 parsed_str += op
-#
-#             reg_var = variable_from_str(op, filter=False, replaces=replaces)
-#
-#             if not reg_var:
-#                 def op_message(message):
-#                     warn(message, UserWarning, stacklevel=2)
-#
-#                 op_message("The {} could not be parsed into a Sympy Symbol object. This may raise problems in "
-#                            "the future".format(op))
-#
-#             else:
-#                 reg_vars[reg_var[0].name] = reg_var
-#
-#     return parsed_str, exp_elements, reg_vars
-#
-#
-# # Boolean sympy expression
-# def bool_sympy_expression(rule, local_dict):
-#     """
-#     Wrapper for a sympy expression obtained from a parsed string. Input must be parsed with bool_regulatory_rule_parser
-#
-#     :param rule: str, parsed regulatory rule
-#     :param local_dict: dict, mapping between the variables in the expression and teh respecitve Symbol Sympy's objects
-#     :return: Sympy Boolean object Or, And or Not, Sympy Symbol object, or Sympy Integral object
-#     """
-#
-#     if not rule:
-#         return None
-#     return parse_expr(rule, evaluate=False, local_dict=local_dict)
-#
-#
-# # Boolean sympy lambda function
-# def bool_lambdify(expression, args):
-#     """
-#         Wrapper for lambdify obtained from a bool_sympy_expression. Input must be parsed with
-#         bool_regulatory_rule_parser and then a sympy expression must be created with bool_sympy_expression_from_str
-#
-#         Unfornatelly, lambdify does not handle Not operator in the latter versions
-#
-#         :param expression: sympy core object, parsed regulatory sympy expression
-#         :param args: tuple, sympy Symbols of the regulatory sympy expression
-#         :return: Sympy Boolean object Or, And or Not, Sympy Symbol object, or Sympy Integral object
-#         """
-#
-#     return lambdify(args, expression, 'sympy', dummify=False)
-
-
-def test_1():
-    # aritmetic example
-
-    t = build_tree(" 1 + 2 + 3 + ( 2 * 2 )", Arithmetic)
-    res = t.evaluate(ArithmeticEvaluator.f_operand,
-                     ArithmeticEvaluator.f_operator)
-    print(t, ' = ', res)
-
-    # boolean example
-
-    t = build_tree(" A or not (B)", Boolean)
-    print(t)
-    print(type(t))
-    t.print_node()
-    print(t.get_operands())
-    # propositions in the list are evaluated as True and the remaining are False
-    evaluator = BooleanEvaluator(['a', 'c'])
-    res = t.evaluate(evaluator.f_operand, evaluator.f_operator)
-    print('value = ', res)
-
-    # gene values example
-    t = build_tree("( a or not b ) and (c)", Boolean)
-    t.print_node()
-    value_map = {'a': 1, 'b': 2, 'c': 3, 'd': 4}
-
-    def op_and(x, y): return min(x, y)
-
-    def op_or(x, y): return max(x, y)
-
-    evaluator = GeneEvaluator(value_map, op_and, op_or)
-    res = t.evaluate(evaluator.f_operand, evaluator.f_operator)
-    print('Evaluation ', res)
-
-
-def test_2():
-    from urllib.request import urlretrieve
-    from cobra.io import read_sbml_model
-    import random
-
-    path, _ = urlretrieve('http://bigg.ucsd.edu/static/models/RECON1.xml')
-    model = read_sbml_model(path)
-    ogpr = model.reactions.ATPS4m.gene_name_reaction_rule
-    gpr = ogpr
-    print(gpr)
-    t = build_tree(gpr, Boolean)
-    print(t)
-    genes = list(t.get_operands())
-    print("GENES:\n", genes)
-    print("Evaluations:")
-    evaluator = BooleanEvaluator(genes)
-    res = t.evaluate(evaluator.f_operand, evaluator.f_operator)
-    print(evaluator.true_list, " ==> ", res)
-    for _ in range(20):
-        l = []
-        n = random.randint(0, len(genes))
-        for _ in range(n):
-            i = random.randint(0, len(genes) - 1)
-            l.append(genes[i])
-        evaluator.set_true_list(l)
-        res = t.evaluate(evaluator.f_operand, evaluator.f_operator)
-        print(evaluator.true_list, " ==> ", res)
-
-
-if __name__ == '__main__':
-    # test_1()
-    # test_2()
-
-    # rule = '(fuc-L(e)>0)'
-    # rule = '(not fuc-L(e)>0)'
-    # rule = '(not fuc-L(e)>0.1)'
-    # rule = '(not fuc-L(e) > 0.1)'
-    rule = '((NOT (o2(e)>0)) AND (NOT (no3(e)>0)) AND (NOT (no2(e)>0)) AND (NOT (tmao(e)>0)) AND (NOT (dmso(e)>0)) ' \
-           'AND (for(e)>0))'
-    # rule = '(RpoS OR ' \
-    #        'Fnr OR ' \
-    #        '((NOT IclR) AND ' \
-    #        '((NOT( (glcn(e)>0) OR ' \
-    #        '(glc-D(e)>0) OR ' \
-    #        '(arab-L(e)>0) OR ' \
-    #        '(xyl-D(e)>0) OR ' \
-    #        '(rib-D(e)>0) OR ' \
-    #        '(mal-L(e)>0) OR ' \
-    #        '(glyc(e)>0) OR ' \
-    #        '(sbt-D(e)>0) OR ' \
-    #        '(lac-D(e)>0) OR ' \
-    #        '(man(e)>0) OR ' \
-    #        '(succ(e)>0))))))'
-    # rule = '(NOT IclR) AND ((NOT ArcA) OR FruR > 0)'
-    rule = 'S AND (NOT g22)'
-    # rule = rule.replace('(e)', '_e_')
-    # t = build_tree(rule, Boolean)
-    # print(rule)
-    # t.print_node()
-    # print(t.get_operands())
-
-    # res = bool_regulatory_rule_parser(rule)
-    # local_dict = {key: val[0] for key, val in res[2].items()}
-    # res_sympy = bool_sympy_expression(res[0], local_dict)
-    # arguments = list(map(lambda x: x[0], res[2].values()))
-    # res_sympy_function = bool_lambdify(res_sympy, arguments)
-    # # state_map = {symbol.name: 1 for symbol in arguments}
-    # state_map = {'IclR': 0, 'ArcA': 1, 'FruR': 1}
-    # print(res_sympy_function(**state_map))
-    #
-    # rule = 'symbols'
-    # res = bool_regulatory_rule_parser(rule)
-    # # local_dict = {key: val[0] for key, val in res[2].items()}
-    # local_dict = {}
-    # res_sympy = bool_sympy_expression(res[0], local_dict)
-    # arguments = list(map(lambda x: x[0], res[2].values()))
-    # res_sympy_function = bool_lambdify(res_sympy, arguments)
-    # # state_map = {symbol.name: 1 for symbol in arguments}
-    # # state_map = {'IclR': 0, 'ArcA': 1, 'FruR': 1}
-    # # print(res_sympy_function(**state_map))
-
-    rule, elements, tree, variables, aliases = boolean_rule_from_str(rule)

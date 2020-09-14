@@ -54,9 +54,15 @@ Examples are provided as [jupiter notebooks](examples) and as [python scripts](s
 
 ### Instalation
 
+Installing from Pypi package repository:
   
+  ``pip install mewpy``
 
-1. clone the repository
+Installing from github:
+
+1. clone the repository 
+  
+  ``git clone ``
 
 2. run ``python setup.py install``
 

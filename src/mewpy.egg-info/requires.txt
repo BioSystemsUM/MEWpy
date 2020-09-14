@@ -1,4 +1,6 @@
+python-libsbml
 inspyred
 reframed
+cobra==0.17.1
 jmetalpy
 cobamp
