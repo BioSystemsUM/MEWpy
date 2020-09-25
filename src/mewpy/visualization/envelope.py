@@ -1,20 +1,21 @@
-import numpy as np
-from mewpy.simulation.simulation import Simulator
 from mewpy.simulation import get_simulator
+from mewpy.simulation.simulation import Simulator
+import numpy as np
 
 
-def flux_envelope(model, r_x, r_y, steps=10, constraints=None):
-    """ Calculate the flux envelope for a pair of reactions. 
+def flux_envelope(model, r_x, r_y, steps=10, constraints=None, envcond=None):
+    """ Calculate the flux envelope for a pair of reactions.
         Adapted from REFRAMED to be compatible both with REFRAMED and COBRApy.
 
-    Arguments:
-        model : the model or simulator
-        r_x (str): reaction on x-axis
-        r_y (str): reaction on y-axis
-        steps (int): number of steps to compute (default: 10)
-        constraints (dict): custom constraints to the FBA problem
-    Returns:
-        tuple: x values, y_min values, y_max values
+
+    :param model : The model or simulator.
+    :param str r_x: Reaction on x-axis.
+    :param str r_y: Reaction on y-axis.
+    :param int steps: Number of steps to compute (default: 10).
+    :param dict constraints: Custom constraints to the FBA problem.
+    :param dict envcond: Environmental conditions.
+    :returns:  x values, y_min values, y_max values
+
     """
 
     if isinstance(model, Simulator):
@@ -22,7 +23,7 @@ def flux_envelope(model, r_x, r_y, steps=10, constraints=None):
     else:
         try:
             simul = get_simulator(model)
-        except:
+        except Exception:
             raise ValueError(
                 'The model should be an instance of model or simulator')
 
@@ -51,22 +52,20 @@ def plot_flux_envelope(model, r_x, r_y, steps=10, substrate=None, constraints=No
     """ Plots the flux envelope for a pair of reactions.
         Adapted from REFRAMED.
 
-    Arguments:
-        model : the model or simulator
-        r_x (str): reaction on x-axis
-        r_y (str): reaction on y-axis
-        steps (int): number of steps to compute (default: 20)
-        substrate (str): compute yields for given substrate instead of rates (optional)
-        constraints (dict): additional simulation constraints
-        label_x (str): x label (optional, uses reaction name by default)
-        label_y (str): y label (optional, uses reaction name by default)
-        flip_x (bool): flip direction of r_x (default: False)
-        flip_y (bool): flip direction of r_y (default: False)
-        plot_kwargs (dict): additional parameters to *pyplot.plot* (optional)
-        fill_kwargs (dict): additional parameters to *pyplot.fill_between* (optional)
-        ax (matplotlib.Axes): plot over existing axes (optional)
-    Returns:
-        matplotlib.Axes: axes object
+    :param model: The model or simulator.
+    :param str r_x: Reaction on x-axis.
+    :param str r_y: Reaction on y-axis.
+    :param int steps: Number of steps to compute (default: 20).
+    :param str substrate: Compute yields for given substrate instead of rates (optional).
+    :param dict constraints: Additional simulation constraints.
+    :param str label_x: x label (optional, uses reaction name by default).
+    :param str label_y: y label (optional, uses reaction name by default).
+    :param bool flip_x: Flip direction of r_x (default: False).
+    :param dict flip_y: Flip direction of r_y (default: False).
+    :param dict plot_kwargs: Additional parameters to *pyplot.plot* (optional).
+    :param dict fill_kwargs: Additional parameters to *pyplot.fill_between* (optional).
+    :param matplotlib.Axes ax: Plot over existing axes (optional).
+    :returns:  matplotlib.Axes: Axes object.
     """
 
     try:
@@ -79,7 +78,7 @@ def plot_flux_envelope(model, r_x, r_y, steps=10, substrate=None, constraints=No
     else:
         try:
             simul = get_simulator(model)
-        except:
+        except Exception:
             raise ValueError(
                 'model should be an instance of model or simulator')
 

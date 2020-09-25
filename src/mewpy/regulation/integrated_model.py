@@ -402,7 +402,8 @@ class IntegratedRegulatoryInteraction(RegulatoryInteraction):
 
             self.old_rule = value
 
-            self._rule, self._elements, self._tree, self._variables, aliases, self._conditionals = boolean_rule_from_str(value)
+            self._rule, self._elements, self._tree, self._variables, aliases, self._conditionals = \
+                boolean_rule_from_str(value)
 
             if self.regulators:
 
@@ -1333,7 +1334,7 @@ class IntegratedModel(RegulatoryModel):
         at least with one reaction in the GPRs rule.
 
         :param state: dict, key is the id of the regulatory variable (metabolic target) while value can be 0, 1 or float (reactions and metabolites predicates)
-        :return: SimulationResult object, it contains the result of the simulate method available in the Simulation object
+        :return: SimulationResult object.
         """
 
         # This function decodes a given metabolic state (state of the metabolic genes) and simulates the cbm model
@@ -1391,7 +1392,7 @@ class IntegratedModel(RegulatoryModel):
         :param maximize: bool
         :param method: SimulationMethod object
         :param constraints: dict, additional constraints focused on the reactions
-        :return: SimulationResult object, it contains the result of the simulate method available in the Simulation object
+        :return: SimulationResult object, it contains the result of the simulate method.
         """
 
         self.objective = objective

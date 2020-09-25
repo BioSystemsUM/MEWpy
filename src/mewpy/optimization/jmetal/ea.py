@@ -1,21 +1,26 @@
-from jmetal.algorithm.singleobjective.genetic_algorithm import GeneticAlgorithm
-from jmetal.algorithm.multiobjective.nsgaiii import NSGAIII, UniformReferenceDirectionFactory
-from jmetal.algorithm.multiobjective.nsgaii import NSGAII
-from jmetal.algorithm.multiobjective.spea2 import SPEA2
+from jmetal.algorithm.singleobjective import GeneticAlgorithm, SimulatedAnnealing
+from jmetal.algorithm.multiobjective import NSGAII, SPEA2
+from jmetal.algorithm.multiobjective.nsgaiii import NSGAIII
+from jmetal.algorithm.multiobjective.nsgaiii import UniformReferenceDirectionFactory
 from jmetal.util.termination_criterion import StoppingByEvaluations
 from jmetal.operator import BinaryTournamentSelection
 from mewpy.utils.process import MultiProcessorEvaluator
 from mewpy.optimization.ea import AbstractEA, Solution 
-from mewpy.optimization.jmetal.problem import JMetalKOProblem, JMetalOUProblem
-from mewpy.optimization.jmetal.observers import PrintObjectivesStatObserver, VisualizerObserver
+from .problem import JMetalKOProblem, JMetalOUProblem
+from .observers import PrintObjectivesStatObserver, VisualizerObserver
+from .operators import (ShrinkMutation,GrowMutationKO,GrowMutationOU,UniformCrossoverKO,
+        UniformCrossoverOU,SingleMutationKO,SingleMutationOU,SingleMutationOULevel,MutationContainer)
 from mewpy.utils.constants import EAConstants
 from mewpy.utils.process import cpu_count
-from mewpy.optimization.jmetal.operators import (ShrinkMutation,GrowMutationKO,GrowMutationOU,UniformCrossoverKO,
-        UniformCrossoverOU,SingleMutationKO,SingleMutationOU,SingleMutationOULevel,MutationContainer)
 from random import Random
 from time import time
 
 
+# SOEA alternatives
+soea_map ={
+    'GA': GeneticAlgorithm,
+    'SA': SimulatedAnnealing
+}
 # MOEA alternatives
 moea_map = {
     'NSGAII': NSGAII,
@@ -34,7 +39,7 @@ class EA(AbstractEA):
     :param max_generations: (int) The number of iterations of the EA (stopping criteria). 
     """
 
-    def __init__(self, problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS, mp=True, visualizer=False,algorithm = None):
+    def __init__(self, problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS, mp=True, visualizer=False, algorithm = None):
 
         super(EA, self).__init__(problem, initial_population=initial_population,
                                  max_generations=max_generations, mp=mp, visualizer=visualizer)
@@ -63,18 +68,28 @@ class EA(AbstractEA):
     def _run_so(self):
         """ Runs a single objective EA optimization ()
         """
+        
         max_evaluations = self.max_generations * 100
-
-        algorithm = GeneticAlgorithm(
-            problem=self.ea_problem,
-            population_size=100,
-            offspring_population_size=100,
-            mutation=self.mutation,
-            crossover=self.crossover,
-            selection=BinaryTournamentSelection(),
-            termination_criterion=StoppingByEvaluations(
-                max_evaluations=max_evaluations)
-        )
+        
+        if self.algorithm_name == 'SA':
+            self.mutation.probability = 1.0
+            algorithm = SimulatedAnnealing(
+                problem=self.ea_problem,
+                mutation=self.mutation.probability, 
+                termination_criterion=StoppingByEvaluations(max_evaluations=max_evaluations)
+            )
+            
+        else:
+            algorithm = GeneticAlgorithm(
+                problem=self.ea_problem,
+                population_size=100,
+                offspring_population_size=100,
+                mutation=self.mutation,
+                crossover=self.crossover,
+                selection=BinaryTournamentSelection(),
+                termination_criterion=StoppingByEvaluations(
+                    max_evaluations=max_evaluations)
+            )
 
         algorithm.observable.register(observer=PrintObjectivesStatObserver())
         algorithm.run()
@@ -83,7 +98,7 @@ class EA(AbstractEA):
         return result
 
     def _run_mo(self):
-        """ Runs a multi objective EA (SPEA or NSGAII) optimization
+        """ Runs a multi objective EA optimization
         """
         max_evaluations = self.max_generations * 100
         ncpu = cpu_count()

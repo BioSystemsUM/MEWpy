@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from mewpy.utils.constants import EAConstants
-import functools
+
 import copy
 # pathos
 try:
@@ -53,7 +53,7 @@ class MultiProcessorEvaluator(Evaluator):
 
     def evaluate(self, candidates, args):
         """
-        Values in args will be ignored and not passed to the evaluator to avoid unnecessary pickling in inspyred. 
+        Values in args will be ignored and not passed to the evaluator to avoid unnecessary pickling in inspyred.
         """
         results = self.pool.map(self.evaluator, candidates)
         return results
@@ -101,7 +101,7 @@ else:
             self.problem = copy.deepcopy(problem)
 
         def evaluate_candidates(self, candidates):
-            """Evaluates a sublist of candidates   
+            """Evaluates a sublist of candidates
             """
             return self.problem.evaluator(candidates, None)
 

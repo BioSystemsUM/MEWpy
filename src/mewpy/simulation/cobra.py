@@ -10,14 +10,18 @@ from mewpy.simulation.simulation import Simulator, SimulationResult, ModelContai
 from mewpy.utils.constants import ModelConstants
 from mewpy.utils.parsing import evaluate_expression_tree
 from collections import OrderedDict
-from warnings import warn
 import numpy as np
+import logging
+
+
+LOGGER = logging.getLogger(__name__)
+
 
 class CobraModelContainer(ModelContainer):
     """ A basic container for COBRApy models.
-    
+
     :param model: A metabolic model.
-    
+
     """
     def __init__(self, model: Model):
         if not isinstance(model, Model):
@@ -46,10 +50,10 @@ class CobraModelContainer(ModelContainer):
 
     def get_gpr(self, reaction_id):
         """Returns the gpr rule (str) for a given reaction ID.
-        
+
         :param str reaction_id: The reaction identifier.
         :returns: A string representation of the GPR rule.
-        
+
         """
         if reaction_id not in self.reactions:
             raise ValueError(f"Reactions {reaction_id} does not exist")
@@ -67,17 +71,17 @@ class CobraModelContainer(ModelContainer):
 class Simulation(CobraModelContainer, Simulator):
     """Generic Simulation class for cobra Model.
        Defines the simulation conditions, and makes available a set of methods.
-       
+
     :param model: An metabolic model instance.
-    
+
     Optional:
-    
+
     :param objective: The model objective.
     :param dic envcond: Dictionary of environmental conditions.
-    :param dic constraints: A dictionary of reaction contraints.
+    :param dic constraints: A dictionary of reaction constraints.
     :param solver: An instance of the LP solver.
     :param dic reference: A dictionary of the wild type flux values.
-    
+
     """
 
     def __init__(self, model: Model, objective=None, envcond=None, constraints=None,  solver=None, reference=None):
@@ -109,9 +113,9 @@ class Simulation(CobraModelContainer, Simulator):
     @property
     def reference(self):
         """The reference wild type reaction flux values.
-        
+
         :returns: A dictionary of wild type reaction flux values.
-        
+
         """
         if self._reference is None:
             self._reference = self.simulate(
@@ -120,11 +124,12 @@ class Simulation(CobraModelContainer, Simulator):
 
     @property
     def essential_reactions(self, min_growth=0.01):
-        """Essential reactions are those when knocked out enable a biomass flux value above a minimal growth defined as a percentage of the wild type growth.
-        
+        """Essential reactions are those when knocked out enable a biomass flux value above a minimal growth defined as
+        a percentage of the wild type growth.
+
         :param float min_growth: Minimal percentage of the wild type growth value. Default 0.01 (1%).
         :returns: A list of essential reactions.
-        
+
         """
         if self._essential_reactions is not None:
             return self._essential_reactions
@@ -135,17 +140,19 @@ class Simulation(CobraModelContainer, Simulator):
         for rxn in reactions:
             res = self.simulate(constraints={rxn: 0})
             if res:
-                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) or res.status == SStatus.INFEASIBLE:
+                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \
+                        or res.status == SStatus.INFEASIBLE:
                     self._essential_reactions.append(rxn)
         return self._essential_reactions
 
     @property
     def essential_genes(self, min_growth=0.01):
-        """Essential renes are those when deleted enable a biomass flux value above a minimal growth defined as a percentage of the wild type growth.
-        
+        """Essential genes are those when deleted enable a biomass flux value above a minimal growth defined as a
+        percentage of the wild type growth.
+
         :param float min_growth: Minimal percentage of the wild type growth value. Default 0.01 (1%).
         :returns: A list of essential genes.
-        
+
         """
         if self._essential_genes is not None:
             return self._essential_genes
@@ -160,16 +167,17 @@ class Simulation(CobraModelContainer, Simulator):
             gr_constraints = {rxn: 0 for rxn in inactive_reactions}
             res = self.simulate(constraints=gr_constraints)
             if res:
-                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) or res.status == SStatus.INFEASIBLE:
+                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \
+                        or res.status == SStatus.INFEASIBLE:
                     self._essential_genes.append(gene)
         return self._essential_genes
 
     def evaluate_gprs(self, active_genes):
         """Returns the list of active reactions for a given list of active genes.
-        
-        :param list active_genes: List of genes idenfiers.
+
+        :param list active_genes: List of genes identifiers.
         :returns: A list of active reaction identifiers.
-        
+
         """
         active_reactions = []
         for r_id in self.reactions:
@@ -183,14 +191,16 @@ class Simulation(CobraModelContainer, Simulator):
 
     def get_uptake_reactions(self):
         """
-        
         :returns: The list of uptake reactions.
-        
-        """        
+        """
         drains = self.get_drains()
         rxns = [r for r in drains if self.model.reactions.get_by_id(r).reversibility
-                or ((self.model.reactions.get_by_id(r).lower_bound is None or self.model.reactions.get_by_id(r).lower_bound < 0) and len(self.model.reactions.get_by_id(r).reactants) > 0)
-                or ((self.model.reactions.get_by_id(r).upper_bound is None or self.model.reactions.get_by_id(r).upper_bound > 0) and len(self.model.reactions.get_by_id(r).products) > 0)
+                or ((self.model.reactions.get_by_id(r).lower_bound is None
+                    or self.model.reactions.get_by_id(r).lower_bound < 0)
+                    and len(self.model.reactions.get_by_id(r).reactants) > 0)
+                or ((self.model.reactions.get_by_id(r).upper_bound is None
+                    or self.model.reactions.get_by_id(r).upper_bound > 0)
+                    and len(self.model.reactions.get_by_id(r).products) > 0)
                 ]
         return rxns
 
@@ -200,7 +210,7 @@ class Simulation(CobraModelContainer, Simulator):
 
         :param reaction_id: A reaction identifier.
         :returns: A reaction identifier or None.
-        
+
         """
         rxn = self.model.reactions.get_by_id(reaction_id)
         reactions = self.reactions
@@ -214,9 +224,7 @@ class Simulation(CobraModelContainer, Simulator):
 
     def gene_reactions(self):
         """
-        
         :returns: A map of genes to reactions.
-        
         """
         if not self._gene_to_reaction:
             gr = OrderedDict()
@@ -234,9 +242,9 @@ class Simulation(CobraModelContainer, Simulator):
     def get_reactions_for_genes(self, genes):
         """
         Returns the list of reactions catalysed by a list of genes
-       
+
         :param list genes: A list of gene IDs.
-        :returns: A list of reaction identifieres.
+        :returns: A list of reaction identifiers.
 
         """
         if not self._gene_to_reaction:
@@ -250,21 +258,21 @@ class Simulation(CobraModelContainer, Simulator):
     def get_reaction_metabolites(self, reaction):
         '''
         Returns all metabolites of a given reaction.
-        
+
         :param reaction: reaction (str)
         :return: metabolites (dict)
-        
+
         '''
         return self.model.reactions.get_by_id(reaction).metabolites
 
     def is_reactant(self, reaction, metabolite):
         '''
         Returns if a metabolite is reactant into a given reaction.
-        
+
         :param reaction: reaction (str)
         :param metabolite: metabolite (str)
         :return: bool
-        
+
         '''
 
         return self.model.metabolites.get_by_id(metabolite) in self.model.reactions.get_by_id(reaction).reactants
@@ -272,19 +280,17 @@ class Simulation(CobraModelContainer, Simulator):
     def is_product(self, reaction, metabolite):
         '''
         Returns if a metabolite is product into a given reaction.
-        
+
         :param reaction: reaction (str)
         :param metabolite: metabolite (str)
         :return: bool
-        
-        '''
 
+        '''
         return self.model.metabolites.get_by_id(metabolite) in self.model.reactions.get_by_id(reaction).products
 
     def get_metabolite_reactions(self, metabolite):
 
         return [reaction.id for reaction in self.model.metabolites.get_by_id(metabolite).reactions]
-
 
     def get_S(self):
 
@@ -292,7 +298,7 @@ class Simulation(CobraModelContainer, Simulator):
         Returns the S matrix as a numpy array
 
         :returns:
-        
+
         S matrix, np.array
 
         """
@@ -307,15 +313,13 @@ class Simulation(CobraModelContainer, Simulator):
 
         return S
 
-
     def get_reaction_bounds(self, reaction):
-
         """
         Returns the bounds for a given reaction.
 
         :param reaction: str, reaction ID
         :return: lb(s), ub(s), tuple
-        
+
         """
 
         if reaction in self.constraints:
@@ -327,9 +331,7 @@ class Simulation(CobraModelContainer, Simulator):
 
         return lb if lb > -np.inf else -999999, ub if ub < np.inf else 999999
 
-
     def get_bounds(self):
-
         """
         Returns the whole set of lower and upper bounds as numpy arrays
 
@@ -349,42 +351,65 @@ class Simulation(CobraModelContainer, Simulator):
 
         :param metabolite: str, metabolite ID
         :returns: reaction, str or None
-        
+
         """
 
         for reaction in self.model.metabolites.get_by_id(metabolite).reactions:
 
             if reaction.id in self.model.exchanges \
                     or reaction.id in self.medium \
-                    or reaction.boundary\
+                    or reaction.boundary \
                     or (len(reaction.products) == 0):
                 return reaction.id
         return None
-
+    
+    def find_bounds(self):
+        """
+        Return the median upper and lower bound of the metabolic model.
+        Bounds can vary from model to model. Cobrapy defaults to (-1000, 1000).
+        """
+        lower_bounds = np.asarray([rxn.lower_bound for rxn in self.model.reactions], dtype=float)
+        upper_bounds = np.asarray([rxn.upper_bound for rxn in self.model.reactions], dtype=float)
+        lower_bound = np.nanmedian(lower_bounds[lower_bounds != 0.0])
+        upper_bound = np.nanmedian(upper_bounds[upper_bounds != 0.0])
+        if np.isnan(lower_bound):
+            LOGGER.warning("Could not identify a median lower bound.")
+            lower_bound = -1000.0
+        if np.isnan(upper_bound):
+            LOGGER.warning("Could not identify a median upper bound.")
+            upper_bound = 1000.0
+        return lower_bound, upper_bound
+        
+    def find_unconstrained_reactions(self):
+        """Return list of reactions that are not constrained at all."""
+        lower_bound, upper_bound = self.find_bounds()
+        return [
+            rxn
+            for rxn in self.model.reactions
+            if rxn.lower_bound <= lower_bound and rxn.upper_bound >= upper_bound
+        ]
 
     def get_objective(self):
         """
         :returns: The model objective.
-        
+
         """
         from cobra.util.solver import linear_reaction_coefficients
         return list(map(lambda x: x.id, linear_reaction_coefficients(self.model).keys()))
 
-
-
-
-    def simulate(self, objective=None, method=SimulationMethod.FBA, maximize=True, constraints=None, reference=None, scalefactor=None):
+    # The simulator
+    def simulate(self, objective=None, method=SimulationMethod.FBA, maximize=True,
+                 constraints=None, reference=None, scalefactor=None):
         '''
         Simulates a phenotype when applying a set constraints using the specified method.
 
-        
         :param dic objective: The simulation objective. If none, the model objective is considered.
         :param method: The SimulationMethod (FBA, pFBA, lMOMA, etc ...)
-        :param boolean maximize: The optimization direction
-        :param dic contraints: A dictionary of contraints to be applied to the model.
-        :param dic reference: A dictionary of reaction flux values. 
+        :param boolean maximize: The optimization direction.
+        :param dic constraints: A dictionary of constraints to be applied to the model.
+        :param dic reference: A dictionary of reaction flux values.
         :param float scalefactor: A positive scaling factor for the solver. Default None.
-         
+
         '''
 
         if not objective:
@@ -435,23 +460,25 @@ class Simulation(CobraModelContainer, Simulator):
 
         status = self.__status_mapping[solution.status]
 
-        result = SimulationResult(model, solution.objective_value, fluxes=solution.fluxes.to_dict(OrderedDict), status=status,
-                                  envcond=self.environmental_conditions, model_constraints=self.constraints,
-                                  simul_constraints=constraints, maximize=maximize)
+        result = SimulationResult(model, solution.objective_value, fluxes=solution.fluxes.to_dict(OrderedDict),
+                                  status=status, envcond=self.environmental_conditions,
+                                  model_constraints=self.constraints,
+                                  simul_constraints=constraints,
+                                  maximize=maximize)
         return result
 
     def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None):
         """ Flux Variability Analysis (FVA).
-        
+
         :param model: An instance of a constraint-based model.
         :param float obj_frac: The minimum fraction of the maximum growth rate (default 0.9). Requires that the objective value is at least the fraction times maximum objective value. A value of 0.85 for instance means that the objective has to be at least at 85% percent of its maximum.
         :param list reactions: List of reactions to analyze (default: all).
         :param dic constraints: Additional constraints (optional).
         :param boolean loopless: Run looplessFBA internally (very slow) (default: false).
         :param list internal: List of internal reactions for looplessFBA (optional).
-        :param solver: A pre-instantiated solver instance (optional)
+        :param solver: A pre-instantiated solver instance (optional).
         :returns: A dictionary of flux variation ranges.
-        
+
         """
         from cobra.flux_analysis.variability import flux_variability_analysis
         df = flux_variability_analysis(
@@ -481,8 +508,7 @@ class GeckoSimulation(Simulation):
     def proteins(self):
         return list(self.model.proteins)
 
-
-    def essential_proteins(self,protein_prefix, min_growth=0.01):
+    def essential_proteins(self, protein_prefix, min_growth=0.01):
         if self._essential_proteins is not None:
             return self._essential_proteins
         wt_solution = self.simulate()
@@ -490,10 +516,11 @@ class GeckoSimulation(Simulation):
         self._essential_proteins = []
         proteins = self.model.proteins
         for p in proteins:
-            rxn = "{}{}".format(protein_prefix,p)
+            rxn = "{}{}".format(protein_prefix, p)
             res = self.simulate(constraints={rxn: 0})
             if res:
-                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) or res.status == SStatus.INFEASIBLE:
+                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) or \
+                        res.status == SStatus.INFEASIBLE:
                     self._essential_proteins.append(rxn)
         return self._essential_proteins
 
@@ -511,12 +538,11 @@ class GeckoSimulation(Simulation):
 
     def reverse_reaction(self, reaction_id):
         """
-        Identify if a reaction is reversible and returns the 
-        reverse reaction if it is the case
+        Identify if a reaction is reversible and returns the reverse reaction if it is the case.
 
         :param reaction_id: A reaction identifier.
         :returns: The reverse reaction identifier if exists or None.
-        
+
         """
         f, d = zip(*self.protein_rev_reactions.values())
         if reaction_id in f:
@@ -530,9 +556,9 @@ class GeckoSimulation(Simulation):
     def protein_rev_reactions(self):
         """
         Pairs of reverse reactions associated with a protein
-        
+
         :returns: A dictionary which identifies for each protein (key) the list of reversible reactions pairs.
-        
+
         """
         if not self._protein_rev_reactions:
             proteins = self.model.proteins
@@ -552,12 +578,12 @@ class GeckoSimulation(Simulation):
                 revs = [r for r in s if '_REV' in r]
                 if len(revs) > 0:
                     for r in revs:
-                        l = [a for a in s if r.replace('_REV', '') == a]
-                        l.append(r)
-                        if len(l) == 2:
+                        la = [a for a in s if r.replace('_REV', '') == a]
+                        la.append(r)
+                        if len(la) == 2:
                             if k in pairs.keys():
-                                pairs[k].append((l[0], l[1]))
+                                pairs[k].append((la[0], la[1]))
                             else:
-                                pairs[k] = [(l[0], l[1])]
+                                pairs[k] = [(la[0], la[1])]
             self._protein_rev_reactions = pairs
         return self._protein_rev_reactions

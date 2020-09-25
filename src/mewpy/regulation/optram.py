@@ -14,7 +14,7 @@ def load_optram(gene_filename, tf_filename, matrix_filename, gene_prefix=''):
 
         gene_file columns: "Name;id"
         tf_file columns: "Name;Expression"
-        matrix_file: genes as rows and tfs as columns 
+        matrix_file: genes as rows and tfs as columns
     """
     df_genes = pd.read_csv(gene_filename)
     df_TFs = pd.read_csv(tf_filename)
@@ -44,7 +44,6 @@ class RegGene(RegulatoryVariable):
 
     """
 
-
     def __init__(self, name, row, optramid, aliases=None):
         super().__init__(name=name, aliases=aliases)
         self.row = row
@@ -71,11 +70,9 @@ class OptRAMRegModel:
         """
         OptRAM regulatory network model.
 
-        args: 
-
-            Genes (dic) : A dictionary of Gene objects
-            tfs (dic) : A dictionary of transcription factors (TF) objects
-            regnet (DataFrame): A panda dataframe containing a matrix of Genes TFs coefficients
+        :param genes: (dic) A dictionary of Gene objects.
+        :param tfs: (dic) A dictionary of transcription factors (TF) objects.
+        :param regnet: (DataFrame) A panda dataframe containing a matrix of Genes TFs coefficients.
         """
         self.genes = genes
         self.tfs = tfs

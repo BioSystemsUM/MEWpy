@@ -1,7 +1,5 @@
 from warnings import warn
-
 from mewpy.regulation import IntegratedModel
-from mewpy.regulation.regulatory_model import solution_decode
 from mewpy.simulation import SStatus
 
 

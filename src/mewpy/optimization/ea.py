@@ -47,30 +47,30 @@ class Solution(SolutionInterface):
         return self.constraints
 
     def __str__(self):
-        return f"{self.fitness}\n{self.values}"
+        return f"{self.fitness};{self.values}"
 
     def __repr__(self):
-        return f"{self.fitness}\n{self.values}"
+        return f"{self.fitness};{self.values}"
 
     def __eq__(self, solution):
         return set(self.values) == set(solution.values)
 
-    def __gt__(self, solution) -> bool:
+    def __gt__(self, solution):
         if isinstance(solution, self.__class__):
             return dominance_test(self, solution, maximize=self._is_maximize) == 1
         return False
 
-    def __lt__(self, solution) -> bool:
+    def __lt__(self, solution):
         if isinstance(solution, self.__class__):
             return dominance_test(self, solution, maximize=self._is_maximize) == -1
         return False
 
-    def __ge__(self, solution) -> bool:
+    def __ge__(self, solution):
         if isinstance(solution, self.__class__):
             return dominance_test(self, solution, maximize=self._is_maximize) != -1
         return False
 
-    def __le__(self, solution) -> bool:
+    def __le__(self, solution):
         if isinstance(solution, self.__class__):
             return dominance_test(self, solution, maximize=self._is_maximize) != 1
         return False
@@ -86,7 +86,7 @@ class Solution(SolutionInterface):
         return hash(str(self.values))
 
 
-class AbstractEA():
+class AbstractEA(ABC):
 
     def __init__(self, problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS, mp=True, visualizer=False):
 
@@ -99,8 +99,7 @@ class AbstractEA():
 
     def run(self):
         """ Runs the optimization for the defined problem.
-        The number of objectives is defined to be the number of evaluation functions in fevalution. If there are more than one objective, 
-        NSGAII is used as optimization engine. 
+        The number of objectives is defined to be the number of evaluation functions in fevalution.
         """
 
         if self.problem.fevaluation is None or len(self.problem.fevaluation) == 0:
@@ -138,7 +137,7 @@ def dominance_test(solution1, solution2, maximize=True):
     :param solution2: The second solution.
     :param maximize: (bool) maximization (True) or minimization (False)
     :returns:   1 : if the first solution dominates the second;
-                -1 : if the second solution dominates the first;
+               -1 : if the second solution dominates the first;
                 0 : if non of the solutions dominates the other.
     
     """

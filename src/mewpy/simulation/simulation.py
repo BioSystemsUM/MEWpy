@@ -12,7 +12,7 @@ class ModelContainer:
     def reactions(self):
         """
         :returns: A list of reaction identifiers.
-        
+
         """
         raise NotImplementedError
 
@@ -20,7 +20,7 @@ class ModelContainer:
     def genes(self):
         """
         :returns: A list of gene identifiers.
-        
+
         """
         raise NotImplementedError
 
@@ -28,7 +28,7 @@ class ModelContainer:
     def proteins(self):
         """
         :returns: A list of proteins identifiers.
-        
+
         """
         raise NotImplementedError
 
@@ -36,7 +36,7 @@ class ModelContainer:
     def metabolites(self):
         """
         :returns: A list of metabolite identifiers.
-        
+
         """
         raise NotImplementedError
 
@@ -49,7 +49,7 @@ class ModelContainer:
 
     def get_gpr(self, reaction_id):
         """
-        :returns: A reaction gpr if exists None otherwise.
+        :returns: A string representation of the reaction GPR if exists None otherwise.
         """
         raise NotImplementedError
 
@@ -68,30 +68,40 @@ class Simulator(ModelContainer):
     """
 
     @abstractclassmethod
-    def simulate(self, objective=None, method=SimulationMethod.FBA, maximize=True, constraints=None, reference=None, solver=None, **kwargs):
+    def simulate(self, objective=None, method=SimulationMethod.FBA, maximize=True, constraints=None, reference=None,
+                 solver=None, **kwargs):
         """Abstract method to run a phenotype simulation.
-        
+
         :returns: A SimulationResult.
-        
+
         """
         raise NotImplementedError
 
     @abstractclassmethod
     def FVA(self, obj_frac=0, reactions=None, constraints=None, loopless=False, internal=None, solver=None):
         """ Abstract method to run Flux Variability Analysis (FVA).
-        
+
         :returns: A dictionary of flux range values.
-        
+
         """
         raise NotImplementedError
 
 
 class SimulationResult(object):
+    """Class that represents simulation results and performs operations over them."""
 
-    def __init__(self, model, objective_value, fluxes=None, status=None, envcond=None, model_constraints=None, simul_constraints=None, maximize=True):
+    def __init__(self, model, objective_value, fluxes=None, status=None, envcond=None, model_constraints=None,
+                 simul_constraints=None, maximize=True):
         """
-            Class that represents simulation results and performs operations over them.
-            
+        :param model: A model instance.
+        :param objective_value: The phenotype simulation objective value.
+        :param dict fluxes: A dictionary of reaction fluxes values.
+        :param status: The LP status.
+        :param dict envcond: The environmental conditions of the phenotype simulation.
+        :param dict model_constraints: Possible persistent additional constraints.
+        :param dict simul_constraints: The simulation constraints.
+        :param boolean maximize: Optimization direction.
+
         """
         self.model = model
         self.objective_value = objective_value
@@ -107,7 +117,7 @@ class SimulationResult(object):
 
     def get_constraints(self):
         """
-        Return all constraints applyed during the simulation both persistent and simulation specific
+        :returns: All constraints applied during the simulation both persistent and simulation specific.
         """
         constraints = OrderedDict()
         constraints.update(self.envcond)
@@ -122,12 +132,12 @@ class SimulationResult(object):
         return "objective: {}\nStatus: {}".format(self.objective_value, self.status)
 
     def get_net_conversion(self, biomassId=None):
-        '''Returs a string representation of the net conversion.
+        """Returns a string representation of the net conversion.
 
         :params str biosmassId: Biomass identifier (optional)
         :returns: A string representation of the net conversion.
-          
-        '''
+
+        """
 
         left = ""
         right = ""

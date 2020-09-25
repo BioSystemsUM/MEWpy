@@ -7,18 +7,18 @@ class RKOProblem(AbstractKOProblem):
     Reaction Knockout Optimization Problem.
 
     :param model: The constraint metabolic model.
-    :param list fevaluation: A list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness.
+    :param list fevaluation: A list of callable EvaluationFunctions.
 
     Optional parameters:
 
     :param OrderedDict envcond: Environmental conditions.
-    :param OrderedDict constraints: Additional constraints to be applied to the model. 
+    :param OrderedDict constraints: Additional constraints to be applied to the model.
     :param int candidate_min_size: The candidate minimum size (Default EAConstants.MIN_SOLUTION_SIZE)
     :param int candidate_max_size: The candidate maximum size (Default EAConstants.MAX_SOLUTION_SIZE)
     :param list target: List of modification target reactions.
     :param list non_target: List of non target reactions. Not considered if a target list is provided.
     :param float scalefactor: A scaling factor to be used in the LP formulation.
-    
+
     """
 
     def __init__(self, model, fevaluation=None, **kwargs):
@@ -53,12 +53,12 @@ class ROUProblem(AbstractOUProblem):
     Reaction Over/Under Expression Optimization Problem
 
     :param model: The constraint metabolic model.
-    :param list fevaluation: A list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness.
+    :param list fevaluation: A list of callable EvaluationFunctions.
 
     Optional parameters:
 
     :param OrderedDict envcond: Environmental conditions.
-    :param OrderedDict constraints: Additional constraints to be applied to the model. 
+    :param OrderedDict constraints: Additional constraints to be applied to the model.
     :param int candidate_min_size: The candidate minimum size (Default EAConstants.MIN_SOLUTION_SIZE)
     :param int candidate_max_size: The candidate maximum size (Default EAConstants.MAX_SOLUTION_SIZE)
     :param list target: List of modification target reactions.
@@ -66,7 +66,7 @@ class ROUProblem(AbstractOUProblem):
     :param float scalefactor: A scaling factor to be used in the LP formulation.
     :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
     :param list levels: Over/under expression levels (Default EAConstants.LEVELS)
-    
+
     """
 
     def __init__(self, model, fevaluation=None, **kwargs):
@@ -75,7 +75,7 @@ class ROUProblem(AbstractOUProblem):
 
     def _build_target_list(self):
         reactions = set(self.simulator.reactions)
-        #drains = set(self.simulator.get_drains())
+        # drains = set(self.simulator.get_drains())
         target = reactions  # - drains
         if self.non_target is not None:
             target = target - set(self.non_target)

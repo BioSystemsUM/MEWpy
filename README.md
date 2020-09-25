@@ -85,11 +85,9 @@ MEWPy requires a compatible solver for linear programming problems, with install
 
 ### Credits and License
 
-Developed at:
+Developed at Centre of Biological Engineering, University of Minho (2019-2020)
 
-* Centre of Biological Engineering, University of Minho (2019-2020)
-
-  
+This project has received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement number 814408.  
 
 Released under an Apache License.
 

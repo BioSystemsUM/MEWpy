@@ -1,13 +1,10 @@
 
 class RegulatoryVariable:
 
-
     def __init__(self, id=None, name=None, aliases=None):
 
         self._id = id
-
         self._name = name
-
         self._aliases = aliases
 
     def __str__(self):
@@ -32,7 +29,8 @@ class RegulatoryVariable:
     @id.setter
     def id(self, value):
 
-        if value == self._id: pass
+        if value == self._id:
+            pass
 
         elif not isinstance(value, str):
             raise TypeError("The ID must be a string. Use str() to convert")

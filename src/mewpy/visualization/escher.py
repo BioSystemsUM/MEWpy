@@ -3,18 +3,6 @@ from reframed.external.cobrapy import to_cobrapy
 import random
 import string
 
-try:
-    import cobra
-    from cobra import Model
-except ImportError:
-    raise RuntimeError("CobraPy is not installed.")
-
-
-try:
-    import escher
-except ImportError:
-    raise RuntimeError("Escher is not installed.")
-
 
 def escher_maps():
     try:
@@ -33,9 +21,10 @@ def randomString(stringLength=10):
 
 
 def to_json(model, filename=None):
+    import cobra
     if not filename:
         filename = randomString()+".json"
-    if isinstance(model, Model):
+    if isinstance(model, cobra.core.model.Model):
         c_model = model
     elif isinstance(model, CBModel):
         c_model = to_cobrapy(model)

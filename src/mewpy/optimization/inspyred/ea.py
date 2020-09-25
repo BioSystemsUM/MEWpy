@@ -1,4 +1,4 @@
-from mewpy.utils.process import MultiProcessorEvaluator, cpu_count 
+from mewpy.utils.process import MultiProcessorEvaluator, cpu_count
 from mewpy.utils.constants import EAConstants, ModelConstants
 from mewpy.optimization.ea import AbstractEA, Solution
 from mewpy.optimization.inspyred.problem import InspyredProblem
@@ -9,21 +9,28 @@ from time import time
 import inspyred
 
 
+
+SOEA={
+    'GA':inspyred.ec.EvolutionaryComputation,
+    'SA':inspyred.ec.SA
+}
+
 class EA(AbstractEA):
     """
     EA running helper
-    
+
     :param problem: the optimization problem.
     :param initial_population: (list) the EA initial population.
     :param max_generations: (int) the number of iterations of the EA (stopping criteria).
     """
 
-    def __init__(self, problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS, mp=True, visualizer=False, algorithm = None):
+    def __init__(self, problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS, mp=True,
+                 visualizer=False, algorithm=None):
 
         super(EA, self).__init__(problem, initial_population=initial_population,
                                  max_generations=max_generations, mp=mp, visualizer=visualizer)
 
-        self.algorithm = algorithm
+        self.algorithm_name = algorithm
         self.ea_problem = InspyredProblem(self.problem)
         from mewpy.problems import Strategy
         if self.problem.strategy == Strategy.OU:
@@ -71,7 +78,7 @@ class EA(AbstractEA):
                 try:
                     from mewpy.utils.process import RayEvaluator
                     mp_evaluator = RayEvaluator(self.ea_problem, nmp)
-                except:
+                except ImportError:
                     Warning(
                         "Multiprocessing with persistente solver requires ray (pip install ray). Linux only")
                     mp_evaluator = MultiProcessorEvaluator(
@@ -80,7 +87,10 @@ class EA(AbstractEA):
         else:
             self.evaluator = self.ea_problem.evaluator
 
-        ea = inspyred.ec.EvolutionaryComputation(prng)
+        if self.algorithm_name == 'SA':
+            ea = inspyred.ec.SA(prng)
+        else:
+            ea = inspyred.ec.EvolutionaryComputation(prng)
         ea.selector = inspyred.ec.selectors.tournament_selection
 
         ea.variator = self.variators
@@ -114,7 +124,7 @@ class EA(AbstractEA):
                 try:
                     from mewpy.utils.process import RayEvaluator
                     mp_evaluator = RayEvaluator(self.ea_problem, nmp)
-                except:
+                except ImportError:
                     Warning(
                         "Multiprocessing with persistente solver requires ray (pip install ray).")
                     mp_evaluator = MultiProcessorEvaluator(

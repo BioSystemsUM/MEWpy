@@ -4,10 +4,10 @@ from inspyred.ec.emo import Pareto
 class IntTuppleBounder(object):
     """
     A bounder for (int,int,...) representations
-    
+
     :param lower_bound: The integers lower bound.
     :param upper_bound: The integers upper bound.
-    
+
     """
 
     def __init__(self, lower_bound, upper_bound):
@@ -19,18 +19,18 @@ class IntTuppleBounder(object):
     def __call__(self, candidate, args):
         bounded_candidate = set()
         for c in candidate:
-            l = []
+            al = []
             for i in range(len(c)):
                 v = c[i] % self.range[i] + self.lower_bound[i]
-                l.append(v)
-            bounded_candidate.add(tuple(l))
+                al.append(v)
+            bounded_candidate.add(tuple(al))
         return bounded_candidate
 
 
 class InspyredProblem:
     """Inspyred EA builder helper.
-    
-        :param problem: the optimization problem. 
+
+        :param problem: the optimization problem.
     """
 
     def __init__(self, problem):
@@ -38,10 +38,10 @@ class InspyredProblem:
 
     def evaluate(self, solution):
         """Evaluates a single solution
-        
+
             :param solution: The individual to be evaluated.
             :returns: A list with a fitness value or a Pareto object.
-            
+
         """
         p = self.problem.evaluate_solution(solution)
         # single objective
@@ -53,12 +53,12 @@ class InspyredProblem:
 
     def evaluator(self, candidates, args):
         """
-        Evaluator 
+        Evaluator
         Note: shoudn't be dependent on args to ease multiprocessing
-        
+
         :param candidates: A list of candidate solutions.
         :returns: A list of Pareto fitness values or a list of fitness values.
-        
+
         """
         fitness = []
         for candidate in candidates:

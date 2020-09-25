@@ -1,24 +1,17 @@
 """
-##################################################################
-
 CB model optimization test Set of using inspyred EA module
-
-##################################################################
 """
-from mewpy.simulation.reframed import GeckoSimulation, Simulation
-from mewpy.simulation import SimulationMethod
-from mewpy.optimization.evaluation import WYIELD, BPCY, TargetFlux
+from mewpy.simulation import SimulationMethod, get_simulator
+from mewpy.optimization.evaluation import WYIELD, BPCY
 from mewpy.optimization import EA, set_default_engine
-from mewpy.model.gecko import GeckoModel
 import mewpy.utils.utilities as utl
 from collections import OrderedDict
 from reframed.io.sbml import load_cbmodel
-from random import Random
 from time import time
 import os
 
 
-ITERATIONS = 300 
+ITERATIONS = 300
 set_default_engine('jmetal')
 
 
@@ -50,7 +43,7 @@ def load_ec():
     envcond = OrderedDict()
     envcond.update({GLC: (-10.0, 100000.0), O2: (-9.66, 100000.0)})
 
-    simulation = Simulation(model, envcond=envcond)
+    simulation = get_simulator(model, envcond=envcond)
     res = simulation.simulate(method=SimulationMethod.pFBA)
     reference = res.fluxes
 
@@ -85,7 +78,7 @@ def load_ec2():
     envcond = OrderedDict()
     envcond.update({GLC: (-10.0, 100000.0), O2: (-9.66, 100000.0)})
 
-    simulation = Simulation(model, envcond=envcond)
+    simulation = get_simulator(model, envcond=envcond)
     res = simulation.simulate(method=SimulationMethod.pFBA)
     reference = res.fluxes
 
@@ -93,7 +86,6 @@ def load_ec2():
     print(res)
 
     return {'model': model, 'biomass': BIOMASS_ID, 'envcond': envcond, 'reference': reference, 'non_target': non_target}
-
 
 
 def load_yeast():
@@ -115,7 +107,7 @@ def load_yeast():
     envcond = OrderedDict()
     envcond.update({GLC: (-10.0, 999999.0), O2: (-12.25, 100000.0)})
 
-    simulation = Simulation(model, envcond=envcond)
+    simulation = get_simulator(model, envcond=envcond)
     res = simulation.simulate(method=SimulationMethod.pFBA)
     reference = res.fluxes
 
@@ -125,7 +117,7 @@ def load_yeast():
 def cb_ou(product, chassis='ec', display=False, filename=None):
     "CBModel Reaction KO SO example"
     if chassis == 'ec':
-        conf = load_ec2()
+        conf = load_ec()
     elif chassis == 'ys':
         conf = load_yeast()
     else:
@@ -134,15 +126,18 @@ def cb_ou(product, chassis='ec', display=False, filename=None):
     BIOMASS_ID = conf['biomass']
     PRODUCT_ID = product
     model = conf['model']
-    non_target = conf['non_target']
     envcond = conf['envcond']
     reference = conf['reference']
 
     evaluator_1 = BPCY(BIOMASS_ID, PRODUCT_ID, method=SimulationMethod.lMOMA)
     evaluator_2 = WYIELD(BIOMASS_ID, PRODUCT_ID)
+    print(model.genes)
+
     from mewpy.problems import GOUProblem
     problem = GOUProblem(model, fevaluation=[
-                         evaluator_1, evaluator_2], envcond=envcond, reference=reference,candidate_min_size=4,candidate_max_size=6)
+                         evaluator_1, evaluator_2], envcond=envcond, reference=reference,
+                         candidate_min_size=4, candidate_max_size=6,
+                         operators=("lambda x,y: min(x,y)", "lambda x,y: max(x,y)"))
 
     ea = EA(problem, max_generations=ITERATIONS, visualizer=False)
     final_pop = ea.run()
@@ -193,45 +188,40 @@ def cb_ko(product, chassis='ec', display=False, filename=None):
 
 
 if __name__ == '__main__':
-
-    from mewpy.utils.constants import ModelConstants, EAConstants
-
     RUNS = 10
-
     compounds_EC = {"PHE": "R_EX_phe_DASH_L_LPAREN_e_RPAREN_",
                     "TYR": "R_EX_tyr_DASH_L_LPAREN_e_RPAREN_",
                     "TRP": "R_EX_trp_DASH_L_LPAREN_e_RPAREN_"}
 
-    compounds_EC ={"TYR":"R_EX_tyr__L_e"}
-
-
-    compounds_YS = {#"PHE": "R_EX_phe_L_e_",
+    #compounds_EC = {"TYR": "R_EX_tyr__L_e"}
+    compounds_YS = {# "PHE": "R_EX_phe_L_e_",
                     "TYR": "R_EX_tyr_L_e_"
-                    #"TRY": "R_EX_trp_L_e_"
+                    # "TRY": "R_EX_trp_L_e_"
                    }
-    """
 
+    """
     for k, v in compounds_EC.items():
         for i in range(RUNS):
             millis = int(round(time() * 1000))
             cb_ko(v, filename="CBMODEL_{}_KO_{}.csv".format(k, millis))
-
+    """
     for k, v in compounds_EC.items():
         for i in range(RUNS):
             millis = int(round(time() * 1000))
             cb_ou(v, filename="CBMODEL_{}_OU_{}.csv".format(k, millis))
-
+    """
     for k, v in compounds_YS.items():
         for i in range(RUNS):
             millis = int(round(time() * 1000))
             cb_ko(v, chassis='ys', filename="CBMODEL_{}_KO_{}.csv".format(k, millis))
     """
 
-    #from reframed.solvers import set_default_solver
-    #set_default_solver('gurobi')
-
+    # from reframed.solvers import set_default_solver
+    # set_default_solver('gurobi')
+    """
     EAConstants.DEBUG = True
     for k, v in compounds_EC.items():
         for i in range(RUNS):
             millis = int(round(time() * 1000))
             cb_ou(v, chassis='ec', filename="CBMODEL_{}_OU_{}_.csv".format(k, millis))
+    """

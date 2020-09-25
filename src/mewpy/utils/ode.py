@@ -3,11 +3,10 @@
 from enum import Enum
 
 
-
 class SolverConfigurations:
     ABSOLUTE_TOL = 1e-9
     RELATIVE_TOL = 1e-6
-    N_STEPS =10000
+    N_STEPS = 10000
 
 
 class SolverMethod(Enum):
@@ -16,15 +15,15 @@ class SolverMethod(Enum):
     LSODE = 3
     HEUN = 4
     EULER = 5
-    RK4 =  6
+    RK4 = 6
     DORMAN_PRINCE = 7
     RKFehlberg = 8
     Dopri5 = 9
     Dop853 = 10
     Vode = 11
     Radau5 = 12
-    AdamsBashforth2=13
-    AdamsBashMoulton2=14
+    AdamsBashforth2 = 13
+    AdamsBashMoulton2 = 14
 
 
 class KineticConfigurations:
@@ -50,16 +49,15 @@ class ODESpySolver:
     def get_solver(self, func):
         """
         Returns the solver method from odespy package.
-        
+
         :param func: function with ODE system.
         :return: an instance of odeSolver
-        
+
         """
         try:
             import odespy
-        except:
+        except Exception:
             raise RuntimeError("ODEspy package is required")
-
 
         if self.solverMethod is SolverMethod.LSODA:
             solver = odespy.Lsoda(func)
@@ -80,7 +78,7 @@ class ODESpySolver:
         elif self.solverMethod is SolverMethod.Dopri5:
             solver = odespy.Dopri5(func)
         elif self.solverMethod is SolverMethod.Dop853:
-             solver = odespy.Dop853(func)
+            solver = odespy.Dop853(func)
         elif self.solverMethod is SolverMethod.Vode:
             solver = odespy.Vode(func)
         elif self.solverMethod is SolverMethod.AdamsBashforth2:

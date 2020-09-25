@@ -7,7 +7,6 @@ from collections import OrderedDict
 import warnings
 import numpy as np
 import copy
-import logging
 
 
 class Strategy(IntEnum):
@@ -101,9 +100,7 @@ class AbstractProblem(ABC):
         for f in self.fevaluation:
             methods.extend(f.required_simulations())
         self.methods = list(set(methods))
-            
-        
-        
+
     @abstractmethod
     def generator(self, random, args):
         """The generator function for the problem."""
@@ -152,9 +149,11 @@ class AbstractProblem(ABC):
 
     @property
     def target_list(self):
-        "list of allowed OU"
+        "list of modification targets"
         if self._trg_list is None:
             self._build_target_list()
+            if not self._trg_list:
+                raise RuntimeError("Could not build target list.")
         return self._trg_list
 
     @abstractmethod
@@ -163,7 +162,7 @@ class AbstractProblem(ABC):
 
     def get_constraints(self, solution):
         """
-        returns the constrainst enconded into an individual
+        :returns: The constrainst enconded into an individual.
         """
         return self.decode(solution.candidate)
 
@@ -173,10 +172,13 @@ class AbstractProblem(ABC):
     def get_persistent_constraints(self):
         return self.persistent_constraints
 
-    def evaluate_solution(self, solution, decode = True):
+    def evaluate_solution(self, solution, decode=True):
         """
-        Evaluates a single solution, a list of constraints
-        returns a list of fitness
+        Evaluates a single solution, a list of constraints.
+
+        :param solution: The solution to be evaluated.
+        :param decode: If the solution needs to be decoded.
+        :returns: A list of fitness.
         """
         p = []
         # decoded constraints
@@ -198,7 +200,7 @@ class AbstractProblem(ABC):
         except Exception as e:
             for f in self.fevaluation:
                 p.append(f.worst_fitness)
-            if EAConstants.DEBUG:    
+            if EAConstants.DEBUG:
                 warnings.warn(f"Solution couldn't be evaluated [{e}]\n {constraints}")
         return p
 
@@ -209,17 +211,20 @@ class AbstractProblem(ABC):
     def simplify(self, solution, tolerance=1e-6,):
         """
         Simplify a solution by removing the modification that do not affect the final fitness value.
-        
+        Two solutions are considered different if the maximum allowed difference between objective values is exceeded.
+        Tolerance may be defined by a single float value, or per objective by setting a list of floats of size equal
+        to the number of objectives.
+
         :param solution: the solution to be simplified
-        :param float tolerance: max allowed objective difference values for two solutions to be considered diferent. Tolerance may be defined by a single float value, or per objective by means of a list of floats of size equal to the number of objectives.
+        :param float tolerance: The maximum allowed difference between objective values.
         :returns: A list of simplified solutions.
-        
+
         """
 
         values = self.translate(solution.values, reverse=True)
         fitness = self.evaluate_solution(values)
         one_to_remove = {}
-        ### single removal
+        # single removal
         for entry in values:
             simul_constraints = copy.copy(values)
             simul_constraints.remove(entry)
@@ -231,12 +236,12 @@ class AbstractProblem(ABC):
             else:
                 is_equal = np.all(diff <= np.array(tolerance))
             if is_equal:
-                one_to_remove[entry]= fit
-        
+                one_to_remove[entry] = fit
+
         simul_constraints = copy.copy(values)
         for entry in one_to_remove.keys():
             simul_constraints.remove(entry)
-        
+
         # test all simoulateous removal
         fit = self.evaluate_solution(simul_constraints)
         diff = np.abs(np.array(fit)-np.array(fitness))
@@ -245,7 +250,7 @@ class AbstractProblem(ABC):
             is_equal = np.all(diff <= tolerance)
         else:
             is_equal = np.all(diff <= np.array(tolerance))
-        
+
         if is_equal:
             v = self.translate(simul_constraints)
             c = self.decode(simul_constraints)
@@ -261,7 +266,6 @@ class AbstractProblem(ABC):
                 simplification = Solution(v, fitness, c)
                 res.append(simplification)
             return res
-            
 
 
 class AbstractKOProblem(AbstractProblem):
@@ -269,8 +273,8 @@ class AbstractKOProblem(AbstractProblem):
     Base class for Knockout optimization problems.
 
     :param model: The constraint metabolic model.
-    :param list fevaluation: A list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness.
-    
+    :param list fevaluation: A list of callable EvaluationFunctions.
+
     """
 
     def __init__(self, model, fevaluation=None, **kwargs):
@@ -295,7 +299,7 @@ class AbstractKOProblem(AbstractProblem):
 
     def generator(self, random, args):
         """
-        Generates a solution, a random int set with length in range min_solution_size to max_solution_size
+        Generates a solution, a random int set with length in range min_solution_size to max_solution_size.
         """
         solution = set()
         solution_size = random.uniform(
@@ -308,12 +312,10 @@ class AbstractKOProblem(AbstractProblem):
         """
         Translates a candidate solution in problem specific representation to
         an iterable of ids, or (ids, folds).
-        
-        Parameters:
-        
-        candidate (iterable): the candidate representation.
-        reverse (boolean): performs the reverse translation.
-        
+
+        :param candidate: The candidate representation.
+        :param boolean reverse: Performs a reverse translation.
+
         """
         if not reverse:
             return {self.target_list[idx] for idx in candidate}
@@ -323,18 +325,19 @@ class AbstractKOProblem(AbstractProblem):
 
 class AbstractOUProblem(AbstractProblem):
     """ Base class for Over/Under expression optimization problems
-
-    :param model: The constraint metabolic model.
-    :param list fevaluation: A list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness.
-    
-    Optional:
-    
-    :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
-    :param list levels: Over/under expression levels (Default EAConstants.LEVELS)
-    
     """
 
     def __init__(self, model, fevaluation=None, **kwargs):
+        """
+        :param model: The constraint metabolic model.
+        :param list fevaluation: A list of callable EvaluationFunctions.
+
+        Optional:
+
+        :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
+        :param list levels: Over/under expression levels (Default EAConstants.LEVELS).
+
+        """
         super(AbstractOUProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
         self.strategy = Strategy.OU
@@ -343,13 +346,15 @@ class AbstractOUProblem(AbstractProblem):
 
     @abstractmethod
     def decode(self, candidate):
-        """The decoder function for the problem."""
+        """The decoder function for the problem. Needs to be implemented by extending classes."""
         raise NotImplementedError
 
     @property
     def bounder(self):
         """
         The list and levels index bounder
+
+        :returns: a OUBounder object.
         """
         if self._bounder is None:
             max_idx = len(self.target_list)-1
@@ -359,7 +364,11 @@ class AbstractOUProblem(AbstractProblem):
 
     def generator(self, random, args):
         """
-        Generates a solution, a random (int,int) set with length in range min_solution_size to max_solution_size
+        Generates a solution, a random (int,int) set with length in range min_solution_size to max_solution_size.
+
+        :param random: A random number generator. Needs to implement uniform and randint generators methods.
+        :param dict args: A dictionary of additional parameters.
+        :returns: A new solution.
         """
         solution = set()
         solution_size = random.uniform(
@@ -372,13 +381,26 @@ class AbstractOUProblem(AbstractProblem):
 
     @property
     def reference(self):
+        """
+        :returns: A dictionary of reference flux values.
+        """
         if not self._reference:
             self._reference = self.simulator.reference
         return self._reference
 
     def ou_constraint(self, level, wt):
+        """ Computes the bounds for a reaction.
+
+        :param float level: The expression level for the reaction.
+        :param float wt: The reference reaction flux.
+        :returns: A tupple, flux bounds for the reaction.
+
+        """
         if level > 1:
-            return (level*wt, ModelConstants.REACTION_UPPER_BOUND) if wt >= 0 else (-1*ModelConstants.REACTION_UPPER_BOUND, level*wt)
+            if wt >= 0:
+                return (level*wt, ModelConstants.REACTION_UPPER_BOUND)
+            else:
+                return (-1*ModelConstants.REACTION_UPPER_BOUND, level*wt)
         else:
             return (0, level * wt) if wt >= 0 else (level * wt, 0)
 
@@ -387,10 +409,10 @@ class AbstractOUProblem(AbstractProblem):
         Converts a (reaction, level) pair into a constraint
         If a reaction is reversible, the direction with no or less wild type flux
         is knocked out.
-        
+
         :param rxn: The reaction identifier.
         :param lv: the wild type multiplier factor. The reaction bounds are altered accordingly.
-        
+        :returns: A dictionary of reaction constraints.
         """
         constraints = {}
         fluxe_wt = self.reference[rxn]
@@ -406,7 +428,7 @@ class AbstractOUProblem(AbstractProblem):
             constraints[rxn] = self.ou_constraint(lv, fluxe_wt)
         else:
             # there's a reverse reaction...
-            # one of the two reactions needs to be KO, the one with no (or lesser if the model has issues) flux in the wt
+            # one of the two reactions needs to be KO, the one with no flux in the wt.
             rev_fluxe_wt = self.reference[rev_rxn]
             if abs(fluxe_wt) >= abs(rev_fluxe_wt):
                 ko_rxn, ou_rxn, fwt = rev_rxn, rxn, fluxe_wt
@@ -418,12 +440,14 @@ class AbstractOUProblem(AbstractProblem):
 
     def translate(self, candidate, reverse=False):
         """
-        Translates a candidate solution in problem specific representation to 
+        Translates a candidate solution in problem specific representation to
         an iterable of ids, or (ids, folds).
 
-        
         :param iterable candidate: The candidate representation.
         :param boolean reverse: Performs the reverse translation.
+        :returns: If reverse, a list of index tupple (modification_target_index,level_index). The indexes are
+                  problem dependent.
+                  If not reverse, a dictionary of {modification_target: level}
         """
         if not reverse:
             return {self.target_list[idx]: self.levels[lv_idx]

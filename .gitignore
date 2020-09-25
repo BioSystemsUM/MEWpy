@@ -2,3 +2,6 @@
 __pycache__
 docs/build/
 dist
+.idea
+examples/models/gecko/eciML1515_batch.xml
+*.log

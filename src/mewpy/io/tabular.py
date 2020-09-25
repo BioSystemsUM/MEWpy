@@ -156,7 +156,7 @@ if __name__ == '__main__':
     os.chdir('../../../examples/models/')
 
     df = read_tabular_regulatory_model(
-        file, sep=';', id_col=2, rule_col=3, header=None, special_chars=['X'], parsing=True)
+        file, sep=';', id_col=2, rule_col=3, header=None, special_chars=['X'])
     print(df.columns)
     print(df.loc['XylE', 'rules'])
     print(type(df.loc['XylE', 'rules']))

@@ -1,8 +1,10 @@
 from mewpy.problems.problem import AbstractKOProblem
 
+
 class OptOrfProblem(AbstractKOProblem):
     """
-    EA OptOrf problem based on a RFBA problem
+    EA OptOrf problem based on a RFBA problem.
+    Currently only consideres deletions.
     """
 
     def __init__(self, model, fevaluation, regmodel, **kwargs):

@@ -68,7 +68,7 @@ def load_yeast():
 
 
 def cb_ou(product, modification_targets, chassis='ec', display=False, filename=None):
-    "CBModel Reaction KO SO example"
+    
     if chassis == 'ec':
         conf = load_ec()
     elif chassis == 'ys':
@@ -103,9 +103,13 @@ def cb_ou(product, modification_targets, chassis='ec', display=False, filename=N
 
 if __name__ == '__main__':
 
-    from mewpy.utils.constants import ModelConstants, EAConstants
+    from mewpy.utils.constants import EAConstants
+    # Define the number of CPUs to be used in parallel evaluations.
+    EAConstants.NUM_CPUS = 10
+    
+    # change the EA engine and MOEA
     from mewpy.optimization import set_preferred_EA, set_default_engine
-    #set_preffered_EA('NSGAIII')
+    set_preferred_EA('SPEA2')
     set_default_engine('jmetal')
 
     compounds_EC = {"PHE": "R_EX_phe_DASH_L_LPAREN_e_RPAREN_",
@@ -116,9 +120,9 @@ if __name__ == '__main__':
                     "TYR": "R_EX_tyr_L_e_",
                     "TRY": "R_EX_trp_L_e_"
                    }
+    
+    # Can also be used to find expression values for
+    # modifications found in the literature.
     millis = int(round(time() * 1000))
-    
-    # Modifications described in the literatures
     modification_targets = ["G_YBR166C","G_YNL241C","G_YBR249C","G_YDR380W"]
-    
     cb_ou("R_EX_tyr_L_e_", modification_targets ,chassis='ys', filename="CBMODEL_{}_OU_{}_.csv".format("Tyr", millis))

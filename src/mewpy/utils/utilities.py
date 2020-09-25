@@ -1,11 +1,9 @@
 from mewpy.optimization.ea import Solution, non_dominated_population
 from mewpy.utils.constants import ModelConstants
 from mewpy.simulation import get_simulator, SimulationMethod
-from mewpy.optimization.ea import Solution , non_dominated_population, filter_duplicates
+from mewpy.optimization.ea import filter_duplicates
 from collections import OrderedDict
 import numpy as np
-import json
-import copy
 import ast
 import os
 
@@ -67,7 +65,7 @@ def population_to_csv(problem, candidates, filename, simplify=False, non_dominat
             candidates, problem.is_maximization)
     else:
         population = candidates
-        
+
     # should probably simplify recursevly until no changes
     if simplify:
         pop = []
@@ -104,7 +102,7 @@ def population_to_xml(problem, candidates, filename, simplify=False, non_dominat
     else:
         population = candidates
 
-    # should recursevly simplify until the initial 
+    # should recursevly simplify until the initial
     # and simplified populations are the same
     if simplify:
         pop = []
@@ -138,17 +136,15 @@ def population_to_xml(problem, candidates, filename, simplify=False, non_dominat
 def is_number(s):
     """Easy way to verify if a string is a number
     """
-    return s.replace('.','').replace('-','').replace('e','').isdigit()
+    return s.replace('.', '').replace('-', '').replace('e', '').isdigit()
+
 
 class Parser:
     def __init__(self, obj_labels):
         """
         Parser to retreive solutions saved as csv.
-        
-        Parameters
-        
-        obj_labels (list): optimization objective labels
-        result_type (str): 'KO' or 'OU'
+
+        :param obj_labels: (list) optimization objective labels.
         """
         self.obj_labels = obj_labels
         self.n_obj = len(obj_labels)
@@ -156,7 +152,7 @@ class Parser:
         self.population = []
         self.targets_stats = None
 
-    def __parse_line(self, line, separator, parse_constraints = True):
+    def __parse_line(self, line, separator, parse_constraints=True):
         line = line.replace(';;', ';')
         tokens = line.split(separator)
         tokens.remove('\n')
@@ -164,9 +160,9 @@ class Parser:
         fitness = [abs(float(x)) for x in tokens[:self.n_obj]]
         # encoding
         values = ast.literal_eval(tokens[self.n_obj])
-        
+
         if parse_constraints:
-            ### temporary compatibility with previous version
+            # temporary compatibility with previous version
             if tokens[self.n_obj+1].startswith('{'):
                 constrainst = ast.literal_eval(tokens[self.n_obj+1])
             elif tokens[self.n_obj+1].startswith('OrderedDict'):
@@ -181,25 +177,25 @@ class Parser:
                     else:
                         constrainst[tokens[i]] = (float(tokens[i+1]), float(tokens[i+1]))
                         i = i+2
-        
-        
-        else: 
+
+        else:
             constrainst = None
         if np.prod(fitness) != 0:
             solution = Solution(values, fitness, constrainst)
             self.population.append(solution)
 
-    def parse_results(self, path, separator=';', non_dominated=True, maximize=True, filter_duplicate=True, parse_constraints=True):
+    def parse_results(self, path, separator=';', non_dominated=True, maximize=True, filter_duplicate=True,
+                      parse_constraints=True):
         """
         Parse all csv file in the path.
-        
+
         Parameters
-        
-        path (str): the path to the directory containing the csv files;
-        separator (str): the separator used in the csv files;
-        non_dominated (boolean): filter dominated solutions;
-        maximize (boolean): if the solutions are from a maximization problem;
-        filter_duplicate (boolean): remove duplicates solutions.
+
+        :param path: (str) the path to the directory containing the csv files;
+        :param separator: (str) the separator used in the csv files;
+        :param non_dominated: (boolean) filter dominated solutions;
+        :param maximize: (boolean) if the solutions are from a maximization problem;
+        :param filter_duplicate: (boolean) remove duplicates solutions.
 
         """
         for r, _, fl in os.walk(path):
@@ -211,7 +207,7 @@ class Parser:
                         f.readline()
                         line = f.readline()
                         while line:
-                            self.__parse_line(line, separator,parse_constraints=parse_constraints)
+                            self.__parse_line(line, separator, parse_constraints=parse_constraints)
                             line = f.readline()
         if non_dominated:
             self.population = non_dominated_population(
@@ -219,30 +215,28 @@ class Parser:
         elif filter_duplicate:
             self.population = filter_duplicates(self.population)
 
-
-    def compute_fluxes(self, model, biomass, product, carbon_source ,envcond=None, population=None, minimal_growth = 0.0, minimal_product = 0.0):
+    def compute_fluxes(self, model, biomass, product, carbon_source, envcond=None,
+                       population=None, minimal_growth=0.0, minimal_product=0.0):
         """
         Computes flux analisys for each solution contained in the population.
 
-        Parameters
-        
-        model:
-        biomass(str): biomass reaction id
-        product(str): product reaction id
-        carbon_source(str): carbon source reaction id
-        envcond(dict): dictionary of environmental conditions. Default None
-        population(list): list of solutions. If none is given the parsed population is considered
-        minimal_growth(float): Solution with growth below "minimal_growth" are discarded. Default 0.0
-        minimal_product(float): Solution with product yield below "minimal_product" are discarded. Default 0.0
+        :param model: The model.
+        :param biomass: (str) Biomass reaction id.
+        :param product: (str) Product reaction id.
+        :param carbon_source: (str) Carbon source reaction id.
+        :param envcond: (dict) Dictionary of environmental conditions. Default None.
+        :param population: (list) List of solutions. If none is given the parsed population is considered.
+        :param minimal_growth: (float) Solution with growth below "minimal_growth" are discarded. Default 0.0.
+        :param minimal_product: (float) Solution with product yield below "minimal_product" are discarded. Default 0.0.
 
         """
         ModelConstants.RESET_SOLVER = True
         simul = get_simulator(model, envcond=envcond)
         simul.set_objective(biomass)
-        reactions =[product,carbon_source]
+        reactions = [product, carbon_source]
         if population is None:
             population = self.population
-        if not population or len(population)==0:
+        if not population or len(population) == 0:
             raise RuntimeError("Population is empty")
         res = simul.simulate(
             objective={biomass: 1}, method=SimulationMethod.pFBA)
@@ -253,7 +247,7 @@ class Parser:
         for rx in reactions:
             self.wt_products[rx] = res.fluxes[rx]
 
-        filtered_population =[]
+        filtered_population = []
         data_fitness = []
         data_fba = []
         data_lmoma = []
@@ -263,14 +257,14 @@ class Parser:
         if n == self.obj_labels:
             labels = self.obj_labels
         else:
-            labels = [ f"Obj_{i}" for i in range(1,n+1)]
+            labels = [f"Obj_{i}" for i in range(1, n+1)]
 
         for solution in population:
             r = []
-            l = []
+            u = []
             m = []
             constraints = solution.constraints
-        
+
             try:
                 res = simul.simulate(
                         objective={biomass: 1}, method=SimulationMethod.pFBA, constraints=constraints)
@@ -285,43 +279,41 @@ class Parser:
                     # lMOMA
                     res = simul.simulate(objective={
                         biomass: 1}, method=SimulationMethod.lMOMA, constraints=constraints)
-                    l.append(res.fluxes[biomass])
+                    u.append(res.fluxes[biomass])
                     for rx in reactions:
-                        l.append(res.fluxes[rx])
+                        u.append(res.fluxes[rx])
                     # FVA
                     constraints[biomass] = (biomass_value*0.99, 100000.0)
-                    res = simul.simulate( objective={product: 1}, constraints=constraints, maximize=False)
+                    res = simul.simulate(objective={product: 1}, constraints=constraints, maximize=False)
                     if res.fluxes:
                         m.append(res.fluxes[product])
                     else:
-                        m.append(0)    
-                    res = simul.simulate( objective={product: 1}, constraints=constraints, maximize=True)
+                        m.append(0)
+                    res = simul.simulate(objective={product: 1}, constraints=constraints, maximize=True)
                     if res.fluxes:
                         m.append(res.fluxes[product])
                     else:
                         m.append(0)
 
-                filtered_population.append(solution)                 
+                filtered_population.append(solution)
                 data_fitness.append(solution.get_fitness())
                 data_fba.append(r)
-                data_lmoma.append(l)
+                data_lmoma.append(u)
                 data_fva.append(m)
-            except:
+            except Exception:
                 continue
-        
+
         data_values = [str(individual.values) for individual in filtered_population]
         import pandas as pd
-        df_values = pd.DataFrame(data_values,columns=["Solution"]) 
-        df_fitness   = pd.DataFrame(data_fitness, columns=labels) 
-        df_fba   = pd.DataFrame(data_fba, columns=['Biomass_pFBA', product+'_pFBA', carbon_source+'_pFBA'])
-        df_lmoma = pd.DataFrame(data_lmoma, columns=['Biomass_lMOMA',product+'_lMOMA',carbon_source+'_lMOMA'])
-        df_fva   = pd.DataFrame(data_fva, columns=[product+'_FVAmin_99',product+'_FVAmax_99'])
-        
-        df_all =df_values.join(df_fitness).join(df_fba).join(df_lmoma).join(df_fva)
-            
-        return df_all, filtered_population 
+        df_values = pd.DataFrame(data_values, columns=["Solution"])
+        df_fitness = pd.DataFrame(data_fitness, columns=labels)
+        df_fba = pd.DataFrame(data_fba, columns=['Biomass_pFBA', product+'_pFBA', carbon_source+'_pFBA'])
+        df_lmoma = pd.DataFrame(data_lmoma, columns=['Biomass_lMOMA', product+'_lMOMA', carbon_source+'_lMOMA'])
+        df_fva = pd.DataFrame(data_fva, columns=[product+'_FVAmin_99', product+'_FVAmax_99'])
 
+        df_all = df_values.join(df_fitness).join(df_fba).join(df_lmoma).join(df_fva)
 
+        return df_all, filtered_population
 
     def reaction_stats(self):
         """
@@ -354,18 +346,17 @@ class Parser:
         import operator
         sorted_d = OrderedDict(sorted(stats.items(),
                                       key=operator.itemgetter(1), reverse=True))
-        
+
         self.targets_stats = sorted_d
         return sorted_d
 
     def find_all_solution(self, target, population=None):
         """
         Finds all solutions containing the list of targets
-        
-        Arguments:
-        
-        targets (list): list of target ids
-        population: list of solution where to perform the search. If none is provided, the search is performed on the entire population.
+
+        :param targets: (list) List of target ids.
+        :param population: (list) List of solution where to perform the search. If none is provided, the search is performed on the entire population.
+        :returns: A list of solutions.
         """
         result = []
         if not isinstance(target, list):
@@ -376,6 +367,3 @@ class Parser:
             if all([v in solution.values.keys() for v in target]):
                 result.append(solution)
         return result
-
-
-

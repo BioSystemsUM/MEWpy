@@ -3,17 +3,15 @@ import pandas as pd
 import matplotlib
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from pandas import plotting
-
 
 
 class Plot:
 
     def __init__(self,
-                 plot_title = 'Pareto Aproximation',
-                 reference_front = None,
-                 reference_point = None,
-                 axis_labels = None):
+                 plot_title='Pareto Aproximation',
+                 reference_front=None,
+                 reference_point=None,
+                 axis_labels=None):
         """
         :param plot_title: Title of the graph.
         :param axis_labels: List of axis labels.
@@ -25,7 +23,6 @@ class Plot:
         self.reference_point = reference_point
         self.reference_front = reference_front
         self.dimension = None
-
 
     @staticmethod
     def get_points(solutions):
@@ -40,8 +37,7 @@ class Plot:
         points = pd.DataFrame(solutions)
         return points, points.shape[1]
 
-
-    def plot(self, front, label='', normalize= False, filename = None, format = 'eps'):
+    def plot(self, front, label='', normalize=False, filename=None, format='eps'):
         """ Plot any arbitrary number of fronts in 2D, 3D or p-coords.
 
         :param front: Pareto front or a list of them.
@@ -68,9 +64,7 @@ class Plot:
         else:
             self.pcoords(front, normalize, filename, format)
 
-
-
-    def two_dim(self, fronts, labels = None, filename = None, format = 'eps'):
+    def two_dim(self, fronts, labels=None, filename=None, format='eps'):
         """ Plot any arbitrary number of fronts in 2D.
 
         :param fronts: List of fronts (containing solutions).
@@ -113,8 +107,7 @@ class Plot:
         plt.show()
         plt.close(fig)
 
-
-    def three_dim(self, fronts, labels = None, filename = None, format = 'eps'):
+    def three_dim(self, fronts, labels=None, filename=None, format='eps'):
         """ Plot any arbitrary number of fronts in 3D.
 
         :param fronts: List of fronts (containing solutions).
@@ -154,8 +147,7 @@ class Plot:
         plt.show()
         plt.close(fig)
 
-
-    def pcoords(self, fronts, normalize = False, filename = None, format = 'eps'):
+    def pcoords(self, fronts, normalize=False, filename=None, format='eps'):
         """ Plot any arbitrary number of fronts in parallel coordinates.
 
         :param fronts: List of fronts (containing solutions).
@@ -186,14 +178,13 @@ class Plot:
         plt.close(fig)
 
 
-
 class StreamingPlot:
 
     def __init__(self,
-                 plot_title = 'Pareto Approximation',
-                 reference_front = None,
-                 reference_point = None,
-                 axis_labels = None):
+                 plot_title='Pareto Approximation',
+                 reference_front=None,
+                 reference_point=None,
+                 axis_labels=None):
         """
         :param plot_title: Title of the graph.
         :param axis_labels: List of axis labels.
@@ -233,7 +224,7 @@ class StreamingPlot:
         if self.reference_front:
             rpoints, _ = Plot.get_points(self.reference_front)
             self.scf, = self.ax.plot(*[rpoints[column].tolist() for column in rpoints.columns.values],
-                                    c='k', ls='None', marker='*', markersize=1)
+                                     c='k', ls='None', marker='*', markersize=1)
 
         # Plot data
         self.sc, = self.ax.plot(*[points[column].tolist() for column in points.columns.values],
@@ -242,7 +233,7 @@ class StreamingPlot:
         # Show plot
         plt.show(block=False)
 
-    def update(self, front, reference_point = None):
+    def update(self, front, reference_point=None):
         if self.sc is None:
             raise Exception('Figure is none')
 
@@ -273,7 +264,6 @@ class StreamingPlot:
     def create_layout(self, dimension):
         self.fig.canvas.set_window_title(self.plot_title)
         self.fig.suptitle(self.plot_title, fontsize=16)
-        
 
         if dimension == 2:
             # Stylize axis

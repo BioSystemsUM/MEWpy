@@ -1,12 +1,9 @@
 from abc import abstractmethod
 from operator import add, sub, mul, truediv, pow
+from sympy.parsing.sympy_parser import parse_expr
+from sympy import Symbol
 import sys
 import re
-from warnings import warn
-from sympy.parsing.sympy_parser import parse_expr
-from sympy.logic.boolalg import BooleanTrue, BooleanFalse
-from sympy.core.numbers import Zero, One
-from sympy import lambdify, Symbol
 
 
 # Boolean operator symbols
@@ -20,6 +17,7 @@ S_LESS = '<'
 S_EQUAL = '='
 S_GREATER_THAN_EQUAL = '>='
 S_LESS_THAN_EQUAL = '=>'
+
 # Empty leaf symbol
 EMPTY_LEAF = '@'
 
@@ -69,14 +67,14 @@ sys.setrecursionlimit(100000)
 
 
 def evaluate_expression(expression, variables):
-    """ Evaluates a logical expression (containing variables, 'and','or','(' and ')') 
-    against the presence (True) or absence (False) of propositions within a list. 
+    """ Evaluates a logical expression (containing variables, 'and','or','(' and ')')
+    against the presence (True) or absence (False) of propositions within a list.
     The evaluation is achieved usind python native eval function.
-    
+
     :param str expression: The expression to be evaluated.
     :param list variables: List of variables to be evaluated as True.
-    :returns: A boolean evaluation of the expression.    
-    
+    :returns: A boolean evaluation of the expression.
+
     """
     expression = expression.replace('(', '( ').replace(')', ' )')
     # Symbol conversion not mandatory
@@ -95,13 +93,14 @@ def evaluate_expression(expression, variables):
 
 
 def evaluate_expression_tree(expression, variables):
-    """ Evaluates a logical expression (containing variables, 'and','or', 'not','(' , ')') against the presence (True) or absence (False) of propositions within a list.
+    """ Evaluates a logical expression (containing variables, 'and','or', 'not','(' , ')') against the presence (True)
+    or absence (False) of propositions within a list.
     Assumes the correctness of the expression. The evaluation is achieved by means of a parsing tree.
-        
+
     :param str expression: The expression to be evaluated.
     :param list variables: List of variables to be evaluated as True.
     :returns: A boolean evaluation of the expression.
-        
+
     """
     t = build_tree(expression, Boolean)
     evaluator = BooleanEvaluator(variables)
@@ -112,7 +111,7 @@ def evaluate_expression_tree(expression, variables):
 class Node(object):
     """
     Binary syntax tree node.
-    
+
     :param value: The node value.
     :param left: The left node or None.
     :param right: The right node or None.
@@ -162,7 +161,6 @@ class Node(object):
         return not self.left.is_empty_leaf() and not self.right.is_empty_leaf()
 
     def get_operands(self):
-        
         if self.is_leaf():
             if self.value == EMPTY_LEAF:
                 return set()
@@ -209,9 +207,8 @@ class Node(object):
         return set([i for i in ops if is_condition(i)])
 
 
-
 class Syntax:
-    """Defines an interface for the tree syntax parsing 
+    """Defines an interface for the tree syntax parsing
        with operators, their precedence and associativity.
     """
 
@@ -304,17 +301,18 @@ class Boolean(Syntax):
 
     @staticmethod
     def replace():
-        r = {'not': [EMPTY_LEAF, S_NOT], 'and': [S_AND], 'or': [S_OR], '&': [S_AND], '|': [S_OR], '~': [EMPTY_LEAF, S_NOT]}
+        r = {'not': [EMPTY_LEAF, S_NOT], 'and': [S_AND],
+             'or': [S_OR], '&': [S_AND], '|': [S_OR], '~': [EMPTY_LEAF, S_NOT]}
         return r
 
     SYMPY_REPLACE = {'not': S_NOT,
-                      '!': S_NOT,
-                      'and': S_AND,
-                      'or': S_OR,
-                      'on': S_ON,
-                      'off': S_OFF,
-                      'true': S_ON,
-                      'false': S_OFF}
+                     '!': S_NOT,
+                     'and': S_AND,
+                     'or': S_OR,
+                     'on': S_ON,
+                     'off': S_OFF,
+                     'true': S_ON,
+                     'false': S_OFF}
 
     _SYMPY_RELATIONAL_REPLACE = {'greater than or equal': S_GREATER_THAN_EQUAL,
                                  'less than or equal': S_LESS_THAN_EQUAL,
@@ -330,16 +328,15 @@ class Boolean(Syntax):
 
 class BooleanEvaluator:
     """A boolean evaluator.
-    
+
     :param list true_list: Operands evaluated as True. Operands not in the list are evaluated as False
     :param dict variables: A dictionary mapping symbols to values. Used to evaluate conditions.
-    
+
     """
 
     def __init__(self, true_list=[], variables={}):
         self.true_list = true_list
         self.vars = variables
-
 
     def f_operator(self, op):
         operators = {S_AND: lambda x, y: x and y, S_OR: lambda x, y: x or y, S_NOT: lambda x, y: not y}
@@ -363,7 +360,7 @@ class BooleanEvaluator:
 class GeneEvaluator:
     """An evaluator for genes expression.
 
-    :param genes_value: A dictionary mapping genes to values. If a gene is not in the dictionary, a default value of 1 is considered.
+    :param genes_value: A dictionary mapping genes to values. Gene not in the dictionary have a value of 1.
     :param and_operator: function to be applied instead of (and', '&') (not case sensitive)
     :param or_operator: function to be applied instead of ('or','|') (not case sensitive)
     """
@@ -388,6 +385,8 @@ class GeneEvaluator:
         else:
             return 1
 
+
+# Tree
 def build_tree(exp, rules):
     """ Builds a parsing syntax tree for basic mathematical expressions
 
@@ -450,8 +449,6 @@ def build_tree(exp, rules):
     while stack:
         popped_item = stack.pop()
         t = Node(popped_item)
-        # t1 = None if len(tree_stack) < 1 else tree_stack.pop()
-        # t2 = None if len(tree_stack) < 1 else tree_stack.pop()
         t1 = tree_stack.pop()
         t2 = tree_stack.pop()
         t.right = t1
@@ -636,10 +633,10 @@ def variable_from_str(expression, filter=True, special_chars=None, replaces=None
     :param expression: str, expression
     :param filter: bool, if filter, special_chars_filter and starts_with_digit_filter are applied
     :param special_chars: dict, dict or None, special (or not) chars to be replaced. BOOL_SPECIAL_CHARS is used by default. special_chars argument must have unique keys and unique values!!
-    :param replaces: dict, replaces occurred for aliases construction. None is the default  
+    :param replaces: dict, replaces occurred for aliases construction. None is the default.
     :return: regulatory variable Sympy Symbol, regulatory variable
     :return: alias: dict, the new variable name map to the old one
-    
+
     """
 
     if filter:
@@ -676,8 +673,6 @@ def variable_from_str(expression, filter=True, special_chars=None, replaces=None
     return sympify, aliases
 
 
-
-
 # relational filter
 def relational_filter(rule):
     """
@@ -689,21 +684,13 @@ def relational_filter(rule):
     """
 
     for relational in Boolean._SYMPY_RELATIONAL_REPLACE:
-
         if relational in rule:
-
             rule = rule.replace(relational, Boolean._SYMPY_RELATIONAL_REPLACE[relational])
-
         elif relational.upper() in rule:
-
             rule = rule.replace(relational.upper(), Boolean._SYMPY_RELATIONAL_REPLACE[relational])
-
         elif relational.title() in rule:
-
             rule = rule.replace(relational.title(), Boolean._SYMPY_RELATIONAL_REPLACE[relational])
-
         else:
-
             continue
 
     # regex to match a relational of any type: x>0; x<0; x>=0; x=>0;reverse order 0>x ...; with or without white spaces
@@ -792,7 +779,6 @@ def boolean_rule_from_str(rule):
     for op in operands:
 
         res = list(regexp.finditer(op))
-
         new_op = op
 
         for match in set(map(lambda x: x.group(), res)):
@@ -810,5 +796,3 @@ def boolean_rule_from_str(rule):
         aliases[new_op] = [old_reg_name]
 
     return rule, elements, bool_tree, new_operands, aliases, new_conditionals
-
-

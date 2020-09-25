@@ -1,16 +1,14 @@
 from .problem import AbstractKOProblem, AbstractOUProblem
-from mewpy.utils.parsing import GeneEvaluator, build_tree, Boolean
 from mewpy.utils.constants import ModelConstants
 from collections import OrderedDict
 import warnings
 
 
 class GeckoKOProblem(AbstractKOProblem):
-    """Gecko KnockOut Optimization Problem 
+    """Gecko KnockOut Optimization Problem
 
     :param model: The constraint based metabolic model.
-    :param list fevaluation: a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness.
-
+    :param list fevaluation: a list of callable EvaluationFunctions.
 
     Optional:
 
@@ -20,14 +18,15 @@ class GeckoKOProblem(AbstractKOProblem):
     :param int candidate_max_size: The candidates maximum size.
     :param list target: List of target reactions.
     :param list non_target: List of non target reactions. Not considered if a target list is provided.
-    :param float scalefactor: a scaling factor to be used in the LP formulation. 
-    :param str prot_prefix: the protein draw reaction prefix. Default `draw_prot_`  
+    :param float scalefactor: a scaling factor to be used in the LP formulation.
+    :param str prot_prefix: the protein draw reaction prefix. Default `draw_prot_`.
 
 
     Note:
-    
-    Targets as well as non target proteins are defined using their prot id, ex  `P0351`, and not by the associated draw reaction id, ex `draw_prot_P0351`. 
-    
+
+    Targets as well as non target proteins are defined using their prot id, ex  `P0351`, and not by the associated draw
+    reaction id, ex `draw_prot_P0351`.
+
     """
 
     def __init__(self, model, fevaluation=None, **kwargs):
@@ -71,12 +70,11 @@ class GeckoKOProblem(AbstractKOProblem):
 
 class GeckoOUProblem(AbstractOUProblem):
     """
-    Gecko Under/Over expression Optimization Problem 
+    Gecko Under/Over expression Optimization Problem
 
-  
+
     :param model (metabolic model): The constraint based metabolic model.
-    :param fevaluation (list): a list of callable EvaluationFunctions. If none is given the flux value of the model objective is set as fitness.
-
+    :param fevaluation (list): a list of callable EvaluationFunctions.
 
     Optional:
 
@@ -87,13 +85,14 @@ class GeckoOUProblem(AbstractOUProblem):
     :param list target: List of target reactions.
     :param list non_target: List of non target reactions. Not considered if a target list is provided.
     :param float scalefactor: a scaling factor to be used in the LP formulation.
-    :param dic reference: Dictionary of flux values to be used in the over/under expression values computation. 
+    :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
     :param str prot_prefix: the protein draw reaction prefix. Default `draw_prot_`.
 
 
     Note:
-    Target as well as non target proteins are defined with their prot id, ex `P0351`, and with the associated reaction id, ex `draw_prot_P0351`. 
-    
+    Target as well as non target proteins are defined with their prot id, ex `P0351`, and with the associated reaction
+    id, ex `draw_prot_P0351`.
+
     """
 
     def __init__(self, model, fevaluation=None, **kwargs):
@@ -119,10 +118,11 @@ class GeckoOUProblem(AbstractOUProblem):
     def decode(self, candidate):
         """
         Decodes a candidate, a set (idx,lv), into a dictionary of constraints
-        Reverseble reactions associated to proteins with over expression are KO 
+        Reverseble reactions associated to proteins with over expression are KO
         according to the flux volume in the wild type.
 
-        Note: Fluxes in Yeast7 gecko model are always non negative 
+        :param candidate: The candidate to be decoded.
+        :returns: A dictionary of metabolic constraints.
         """
         constraints = OrderedDict()
 
@@ -162,7 +162,8 @@ class GeckoOUProblem(AbstractOUProblem):
                                 constraints[r] = 0.0
                             else:
                                 warnings.warn(
-                                    f"Reactions {r} and {r_rev}, associated with the protein {prot}, both have fluxes in the WT.")
+                                    f"Reactions {r} and {r_rev}, associated with the protein {prot},\
+                                    both have fluxes in the WT.")
             except IndexError:
                 raise IndexError("Index out of range")
 
