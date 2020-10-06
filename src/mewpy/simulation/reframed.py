@@ -570,9 +570,14 @@ class Simulation(CBModelContainer, Simulator):
         :returns: A dictionary of flux variation ranges.
 
         """
+        _constraints = {}
+        if constraints:
+            _constraints.update(constraints)
+        if self.environmental_conditions:
+            _constraints.update(self.environmental_conditions)
         from reframed.cobra.variability import FVA
         return FVA(self.model, obj_frac=obj_frac, reactions=reactions,
-                   constraints=constraints, loopless=loopless, internal=internal, solver=solver)
+                   constraints=_constraints, loopless=loopless, internal=internal, solver=solver)
 
 
 class GeckoSimulation(Simulation):

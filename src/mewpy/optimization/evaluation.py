@@ -217,7 +217,8 @@ class WYIELD (PhenotypeEvaluationFunction):
             else:
                 minBiomass = self.min_biomass_value
 
-            constraints = sim.simulation_constraints
+            constraints = {}
+            constraints.update(sim.simulation_constraints)
             # add biomass constraint
             constraints[self.biomassId] = (biomassFluxValue, 100000.0)
 

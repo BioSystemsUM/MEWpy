@@ -18,7 +18,7 @@ class EAConstants:
     MAX_SOLUTION_SIZE = 10
     # Default OU levels (Note: 0 levels are interpreted as KO)
     LEVELS = [0, 1/32, 1/16, 1/8, 1/4, 1/2, 2, 4, 8, 16, 32]
-    # Default OU levels for OptRAM(Note: instead of 0 use 0.001)
+    # Default OU levels for OptRAM(Note: instead of 0 use 0.001 as a logaritmic function is used to process expression values)
     OPTRAM_LEVELS = [0.001, 1/32, 1/16, 1/8, 1/4, 1/2, 2, 4, 8, 16, 32]
     # Number of cpus for multiprocessor evaluation of candidates.
     # If NUM_CPUS is non positive, half of the available cpus are used

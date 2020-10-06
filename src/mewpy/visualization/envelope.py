@@ -3,7 +3,7 @@ from mewpy.simulation.simulation import Simulator
 import numpy as np
 
 
-def flux_envelope(model, r_x, r_y, steps=10, constraints=None, envcond=None):
+def flux_envelope(model, r_x, r_y, steps=10, constraints=None):
     """ Calculate the flux envelope for a pair of reactions.
         Adapted from REFRAMED to be compatible both with REFRAMED and COBRApy.
 
@@ -27,7 +27,11 @@ def flux_envelope(model, r_x, r_y, steps=10, constraints=None, envcond=None):
             raise ValueError(
                 'The model should be an instance of model or simulator')
 
-    x_range = simul.FVA(reactions=[r_x], constraints=constraints)
+    obj_frac = 0
+    # if r_x in simul.get_objective():
+    #    obj_frac = 0.0
+        
+    x_range = simul.FVA(obj_frac=obj_frac, reactions=[r_x], constraints=constraints)
     xmin, xmax = x_range[r_x]
     xvals = np.linspace(xmin, xmax, steps)
     ymins, ymaxs = np.zeros(steps), np.zeros(steps)
@@ -40,7 +44,7 @@ def flux_envelope(model, r_x, r_y, steps=10, constraints=None, envcond=None):
 
     for i, xval in enumerate(xvals):
         _constraints[r_x] = xval
-        y_range = simul.FVA(reactions=[r_y], constraints=_constraints)
+        y_range = simul.FVA(obj_frac=obj_frac,reactions=[r_y], constraints=_constraints)
         ymins[i], ymaxs[i] = y_range[r_y]
 
     return xvals, ymins, ymaxs
@@ -113,10 +117,8 @@ def plot_flux_envelope(model, r_x, r_y, steps=10, substrate=None, constraints=No
 
     ax.fill_between(xvals, ymins, ymaxs, **fill_kwargs)
 
-    ax.set_xlabel(label_x) if label_x else ax.set_xlabel(
-        model.reactions[r_x].name)
-    ax.set_ylabel(label_y) if label_y else ax.set_ylabel(
-        model.reactions[r_y].name)
+    ax.set_xlabel(label_x) if label_x else ax.set_xlabel(r_x)
+    ax.set_ylabel(label_y) if label_y else ax.set_ylabel(r_y)
 
     xmin, xmax = min(xvals), max(xvals)
     dx = offset * (xmax - xmin)
@@ -127,3 +129,7 @@ def plot_flux_envelope(model, r_x, r_y, steps=10, substrate=None, constraints=No
     ax.set_ylim((ymin - dy, ymax + dy))
 
     return ax
+
+
+
+

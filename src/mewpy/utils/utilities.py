@@ -218,7 +218,7 @@ class Parser:
     def compute_fluxes(self, model, biomass, product, carbon_source, envcond=None,
                        population=None, minimal_growth=0.0, minimal_product=0.0):
         """
-        Computes flux analisys for each solution contained in the population.
+        Computes flux analises for each solution contained in the population.
 
         :param model: The model.
         :param biomass: (str) Biomass reaction id.
@@ -249,6 +249,7 @@ class Parser:
 
         filtered_population = []
         data_fitness = []
+        # data_constraints = []
         data_fba = []
         data_lmoma = []
         data_fva = []
@@ -263,7 +264,9 @@ class Parser:
             r = []
             u = []
             m = []
-            constraints = solution.constraints
+            
+            constraints = {} 
+            constraints.update(solution.constraints)
 
             try:
                 res = simul.simulate(
@@ -297,6 +300,7 @@ class Parser:
 
                 filtered_population.append(solution)
                 data_fitness.append(solution.get_fitness())
+                # data_constraints.append(str(solution.constraints))
                 data_fba.append(r)
                 data_lmoma.append(u)
                 data_fva.append(m)
@@ -310,8 +314,9 @@ class Parser:
         df_fba = pd.DataFrame(data_fba, columns=['Biomass_pFBA', product+'_pFBA', carbon_source+'_pFBA'])
         df_lmoma = pd.DataFrame(data_lmoma, columns=['Biomass_lMOMA', product+'_lMOMA', carbon_source+'_lMOMA'])
         df_fva = pd.DataFrame(data_fva, columns=[product+'_FVAmin_99', product+'_FVAmax_99'])
-
-        df_all = df_values.join(df_fitness).join(df_fba).join(df_lmoma).join(df_fva)
+        # df_constraints = pd.DataFrame(data_constraints, columns=['Constraints'])
+        
+        df_all = df_values.join(df_fitness).join(df_fba).join(df_lmoma).join(df_fva) #.join(df_constraints)
 
         return df_all, filtered_population
 
