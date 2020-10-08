@@ -481,8 +481,32 @@ class Simulation(CobraModelContainer, Simulator):
 
         """
         from cobra.flux_analysis.variability import flux_variability_analysis
-        df = flux_variability_analysis(
-            self.model, reaction_list=reactions, loopless=loopless, fraction_of_optimum=obj_frac)
+
+        with self.model as model:
+
+            if constraints:
+                for rxn in list(constraints.keys()):
+                    reac = model.reactions.get_by_id(rxn)
+                    if isinstance(constraints.get(rxn), tuple):
+                        reac.bounds = (constraints.get(
+                            rxn)[0], constraints.get(rxn)[1])
+                    else:
+                        reac.bounds = (constraints.get(
+                            rxn), constraints.get(rxn))
+
+            if self.environmental_conditions:
+                for rxn in list(self.environmental_conditions.keys()):
+                    reac = model.reactions.get_by_id(rxn)
+                    if isinstance(self.environmental_conditions.get(rxn), tuple):
+                        reac.bounds = (self.environmental_conditions.get(
+                            rxn)[0], self.environmental_conditions.get(rxn)[1])
+                    else:
+                        reac.bounds = (self.environmental_conditions.get(
+                            rxn), self.environmental_conditions.get(rxn))
+                
+            df = flux_variability_analysis(
+                model, reaction_list=reactions, loopless=loopless, fraction_of_optimum=obj_frac)
+
         variability = {}
         for r_id in reactions:
             variability[r_id] = [
