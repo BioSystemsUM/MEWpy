@@ -1,7 +1,7 @@
 include README.md
 include LICENSE
 
-graft model/data
+graft src/mewpy/model/data
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co] 
 include mewpy/model/data/*
