@@ -10,9 +10,10 @@ with open('README.rst') as readme_file:
 
 setup(
     name='mewpy',
-    version='0.0.6',
+    version='0.0.8',
     package_dir={'': 'src'},
     packages=find_packages('src'),
+    package_data={"": ["*.xml", "*.csv", "*.txt"], 'mewpy': files},
     include_package_data=True,
     zip_safe=False,
     install_requires=[
@@ -28,7 +29,6 @@ setup(
     license='Apache License Version 2.0',
     keywords='strain optimization',
     url='',
-    package_data={"": ["*.xml", "*.csv", "*.txt"], 'mewpy': files},
     long_description=open('README.rst').read(),
     classifiers=[
         'Topic :: Utilities',

@@ -1,7 +1,9 @@
 .vscode/
 __pycache__
 docs/build/
+build/
 dist
 .idea
+mewpy.egg-info
 examples/models/gecko/eciML1515_batch.xml
 *.log
