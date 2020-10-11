@@ -72,6 +72,7 @@ class EA(AbstractEA):
         max_evaluations = self.max_generations * 100
         
         if self.algorithm_name == 'SA':
+            print("Running SA")
             self.mutation.probability = 1.0
             algorithm = SimulatedAnnealing(
                 problem=self.ea_problem,
@@ -80,6 +81,7 @@ class EA(AbstractEA):
             )
             
         else:
+            print("Running GA")
             algorithm = GeneticAlgorithm(
                 problem=self.ea_problem,
                 population_size=100,

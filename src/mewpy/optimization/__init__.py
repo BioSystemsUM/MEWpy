@@ -96,10 +96,10 @@ def get_available_algorithms():
     """
     :returns: The list of available MOEAs.
     """
-    l = set()
+    algs = []
     for engine in engines.keys():
-        l.union(set(engines[engine]))
-    return list(l)
+        algs.extend(algorithms[engine])
+    return list(set(algs))
 
 
 
@@ -115,12 +115,17 @@ def EA(problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIO
     :returns: An instance of an EA optimizer.
     
     """
-
     if len(engines) == 0:
-        raise RuntimeError('Inspyred or JMetal packages are required.')
-    engine = engines[get_default_engine()]
-    
+        raise RuntimeError('Inspyred or JMetal packages are required')
+
     if algorithm is None or algorithm not in get_available_algorithms():
         algorithm=get_preferred_EA()
+
+    engs = [ k for k,v in algorithms.items() if algorithm in v ]
+     
+    if get_default_engine() in engs:
+        engine = engines[get_default_engine()]
+    else:
+        engine = engines[engs[0]]
      
     return engine(problem, initial_population=initial_population, max_generations=max_generations, mp=mp, visualizer=visualizer,algorithm=algorithm)

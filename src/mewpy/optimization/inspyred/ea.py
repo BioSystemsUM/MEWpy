@@ -89,8 +89,10 @@ class EA(AbstractEA):
 
         if self.algorithm_name == 'SA':
             ea = inspyred.ec.SA(prng)
+            print("Running SA")
         else:
             ea = inspyred.ec.EvolutionaryComputation(prng)
+            print("Running GA")
         ea.selector = inspyred.ec.selectors.tournament_selection
 
         ea.variator = self.variators
@@ -134,7 +136,7 @@ class EA(AbstractEA):
             self.evaluator = self.ea_problem.evaluator
 
         ea = inspyred.ec.emo.NSGA2(prng)
-
+        print("Running NSGAII")
         ea.variator = self.variators
         ea.terminator = inspyred.ec.terminators.generation_termination
         if self.visualizer:
