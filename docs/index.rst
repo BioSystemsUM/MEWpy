@@ -13,6 +13,7 @@ MEWpy's documentation
    main.md
    install.md
    example.md
+   options.md
    modules
 
 
