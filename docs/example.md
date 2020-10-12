@@ -37,6 +37,8 @@ simul.simulate()
 
 # pFBA
 simul.simulate(method = SimulationMethod.pFBA)
+# or 
+simul.simulate(method = 'pFBA')
 ```
 
 
@@ -78,7 +80,7 @@ envcond = {'R_EX_o2_LPAREN_e_RPAREN_'  : (-9.66, 100000.0),
 
 # Optimization objectives
 from mewpy.optimization.evaluation import  BPCY, WYIELD
-evaluator_1 = BPCY(BIOMASS_ID, PRODUCT_ID, method=SimulationMethod.lMOMA)
+evaluator_1 = BPCY(BIOMASS_ID, PRODUCT_ID, method='lMOMA')
 evaluator_2 = WYIELD(BIOMASS_ID, PRODUCT_ID)
 
 # build a new problem instance
@@ -241,7 +243,7 @@ from mewpy.simulation import SimulationMethod
 from mewpy.optimization.evaluation import BPCY, WYIELD
 
 evaluator_1 = BPCY(BIOMASS_ID, PRODUCT_ID, method=SimulationMethod.lMOMA)
-evaluator_2 = WYIELD(BIOMASS_ID, PRODUCT_ID, parsimonious=True)
+evaluator_2 = WYIELD(BIOMASS_ID, PRODUCT_ID)
 
 # environmental conditions
 envcond = {GLC:(-12.5,10000)}
