@@ -184,8 +184,8 @@ evaluator_1 = BPCY(BIOMASS_ID, PRODUCT_ID, method=SimulationMethod.lMOMA)
 evaluator_2 = WYIELD(BIOMASS_ID, PRODUCT_ID)
 
 # build a new problem instance for enzymatic OU
-from mewpy.problems import GeckoROUProblem
-problem = GeckoROUProblem(model, fevaluation=[
+from mewpy.problems import GeckoOUProblem
+problem = GeckoOUProblem(model, fevaluation=[
                          evaluator_1, evaluator_2], envcond=envcond)
 
 # run the optimization
