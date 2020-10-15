@@ -28,7 +28,7 @@ from cobra.io import read_sbml_model
 model = read_sbml_model('iJO1366SL.xml')
 
 # build a phenotype simulator
-from mewpy.simulation import get_simulator, SimulationMethod   
+from mewpy.simulation import get_simulator, SimulationMethod
 simul = get_simulator(model)
 simul.summary()
 
@@ -97,7 +97,7 @@ final_pop = ea.run()
 
 
 
-Optimizations over genes' expression modifications are run by setting and running the intended problem. Gene deletion optimization problems are defined a GKOProblem while gene over- or under expression optimization using the GOUProblem class.
+Optimizations of genes' expression modifications are run by setting and running the intended problem. Gene deletion optimization problems are defined as a GKOProblem while gene over- or under expression optimization use the GOUProblem class.
 
 
 

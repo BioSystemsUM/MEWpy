@@ -323,6 +323,14 @@ class AbstractKOProblem(AbstractProblem):
             return [self.target_list.index(k) for k in candidate]
 
 
+    def solution_to_constraints(self,solution):
+        """"Transforms a solution for the problem into metabolic constraints.
+
+        :param dict solution: A dictionary of genetic modifications.
+        :returns: A dictionary of metabolic constraints that may be applied to the model.
+        """
+        return self.decode(self.translate(solution,True))
+
 class AbstractOUProblem(AbstractProblem):
     """ Base class for Over/Under expression optimization problems
     """
@@ -455,3 +463,11 @@ class AbstractOUProblem(AbstractProblem):
         else:
             return [(self.target_list.index(k), self.levels.index(lv))
                     for k, lv in candidate.items()]
+
+    def solution_to_constraints(self,solution):
+        """"Transforms a solution for the problem into metabolic constraints.
+
+        :param dict solution: A dictionary of genetic modifications.
+        :returns: A dictionary of metabolic constraints that may be applied to the model.
+        """
+        return self.decode(self.translate(solution,True))
