@@ -8,7 +8,7 @@ All evaluation functions/optimization objectives are defined in `mewpy.optimizat
 
 The maximization of the Biomass-Product Coupled Yield is one of the most commonly used objectives in Computational Strain Optimization. 
 
-![BPCY = Product \times Growth](<https://latex.codecogs.com/svg.latex?BPCY=Product\times%20Growth>) 
+![](<https://latex.codecogs.com/svg.latex?BPCY=Product\times%20Growth>) 
 
 
 
@@ -27,7 +27,7 @@ fevaluation = BPCY(biomass_reaction_id,product_reaction_id,method ='lMOMA')
 
 Also, the BPCY computation may account for a carbon source or substrate consumption:
 
-![BPCY = \frac{Product \times Growth}{Substrate}](<https://latex.codecogs.com/svg.latex?BPCY=\frac{Product\times%20Growth}{Substrate}>) 
+![](<https://latex.codecogs.com/svg.latex?BPCY=\frac{Product\times%20Growth}{Substrate}>) 
 
 
 ```python
@@ -42,7 +42,7 @@ fevaluation = BPCY(<biomass_reaction_id>,<product_reaction_id>,\
 
 BPCY, on its own, has some limitations. Although the BPCY score of a mutated solution may be high, the flux value of the target reaction may be unstable with the max biomass. To guide the EA to more robust solutions, MEWpy also includes a weight yield objective, that encompasses the target product flux variability, constrained to a minimal growth and introduced metabolic modifications.
 
-![WYIELD](<https://latex.codecogs.com/svg.latex?WYIELD=\alpha\times\text{FVA}_{max}(Product)+(1-\alpha)\times\text{FVA}_{min}(Product)>)
+![](<https://latex.codecogs.com/svg.latex?WYIELD=\alpha\times\text{FVA}_{max}(Product)+(1-\alpha)\times\text{FVA}_{min}(Product)>)
 
 ```python
 from mewpy.optimization.evaluation import WYIELD
@@ -64,7 +64,7 @@ The minimum growth yield may be explicitly defined, `min_biomass_value=<some_val
 MEWpy also includes an objective function that combines BPCY and WYIELD, whose formulation is:
 
 
-![BPCYFVA](<https://latex.codecogs.com/svg.latex?BPCY\_FVA=\frac{Product\times%20Growth}{Substrate}\times\left(1-\log\frac{\text{FVA}_{max}-\text{FVA}_{min}}{\text{FVA}_{max}+\text{FVA}_{min}}\right)>)
+![](<https://latex.codecogs.com/svg.latex?BPCY\_FVA=\frac{Product\times%20Growth}{Substrate}\times\left(1-\log\frac{\text{FVA}_{max}-\text{FVA}_{min}}{\text{FVA}_{max}+\text{FVA}_{min}}\right)>)
 
 
 ```python
@@ -109,7 +109,7 @@ fevaluation =  MinCandSize()
 
 The previously defined objective functions may be combined into a linear aggregated weighed sum and used in single objective optimization algorithms, such as Genetic Algorithm or Simulated Annealing. 
 
-![AggregatedSum](<https://latex.codecogs.com/svg.latex?f_{agg}=\sum_{i=1}^n%20w_i\times%20f_i=w_1\times%20f_1+w_2\times%20f_2+...+w_n\times%20f_n>)
+![](<https://latex.codecogs.com/svg.latex?f_{agg}=\sum_{i=1}^n%20w_i\times%20f_i=w_1\times%20f_1+w_2\times%20f_2+...+w_n\times%20f_n>)
 
 Though the sum of all weights should be equal to 1, this is not imposed as weights may also be used to introduce a normalization for each function. When not provided, the aggregated function assigns a same weight to all functions w=1/n.
 
