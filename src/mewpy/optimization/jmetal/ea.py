@@ -113,28 +113,35 @@ class EA(AbstractEA):
                 f = moea_map['SPEA2']
 
         print(f"Running {self.algorithm_name}")
-        if self.algorithm_name  and self.algorithm_name== 'NSGAIII':
-            algorithm = NSGAIII(
-                population_evaluator=MultiProcessorEvaluator(self.ea_problem.evaluate,ncpu),
-                problem=self.ea_problem,
-                population_size=100,
-                mutation=self.mutation,
-                crossover=self.crossover,
-                termination_criterion=StoppingByEvaluations(max_evaluations=max_evaluations),
-                reference_directions=UniformReferenceDirectionFactory(self.ea_problem.number_of_objectives, n_points=99)
-            )
+        if self.algorithm_name== 'NSGAIII':
+            args ={
+                'problem':self.ea_problem,
+                'population_size':100,
+                'mutation':self.mutation,
+                'crossover':self.crossover,
+                'termination_criterion':StoppingByEvaluations(max_evaluations=max_evaluations),
+                'reference_directions':UniformReferenceDirectionFactory(self.ea_problem.number_of_objectives, n_partitions=5)
+                 }
+
+            if self.mp:
+                args['population_evaluator']=MultiProcessorEvaluator(self.ea_problem.evaluate,ncpu)
+                
+            algorithm = NSGAIII(**args)
 
         else:
-            algorithm = f(
-                population_evaluator=MultiProcessorEvaluator(self.ea_problem.evaluate,ncpu),
-                problem=self.ea_problem,
-                population_size=100,
-                offspring_population_size=100,
-                mutation=self.mutation,
-                crossover=self.crossover,
-                termination_criterion=StoppingByEvaluations(
-                    max_evaluations=max_evaluations),
-            )
+            args ={
+                'problem':self.ea_problem,
+                'population_size':100,
+                'offspring_population_size':100,
+                'mutation':self.mutation,
+                'crossover':self.crossover,
+                'termination_criterion':StoppingByEvaluations(max_evaluations=max_evaluations)
+                 }
+
+            if self.mp:
+                args['population_evaluator']=MultiProcessorEvaluator(self.ea_problem.evaluate,ncpu)
+            
+            algorithm = f(**args)
 
         if self.visualizer:
             algorithm.observable.register(observer=VisualizerObserver())

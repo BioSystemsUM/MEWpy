@@ -141,60 +141,66 @@ def dominance_test(solution1, solution2, maximize=True):
                 0 : if non of the solutions dominates the other.
     
     """
+
     best_is_one = 0
     best_is_two = 0
 
-    values1 = solution1.get_fitness()
-    values2 = solution2.get_fitness()
-
-    for i in range(len(values1)):
-        value1 = values1[i]
-        value2 = values2[i]
+    for i in range(len(solution1.fitness)):
+        value1 = solution1.fitness[i]
+        value2 = solution2.fitness[i]
         if value1 != value2:
             if value1 < value2:
-                best_is_two = 1
-            if value1 > value2:
                 best_is_one = 1
+            if value1 > value2:
+                best_is_two = 1
 
     if best_is_one > best_is_two:
-        if maximize:
-            result = 1
-        else:
-            result = -1
+        result = 1
     elif best_is_two > best_is_one:
-        if maximize:
-            result = -1
-        else:
-            result = 1
+        result = -1
     else:
         result = 0
 
+    if not maximize:
+        result = -1 * result
+
     return result
 
 
-def non_dominated_population(population, maximize=True, filter_duplicate=True):
+def non_dominated_population(solutions, maximize=True, filter_duplicate=True):
     """
     Returns the non dominated solutions from the population.
     """
-    #population.sort(reverse = True)
-    non_dominated = []
-    for i in range(len(population)-1):
-        individual = population[i]
-        j = 0
-        dominates = True
-        while j < len(population) and dominates:
-            if dominance_test(individual, population[j], maximize=maximize) == -1:
-                dominates = False
-            else:
-                j += 1
-        if dominates:
-            non_dominated.append(individual)
+    # number of solutions dominating solution ith
+    dominating_ith = [0 for _ in range(len(solutions))]
+
+    # list of solutions dominated by solution ith
+    ith_dominated = [[] for _ in range(len(solutions))]
+
+    front = []
+
+    for p in range(len(solutions) - 1):
+        for q in range(p + 1, len(solutions)):
+            dominance_test_result = dominance_test(solutions[p], solutions[q],maximize=maximize)
+
+            if dominance_test_result == -1:
+                ith_dominated[p].append(q)
+                dominating_ith[q] += 1
+            elif dominance_test_result is 1:
+                ith_dominated[q].append(p)
+                dominating_ith[p] += 1
+
+    for i in range(len(solutions)):
+        if dominating_ith[i] is 0:
+            front.append(solutions[i])
+
 
     if filter_duplicate:
-        result = filter_duplicates(non_dominated)
+        result = filter_duplicates(front)
     else:
-        result = non_dominated
+        result = front
     return result
+
 
 
 def filter_duplicates(population):

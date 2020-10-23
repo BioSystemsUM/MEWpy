@@ -14,9 +14,10 @@ IntTupple = Tuple[int]
 class KOSolution(Solution[int], SolutionInterface):
     """ Class representing a KO solution """
 
-    def __init__(self, lower_bound: int, upper_bound: int, number_of_variables: int, number_of_objectives: int):
+    def __init__(self, lower_bound: int, upper_bound: int, number_of_variables: int, number_of_objectives: int,
+                 number_of_constraints: int = 0):
         super(KOSolution, self).__init__(number_of_variables,
-                                         number_of_objectives)
+                                         number_of_objectives,number_of_constraints)
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
 
@@ -77,11 +78,6 @@ class KOSolution(Solution[int], SolutionInterface):
         return " ".join((self.variables))
 
     
-    def __getitem__(self,idx):
-        return self.objectives[idx]
-
-    def __len__(self):
-        return len(self.objectives)
 
 
 class OUSolution(Solution[IntTupple], SolutionInterface):
@@ -144,14 +140,6 @@ class OUSolution(Solution[IntTupple], SolutionInterface):
 
     def __str__(self):
         return " ".join((self.variables))
-
-
-    def __getitem__(self,idx):
-        return self.objectives[idx]
-
-    def __len__(self):
-        return len(self.objectives)
-
 
 
 class JMetalKOProblem(Problem[KOSolution]):
