@@ -120,7 +120,7 @@ class EA(AbstractEA):
                 'mutation':self.mutation,
                 'crossover':self.crossover,
                 'termination_criterion':StoppingByEvaluations(max_evaluations=max_evaluations),
-                'reference_directions':UniformReferenceDirectionFactory(self.ea_problem.number_of_objectives, n_partitions=5)
+                'reference_directions':UniformReferenceDirectionFactory(self.ea_problem.number_of_objectives, n_points=99)
                  }
 
             if self.mp:
