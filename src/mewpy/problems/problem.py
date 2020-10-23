@@ -66,18 +66,24 @@ class AbstractProblem(ABC):
 
     :param model: A Metabolic model.
     :param list fevaluation: A list of callable EvaluationFunctions.
-
+    :param **kwargs: Additional parameters dictionary
     """
 
-    def __init__(self, model, fevaluation=None, **kwargs):
+    def __init__(self, model, fevaluation=None,**kwargs):
         self.model = model
         self.fevaluation = fevaluation
         self.number_of_objectives = len(self.fevaluation)
-
+        
         # simulation context : defines the simulations environment
         self.simul_context = None
+        # The target product reaction id may be specified when optimizing for a single product.
+        # Only required for probabilistic modification targeting.
+        self.product = kwargs.get('product', None)
+        # Environmental conditions
         self.environmental_conditions = kwargs.get('envcond', None)
+        # Additional persistent constraints
         self.persistent_constraints = kwargs.get('constraints', None)
+        # Reference reaction fluxes
         self._reference = None
         # solution size
         self.candidate_min_size = kwargs.get(

@@ -25,5 +25,7 @@ class EAConstants:
     NUM_CPUS = -1
     # Maximum number of generations (used as stopping criteria for the EA)
     MAX_GENERATIONS = 100
+    # Use probabilistic modofication target list when applicable
+    PROB_TARGET = True
     # DEBUG
     DEBUG = False

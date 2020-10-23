@@ -32,7 +32,14 @@ class RKOProblem(AbstractKOProblem):
         target = reactions - essential - drains
         if self.non_target is not None:
             target = target - set(self.non_target)
-        self._trg_list = list(target)
+        target =  list(target)
+        
+        from mewpy.utils.constants import EAConstants
+        if EAConstants.PROB_TARGET and self.product:
+            from mewpy.utils.graph import probabilistic_reaction_targets
+            target = probabilistic_reaction_targets(self.model,self.product,target)        
+
+        self._trg_list = target
 
     def decode(self, candidate):
         """
@@ -79,7 +86,14 @@ class ROUProblem(AbstractOUProblem):
         target = reactions  # - drains
         if self.non_target is not None:
             target = target - set(self.non_target)
-        self._trg_list = list(target)
+        target =  list(target)
+        
+        from mewpy.utils.constants import EAConstants
+        if EAConstants.PROB_TARGET and self.product:
+            from mewpy.utils.graph import probabilistic_reaction_targets
+            target = probabilistic_reaction_targets(self.model,self.product,target)        
+
+        self._trg_list = target
 
     def decode(self, candidate):
         """

@@ -131,9 +131,37 @@ def probabilistic_gene_targets(model,product,targets,factor=10):
         container = get_simulator(model)
     else:
         container = model
-    raise NotImplementedError
 
+    # Reaction targets
+    if not targets:
+        genes = container.genes
+    else:
+        genes = targets
 
+    rxns = container.get_reactions_for_genes(genes)
+    rxn_distances = shortest_distance(model,product,rxns)
+
+    # genes distances are the maximum of all reaction 
+    # distances that they catalyse.
+
+    prob_targets =[]
+
+    for gene in genes:
+        rxs = container.get_reactions_for_genes([gene])
+        dd = [d for r,d in rxn_distances.items() if r in rxs]
+        d =max(dd)
+        if d==np.inf:
+            coef = 1        
+        elif d==0:
+            continue
+        else:
+            coef = math.ceil(1/d*factor)
+        x = [gene]*coef
+        prob_targets.extend(x)        
+
+    return prob_targets
+
+    
 def probabilistic_protein_targets(model,product,targets,factor=10):
     """Builds a new target list reflecting the shortest path distances from all original
     as a probability,ie, reactions closer to the product are repeated more often in the new target list.

@@ -4,3 +4,4 @@ cobra==0.17.1
 inspyred
 jmetalpy
 cobamp
+networkx

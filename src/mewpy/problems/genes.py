@@ -36,7 +36,14 @@ class GKOProblem(AbstractKOProblem):
         target = genes - essential
         if self.non_target:
             target = target - set(self.non_target)
-        self._trg_list = list(target)
+        target =  list(target)
+        from mewpy.utils.constants import EAConstants
+        if EAConstants.PROB_TARGET and self.product:
+            from mewpy.utils.graph import probabilistic_gene_targets
+            target = probabilistic_gene_targets(self.model,self.product,target)        
+
+
+        self._trg_list = target
 
     def decode(self, candidate):
         """
@@ -86,7 +93,12 @@ class GOUProblem(AbstractOUProblem):
         target = set(self.simulator.genes)
         if self.non_target:
             target = target - set(self.non_target)
-        self._trg_list = list(target)
+        target =  list(target)
+        from mewpy.utils.constants import EAConstants
+        if EAConstants.PROB_TARGET and self.product:
+            from mewpy.utils.graph import probabilistic_gene_targets
+            target = probabilistic_gene_targets(self.model,self.product,target)        
+        self._trg_list = target
 
     def __op(self):
         # set default operators as configurable options
