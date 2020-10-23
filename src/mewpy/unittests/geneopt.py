@@ -139,7 +139,7 @@ def cb_ou(product, chassis='ec', display=False, filename=None):
                          candidate_min_size=4, candidate_max_size=6,
                          operators=("lambda x,y: min(x,y)", "lambda x,y: max(x,y)"))
 
-    ea = EA(problem, max_generations=ITERATIONS, visualizer=False)
+    ea = EA(problem, max_generations=ITERATIONS, visualizer=False,algorithm='NSGAIII')
     final_pop = ea.run()
 
     if display:

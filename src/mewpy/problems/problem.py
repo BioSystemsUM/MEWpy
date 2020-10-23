@@ -29,7 +29,6 @@ class KOBounder(object):
         self.range = self.upper_bound - self.lower_bound + 1
 
     # make it callable
-
     def __call__(self, candidate, args):
         bounded_candidate = set()
         for val in candidate:
@@ -242,7 +241,7 @@ class AbstractProblem(ABC):
         for entry in one_to_remove.keys():
             simul_constraints.remove(entry)
 
-        # test all simoulateous removal
+        # test all simultaneous removal
         fit = self.evaluate_solution(simul_constraints)
         diff = np.abs(np.array(fit)-np.array(fitness))
         is_equal = False

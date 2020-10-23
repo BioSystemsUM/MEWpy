@@ -50,7 +50,7 @@ def test_2():
     print(evaluator.true_list, " ==> ", res)
     for _ in range(20):
         l = []
-        n = random.randint(0, len(genes))
+        n = random.randint(1, len(genes))
         for _ in range(n):
             i = random.randint(0, len(genes) - 1)
             l.append(genes[i])
@@ -73,7 +73,7 @@ def test_3():
 
 
 if __name__ == '__main__':
-    test_1()
+    test_2()
     # print()
     # test_2()
     # print()

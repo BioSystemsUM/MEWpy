@@ -697,9 +697,9 @@ def relational_filter(rule):
     # ([a-zA-Z0-9_]+>[0-9]+)|([a-zA-Z0-9_]+\s>\s[0-9]+)
 
     regex_str = '|'.join(['([a-zA-Z0-9_]+' + regex + '[0-9.]+)' + '|' +
-                          '([a-zA-Z0-9_]+\s' + regex + '\s[0-9.]+)' + '|' +
+                          r'([a-zA-Z0-9_]+\s' + regex + r'\s[0-9.]+)' + '|' +
                           '([0-9.]+' + regex + '[a-zA-Z0-9_]+)' + '|' +
-                          '([0-9.]+\s' + regex + '\s[a-zA-Z0-9_]+)'
+                          r'([0-9.]+\s' + regex + r'\s[a-zA-Z0-9_]+)'
                           for regex in BOOLEAN_EQUAL_RELATIONALS + BOOLEAN_RELATIONALS])
 
     regexp = re.compile(regex_str)
@@ -746,7 +746,7 @@ def boolean_rule_from_str(rule):
     """
 
     regex_str = '|'.join(['(' + regex + '[0-9.]+)' + '|' +
-                          '(' + regex + '\s[0-9.]+)' + '|'
+                          '(' + regex + r'\s[0-9.]+)' + '|'
                           for regex in BOOLEAN_EQUAL_RELATIONALS + BOOLEAN_RELATIONALS])
     regexp = re.compile(regex_str)
 

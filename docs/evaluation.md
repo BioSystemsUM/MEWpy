@@ -38,7 +38,7 @@ fevaluation = BPCY(<biomass_reaction_id>,<product_reaction_id>,\
 
 
 
-**Weight Yield** (WYIELD):
+**Weighted Yield** (WYIELD):
 
 BPCY, on its own, has some limitations. Although the BPCY score of a mutated solution may be high, the flux value of the target reaction may be unstable with the max biomass. To guide the EA to more robust solutions, MEWpy also includes a weight yield objective, that encompasses the target product flux variability, constrained to a minimal growth and introduced metabolic modifications.
 
@@ -49,7 +49,7 @@ from mewpy.optimization.evaluation import WYIELD
 fevaluation = WYIELD(<biomass_reaction_id>,<product_reaction_id>)
 ```
 
-The trade-off parameter  is by default set to 0.3. However it may be changed by adding a new setting the class instantiation. For example,  `alpha=0.5`. 
+The trade-off parameter  is by default set to 0.3. However it may be changed by adding a new setting the class instantiation. For example,  `alpha=0.5`.
 
 ```python
 fevaluation = WYIELD(<biomass_reaction_id>,<product_reaction_id>,alpha=0.5)
@@ -64,7 +64,7 @@ The minimum growth yield may be explicitly defined, `min_biomass_value=<some_val
 MEWpy also includes an objective function that combines BPCY and WYIELD, whose formulation is:
 
 
-![](<https://latex.codecogs.com/svg.latex?BPCY\_FVA=\frac{Product\times%20Growth}{Substrate}\times\left(1-\log\frac{\text{FVA}_{max}-\text{FVA}_{min}}{\text{FVA}_{max}+\text{FVA}_{min}}\right)>)
+![](<https://latex.codecogs.com/svg.latex?BPCY_{FVA}=\frac{Product\times%20Growth}{Substrate}\times\left(1-\log\frac{\text{FVA}_{max}-\text{FVA}_{min}}{\text{FVA}_{max}+\text{FVA}_{min}}\right)>)
 
 
 ```python
@@ -74,7 +74,7 @@ fevaluation = BPCY_FVA(<biomass_reaction_id>,<product_reaction_id>,uptake=<subst
 
 As in BPCY, the substrate is optional and fluxes may be obtained using different phenotype simulation methods.
 
-This objective function is based on a  proposal from "*OptRAM*: *In-silico* strain design via integrative regulatory-metabolic network modeling".
+This objective function is based on a  proposal from "*OptRAM*: *In-silico* strain design via integrative regulatory-metabolic network modeling" where the additional factor to BPCY favors solutions with a smaller gap betweem the product minimum an maximum FVA.
 
 
 
@@ -111,7 +111,7 @@ The previously defined objective functions may be combined into a linear aggrega
 
 ![](<https://latex.codecogs.com/svg.latex?f_{agg}=\sum_{i=1}^n%20w_i\times%20f_i=w_1\times%20f_1+w_2\times%20f_2+...+w_n\times%20f_n>)
 
-Though the sum of all weights should be equal to 1, this is not imposed as weights may also be used to introduce a normalization for each function. When not provided, the aggregated function assigns a same weight to all functions w=1/n.
+Though the sum of all weights should be equal to 1, this is not imposed as weights may also be used to introduce a normalization for each function. When not provided, the aggregated function assigns a same weight to all functions *w=1/n*.
 
 ```python
 from mewpy.optimization.evaluation import BPCY, WYIELD, AggregatedSum
@@ -120,4 +120,3 @@ f2 = WYIELD(<biomass_reaction_id>,<product_reaction_id>)
 
 fevaluation = AggregatedSum([f1,f2],tradeoffs=[0.7,0.3])
 ```
-
