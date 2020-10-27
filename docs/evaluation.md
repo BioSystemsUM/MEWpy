@@ -49,7 +49,7 @@ from mewpy.optimization.evaluation import WYIELD
 fevaluation = WYIELD(<biomass_reaction_id>,<product_reaction_id>)
 ```
 
-The trade-off parameter  is by default set to 0.3. However it may be changed by adding a new setting the class instantiation. For example,  `alpha=0.5`.
+The trade-off parameter is by default set to 0.3. However it may be altered by adding a new parameter in the class instantiation, for example,  `alpha=0.5`.
 
 ```python
 fevaluation = WYIELD(<biomass_reaction_id>,<product_reaction_id>,alpha=0.5)
