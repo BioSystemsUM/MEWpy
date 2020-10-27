@@ -78,9 +78,13 @@ def shortest_distance(model,reaction,reactions=None):
     else:
         container = model
 
-    G = create_metabolic_graph(container,reactions=reactions)    
-    sp = dict(nx.single_target_shortest_path_length(G,reaction))
     rxns = reactions if reactions else container.reactions
+    if reaction not in rxns:
+        rxns.append(reaction)
+
+    G = create_metabolic_graph(container,reactions=rxns)    
+    sp = dict(nx.single_target_shortest_path_length(G,reaction))
+    
 
     distances = {}
     for rxn in rxns:
@@ -119,7 +123,8 @@ def probabilistic_reaction_targets(model,product,targets,factor=10):
 
 def probabilistic_gene_targets(model,product,targets,factor=10):
     """Builds a new target list reflecting the shortest path distances from all original
-    as a probability,ie, reactions closer to the product are repeated more often in the new target list.
+    as a probability,ie, genes on GPRs of reactions closer to the product are repeated more
+    often in the new target list.
 
     :param model: A model or a Simulator instance.
     :param str product: Product to be optimized.
@@ -164,7 +169,8 @@ def probabilistic_gene_targets(model,product,targets,factor=10):
     
 def probabilistic_protein_targets(model,product,targets,factor=10):
     """Builds a new target list reflecting the shortest path distances from all original
-    as a probability,ie, reactions closer to the product are repeated more often in the new target list.
+    as a probability,ie, proteins used in reactions closer to the product are repeated 
+    more often in the new target list.
 
     :param model: A model or a Simulator instance.
     :param str product: Product to be optimized.

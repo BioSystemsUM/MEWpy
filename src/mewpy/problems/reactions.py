@@ -1,5 +1,6 @@
 from .problem import AbstractKOProblem, AbstractOUProblem
 from collections import OrderedDict
+import warnings
 
 
 class RKOProblem(AbstractKOProblem):
@@ -33,12 +34,14 @@ class RKOProblem(AbstractKOProblem):
         if self.non_target is not None:
             target = target - set(self.non_target)
         target =  list(target)
-        
-        from mewpy.utils.constants import EAConstants
-        if EAConstants.PROB_TARGET and self.product:
-            from mewpy.utils.graph import probabilistic_reaction_targets
-            target = probabilistic_reaction_targets(self.model,self.product,target)        
-
+        try:
+            from mewpy.utils.constants import EAConstants
+            if EAConstants.PROB_TARGET and self.product:
+                from mewpy.utils.graph import probabilistic_reaction_targets
+                target = probabilistic_reaction_targets(self.model,self.product,target)        
+        except Exception as e:
+            warnings.warn(str(e))
+            
         self._trg_list = target
 
     def decode(self, candidate):
@@ -87,12 +90,14 @@ class ROUProblem(AbstractOUProblem):
         if self.non_target is not None:
             target = target - set(self.non_target)
         target =  list(target)
-        
-        from mewpy.utils.constants import EAConstants
-        if EAConstants.PROB_TARGET and self.product:
-            from mewpy.utils.graph import probabilistic_reaction_targets
-            target = probabilistic_reaction_targets(self.model,self.product,target)        
-
+        try:
+            from mewpy.utils.constants import EAConstants
+            if EAConstants.PROB_TARGET and self.product:
+                from mewpy.utils.graph import probabilistic_reaction_targets
+                target = probabilistic_reaction_targets(self.model,self.product,target)        
+        except Exception as e:
+            warnings.warn(str(e))
+            
         self._trg_list = target
 
     def decode(self, candidate):

@@ -131,13 +131,14 @@ def cb_ou(product, chassis='ec', display=False, filename=None):
 
     evaluator_1 = BPCY(BIOMASS_ID, PRODUCT_ID, method=SimulationMethod.lMOMA)
     evaluator_2 = WYIELD(BIOMASS_ID, PRODUCT_ID)
-    print(model.genes)
+
 
     from mewpy.problems import GOUProblem
     problem = GOUProblem(model, fevaluation=[
                          evaluator_1, evaluator_2], envcond=envcond, reference=reference,
                          candidate_min_size=4, candidate_max_size=6,
-                         operators=("lambda x,y: min(x,y)", "lambda x,y: max(x,y)"))
+                         operators=("lambda x,y: min(x,y)", "lambda x,y: max(x,y)"),
+                         product = PRODUCT_ID)
 
     ea = EA(problem, max_generations=ITERATIONS, visualizer=False,algorithm='NSGAIII')
     final_pop = ea.run()

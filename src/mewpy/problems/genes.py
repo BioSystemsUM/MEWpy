@@ -2,6 +2,7 @@ from .problem import AbstractKOProblem, AbstractOUProblem
 from mewpy.utils.parsing import GeneEvaluator, build_tree, Boolean
 from collections import OrderedDict
 import logging
+import warnings
 
 logger = logging.getLogger(__name__)
 
@@ -37,12 +38,14 @@ class GKOProblem(AbstractKOProblem):
         if self.non_target:
             target = target - set(self.non_target)
         target =  list(target)
-        from mewpy.utils.constants import EAConstants
-        if EAConstants.PROB_TARGET and self.product:
-            from mewpy.utils.graph import probabilistic_gene_targets
-            target = probabilistic_gene_targets(self.model,self.product,target)        
-
-
+        try:
+            from mewpy.utils.constants import EAConstants
+            if EAConstants.PROB_TARGET and self.product:
+                from mewpy.utils.graph import probabilistic_gene_targets
+                target = probabilistic_gene_targets(self.model,self.product,target)        
+        except Exception as e:
+            warnings.warn(str(e))
+            
         self._trg_list = target
 
     def decode(self, candidate):
@@ -94,10 +97,14 @@ class GOUProblem(AbstractOUProblem):
         if self.non_target:
             target = target - set(self.non_target)
         target =  list(target)
-        from mewpy.utils.constants import EAConstants
-        if EAConstants.PROB_TARGET and self.product:
-            from mewpy.utils.graph import probabilistic_gene_targets
-            target = probabilistic_gene_targets(self.model,self.product,target)        
+        try:
+            from mewpy.utils.constants import EAConstants
+            if EAConstants.PROB_TARGET and self.product:
+                from mewpy.utils.graph import probabilistic_gene_targets
+                target = probabilistic_gene_targets(self.model,self.product,target)        
+        except Exception as e:
+            warnings.warn(str(e))
+            
         self._trg_list = target
 
     def __op(self):
