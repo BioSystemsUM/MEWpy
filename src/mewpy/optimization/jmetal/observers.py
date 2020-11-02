@@ -70,18 +70,27 @@ class PrintObjectivesStatObserver(Observer):
         self.display_frequency = frequency
         self.first = True
 
-    def fitness_statistics(self, solutions):
-        """Return the basic statistics of the population's fitness values.       
-        Arguments:roblem = kwargs['PROBLEM']
+    def fitness_statistics(self, solutions,problem):
+        """Return the basic statistics of the population's fitness values.
+        :param list solutions: List of solutions.
+        :param problem: The jMetalPy problem.
+        :returns: A statistics dictionary.
         """
 
         stats = {}
         first = solutions[0].objectives
+        # number of objectives
         n = len(first)
         for i in range(n):
-            f = [abs(p.objectives[i]) for p in solutions]
-            worst_fit = min(f)
-            best_fit = max(f)
+            direction = problem.obj_directions[i]
+            factor = 1 if direction== problem.MINIMIZE else -1
+            f = [(factor * p.objectives[i]) for p in solutions]
+            if direction==problem.MAXIMIZE:
+                worst_fit = min(f)
+                best_fit = max(f)
+            else:
+                worst_fit = max(f)
+                best_fit = min(f)
             med_fit = numpy.median(f)
             avg_fit = numpy.mean(f)
             std_fit = numpy.std(f)
@@ -111,9 +120,10 @@ class PrintObjectivesStatObserver(Observer):
     def update(self, *args, **kwargs):
         evaluations = kwargs['EVALUATIONS']
         solutions = kwargs['SOLUTIONS']
+        problem = kwargs['PROBLEM']
         if (evaluations % self.display_frequency) == 0 and solutions:
             if type(solutions) == list:
-                stats = self.fitness_statistics(solutions)
+                stats = self.fitness_statistics(solutions,problem)
                 message = self.stats_to_str(stats, evaluations, self.first)
                 self.first = False
             else:

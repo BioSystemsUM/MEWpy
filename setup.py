@@ -10,7 +10,7 @@ with open('README.rst') as readme_file:
 
 setup(
     name='mewpy',
-    version='0.0.9',
+    version='0.1.0',
     package_dir={'': 'src'},
     packages=find_packages('src'),
     package_data={"": ["*.xml", "*.csv", "*.txt"], 'mewpy': files},
@@ -20,7 +20,7 @@ setup(
         'python-libsbml',
         'inspyred',
         'reframed',
-        'cobra==0.17.1',
+        'cobra',
         'jmetalpy',
         'cobamp',
         'networkx'],
