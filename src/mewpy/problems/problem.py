@@ -66,7 +66,7 @@ class AbstractProblem(ABC):
 
     :param model: A Metabolic model.
     :param list fevaluation: A list of callable EvaluationFunctions.
-    :param **kwargs: Additional parameters dictionary
+    :param kwargs: Additional parameters dictionary
     """
 
     def __init__(self, model, fevaluation=None,**kwargs):

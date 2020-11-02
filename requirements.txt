@@ -1,3 +1,4 @@
+optlang<1.4.6
 python-libsbml
 reframed
 cobra

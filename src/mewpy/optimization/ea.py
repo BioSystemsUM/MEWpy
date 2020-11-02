@@ -136,9 +136,8 @@ def dominance_test(solution1, solution2, maximize=True):
     :param solution1: The first solution.
     :param solution2: The second solution.
     :param maximize: (bool) maximization (True) or minimization (False)
-    :returns:   1 : if the first solution dominates the second;
-               -1 : if the second solution dominates the first;
-                0 : if non of the solutions dominates the other.
+    :returns: 1 : if the first solution dominates the second; -1 : if the second solution dominates the first;\
+         0 : if non of the solutions dominates the other.
     
     """
 

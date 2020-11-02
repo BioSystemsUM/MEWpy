@@ -17,6 +17,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
+        'optlang<1.4.6',
         'python-libsbml',
         'inspyred',
         'reframed',

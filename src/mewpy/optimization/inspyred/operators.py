@@ -36,18 +36,18 @@ def uniform_crossover_KO(random, mom, dad, args):
     """Return the offspring of the uniform crossover on the candidate. Based on two candidates (parents) build 2 children:
     - elements present in both parents will be present in both children;
     - both children have at least one element;
-    - elements present in only one parent have equal probability to be present in child 1 or child 2 (after each child
-      has at least one element).
+    - elements present in only one parent have equal probability to be present in child 1 or child 2 (after each child\
+    has at least one element).
 
     :param random: the random number generator object. Must implement random().
     :param mom: the first parent candidate
     :param dad: the second parent candidate
     :param args: a dictionary of keyword arguments.
+    :param crossover_rate: The rate at which crossover is performed (default 1.0).
     :returns: Return the offspring of the candidates given as argument.
 
-    Notes:
-        Optional keyword arguments in args:
-        - *crossover_rate* -- the rate at which crossover is performed (default 1.0)
+    
+        
     """
     crossRate = args.setdefault("crossover_rate", 1.0)
     children = []
