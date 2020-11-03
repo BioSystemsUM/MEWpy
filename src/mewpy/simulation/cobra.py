@@ -3,7 +3,6 @@ Simulation for COBRApy models
 """
 from cobra.core.model import Model
 from cobra.core.solution import Solution
-from geckopy.gecko import GeckoModel
 from cobra.flux_analysis import pfba, moma, room
 from mewpy.simulation import SimulationMethod, SStatus
 from mewpy.simulation.simulation import Simulator, SimulationResult, ModelContainer
@@ -522,9 +521,17 @@ class GeckoSimulation(Simulation):
     Simulator for geckopy.gecko.GeckoModel
     """
 
-    def __init__(self, model: GeckoModel, objective=None, envcond=None, constraints=None,  solver=None, reference=None):
+    def __init__(self, model, objective=None, envcond=None, constraints=None,  solver=None, reference=None):
+        try:
+            from geckopy.gecko import GeckoModel
+            if not isinstance(model, GeckoModel):
+                raise ValueError("The model is not an instance of geckopy.gecko.GeckoModel")
+        except ImportError:
+            raise RuntimeError("The geckopy package is not installed.")
+
         super(GeckoSimulation, self).__init__(
             model, objective, envcond, constraints, solver, reference)
+        
         self._essential_proteins = None
         self._protein_rev_reactions = None
 
