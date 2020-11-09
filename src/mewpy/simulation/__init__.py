@@ -118,3 +118,10 @@ class SStatus(Enum):
     UNBOUNDED  = 'Unbounded'
     INFEASIBLE = 'Infeasible'
     INF_OR_UNB = 'Infeasible or Unbounded'
+
+
+    def __repr__(self):
+        return self.name
+
+    def __str__(self):
+        return self.name

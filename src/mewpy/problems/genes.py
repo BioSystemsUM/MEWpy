@@ -48,11 +48,11 @@ class GKOProblem(AbstractKOProblem):
             
         self._trg_list = target
 
-    def decode(self, candidate):
+    def solution_to_constraints(self, candidate):
         """
-        Decodes a candidate, an set of genes into a dictionary of constraints.
+        Cpnverts a candidate, an set of genes into a dictionary of constraints.
         """
-        genes = [self.target_list[idx] for idx in candidate]
+        genes = list(candidate.keys())
         active_genes = set(self.simulator.genes) - set(genes)
         active_reactions = self.simulator.evaluate_gprs(active_genes)
         inactive_reactions = set(
@@ -127,13 +127,12 @@ class GOUProblem(AbstractOUProblem):
                     raise ValueError(f"The operator at index {i} is not callable.")
             self._operators = tuple(ops)
 
-    def decode(self, candidate):
+    def solution_to_constraints(self, candidate):
         """
         Decodes a candidate, a set of (genes,lv) into a dictionary of reaction constraints
         """
         gr_constraints = OrderedDict()
-        genes = {self.target_list[idx]: self.levels[lv_idx]
-                 for idx, lv_idx in candidate}
+        genes = candidate
 
         # operators check
         self.__op()

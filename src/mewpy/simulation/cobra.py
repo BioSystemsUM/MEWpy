@@ -435,6 +435,8 @@ class Simulation(CobraModelContainer, Simulator):
                 else:
                     reac.bounds = (simul_constraints.get(
                         rxn), simul_constraints.get(rxn))
+            # NOTE: If working directly over optlang use 'max' and 'min'        
+            # such is the case with pytfa.core.Model... need to find some workaround
             objective_sense = 'maximize' if maximize else 'minimize'
             if method == SimulationMethod.FBA:
                 solution = model.optimize(objective_sense=objective_sense)

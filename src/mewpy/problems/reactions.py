@@ -44,18 +44,7 @@ class RKOProblem(AbstractKOProblem):
             
         self._trg_list = target
 
-    def decode(self, candidate):
-        """
-        Decodes a candidate, an integer set, into a dictionary of constraints
-        """
-        constraints = OrderedDict()
-        for idx in candidate:
-            try:
-                constraints[self.target_list[idx]] = 0
-            except IndexError:
-                raise IndexError("Index out of range: {} from {}".format(
-                    idx, len(self.target_list[idx])))
-        return constraints
+   
 
 
 class ROUProblem(AbstractOUProblem):
@@ -100,24 +89,19 @@ class ROUProblem(AbstractOUProblem):
             
         self._trg_list = target
 
-    def decode(self, candidate):
+    def solution_to_constraints(self, candidate):
         """
         Decodes a candidate, an set (idx,lv) into a dictionary of constraints
         Suposes that reverseble reactions have been treated and bounded with positive flux values
         """
         constraints = OrderedDict()
-        for idx, lv_idx in candidate:
-            try:
-                rxn = self.target_list[idx]
-                lv = self.levels[lv_idx]
-                rev_rxn = self.simulator.reverse_reaction(rxn)
-                # skips if the reverse reaction was already processed
-                if rev_rxn and rev_rxn in constraints.keys():
-                    continue
-                elif lv < 0:
-                    raise ValueError("All UO levels should be positive")
-                else:
-                    constraints.update(self.reaction_constraints(rxn, lv))
-            except IndexError:
-                raise IndexError("Index out of range")
+        for rxn, lv in candidate.items():
+            rev_rxn = self.simulator.reverse_reaction(rxn)
+            # skips if the reverse reaction was already processed
+            if rev_rxn and rev_rxn in constraints.keys():
+                continue
+            elif lv < 0:
+                raise ValueError("All UO levels should be positive")
+            else:
+                constraints.update(self.reaction_constraints(rxn, lv))
         return constraints

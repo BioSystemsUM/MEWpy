@@ -106,8 +106,7 @@ class OptRamProblem(AbstractOUProblem):
         self._trg_list.extend(list(self.regmodel.genes.keys()))
         self._trg_list.extend(list(self.regmodel.tfs.keys()))
 
-    def target_exp(self, candidate):
-
+    def decode(self, candidate):
         mgenes_p = {}
         # TFs expression vector
         tf_exp_v = self.regmodel.tf_expression.copy()
@@ -145,9 +144,11 @@ class OptRamProblem(AbstractOUProblem):
                 mgenes_p[g] = p
         return mgenes_p
 
-    def decode(self, candidate):
+
+
+    def solution_to_constraints(self, decoded_solution):
+        mgenes_p = decoded_solution
         gr_constraints = OrderedDict()
-        mgenes_p = self.target_exp(candidate)
         # Evaluate gpr.
         if not self._operators:
             self._operators = (lambda x, y: min(x, y), lambda x, y: max(x, y))

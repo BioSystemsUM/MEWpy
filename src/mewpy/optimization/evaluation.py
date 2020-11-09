@@ -508,6 +508,43 @@ class MinCandSize(PhenotypeEvaluationFunction, KineticEvaluationFunction):
 
 
 
+class ModificationType(PhenotypeEvaluationFunction, KineticEvaluationFunction):
+    """This Objective function favors solutions with deletions, under expression and over expression, 
+    in this same order.
+    """
+
+    def __init__(self, penalizations = {'KO':5,'UE':2, 'OE':0} ,maximize=True):
+        super(ModificationType, self).__init__(maximize=maximize, worst_fitness=0.0)
+        self.penalizations = penalizations
+        
+
+    def get_fitness(self, simulResult, candidate, **kwargs):
+        sum = 0
+        for v in candidate.values():
+            if v == 0:
+                sum += self.penalizations['KO']
+            elif v < 1 :
+                sum += self.penalizations['UE']
+            else:
+                sum += self.penalizations['OE']
+        return sum/len(candidate)            
+
+    def required_simulations(self):
+        """
+        If the evaluation function requires a pre-simulation to compute fitness values
+        """
+        return []
+
+    def short_str(self):
+        return "ModificationType"
+
+    def method_str(self):
+        return "ModificationType"
+
+
+
+
+
 """
 Kinetic specific evaluation functions
 """

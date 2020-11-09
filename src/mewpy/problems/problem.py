@@ -121,6 +121,11 @@ class AbstractProblem(ABC):
         """The decoder function for the problem."""
         raise NotImplementedError
 
+    @abstractmethod
+    def solution_to_constraints(self,solution):
+        """Converts a decoded solution to metabolict constraints."""
+        raise NotImplementedError
+
     def get_name(self):
         """The problem name."""
         return self.__class__.__name__
@@ -169,7 +174,7 @@ class AbstractProblem(ABC):
         """
         :returns: The constrainst enconded into an individual.
         """
-        return self.decode(solution.candidate)
+        return solution_to_constaints(self.decode(solution.candidate))
 
     def get_environmental_conditions(self):
         return self.environmental_conditions
@@ -186,11 +191,14 @@ class AbstractProblem(ABC):
         :returns: A list of fitness.
         """
         p = []
+        decoded ={}
         # decoded constraints
         if decode:
-            constraints = self.decode(solution)
+            decoded = self.decode(solution)
+            constraints = self.solution_to_constraints(decoded)
         else:
             constraints = solution
+
         # pre simulation
         simulation_results = OrderedDict()
         try:
@@ -200,7 +208,7 @@ class AbstractProblem(ABC):
                 simulation_results[method] = simulation_result
             # apply the evaluation function(s)
             for f in self.fevaluation:
-                p.append(f(simulation_results, solution,
+                p.append(f(simulation_results, decoded,
                            scalefactor=self.scalefactor))
         except Exception as e:
             for f in self.fevaluation:
@@ -287,10 +295,22 @@ class AbstractKOProblem(AbstractProblem):
             model, fevaluation=fevaluation, **kwargs)
         self.strategy = Strategy.KO
 
-    @abstractmethod
+
     def decode(self, candidate):
-        """The decode function for the problem."""
-        raise NotImplementedError
+        decoded = {}
+        for idx in candidate:
+            try:
+                decoded[self.target_list[idx]] = 0
+            except IndexError:
+                raise IndexError("Index out of range: {} from {}".format(
+                    idx, len(self.target_list[idx])))
+        return decoded
+
+    def solution_to_constraints(self, decoded_candidate):
+        """
+        Converts a candidate, a dictionary of reactions, into a dictionary of constraints
+        """
+        return decoded_candidate
 
     @property
     def bounder(self):
@@ -301,6 +321,8 @@ class AbstractKOProblem(AbstractProblem):
             max = len(self.target_list)-1
             self._bounder = KOBounder(0, max)
         return self._bounder
+
+        
 
     def generator(self, random, args):
         """
@@ -328,13 +350,6 @@ class AbstractKOProblem(AbstractProblem):
             return [self.target_list.index(k) for k in candidate]
 
 
-    def solution_to_constraints(self,solution):
-        """"Transforms a solution for the problem into metabolic constraints.
-
-        :param dict solution: A dictionary of genetic modifications.
-        :returns: A dictionary of metabolic constraints that may be applied to the model.
-        """
-        return self.decode(self.translate(solution,True))
 
 class AbstractOUProblem(AbstractProblem):
     """ Base class for Over/Under expression optimization problems
@@ -357,10 +372,24 @@ class AbstractOUProblem(AbstractProblem):
         self.levels = kwargs.get('levels', EAConstants.LEVELS)
         self._reference = kwargs.get('reference', None)
 
-    @abstractmethod
+
     def decode(self, candidate):
         """The decoder function for the problem. Needs to be implemented by extending classes."""
-        raise NotImplementedError
+        decoded = {}
+        for idx, lv_idx in candidate:
+            try:
+                rxn = self.target_list[idx]
+                lv = self.levels[lv_idx]
+                decoded[rxn]=lv
+            except IndexError:
+                raise IndexError("Index out of range")    
+        return decoded
+
+    def solution_to_constraints(self, decoded_candidate):
+        """
+        Decodes a candidate, a dictionary of reactions, into a dictionary of constraints
+        """
+        return decoded_candidate
 
     @property
     def bounder(self):
@@ -469,10 +498,4 @@ class AbstractOUProblem(AbstractProblem):
             return [(self.target_list.index(k), self.levels.index(lv))
                     for k, lv in candidate.items()]
 
-    def solution_to_constraints(self,solution):
-        """"Transforms a solution for the problem into metabolic constraints.
-
-        :param dict solution: A dictionary of genetic modifications.
-        :returns: A dictionary of metabolic constraints that may be applied to the model.
-        """
-        return self.decode(self.translate(solution,True))
+   

@@ -2,7 +2,7 @@
 CB model optimization test Set of using inspyred EA module
 """
 from mewpy.simulation import SimulationMethod, get_simulator
-from mewpy.optimization.evaluation import WYIELD, BPCY
+from mewpy.optimization.evaluation import WYIELD, BPCY, ModificationType
 from mewpy.optimization import EA, set_default_engine
 import mewpy.utils.utilities as utl
 from collections import OrderedDict
@@ -131,11 +131,13 @@ def cb_ou(product, chassis='ec', display=False, filename=None):
 
     evaluator_1 = BPCY(BIOMASS_ID, PRODUCT_ID, method=SimulationMethod.lMOMA)
     evaluator_2 = WYIELD(BIOMASS_ID, PRODUCT_ID)
+    # Favors deletion and under expression modifications
+    evaluator_3 = ModificationType()
 
 
     from mewpy.problems import GOUProblem
     problem = GOUProblem(model, fevaluation=[
-                         evaluator_1, evaluator_2], envcond=envcond, reference=reference,
+                         evaluator_1, evaluator_2,evaluator_3], envcond=envcond, reference=reference,
                          candidate_min_size=4, candidate_max_size=6,
                          operators=("lambda x,y: min(x,y)", "lambda x,y: max(x,y)"),
                          product = PRODUCT_ID)
@@ -189,9 +191,11 @@ def cb_ko(product, chassis='ec', display=False, filename=None):
 
 
 if __name__ == '__main__':
+
+    from reframed.solvers import set_default_solver
     RUNS = 10
-    compounds_EC = {"PHE": "R_EX_phe_DASH_L_LPAREN_e_RPAREN_",
-                    "TYR": "R_EX_tyr_DASH_L_LPAREN_e_RPAREN_",
+    compounds_EC = {"TYR": "R_EX_tyr_DASH_L_LPAREN_e_RPAREN_",
+                    "PHE": "R_EX_phe_DASH_L_LPAREN_e_RPAREN_",
                     "TRP": "R_EX_trp_DASH_L_LPAREN_e_RPAREN_"}
 
     #compounds_EC = {"TYR": "R_EX_tyr__L_e"}
@@ -217,8 +221,7 @@ if __name__ == '__main__':
             cb_ko(v, chassis='ys', filename="CBMODEL_{}_KO_{}.csv".format(k, millis))
     """
 
-    # from reframed.solvers import set_default_solver
-    # set_default_solver('gurobi')
+    
     """
     EAConstants.DEBUG = True
     for k, v in compounds_EC.items():

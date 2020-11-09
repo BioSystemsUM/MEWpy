@@ -57,15 +57,15 @@ class GeckoKOProblem(AbstractKOProblem):
         """
         Decodes a candidate, an integer set, into a dictionary of constraints
         """
-        constraints = OrderedDict()
+        decoded_candidate = OrderedDict()
         for idx in candidate:
             try:
-                constraints["{}{}".format(
+                decoded_candidate["{}{}".format(
                     self.prot_prefix, self.target_list[idx])] = 0
             except IndexError:
                 raise IndexError(
                     f"Index out of range: {idx} from {len(self.target_list[idx])}")
-        return constraints
+        return decoded_candidate
 
 
 class GeckoOUProblem(AbstractOUProblem):
@@ -115,9 +115,27 @@ class GeckoOUProblem(AbstractOUProblem):
             target = target - set(self.non_target)
         self._trg_list = list(target)
 
+
     def decode(self, candidate):
         """
-        Decodes a candidate, a set (idx,lv), into a dictionary of constraints
+        Decodes a candidate, an integer set, into a dictionary of constraints
+        """
+        decoded_candidate = OrderedDict()
+        for idx, lv_idx in candidate:
+            try:
+
+                decoded_candidate["{}{}".format(
+                    self.prot_prefix, self.target_list[idx])] = self.levels[lv_idx]
+                
+            except IndexError:
+                raise IndexError(
+                    f"Index out of range: {idx} from {len(self.target_list[idx])}")
+        return decoded_candidate
+
+
+    def solution_to_constraints(self, candidate):
+        """
+        Converts a candidate, a set (protein,lv), into a dictionary of constraints
         Reverseble reactions associated to proteins with over expression are KO
         according to the flux volume in the wild type.
 
@@ -129,42 +147,37 @@ class GeckoOUProblem(AbstractOUProblem):
         if self.prot_rev_reactions is None:
             self.prot_rev_reactions = self.simulator.protein_rev_reactions
 
-        for idx, lv_idx in candidate:
-            try:
-                prot = self.target_list[idx]
-                rxn = self.prot_prefix+prot
-                lv = self.levels[lv_idx]
-                fluxe_wt = self.reference[rxn]
-                if lv < 0:
-                    raise ValueError("All UO levels should be positive")
-                # a level = 0 is interpreted as KO
-                elif lv == 0:
-                    constraints[rxn] = 0.0
-                # under expression
-                elif lv < 1:
-                    constraints[rxn] = (0.0, lv * fluxe_wt)
-                # TODO: Define how a level 1 is tranlated into constraints...
-                elif lv == 1:
-                    continue
-                else:
-                    constraints[rxn] = (
-                        lv*fluxe_wt, ModelConstants.REACTION_UPPER_BOUND)
-                    # Deals with reverse reactions associated with the protein.
-                    # Strategy: The reaction direction with no flux in the wild type (reference) is KO.
-                    if prot in self.prot_rev_reactions.keys():
-                        reactions = self.prot_rev_reactions[prot]
-                        for r, r_rev in reactions:
-                            if self.reference[r] == 0 and self.reference[r_rev] == 0:
-                                continue
-                            elif self.reference[r] > 0 and self.reference[r_rev] == 0:
-                                constraints[r_rev] = 0.0
-                            elif self.reference[r] == 0 and self.reference[r_rev] > 0:
-                                constraints[r] = 0.0
-                            else:
-                                warnings.warn(
-                                    f"Reactions {r} and {r_rev}, associated with the protein {prot},\
-                                    both have fluxes in the WT.")
-            except IndexError:
-                raise IndexError("Index out of range")
+        for rxn, lv in candidate.items():
+            fluxe_wt = self.reference[rxn]
+            prot = rxn[len(self.prot_prefix):]
+            if lv < 0:
+                raise ValueError("All UO levels should be positive")
+            # a level = 0 is interpreted as KO
+            elif lv == 0:
+                constraints[rxn] = 0.0
+            # under expression
+            elif lv < 1:
+                constraints[rxn] = (0.0, lv * fluxe_wt)
+            # TODO: Define how a level 1 is tranlated into constraints...
+            elif lv == 1:
+                continue
+            else:
+                constraints[rxn] = (
+                    lv*fluxe_wt, ModelConstants.REACTION_UPPER_BOUND)
+                # Deals with reverse reactions associated with the protein.
+                # Strategy: The reaction direction with no flux in the wild type (reference) is KO.
+                if prot in self.prot_rev_reactions.keys():
+                    reactions = self.prot_rev_reactions[prot]
+                    for r, r_rev in reactions:
+                        if self.reference[r] == 0 and self.reference[r_rev] == 0:
+                            continue
+                        elif self.reference[r] > 0 and self.reference[r_rev] == 0:
+                            constraints[r_rev] = 0.0
+                        elif self.reference[r] == 0 and self.reference[r_rev] > 0:
+                            constraints[r] = 0.0
+                        else:
+                            warnings.warn(
+                                f"Reactions {r} and {r_rev}, associated with the protein {prot},\
+                                both have fluxes in the WT.")
 
         return constraints

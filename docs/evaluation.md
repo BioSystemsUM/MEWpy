@@ -98,10 +98,17 @@ Although problems definition allows for setting a maximum number of modification
 ```python
 from mewpy.optimization.evaluation import MinCandSize
 fevaluation =  MinCandSize()
-
 ```
 
+**Modification type**
 
+This objective favors modifications with deletions and down regulations. As such, a solution comparatively mode deletions is considered
+better than one with many up regulations. 
+
+```python
+from mewpy.optimization.evaluation import ModificationType
+fevaluation =  ModificationType()
+```
 
 
 
