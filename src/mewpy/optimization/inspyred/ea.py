@@ -166,8 +166,8 @@ class EA(AbstractEA):
             else:
                 obj = population[i].fitness
             val = population[i].candidate
-            values = self.problem.translate(val)
-            const = self.problem.decode(val)
+            values = self.problem.decode(val)
+            const = self.problem.solution_to_constraints(values)
             solution = Solution(values, obj, const)
             p.append(solution)
         return p

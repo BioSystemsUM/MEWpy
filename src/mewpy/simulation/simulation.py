@@ -87,6 +87,32 @@ class Simulator(ModelContainer):
         raise NotImplementedError
 
 
+    def __evaluator__(self,kwargs,candidate):
+            res = self.simulate(constraints=candidate,**kwargs)
+            return res
+
+    def simulate_mp(self, objective=None, method=SimulationMethod.FBA, maximize=True, constraints_list=None, reference=None,
+                 solver=None, n_mp = None ,**kwargs):
+
+        from mewpy.utils.process import cpu_count, MultiProcessorEvaluator
+        if not n_mp:
+            n_mp = cpu_count()
+
+        args={}
+        args['objective'] =objective
+        args['method'] = method
+        args['maximize'] = maximize
+        args['reference'] = reference
+        args.update(kwargs)
+        from functools import partial
+        func = partial(self.__evaluator__,args)
+
+        mp_evaluator = MultiProcessorEvaluator(
+                    func, n_mp)
+        res = mp_evaluator.evaluate(constraints_list,None)
+        return res
+
+
 class SimulationResult(object):
     """Class that represents simulation results and performs operations over them."""
 

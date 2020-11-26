@@ -170,11 +170,12 @@ class AbstractProblem(ABC):
     def _build_target_list(self):
         raise NotImplementedError
 
+    
     def get_constraints(self, solution):
         """
         :returns: The constrainst enconded into an individual.
         """
-        return solution_to_constaints(self.decode(solution.candidate))
+        return self.solution_to_constraints(self.decode(solution.candidate))
 
     def get_environmental_conditions(self):
         return self.environmental_conditions

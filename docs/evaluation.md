@@ -102,8 +102,7 @@ fevaluation =  MinCandSize()
 
 **Modification type**
 
-This objective favors modifications with deletions and down regulations. As such, a solution comparatively mode deletions is considered
-better than one with many up regulations. 
+This objective favors modifications with deletions and down regulations. As such, a solution that encompasses more deletions is considered better than one with many up regulations.
 
 ```python
 from mewpy.optimization.evaluation import ModificationType
