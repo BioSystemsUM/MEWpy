@@ -89,7 +89,8 @@ class Simulation(CobraModelContainer, Simulator):
             raise ValueError("Model is incompatible or inexistent")
 
         self.model = model
-        self.objective = self.model.objective if objective is None else objective
+        if objective:
+            self.objective = objective
         self.environmental_conditions = OrderedDict() if envcond is None else envcond
         self.constraints = OrderedDict() if constraints is None else constraints
         self.solver = solver
@@ -108,6 +109,26 @@ class Simulation(CobraModelContainer, Simulator):
         self.solver = solver
         self._reset_solver = ModelConstants.RESET_SOLVER
         self.reverse_sintax = []
+
+
+    
+    @property
+    def objective(self):
+        from cobra.util.solver import linear_reaction_coefficients
+        d = dict(linear_reaction_coefficients(self.model))
+        return {k.id:v for k,v in d.items()}
+
+    @objective.setter
+    def objective(self,objective):
+        if isinstance(objective,str):
+            self.model.objective = objective
+        elif isinstance(objective,dict):
+            from cobra.util.solver import set_objective
+            linear_coef ={self.model.reactions.get_by_id(r_id):v for r_id,v in objective.items()}
+            set_objective(self.model,linear_coef)
+        else:
+            raise ValueError('The objective must be a reaction identifier or a dictionary of reaction identifier with respective coeficients.')
+
 
     @property
     def reference(self):
@@ -383,7 +404,7 @@ class Simulation(CobraModelContainer, Simulator):
         """Return list of reactions that are not constrained at all."""
         lower_bound, upper_bound = self.find_bounds()
         return [
-            rxn
+            rxn.id
             for rxn in self.model.reactions
             if rxn.lower_bound <= lower_bound and rxn.upper_bound >= upper_bound
         ]
@@ -391,7 +412,6 @@ class Simulation(CobraModelContainer, Simulator):
     def get_objective(self):
         """
         :returns: The model objective.
-
         """
         from cobra.util.solver import linear_reaction_coefficients
         return list(map(lambda x: x.id, linear_reaction_coefficients(self.model).keys()))
@@ -412,7 +432,7 @@ class Simulation(CobraModelContainer, Simulator):
         '''
 
         if not objective:
-            objective = self.objective
+            objective = self.model.objective
         elif isinstance(objective, dict) and len(objective) > 0:
             objective = next(iter(objective.keys()))
 
@@ -468,7 +488,7 @@ class Simulation(CobraModelContainer, Simulator):
                                   maximize=maximize)
         return result
 
-    def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None):
+    def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None,format='dict'):
         """ Flux Variability Analysis (FVA).
 
         :param model: An instance of a constraint-based model.
@@ -478,33 +498,30 @@ class Simulation(CobraModelContainer, Simulator):
         :param boolean loopless: Run looplessFBA internally (very slow) (default: false).
         :param list internal: List of internal reactions for looplessFBA (optional).
         :param solver: A pre-instantiated solver instance (optional).
+        :param format: The return format: 'dict', returns a dictionary,'df' returns a data frame.
         :returns: A dictionary of flux variation ranges.
 
         """
         from cobra.flux_analysis.variability import flux_variability_analysis
 
+        simul_constraints = {}
+        if self.environmental_conditions:
+            simul_constraints.update(self.environmental_conditions)
+        if constraints:
+             simul_constraints.update(constraints)
+
         with self.model as model:
 
-            if constraints:
-                for rxn in list(constraints.keys()):
+            if simul_constraints:
+                for rxn in list(simul_constraints.keys()):
                     reac = model.reactions.get_by_id(rxn)
-                    if isinstance(constraints.get(rxn), tuple):
-                        reac.bounds = (constraints.get(
-                            rxn)[0], constraints.get(rxn)[1])
+                    if isinstance(simul_constraints.get(rxn), tuple):
+                        reac.bounds = (simul_constraints.get(
+                            rxn)[0], simul_constraints.get(rxn)[1])
                     else:
-                        reac.bounds = (constraints.get(
-                            rxn), constraints.get(rxn))
+                        reac.bounds = (simul_constraints.get(
+                            rxn), simul_constraints.get(rxn))
 
-            if self.environmental_conditions:
-                for rxn in list(self.environmental_conditions.keys()):
-                    reac = model.reactions.get_by_id(rxn)
-                    if isinstance(self.environmental_conditions.get(rxn), tuple):
-                        reac.bounds = (self.environmental_conditions.get(
-                            rxn)[0], self.environmental_conditions.get(rxn)[1])
-                    else:
-                        reac.bounds = (self.environmental_conditions.get(
-                            rxn), self.environmental_conditions.get(rxn))
-                
             df = flux_variability_analysis(
                 model, reaction_list=reactions, loopless=loopless, fraction_of_optimum=obj_frac)
 
@@ -512,7 +529,15 @@ class Simulation(CobraModelContainer, Simulator):
         for r_id in reactions:
             variability[r_id] = [
                 float(df.loc[r_id][0]), float(df.loc[r_id][1])]
-        return variability
+        
+        if format=='df':
+            import pandas as pd
+            e = variability.items()
+            f = [[a,b,c] for  a,[b,c] in e]
+            df = pd.DataFrame(f,columns = ['Reaction ID','Minimum','Maximum'])
+            return df
+        else:
+            return variability
 
     def set_objective(self, reaction):
         self.model.objective = reaction

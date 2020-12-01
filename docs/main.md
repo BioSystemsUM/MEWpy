@@ -8,8 +8,16 @@ MEWpy is a Computational Strain Optimization (CSO) tool able to aggregate differ
 
 
 
+MEWPy currently supports [REFRAMED](<https://github.com/cdanielmachado/reframed>) and [COBRApy](<https://opencobra.github.io/cobrapy/>) phenotype simulators integrating both in a common API which enables different methods:
 
-MEWPy currently supports [REFRAMED](<https://github.com/cdanielmachado/reframed>) and [COBRApy](<https://opencobra.github.io/cobrapy/>) phenotype simulators integrating both in a common API which enables different methods (FBA pFBA, ROOM, MOMA, lMOMA, rFBA, srFBA and FVA). The optimization engine relies on either [inspyred](<https://github.com/aarongarrett/inspyred>) or [jMetalPy](<https://github.com/jMetal/jMetalPy>) packages, which are used for creating biologically-inspired computational intelligence algorithms in Python. MEWPy requires a compatible solver for linear programming problems, with installed Python dependencies installed, from the following list:
+- Flux Balance Analysis (FBA)
+- Parsimonious Flux Balance Analysis (pFBA)
+- Regulatory On/Off Minimization of metabolic flux (ROOM)
+- Minimization of Metabolic Adjustment (MOMA)
+- linear version of the Minimization of Metabolic Adjustment (lMOMA)
+- Flux Variability Analysis (FVA). 
+
+MEWpy also includes implementations of the regulatory FBA (rFBA) and of the Steady-state rFBA (srFBA). The optimization engine relies on either [Inspyred](<https://github.com/aarongarrett/inspyred>) or [jMetalPy](<https://github.com/jMetal/jMetalPy>) packages. MEWPy requires a compatible solver for linear programming problems, with installed Python dependencies installed, from the following list:
 
 
 * [CPLEX](<https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/>) (preferred)

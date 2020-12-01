@@ -111,10 +111,6 @@ class Simulation(CBModelContainer, Simulator):
             raise ValueError(
                 "Model is None or is not an instance of REFRAMED CBModel")
         self.model = model
-        try:
-            self.objective = self.model.get_objective() if objective is None else objective
-        except Exception:
-            self.objective = None
         self.environmental_conditions = OrderedDict() if envcond is None else envcond
         self.constraints = OrderedDict() if constraints is None else constraints
         self.solver = solver
@@ -136,6 +132,24 @@ class Simulation(CBModelContainer, Simulator):
             s_status.UNKNOWN: SStatus.UNKNOWN,
             s_status.SUBOPTIMAL: SStatus.SUBOPTIMAL
         }
+
+
+    @property
+    def objective(self):
+        return self.model.get_objective()
+    
+    @objective.setter
+    def objective(self,objective):
+        a = self.model.get_objective()
+        d = {k:0 for k in a}
+        if isinstance(objective,str):
+            d[objective]=1
+        elif isinstance(objective,dict):
+            d.update(objective)
+        else:
+            raise ValueError('The objective must be a reaction identifier or a dictionary of reaction identifier with respective coeficients.')
+        
+        self.model.set_objective(d)
 
     @property
     def reference(self):
@@ -480,7 +494,7 @@ class Simulation(CBModelContainer, Simulator):
         a_solver = solver
 
         if not objective:
-            objective = self.objective
+            objective = self.model.get_objective()
 
         simul_constraints = OrderedDict()
         if constraints:
@@ -557,7 +571,7 @@ class Simulation(CBModelContainer, Simulator):
                                   simul_constraints=constraints, maximize=maximize)
         return result
 
-    def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None):
+    def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None, format='dict'):
         """ Flux Variability Analysis (FVA).
 
         :param model: An instance of a constraint-based model.
@@ -567,17 +581,25 @@ class Simulation(CBModelContainer, Simulator):
         :param boolean loopless: Run looplessFBA internally (very slow) (default: false).
         :param list internal: List of internal reactions for looplessFBA (optional).
         :param solver: A pre-instantiated solver instance (optional)
+        :param format: The return format: 'dict', returns a dictionary,'df' returns a data frame.
         :returns: A dictionary of flux variation ranges.
 
         """
         _constraints = {}
-        if constraints:
-            _constraints.update(constraints)
         if self.environmental_conditions:
             _constraints.update(self.environmental_conditions)
+        if constraints:
+            _constraints.update(constraints)
         from reframed.cobra.variability import FVA
-        return FVA(self.model, obj_frac=obj_frac, reactions=reactions,
+        res = FVA(self.model, obj_frac=obj_frac, reactions=reactions,
                    constraints=_constraints, loopless=loopless, internal=internal, solver=solver)
+        if format=='df':
+            import pandas as pd
+            e = res.items()
+            f = [[a,b,c] for  a,[b,c] in e]
+            df = pd.DataFrame(f,columns = ['Reaction ID','Minimum','Maximum'])
+            return df
+        return res
 
 
 class GeckoSimulation(Simulation):

@@ -12,8 +12,10 @@ MEWpy's documentation
    
    main.md
    install.md
-   example.md
+   simulation.md
+   optimization.md
    evaluation.md
+   problems.md
    options.md
    modules
 

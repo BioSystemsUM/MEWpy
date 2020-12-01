@@ -10,16 +10,12 @@ The maximization of the Biomass-Product Coupled Yield is one of the most commonl
 
 ![](<https://latex.codecogs.com/svg.latex?BPCY=Product\times%20Growth>) 
 
-
-
 ```python
 from mewpy.optimization.evaluation import BPCY
 fevaluation = BPCY(biomass_reaction_id,product_reaction_id)
 ```
 
 By default, MEWPy computes reaction yields using *pFBA*. This may thought be altered by defining an alternative phenotype simulation method, such as *lMOMA*.
-
-
 
 ```python
 fevaluation = BPCY(biomass_reaction_id,product_reaction_id,method ='lMOMA')
@@ -49,7 +45,7 @@ from mewpy.optimization.evaluation import WYIELD
 fevaluation = WYIELD(<biomass_reaction_id>,<product_reaction_id>)
 ```
 
-The trade-off parameter is by default set to 0.3. However it may be altered by adding a new parameter in the class instantiation, for example,  `alpha=0.5`.
+The trade-off parameter is by default set to 0.3. However it may be altered by adding a new parameter when instantiating the class, for example,  `alpha=0.5`.
 
 ```python
 fevaluation = WYIELD(<biomass_reaction_id>,<product_reaction_id>,alpha=0.5)
@@ -74,7 +70,7 @@ fevaluation = BPCY_FVA(<biomass_reaction_id>,<product_reaction_id>,uptake=<subst
 
 As in BPCY, the substrate is optional and fluxes may be obtained using different phenotype simulation methods.
 
-This objective function is based on a  proposal from "*OptRAM*: *In-silico* strain design via integrative regulatory-metabolic network modeling" where the additional factor to BPCY favors solutions with a smaller gap betweem the product minimum an maximum FVA.
+This objective function is based on a  proposal from "*OptRAM*: *In-silico* strain design via integrative regulatory-metabolic network modeling" where the additional factor to BPCY favors solutions with a smaller gap between the product minimum an maximum FVA.
 
 
 
@@ -93,12 +89,12 @@ fevaluation = TargetFlux(<product_reaction_id>)
 
 Although problems definition allows for setting a maximum number of modifications, and solutions from the final population may be automatically simplified to remove unnecessary modifications, the minimization of the number of perturbations can be set as an additional optimization objective.  
 
-
-
 ```python
 from mewpy.optimization.evaluation import MinCandSize
 fevaluation =  MinCandSize()
 ```
+
+
 
 **Modification type**
 

@@ -157,6 +157,12 @@ class SimulationResult(object):
     def __str__(self):
         return "objective: {}\nStatus: {}".format(self.objective_value, self.status)
 
+    @property
+    def data_frame(self):
+        import pandas as pd
+        df = pd.DataFrame(list(self.fluxes.items()),columns = ['Reaction ID','Flux'])
+        return df
+
     def get_net_conversion(self, biomassId=None):
         """Returns a string representation of the net conversion.
 
