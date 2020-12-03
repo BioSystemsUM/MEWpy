@@ -1,5 +1,5 @@
 """
-CB model optimization test Set of using inspyred EA module
+CB model optimization test set that use the JMetalPy EA module
 """
 from mewpy.simulation import SimulationMethod, get_simulator
 from mewpy.optimization.evaluation import WYIELD, BPCY, ModificationType
@@ -16,9 +16,14 @@ set_default_engine('jmetal')
 
 
 def load_ec():
-    # E. Coli
+    """Loads a configuration for optimizations on E.coli model iJO1366SL, 
+    including the model, environmental conditions, non targets for modifications,
+    the biomass equation ID, and wild type reference flux values.
+
+    Returns: A dictionary constaining the configuration. 
+    """
     DIR = os.path.dirname(os.path.realpath(__file__))
-    PATH = os.path.join(DIR, '../../../examples/models/ec/')
+    PATH = os.path.join(DIR, '../models/ec/')
     DATA_FILE = os.path.join(PATH, "iJO1366SL.xml")
     NON_TARGET_FILE = os.path.join(
         PATH, "nontargets#RK#iJO1366SL#[lim-aerobic#glucose].txt")
@@ -51,9 +56,14 @@ def load_ec():
 
 
 def load_ec2():
-    # E. Coli
+    """Loads a configuration for optimizations on E.coli model iML1515, 
+    including the model, environmental conditions, non targets for modifications,
+    the biomass equation ID, and wild type reference flux values.
+
+    Returns: A dictionary constaining the configuration. 
+    """
     DIR = os.path.dirname(os.path.realpath(__file__))
-    PATH = os.path.join(DIR, '../../../examples/models/ec/')
+    PATH = os.path.join(DIR, '../models/ec/')
     DATA_FILE = os.path.join(PATH, "iML1515.xml")
     NON_TARGET_FILE = os.path.join(
         PATH, "nontargets#RK#iJO1366SL#[lim-aerobic#glucose].txt")
@@ -89,9 +99,14 @@ def load_ec2():
 
 
 def load_yeast():
-    # Yeast
+    """Loads a configuration for optimizations on yeast model iMM904SL_v6, 
+    including the model, environmental conditions, non targets for modifications,
+    the biomass equation ID, and wild type reference flux values.
+
+    Returns: A dictionary constaining the configuration. 
+    """
     DIR = os.path.dirname(os.path.realpath(__file__))
-    PATH = os.path.join(DIR, '../../../examples/models/yeast/')
+    PATH = os.path.join(DIR, '../models/yeast/')
     DATA_FILE = os.path.join(PATH, "iMM904SL_v6.xml")
     BIOMASS_ID = 'R_biomass_SC5_notrace'
     O2 = 'R_EX_o2_e_'
@@ -115,13 +130,22 @@ def load_yeast():
 
 
 def cb_ou(product, chassis='ec', display=False, filename=None):
-    "CBModel Reaction KO SO example"
-    if chassis == 'ec':
-        conf = load_ec()
+    """Defines and run a gene over/under expression problem.
+
+    Args:
+        product (str): the ID of the compound reaction exchange to be optimized
+        chassis (str, optional): The chassis, 'ec'(E.coli iJO1366Sl) , 'ec2' (E.coli iML1515) or 'ys' (yeast). Defaults to 'ec'.
+        display (bool, optional): [description]. Defaults to False.
+        filename ([type], optional): [description]. Defaults to None.
+    """
+    
+        
+    if chassis == 'ec2':
+        conf = load_ec2()
     elif chassis == 'ys':
         conf = load_yeast()
     else:
-        raise ValueError
+        conf = load_ec()
 
     BIOMASS_ID = conf['biomass']
     PRODUCT_ID = product
@@ -156,7 +180,14 @@ def cb_ou(product, chassis='ec', display=False, filename=None):
 
 
 def cb_ko(product, chassis='ec', display=False, filename=None):
-    "CBModel Reaction KO SO example"
+    """Defines and run a gene deletion problem.
+
+    Args:
+        product (str): the ID of the compound reaction exchange to be optimized
+        chassis (str, optional): The chassis, 'ec'(E.coli iJO1366Sl) , 'ec2' (E.coli iML1515) or 'ys' (yeast). Defaults to 'ec'.
+        display (bool, optional): [description]. Defaults to False.
+        filename ([type], optional): [description]. Defaults to None.
+    """
     if chassis == 'ec':
         conf = load_ec()
     elif chassis == 'ys':
@@ -198,34 +229,29 @@ if __name__ == '__main__':
                     "PHE": "R_EX_phe_DASH_L_LPAREN_e_RPAREN_",
                     "TRP": "R_EX_trp_DASH_L_LPAREN_e_RPAREN_"}
 
-    #compounds_EC = {"TYR": "R_EX_tyr__L_e"}
-    compounds_YS = {# "PHE": "R_EX_phe_L_e_",
-                    "TYR": "R_EX_tyr_L_e_"
-                    # "TRY": "R_EX_trp_L_e_"
+    compounds_YS = { "PHE": "R_EX_phe_L_e_",
+                     "TYR": "R_EX_tyr_L_e_",
+                     "TRY": "R_EX_trp_L_e_"
                    }
 
-    """
+    
     for k, v in compounds_EC.items():
         for i in range(RUNS):
             millis = int(round(time() * 1000))
             cb_ko(v, filename="CBMODEL_{}_KO_{}.csv".format(k, millis))
-    """
+    
     for k, v in compounds_EC.items():
         for i in range(RUNS):
             millis = int(round(time() * 1000))
             cb_ou(v, filename="CBMODEL_{}_OU_{}.csv".format(k, millis))
-    """
+    
     for k, v in compounds_YS.items():
         for i in range(RUNS):
             millis = int(round(time() * 1000))
             cb_ko(v, chassis='ys', filename="CBMODEL_{}_KO_{}.csv".format(k, millis))
-    """
-
-    
-    """
-    EAConstants.DEBUG = True
+        
     for k, v in compounds_EC.items():
         for i in range(RUNS):
             millis = int(round(time() * 1000))
             cb_ou(v, chassis='ec', filename="CBMODEL_{}_OU_{}_.csv".format(k, millis))
-    """
+

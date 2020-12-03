@@ -1,5 +1,9 @@
 """
 EA comparison
+
+Allows to evaluate and compare the performance of distinct MOEAs on solving a CSO problem.
+In this particular case, the problem consists on finding modifications on enzymatic constraints
+that improve the production of L-tyrosine in yeast.
 """
 from jmetal.algorithm.multiobjective.nsgaiii import NSGAIII, UniformReferenceDirectionFactory
 from jmetal.algorithm.multiobjective.nsgaii import NSGAII
@@ -20,6 +24,15 @@ N_CPU = 2
 
 
 def configure_experiment(problems: dict, n_run: int):
+    """Configures the experiments
+
+    Args:
+        problems (dict): The MEWpy optimization problem
+        n_run (int): the number of runs of each MOEA
+
+    Returns:
+        a list of jobs
+    """
 
     from mewpy.optimization.jmetal.operators import UniformCrossoverOU, GrowMutationOU, ShrinkMutation,SingleMutationOU, MutationContainer
     crossover = UniformCrossoverOU(0.5,max_size=candidate_max_size)

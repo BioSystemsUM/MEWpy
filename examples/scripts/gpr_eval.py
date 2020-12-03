@@ -1,14 +1,22 @@
+"""
+Simple examples/tests for GPR evaluation
+"""
 from mewpy.utils.parsing import build_tree, BooleanEvaluator, Boolean, GeneEvaluator, Arithmetic, ArithmeticEvaluator
 
 
 def test_0():
-    # aritmetic example
+    """
+    Example on how to evaluate aritmetic expressions
+    """
     t = build_tree(" 1 + 2 + 3 + ( 2 * 2 )", Arithmetic)
     res = t.evaluate(ArithmeticEvaluator.f_operand, ArithmeticEvaluator.f_operator)
     print(t, ' = ', res)
 
 
 def test_1():
+    """
+    Example on how to evaluate Boolean expressions containing conditions
+    """
     # boolean example with conditions
     expression = "( (Lrp AND NOT (leu_L_e_>0)) OR NOT(((GlnG AND GlnB AND GlnD) AND RpoN) AND ((glu_L_e_>0) OR (arg_L_e_>0) OR (asp_L_e_>0) OR (his_L_e_>0) OR (pro_L_e_>0) )))"
     # expression = " (x > 0 or C or B) and not ph == 5 "
@@ -31,6 +39,8 @@ def test_1():
 
 
 def test_2():
+    """Example of evaluation of RECON1 GPRs
+    """
     from urllib.request import urlretrieve
     from cobra.io import read_sbml_model
     import random
@@ -60,6 +70,9 @@ def test_2():
 
 
 def test_3():
+    """
+    Example on how to evaluate the over/under expression of genes using a GPR
+    """
     # Gene OU example
     gpr = "((G_YIL043C and G_YMR015C and G_YNL111C) or (G_YKL150W and G_YMR015C and G_YNL111C))"
     genes = {'G_YER091C': 0, 'G_YMR105C': 0.03125, 'G_YNL117W': 0.5, 'G_YNL111C': 0.125, 'G_YJR158W': 0.0625,
@@ -74,7 +87,7 @@ def test_3():
 
 if __name__ == '__main__':
     test_2()
-    # print()
-    # test_2()
-    # print()
-    # test_3()
+    print()
+    test_2()
+    print()
+    test_3()

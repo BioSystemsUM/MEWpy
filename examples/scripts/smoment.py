@@ -12,7 +12,7 @@ def test1(compound = 'R_EX_tyr__L_e'):
     
     """
     DIR = os.path.dirname(os.path.realpath(__file__))
-    PATH = os.path.join(DIR, '../../../examples/models/autopacmen/')
+    PATH = os.path.join(DIR, '../models/autopacmen/')
     DATA_FILE = os.path.join(PATH, "iJO1366_2019_06_25_GECKO.xml")
 
     model = SMomentModel(DATA_FILE, enzyme_reaction_prefix='R__TG_ER_')
@@ -70,16 +70,12 @@ def test2(compoud = 'R_EX_tyr__L_e',filename = None):
 
     """
     DIR = os.path.dirname(os.path.realpath(__file__))
-    PATH = os.path.join(DIR, '../../../examples/models/autopacmen/')
+    PATH = os.path.join(DIR, '../models/autopacmen/')
     DATA_FILE = os.path.join(PATH, "iJO1366_sMOMENT_2019_06_25.xml")
     from reframed.io.sbml import load_cbmodel
     model = load_cbmodel(DATA_FILE)
     
-    #from cobra.io import read_sbml_model
-    #model = read_sbml_model(DATA_FILE)
-    # increases the enzyme pool upper bound
-    #model.reactions.get_by_id('R_ER_pool_TG_').upper_bound = 1
-
+    
     sim = get_simulator(model)
     s = sim.simulate()
     print(s)
@@ -90,15 +86,7 @@ def test2(compoud = 'R_EX_tyr__L_e',filename = None):
     fva = sim.FVA(reactions=['R_ER_pool_TG_'])
     print(fva)
     
-    #for r_id, reaction in model.reactions.items():
-    #    if reaction.gpr:
-    #        print(str(reaction.gpr))
-
-    #for rx in model.reactions:
-    #        reaction = model.reactions.get_by_id(rx.id)
-    #        if reaction.gene_reaction_rule:
-    #           print(str(reaction.gene_reaction_rule))
-        
+           
 
     # implements a knockout over genes that encode enzymes
     BIOMASS_ID = 'R_BIOMASS_Ec_iJO1366_WT_53p95M'

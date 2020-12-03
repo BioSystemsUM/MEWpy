@@ -80,6 +80,8 @@ def simulation_three():
 
 
 def test_basic_gecko_adjustment():
+    """Tests basic adjustments
+    """
     in_model = {'P00549': 0.1, 'P31373': 0.1, 'P31382': 0.1, 'P39708': 0.1, 'P39714': 0.1, 'P39726': 0.1, 'Q01574': 0.1}
     not_in_model = {'P10591': 0.1, 'P31383': 0.1, 'P32471': 0.1}
     measurements = pd.concat([pd.Series(in_model), pd.Series(not_in_model)])
@@ -95,7 +97,7 @@ def test_basic_gecko_adjustment():
 
 
 def test_gecko_adjustment_sanchez_etal():
-    mmol_gdw = pd.read_csv(os.path.join(os.path.dirname(__file__), '../model/data/sanchez-mmol_gdw.csv'))
+    mmol_gdw = pd.read_csv(os.path.join(os.path.dirname(__file__), '../../src/mewpy/model/data/sanchez-mmol_gdw.csv'))
     PROTEIN_PROPERTIES = ModelList().protein_properties()
     ggdw = pd.Series(PROTEIN_PROPERTIES.loc[mmol_gdw.index, 'mw'] / 1000.) * pd.Series(mmol_gdw)
     model = GeckoModel('multi-pool')
@@ -172,7 +174,7 @@ def simulation_four():
 def gecko_ec():
     import os
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    PATH = os.path.join(dir_path, '../../../examples/models/gecko/')
+    PATH = os.path.join(dir_path, '../models/gecko/')
     DATA_FILE = os.path.join(PATH, 'eciML1515_batch.xml')
     from reframed.io.sbml import load_cbmodel
     m = load_cbmodel(DATA_FILE)

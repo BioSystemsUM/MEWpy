@@ -7,6 +7,10 @@ import os
 
 
 def test():
+    """ An example on to use OptRAM optimization problems to find
+    regulatory modification for the increased production of tryptophan.
+    
+    """
     dir_path = os.path.dirname(os.path.realpath(__file__))
     PATH = os.path.join(dir_path, '../../../examples/models/optram/')
     gene_file = os.path.join(PATH, 'mgene.csv')
@@ -22,8 +26,6 @@ def test():
 
     # adds the prefix 'G_' to genes. Only for REFRAMED models
     regnet = load_optram(gene_file, ft_file, matrix_file, gene_prefix='G_')
-    #from cobra.io import read_sbml_model
-    #model = read_sbml_model(model_file)
     
     # the general objective is to maximize the target
     from reframed.io.sbml import load_cbmodel
@@ -37,11 +39,11 @@ def test():
     problem = OptRamProblem(model, [evaluator_1, evaluator_2],
                             regnet, envcond = envcond, candidate_min_size=10, candidate_max_size=30)
 
-    #print(problem.target_list)
-    #print("\n\n")
-    #print(problem.simulator.genes)    
-    #print("\n\n")
-    #print(set(problem.target_list).intersection(set(problem.simulator.genes)))
+    print('Target List:',problem.target_list)
+    print("\n\n")
+    print('Metabolic Genes',problem.simulator.genes)    
+    print("\n\n")
+    
 
 
     ea = EA(problem, max_generations=3, mp=True)

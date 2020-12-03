@@ -1,24 +1,31 @@
+'''
+Simple example/tests for loading models
+'''
+
 from mewpy.simulation import get_simulator
 import os
 
 
 def load_reframed():
-
+    """
+    Loads a model with REFRAMED
+    """
     DIR = os.path.dirname(os.path.realpath(__file__))
-    PATH = os.path.join(DIR, '../../../examples/models/optram/')
+    PATH = os.path.join(DIR, '../models/optram/')
     DATA_FILE = os.path.join(PATH, "yeast_7.6-optram.xml")
 
     from reframed.io.sbml import load_cbmodel
     model = load_cbmodel(DATA_FILE, flavor='cobra')
     model.summary()
     simul = get_simulator(model)
-    # int(simul.reactions)
-
+    simul.summary()
+   
 
 def load_ec_gecko():
-
+    """ Loads a GECKO like model from AUTOPACMEN
+    """
     DIR = os.path.dirname(os.path.realpath(__file__))
-    PATH = os.path.join(DIR, '../../../examples/models/autopacmen/')
+    PATH = os.path.join(DIR, '../models/autopacmen/')
     DATA_FILE = os.path.join(PATH, "iJO1366_2019_06_25_GECKO.xml")
 
     from mewpy.model.gecko import GeckoModel
@@ -35,9 +42,10 @@ def load_ec_gecko():
 
 
 def load_cobra():
-
+    """Load a model using COBRApy
+    """
     DIR = os.path.dirname(os.path.realpath(__file__))
-    PATH = os.path.join(DIR, '../../../examples/models/optram/')
+    PATH = os.path.join(DIR, '../models/optram/')
     DATA_FILE = os.path.join(PATH, "yeast_7.6-optram.xml")
 
     from cobra.io import read_sbml_model
@@ -47,6 +55,8 @@ def load_cobra():
 
 
 def load_gecko():
+    """Loads yeast GECKO model using REFRAMED
+    """
     from mewpy.model.gecko import GeckoModel
     model = GeckoModel('single-pool')
     simul = get_simulator(model)
