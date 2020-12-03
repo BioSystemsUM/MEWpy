@@ -175,11 +175,11 @@ class Node(object):
             tabs += "\t"
         if self.is_leaf():
             if self.value != EMPTY_LEAF:
-                print(tabs, f"|____ \033[1;31m{self.value}\033[0;0m")
+                print(tabs, f"|____{self.value}")
             else:
                 pass
         else:
-            print(tabs, f"|____[\033[;1m\033[94m{self.value}\033[0;0m]")
+            print(tabs, f"|____{self.value}")
         if self.left is not None:
             self.left.print_node(level + 1)
         if self.right is not None:
