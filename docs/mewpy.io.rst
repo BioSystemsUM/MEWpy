@@ -36,7 +36,6 @@ mewpy.io.tabular module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

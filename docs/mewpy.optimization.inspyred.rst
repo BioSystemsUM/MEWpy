@@ -36,7 +36,6 @@ mewpy.optimization.inspyred.problem module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

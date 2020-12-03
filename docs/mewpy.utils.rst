@@ -20,10 +20,10 @@ mewpy.utils.crossmodel module
    :undoc-members:
    :show-inheritance:
 
-mewpy.utils.ode module
-----------------------
+mewpy.utils.graph module
+------------------------
 
-.. automodule:: mewpy.utils.ode
+.. automodule:: mewpy.utils.graph
    :members:
    :undoc-members:
    :show-inheritance:
@@ -51,7 +51,6 @@ mewpy.utils.utilities module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

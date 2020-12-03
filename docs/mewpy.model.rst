@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    mewpy.model.data
 
@@ -19,14 +20,6 @@ mewpy.model.gecko module
    :undoc-members:
    :show-inheritance:
 
-mewpy.model.kinetic module
---------------------------
-
-.. automodule:: mewpy.model.kinetic
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 mewpy.model.smoment module
 --------------------------
 
@@ -34,7 +27,6 @@ mewpy.model.smoment module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

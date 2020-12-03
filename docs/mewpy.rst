@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    mewpy.io
    mewpy.model
@@ -12,7 +13,6 @@ Subpackages
    mewpy.problems
    mewpy.regulation
    mewpy.simulation
-   mewpy.unittests
    mewpy.utils
    mewpy.visualization
 
