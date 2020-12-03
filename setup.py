@@ -10,7 +10,7 @@ with open('README.rst') as readme_file:
 
 setup(
     name='mewpy',
-    version='0.1.1',
+    version='0.1.2',
     package_dir={'': 'src'},
     packages=find_packages('src'),
     package_data={"": ["*.xml", "*.csv", "*.txt"], 'mewpy': files},
