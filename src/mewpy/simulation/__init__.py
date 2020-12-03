@@ -1,5 +1,70 @@
 from enum import Enum
 
+solvers = []
+
+try:
+    import gurobipy
+    solvers.append('gurobi')
+except ImportError:
+    pass
+
+
+try:
+    import cplex
+    solvers.append('cplex')
+except ImportError:
+    pass
+
+try:
+    import swiglpk
+    solvers.append('glpk')
+except ImportError:
+    pass
+
+
+default_solver = None
+
+
+def get_default_solver():
+    """ 
+    Returns:
+        [type]: [description]
+    """
+    global default_solver
+
+    if default_solver:
+        return default_solver
+
+    solver_order = ['gurobi','cplex', 'glpk']
+
+    for solver in solver_order:
+        if solver in solvers:
+            default_solver = solver
+            break
+
+    if not default_solver:
+        raise RuntimeError("No solver available.")
+
+    return default_solver
+
+
+def set_default_solver(solvername):
+    """ Sets default solver.
+    Arguments:
+        solvername : (str) solver name (currently available: 'gurobi', 'cplex')
+    """
+
+    global default_solver
+
+    if solvername.lower() in solvers:
+        default_solver = solvername.lower()
+    else:
+        raise RuntimeError(f"Solver {solvername} not available.")
+
+
+
+
+
 # Model specific simulators mapping:
 # Entries take the form:  full_model_class_path -> (simulator_path, simulator_class_name)
 # TODO: use qualified names

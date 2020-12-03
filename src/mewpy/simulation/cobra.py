@@ -4,13 +4,14 @@ Simulation for COBRApy models
 from cobra.core.model import Model
 from cobra.core.solution import Solution
 from cobra.flux_analysis import pfba, moma, room
-from mewpy.simulation import SimulationMethod, SStatus
-from mewpy.simulation.simulation import Simulator, SimulationResult, ModelContainer
 from mewpy.utils.constants import ModelConstants
 from mewpy.utils.parsing import evaluate_expression_tree
+from . import get_default_solver, SimulationMethod, SStatus
+from .simulation import Simulator, SimulationResult, ModelContainer
 from collections import OrderedDict
 import numpy as np
 import logging
+
 
 
 LOGGER = logging.getLogger(__name__)
@@ -89,6 +90,7 @@ class Simulation(CobraModelContainer, Simulator):
             raise ValueError("Model is incompatible or inexistent")
 
         self.model = model
+        self.model.solver = get_default_solver()
         if objective:
             self.objective = objective
         self.environmental_conditions = OrderedDict() if envcond is None else envcond
