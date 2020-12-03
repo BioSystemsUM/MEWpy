@@ -31,9 +31,9 @@ def optorf_imc():
     from mewpy.simulation.reframed import Simulation
 
     DIR = os.path.dirname(os.path.realpath(__file__))
-    cbm_model_f = os.path.join(DIR,"../../../examples/models/regulation/iJR904_srfba.xml")
-    reg_model_f = os.path.join(DIR,'../../../examples/models/regulation/imc1010_v6.csv')
-    aliases_f = os.path.join(DIR,'../../../examples/models/regulation/imc1010_rfba_aliases.csv')
+    cbm_model_f = os.path.join(DIR,"../models/regulation/iJR904_srfba.xml")
+    reg_model_f = os.path.join(DIR,'../models/regulation/imc1010_v6.csv')
+    aliases_f = os.path.join(DIR,'../models/regulation/imc1010_rfba_aliases.csv')
     # env_cond_f = "../../../examples/models/regulation/imc1010_env_cond.xlsx"
 
     _BIOMASS_ID = 'R_BiomassEcoli'
@@ -100,8 +100,8 @@ def optorf_ec():
     from mewpy.simulation.cobra import Simulation
 
     DIR = os.path.dirname(os.path.realpath(__file__))
-    reg_model_f = os.path.join(DIR,'../../../examples/models/regulation/core_TRN_v2.csv')
-    aliases_f = os.path.join(DIR,'../../../examples/models/regulation/core_TRN_rfba_aliases.csv')
+    reg_model_f = os.path.join(DIR,'../models/regulation/core_TRN_v2.csv')
+    aliases_f = os.path.join(DIR,'../models/regulation/core_TRN_rfba_aliases.csv')
 
     _BIOMASS_ID = 'Biomass_Ecoli_core'
     _O2 = 'EX_o2_e'

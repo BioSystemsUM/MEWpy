@@ -19,8 +19,8 @@ def sample_network():
     from mewpy.simulation.cobra import Simulation
 
     DIR = os.path.dirname(os.path.realpath(__file__)) 
-    cbm_model_f = os.path.join(DIR,'../../../examples/models/regulation/SampleNet.xml')
-    reg_model_f = os.path.join(DIR,'../../../examples/models/regulation/SampleRegNet.csv')
+    cbm_model_f = os.path.join(DIR,'../models/regulation/SampleNet.xml')
+    reg_model_f = os.path.join(DIR,'../models/regulation/SampleRegNet.csv')
 
     _BIOMASS_ID = 'r11'
 
@@ -108,8 +108,8 @@ def cobra_ecoli_core_model():
     from mewpy.simulation.cobra import Simulation
 
     DIR = os.path.dirname(os.path.realpath(__file__))
-    reg_model_f = os.path.join(DIR,'../../../examples/models/regulation/core_TRN_v2.csv')
-    aliases_f = os.path.join(DIR,'../../../examples/models/regulation/core_TRN_srfba_aliases.csv')
+    reg_model_f = os.path.join(DIR,'../models/regulation/core_TRN_v2.csv')
+    aliases_f = os.path.join(DIR,'../models/regulation/core_TRN_srfba_aliases.csv')
 
     _BIOMASS_ID = 'Biomass_Ecoli_core'
     _O2 = 'EX_o2_e'
@@ -203,9 +203,9 @@ def framed_imc1010_model():
     from mewpy.simulation.reframed import Simulation
 
     DIR = os.path.dirname(os.path.realpath(__file__))
-    cbm_model_f = os.path.join(DIR,"../../../examples/models/iJR904_srfba.xml")
-    reg_model_f = os.path.join(DIR,'../../../examples/models/regulation/imc1010_v6.csv')
-    aliases_f = os.path.join(DIR,'../../../examples/models/regulation/imc1010_srfba_aliases.csv')
+    cbm_model_f = os.path.join(DIR,"../models/iJR904_srfba.xml")
+    reg_model_f = os.path.join(DIR,'../models/regulation/imc1010_v6.csv')
+    aliases_f = os.path.join(DIR,'../models/regulation/imc1010_srfba_aliases.csv')
 
     _BIOMASS_ID = 'R_BiomassEcoli'
     _O2 = 'R_EX_o2_e'
