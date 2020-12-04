@@ -1,7 +1,7 @@
 """
 Simple examples/tests for GPR evaluation
 """
-from mewpy.utils.parsing import build_tree, BooleanEvaluator, Boolean, GeneEvaluator, Arithmetic, ArithmeticEvaluator
+from mewpy.util.parsing import build_tree, BooleanEvaluator, Boolean, GeneEvaluator, Arithmetic, ArithmeticEvaluator
 
 
 def test_0():

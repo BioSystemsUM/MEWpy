@@ -1,7 +1,7 @@
 from mewpy.model.smoment import SMomentModel
 from mewpy.simulation import get_simulator
 from mewpy.problems import GeckoOUProblem
-from mewpy.utils.utilities import population_to_csv
+from mewpy.util.utilities import population_to_csv
 import os
 
 

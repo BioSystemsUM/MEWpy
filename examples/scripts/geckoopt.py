@@ -12,7 +12,7 @@ from mewpy.simulation.simulation import SimulationResult
 from mewpy.problems.gecko import GeckoKOProblem, GeckoOUProblem
 from mewpy.optimization.evaluation import BPCY, WYIELD, TargetFlux
 from mewpy.optimization import EA, set_default_engine
-import mewpy.utils.utilities as utl
+from mewpy.util.io import population_to_csv
 from collections import OrderedDict
 from time import time
 
@@ -74,7 +74,7 @@ def ec_gecko_ko(compound, display=False, filename=None):
     # save final population to file
     if filename:
         print("Simplifying and saving solutions to file")
-        utl.population_to_csv(problem, final_pop, filename, simplify=False)
+        population_to_csv(problem, final_pop, filename, simplify=False)
     
 
 def ec_gecko_ou(compound, display=False, filename=None):
@@ -134,7 +134,7 @@ def ec_gecko_ou(compound, display=False, filename=None):
     # save final population to file
     if filename:
         print("Simplifying and saving solutions to file")
-        utl.population_to_csv(problem, final_pop, filename, simplify=False)
+        population_to_csv(problem, final_pop, filename, simplify=False)
 
 
 
@@ -181,7 +181,7 @@ def yeast_gecko_ko(compound, display=False, filename=None):
     # save final population to file
     if filename:
         print("Simplifying and saving solutions to file")
-        utl.population_to_csv(problem, final_pop, filename, simplify=False)
+        population_to_csv(problem, final_pop, filename, simplify=False)
 
 
 def yeast_gecko_ou(compound, display=False, filename=None):
@@ -227,7 +227,7 @@ def yeast_gecko_ou(compound, display=False, filename=None):
     # save final population to file
     if filename:
         print("Simplifying and saving solutions to file")
-        utl.population_to_csv(problem, final_pop, filename, simplify=False)
+        population_to_csv(problem, final_pop, filename, simplify=False)
 
 
 

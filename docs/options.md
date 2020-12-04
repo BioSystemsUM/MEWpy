@@ -11,7 +11,7 @@ MEWpy makes available a large set of options, some being globally defined in *me
 By default, MEWpy uses half of the available treads to run parallel evaluations.  However, a user may define the number of parallel threads by altering the *NUM_CPUS* constant in mewpy.util.constants:
 
 ```python
-from mewpy.utils.constants import EAConstants
+from mewpy.util.constants import EAConstants
 # uses 32 parallel threads
 EAConstants.NUM_CPUS = 32
 ```

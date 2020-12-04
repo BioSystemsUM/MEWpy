@@ -4,7 +4,7 @@ CB model optimization test set that use the JMetalPy EA module
 from mewpy.simulation import SimulationMethod, get_simulator
 from mewpy.optimization.evaluation import WYIELD, BPCY, ModificationType
 from mewpy.optimization import EA, set_default_engine
-import mewpy.utils.utilities as utl
+from mewpy.util.io import population_to_csv
 from collections import OrderedDict
 from reframed.io.sbml import load_cbmodel
 from time import time
@@ -176,7 +176,7 @@ def cb_ou(product, chassis='ec', display=False, filename=None):
 
     if filename:
         print("Simplifying and saving solutions to file")
-        utl.population_to_csv(problem, final_pop, filename, simplify=False)
+        population_to_csv(problem, final_pop, filename, simplify=False)
 
 
 def cb_ko(product, chassis='ec', display=False, filename=None):
@@ -218,7 +218,7 @@ def cb_ko(product, chassis='ec', display=False, filename=None):
 
     if filename:
         print("Simplifying and saving solutions to file")
-        utl.population_to_csv(problem, final_pop, filename, simplify=False)
+        population_to_csv(problem, final_pop, filename, simplify=False)
 
 
 if __name__ == '__main__':
