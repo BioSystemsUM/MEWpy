@@ -112,7 +112,7 @@ class AbstractProblem(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def translate(self, candidate, reverse=False):
+    def encode(self, candidate):
         """The generator function for the problem."""
         raise NotImplementedError
 
@@ -235,7 +235,7 @@ class AbstractProblem(ABC):
 
         """
 
-        values = self.translate(solution.values, reverse=True)
+        values = self.encode(solution.values)
         fitness = self.evaluate_solution(values)
         one_to_remove = {}
         # single removal
@@ -266,8 +266,8 @@ class AbstractProblem(ABC):
             is_equal = np.all(diff <= np.array(tolerance))
 
         if is_equal:
-            v = self.translate(simul_constraints)
-            c = self.decode(simul_constraints)
+            v = self.encode(simul_constraints)
+            c = self.solution_to_constraints(simul_constraints)
             simplification = Solution(v, fitness, c)
             return [simplification]
         else:
@@ -275,8 +275,8 @@ class AbstractProblem(ABC):
             for entry, fit in one_to_remove.items():
                 simul_constraints = copy.copy(values)
                 simul_constraints.remove(entry)
-                v = self.translate(simul_constraints)
-                c = self.decode(simul_constraints)
+                v = self.encode(simul_constraints)
+                c = self.solution_to_constraints(simul_constraints)
                 simplification = Solution(v, fitness, c)
                 res.append(simplification)
             return res
@@ -307,6 +307,15 @@ class AbstractKOProblem(AbstractProblem):
                     idx, len(self.target_list[idx])))
         return decoded
 
+    def encode(self, candidate):
+        """
+        Translates a candidate solution in problem specific representation to
+        an iterable of ids, or (ids, folds).
+
+        :param candidate: The candidate representation.
+        """
+        return [self.target_list.index(k) for k in candidate]
+
     def solution_to_constraints(self, decoded_candidate):
         """
         Converts a candidate, a dictionary of reactions, into a dictionary of constraints
@@ -323,7 +332,6 @@ class AbstractKOProblem(AbstractProblem):
             self._bounder = KOBounder(0, max)
         return self._bounder
 
-        
 
     def generator(self, random, args):
         """
@@ -336,20 +344,7 @@ class AbstractKOProblem(AbstractProblem):
             solution.add(random.randint(0, len(self.target_list)-1))
         return solution
 
-    def translate(self, candidate, reverse=False):
-        """
-        Translates a candidate solution in problem specific representation to
-        an iterable of ids, or (ids, folds).
-
-        :param candidate: The candidate representation.
-        :param boolean reverse: Performs a reverse translation.
-
-        """
-        if not reverse:
-            return {self.target_list[idx] for idx in candidate}
-        else:
-            return [self.target_list.index(k) for k in candidate]
-
+    
 
 
 class AbstractOUProblem(AbstractProblem):
@@ -385,6 +380,21 @@ class AbstractOUProblem(AbstractProblem):
             except IndexError:
                 raise IndexError("Index out of range")    
         return decoded
+
+
+    def encode(self, candidate):
+        """
+        Translates a candidate solution in problem specific representation to
+        an iterable of ids, or (ids, folds).
+
+        :param iterable candidate: The candidate representation.
+        :returns: a list of index tupple (modification_target_index,level_index). The indexes are
+                  problem dependent.
+        """
+        
+        return [(self.target_list.index(k), self.levels.index(lv))
+                for k, lv in candidate.items()]
+
 
     def solution_to_constraints(self, decoded_candidate):
         """
@@ -481,22 +491,5 @@ class AbstractOUProblem(AbstractProblem):
             constraints[ou_rxn] = self.ou_constraint(lv, fwt)
         return constraints
 
-    def translate(self, candidate, reverse=False):
-        """
-        Translates a candidate solution in problem specific representation to
-        an iterable of ids, or (ids, folds).
-
-        :param iterable candidate: The candidate representation.
-        :param boolean reverse: Performs the reverse translation.
-        :returns: If reverse, a list of index tupple (modification_target_index,level_index). The indexes are
-                  problem dependent.
-                  If not reverse, a dictionary of {modification_target: level}
-        """
-        if not reverse:
-            return {self.target_list[idx]: self.levels[lv_idx]
-                    for idx, lv_idx in candidate}
-        else:
-            return [(self.target_list.index(k), self.levels.index(lv))
-                    for k, lv in candidate.items()]
-
+    
    

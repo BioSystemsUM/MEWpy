@@ -607,10 +607,12 @@ class Simulation(CBModelContainer, Simulator):
 
 class GeckoSimulation(Simulation):
 
-    def __init__(self, model: GeckoModel, objective=None, envcond=None, constraints=None,  solver=None, reference=None):
+    def __init__(self, model: GeckoModel, objective=None, envcond=None, constraints=None,  solver=None, reference=None, protein_prefix=None):
         super(GeckoSimulation, self).__init__(
             model, objective, envcond, constraints, solver, reference)
+        self.protein_prefix = protein_prefix if protein_prefix else 'draw_prot_'
         self._essential_proteins = None
+        
 
     @property
     def proteins(self):
@@ -620,7 +622,7 @@ class GeckoSimulation(Simulation):
     def protein_rev_reactions(self):
         return self.model.protein_rev_reactions
 
-    def essential_proteins(self, protein_prefix, min_growth=0.01):
+    def essential_proteins(self, min_growth=0.01):
         if self._essential_proteins is not None:
             return self._essential_proteins
         wt_solution = self.simulate()
@@ -628,7 +630,7 @@ class GeckoSimulation(Simulation):
         self._essential_proteins = []
         proteins = self.model.proteins
         for p in proteins:
-            rxn = "{}{}".format(protein_prefix, p)
+            rxn = "{}{}".format(self.protein_prefix, p)
             res = self.simulate(constraints={rxn: 0})
             if res:
                 if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \

@@ -550,7 +550,7 @@ class GeckoSimulation(Simulation):
     Simulator for geckopy.gecko.GeckoModel
     """
 
-    def __init__(self, model, objective=None, envcond=None, constraints=None,  solver=None, reference=None):
+    def __init__(self, model, objective=None, envcond=None, constraints=None,  solver=None, reference=None, protein_prefix=None):
         try:
             from geckopy.gecko import GeckoModel
             if not isinstance(model, GeckoModel):
@@ -560,7 +560,7 @@ class GeckoSimulation(Simulation):
 
         super(GeckoSimulation, self).__init__(
             model, objective, envcond, constraints, solver, reference)
-        
+        self.protein_prefix = protein_prefix if protein_prefix else 'draw_prot_'
         self._essential_proteins = None
         self._protein_rev_reactions = None
 
@@ -568,7 +568,7 @@ class GeckoSimulation(Simulation):
     def proteins(self):
         return list(self.model.proteins)
 
-    def essential_proteins(self, protein_prefix, min_growth=0.01):
+    def essential_proteins(self, min_growth=0.01):
         if self._essential_proteins is not None:
             return self._essential_proteins
         wt_solution = self.simulate()
@@ -576,7 +576,7 @@ class GeckoSimulation(Simulation):
         self._essential_proteins = []
         proteins = self.model.proteins
         for p in proteins:
-            rxn = "{}{}".format(protein_prefix, p)
+            rxn = "{}{}".format(self.protein_prefix, p)
             res = self.simulate(constraints={rxn: 0})
             if res:
                 if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) or \

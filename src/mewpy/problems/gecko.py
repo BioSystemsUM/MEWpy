@@ -37,6 +37,7 @@ class GeckoKOProblem(AbstractKOProblem):
         #    raise Exception("The model should be an instance of GeckoModel")
         # problem simulation context
         self.prot_prefix = kwargs.get('prot_prefix', 'draw_prot_')
+        self.simulator.prot_prefix = self.prot_prefix
 
     def _build_target_list(self):
         """
