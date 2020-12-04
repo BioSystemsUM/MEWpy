@@ -47,6 +47,7 @@ class TestRKOP(unittest.TestCase):
         solution = self.problem.decode(candidate)
         constraints = self.problem.solution_to_constraints(solution)
         self.problem.simulator.simulate(constraints=constraints)
+    
 
 
 class TestROUP(TestRKOP):
@@ -76,14 +77,14 @@ class TestGOUP(TestRKOP):
         self.problem = GOUProblem(model,[])
         
 
-class test_OptRAM(TestRKOP):
+class TestOptRAM(TestRKOP):
 
     def setUp(self):
         from mewpy.regulation.optram import OptRAMRegModel, OptRamProblem, load_optram
         regnet = load_optram(OPTRAM_GENES, OPTRAM_TFS, OPTRAM_REGNET, gene_prefix='G_')
         from reframed.io.sbml import load_cbmodel
         model = load_cbmodel(OPTRAM_MODEL)
-        self.problem = OptRamProblem(model, [],regnet)
+        self.problem = OptRamProblem(model,[],regnet)
     
 
 

@@ -1,7 +1,7 @@
 from mewpy.model.smoment import SMomentModel
 from mewpy.simulation import get_simulator
 from mewpy.problems import GeckoOUProblem
-from mewpy.util.utilities import population_to_csv
+from mewpy.util.io import population_to_csv
 import os
 
 
@@ -51,12 +51,12 @@ def test1(compound = 'R_EX_tyr__L_e'):
     # runs the optimization
     final_pop = ea.run()
 
-    import mewpy.utils.utilities as utl
+    from mewpy.util.io import population_to_csv
     from time import time
     
     millis = int(round(time() * 1000))
     filename = "sMOMEMT{}_OU_{}.csv".format(compound, millis)
-    utl.population_to_csv(problem, final_pop, filename, simplify=False)
+    population_to_csv(problem, final_pop, filename, simplify=False)
     
     
 

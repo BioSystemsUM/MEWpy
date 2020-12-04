@@ -48,10 +48,10 @@ def test():
 
     ea = EA(problem, max_generations=3, mp=True)
     final_pop = ea.run()
-    import mewpy.utils.utilities as utl
+    from mewpy.util.io import population_to_csv
     millis = int(round(time() * 1000))
     filename = "OPTRAM{}_OU_{}.csv".format('TRP', millis)
-    utl.population_to_csv(problem, final_pop, filename, simplify=False)
+    population_to_csv(problem, final_pop, filename, simplify=False)
 
 
 if __name__ == "__main__":
