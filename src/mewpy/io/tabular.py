@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import numpy as np
-from mewpy.utils.parsing import BOOLEAN_SPECIAL_CHARS
+from ..util.parsing import BOOLEAN_SPECIAL_CHARS
 
 
 def read_tabular_regulatory_model(file_or_filepath, sep=None, id_col=None, rule_col=None, aliases_cols=None, header=None,

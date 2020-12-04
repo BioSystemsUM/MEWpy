@@ -1,6 +1,6 @@
+from ..simulation.simulation import Simulator
+from ..simulation import get_simulator
 import networkx as nx
-from mewpy.simulation.simulation import Simulator
-from mewpy.simulation import get_simulator
 import numpy as np
 import math
 

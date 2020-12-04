@@ -1,12 +1,12 @@
 from enum import IntEnum
 from abc import ABC, abstractmethod
-from mewpy.utils.constants import EAConstants, ModelConstants
-from mewpy.optimization.ea import Solution
-from mewpy.simulation import get_simulator
 from collections import OrderedDict
 import warnings
 import numpy as np
 import copy
+from ..util.constants import EAConstants, ModelConstants
+from ..optimization.ea import Solution
+from ..simulation import get_simulator
 
 
 class Strategy(IntEnum):

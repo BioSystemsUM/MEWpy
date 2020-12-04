@@ -1,7 +1,7 @@
-from mewpy.problems.problem import AbstractOUProblem
-from mewpy.utils.parsing import Boolean, GeneEvaluator, build_tree
-from mewpy.utils.constants import EAConstants
-from mewpy.regulation.variable import RegulatoryVariable
+from ..problems.problem import AbstractOUProblem
+from ..util.parsing import Boolean, GeneEvaluator, build_tree
+from ..util.constants import EAConstants
+from .variable import RegulatoryVariable
 from collections import OrderedDict
 import numpy as np
 import pandas as pd

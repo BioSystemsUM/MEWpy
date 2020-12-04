@@ -4,10 +4,10 @@ Simulation for COBRApy models
 from cobra.core.model import Model
 from cobra.core.solution import Solution
 from cobra.flux_analysis import pfba, moma, room
-from mewpy.utils.constants import ModelConstants
-from mewpy.utils.parsing import evaluate_expression_tree
-from . import get_default_solver, SimulationMethod, SStatus
+from ..util.constants import ModelConstants
+from ..util.parsing import evaluate_expression_tree
 from .simulation import Simulator, SimulationResult, ModelContainer
+from . import get_default_solver, SimulationMethod, SStatus
 from collections import OrderedDict
 import numpy as np
 import logging

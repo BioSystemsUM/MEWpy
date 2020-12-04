@@ -1,4 +1,4 @@
-from mewpy.simulation import get_container, get_simulator
+from ..simulation import get_container, get_simulator
 
 
 def load_sbml_container(filename, flavor='reframed'):

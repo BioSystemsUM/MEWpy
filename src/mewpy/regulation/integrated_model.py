@@ -1,14 +1,14 @@
 import os
 from warnings import warn
-from mewpy.regulation import RegulatoryModel, RegulatoryVariable, RegulatoryInteraction
-from mewpy.io import read_tabular_aliases, read_tabular_regulatory_model
-from mewpy.regulation.regulatory_model import solution_decode
-from mewpy.simulation import get_simulator, SStatus
-from mewpy.simulation import SimulationMethod
-from mewpy.simulation.cobra import Simulation as Cobra_model
-from mewpy.simulation.reframed import Simulation as Reframed_model
-from mewpy.simulation.simulation import SimulationResult
-from mewpy.utils.parsing import boolean_rule_from_str, BooleanEvaluator
+from . import RegulatoryModel, RegulatoryVariable, RegulatoryInteraction
+from ..io import read_tabular_aliases, read_tabular_regulatory_model
+from .regulatory_model import solution_decode
+from ..simulation import get_simulator, SStatus
+from ..simulation import SimulationMethod
+from ..simulation.cobra import Simulation as Cobra_model
+from ..simulation.reframed import Simulation as Reframed_model
+from ..simulation.simulation import SimulationResult
+from ..util.parsing import boolean_rule_from_str, BooleanEvaluator
 
 
 class IntegratedRegulatoryVariable(RegulatoryVariable):

@@ -1,5 +1,5 @@
-from mewpy.simulation import get_simulator
-from mewpy.simulation.simulation import Simulator
+from ..simulation import get_simulator
+from ..simulation.simulation import Simulator
 import numpy as np
 
 

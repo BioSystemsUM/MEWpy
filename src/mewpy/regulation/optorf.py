@@ -1,4 +1,4 @@
-from mewpy.problems.problem import AbstractKOProblem
+from ..problems.problem import AbstractKOProblem
 
 
 class OptOrfProblem(AbstractKOProblem):

@@ -4,14 +4,14 @@ from jmetal.algorithm.multiobjective.nsgaiii import NSGAIII
 from jmetal.algorithm.multiobjective.nsgaiii import UniformReferenceDirectionFactory
 from jmetal.util.termination_criterion import StoppingByEvaluations
 from jmetal.operator import BinaryTournamentSelection
-from mewpy.utils.process import MultiProcessorEvaluator
-from mewpy.optimization.ea import AbstractEA, Solution 
+from ...util.process import MultiProcessorEvaluator
+from ..ea import AbstractEA, Solution 
 from .problem import JMetalKOProblem, JMetalOUProblem
 from .observers import PrintObjectivesStatObserver, VisualizerObserver
 from .operators import (ShrinkMutation,GrowMutationKO,GrowMutationOU,UniformCrossoverKO,
         UniformCrossoverOU,SingleMutationKO,SingleMutationOU,SingleMutationOULevel,MutationContainer)
-from mewpy.utils.constants import EAConstants
-from mewpy.utils.process import cpu_count
+from ...util.constants import EAConstants
+from ...util.process import cpu_count
 from random import Random
 from time import time
 

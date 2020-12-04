@@ -8,11 +8,11 @@ from reframed.core.cbmodel import CBModel
 from reframed.solvers.solution import Solution
 from reframed.solvers.solution import Status as s_status
 from reframed.solvers import set_default_solver
-from mewpy.model.gecko import GeckoModel
+from ..model.gecko import GeckoModel
 from . import SimulationMethod, SStatus, get_default_solver
 from .simulation import Simulator, SimulationResult, ModelContainer
-from mewpy.utils.constants import ModelConstants
-from mewpy.utils.parsing import evaluate_expression_tree
+from ..util.constants import ModelConstants
+from ..util.parsing import evaluate_expression_tree
 from collections import OrderedDict
 import numpy as np
 import logging

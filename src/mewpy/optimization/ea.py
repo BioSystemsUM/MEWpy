@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from mewpy.utils.constants import EAConstants
 from collections import OrderedDict
+from ..util.constants import EAConstants
 
 
 class SolutionInterface(ABC):

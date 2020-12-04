@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from mewpy.utils.constants import EAConstants
+from .constants import EAConstants
 
 import copy
 # pathos

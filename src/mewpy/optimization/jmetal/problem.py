@@ -2,10 +2,10 @@
 """
 from jmetal.core.solution import Solution, IntegerSolution
 from jmetal.core.problem import Problem
-from mewpy.optimization.ea import SolutionInterface, dominance_test
 from typing import Tuple, List
 import random
 import warnings
+from ..ea import SolutionInterface, dominance_test
 
 # define EA representation for OU
 IntTupple = Tuple[int]

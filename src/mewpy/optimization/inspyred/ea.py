@@ -1,9 +1,9 @@
-from mewpy.utils.process import MultiProcessorEvaluator, cpu_count
-from mewpy.utils.constants import EAConstants, ModelConstants
-from mewpy.optimization.ea import AbstractEA, Solution
-from mewpy.optimization.inspyred.problem import InspyredProblem
-from mewpy.optimization.inspyred import operators as op
-from mewpy.optimization.inspyred import observers
+from ...util.process import MultiProcessorEvaluator, cpu_count
+from ...util.constants import EAConstants, ModelConstants
+from ..ea import AbstractEA, Solution
+from .problem import InspyredProblem
+import operators as op
+import observers
 from random import Random
 from time import time
 import inspyred

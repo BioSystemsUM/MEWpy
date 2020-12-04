@@ -1,12 +1,12 @@
 from abc import ABCMeta, abstractmethod
 from itertools import chain
 from collections import OrderedDict
-from mewpy.utils.constants import EAConstants
-from mewpy.simulation import get_simulator, SimulationMethod, SStatus
 import numpy as np
 from functools import reduce
 import math
 import warnings
+from ..util.constants import EAConstants
+from ..simulation import get_simulator, SimulationMethod, SStatus
 
 
 class EvaluationFunction:

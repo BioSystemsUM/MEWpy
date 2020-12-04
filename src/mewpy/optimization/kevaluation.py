@@ -4,7 +4,7 @@ Kinetic specific evaluation functions
 """
 
 from .evaluation import KineticEvaluationFunction
-from ..utils.ode import ODEStatus
+from ..util.ode import ODEStatus
 
 
 

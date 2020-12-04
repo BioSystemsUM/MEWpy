@@ -1,5 +1,5 @@
 from .problem import AbstractKOProblem, AbstractOUProblem
-from mewpy.utils.parsing import GeneEvaluator, build_tree, Boolean
+from ..util.parsing import GeneEvaluator, build_tree, Boolean
 from collections import OrderedDict
 import logging
 import warnings

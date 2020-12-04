@@ -1,7 +1,7 @@
 
-from mewpy.utils.ode import KineticConfigurations, SolverConfigurations, ODEStatus, ODESpySolver
-from mewpy.simulation.simulation import SimulationResult
-from mewpy.model.kinetic import ODEModel
+from ..util.ode import KineticConfigurations, SolverConfigurations, ODEStatus, ODESpySolver
+from ..model.kinetic import ODEModel
+from .simulation import SimulationResult
 from collections import OrderedDict
 import threading
 import warnings

@@ -1,5 +1,5 @@
 from .problem import AbstractKOProblem, AbstractOUProblem
-from mewpy.utils.constants import ModelConstants
+from ..util.constants import ModelConstants
 from collections import OrderedDict
 import warnings
 

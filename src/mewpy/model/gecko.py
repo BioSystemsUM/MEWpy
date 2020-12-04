@@ -1,7 +1,7 @@
 from reframed.core.cbmodel import CBModel, CBReaction
 from reframed.io.sbml import load_cbmodel
 from reframed.core.model import AttrOrderedDict, Metabolite
-from mewpy.utils.constants import ModelConstants
+from ..util.constants import ModelConstants
 from collections import OrderedDict
 from six import iteritems, string_types
 from itertools import chain

@@ -1,4 +1,4 @@
-from mewpy.utils.constants import EAConstants
+from ..util.constants import EAConstants
 from .ea import Solution
 
 engines = dict()

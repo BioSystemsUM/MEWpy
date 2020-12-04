@@ -1,5 +1,5 @@
 from .problem import AbstractKOProblem, AbstractOUProblem
-from mewpy.simulation.kinetic import KineticSimulation
+from ..simulation.kinetic import KineticSimulation
 from collections import OrderedDict
 
 

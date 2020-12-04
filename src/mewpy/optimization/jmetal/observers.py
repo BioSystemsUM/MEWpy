@@ -1,10 +1,10 @@
 from jmetal.core.observer import Observer
 from jmetal.lab.visualization import StreamingPlot
-from mewpy.optimization.ea import non_dominated_population
 from typing import List, TypeVar
 import logging
 import numpy
 import copy
+from ..ea import non_dominated_population
 
 S = TypeVar('S')
 LOGGER = logging.getLogger('mewpy')

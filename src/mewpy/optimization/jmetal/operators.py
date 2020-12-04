@@ -1,8 +1,8 @@
 """JMetalpy operators
 """
 
-from mewpy.optimization.jmetal.problem import KOSolution, OUSolution
-from mewpy.utils.constants import EAConstants
+from .problem import KOSolution, OUSolution
+from ...util.constants import EAConstants
 from jmetal.core.operator import Mutation, Crossover
 from jmetal.core.solution import Solution
 from typing import List

@@ -5,8 +5,8 @@ from sympy.core.relational import StrictGreaterThan, StrictLessThan, GreaterThan
 from sympy.core.numbers import Zero, One
 from cobamp.core.linear_systems import GenericLinearSystem, VAR_CONTINUOUS, VAR_BINARY
 from cobamp.core.optimization import LinearSystemOptimizer
-from mewpy.simulation.simulation import SimulationResult
-from mewpy.regulation import IntegratedModel
+from ..simulation.simulation import SimulationResult
+from . import IntegratedModel
 
 _SRFBA_TOL = 1E-10
 

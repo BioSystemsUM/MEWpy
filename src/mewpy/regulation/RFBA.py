@@ -1,6 +1,6 @@
 from warnings import warn
-from mewpy.regulation import IntegratedModel
-from mewpy.simulation import SStatus
+from . import IntegratedModel
+from ..simulation import SStatus
 
 
 class RFBAModel(IntegratedModel):
