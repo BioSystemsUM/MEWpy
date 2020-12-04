@@ -35,9 +35,9 @@ class RKOProblem(AbstractKOProblem):
             target = target - set(self.non_target)
         target =  list(target)
         try:
-            from mewpy.utils.constants import EAConstants
+            from mewpy.util.constants import EAConstants
             if EAConstants.PROB_TARGET and self.product:
-                from mewpy.utils.graph import probabilistic_reaction_targets
+                from mewpy.util.graph import probabilistic_reaction_targets
                 target = probabilistic_reaction_targets(self.model,self.product,target)        
         except Exception as e:
             warnings.warn(str(e))
@@ -80,9 +80,9 @@ class ROUProblem(AbstractOUProblem):
             target = target - set(self.non_target)
         target =  list(target)
         try:
-            from mewpy.utils.constants import EAConstants
+            from ..util.constants import EAConstants
             if EAConstants.PROB_TARGET and self.product:
-                from mewpy.utils.graph import probabilistic_reaction_targets
+                from ..util.graph import probabilistic_reaction_targets
                 target = probabilistic_reaction_targets(self.model,self.product,target)        
         except Exception as e:
             warnings.warn(str(e))
