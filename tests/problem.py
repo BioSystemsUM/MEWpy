@@ -1,12 +1,12 @@
 import unittest
 
-MODELS_PATH = 'tests/data/'
+MODELS_PATH   = 'tests/data/'
 EC_CORE_MODEL = MODELS_PATH + 'e_coli_core.xml.gz'
 
-OPTRAM_MODEL = MODELS_PATH + 'yeast_7.6-optram.xml'
-OPTRAM_GENES = MODELS_PATH +'mgene.csv'
-OPTRAM_TFS = MODELS_PATH + 'TFnames.csv'
-OPTRAM_REGNET = MODELS_PATH +'regnet.csv'
+OPTRAM_MODEL  = MODELS_PATH + 'yeast_7.6-optram.xml'
+OPTRAM_GENES  = MODELS_PATH + 'mgene.csv'
+OPTRAM_TFS    = MODELS_PATH + 'TFnames.csv'
+OPTRAM_REGNET = MODELS_PATH + 'regnet.csv'
 
 MIN_GROWTH = 0.1
 
