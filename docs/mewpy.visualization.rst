@@ -28,7 +28,6 @@ mewpy.visualization.plot module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

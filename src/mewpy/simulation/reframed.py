@@ -7,9 +7,10 @@ from reframed.solvers import solver_instance
 from reframed.core.cbmodel import CBModel
 from reframed.solvers.solution import Solution
 from reframed.solvers.solution import Status as s_status
+from reframed.solvers import set_default_solver
 from mewpy.model.gecko import GeckoModel
-from mewpy.simulation import SimulationMethod, SStatus
-from mewpy.simulation.simulation import Simulator, SimulationResult, ModelContainer
+from . import SimulationMethod, SStatus, get_default_solver
+from .simulation import Simulator, SimulationResult, ModelContainer
 from mewpy.utils.constants import ModelConstants
 from mewpy.utils.parsing import evaluate_expression_tree
 from collections import OrderedDict
@@ -19,6 +20,7 @@ import logging
 
 LOGGER = logging.getLogger(__name__)
 
+solver_map = {'gurobi':'gurobi','cplex':'cplex','glpk':'optlang'}
 
 class CBModelContainer(ModelContainer):
     """ A basic container for REFRAMED models.
@@ -111,6 +113,7 @@ class Simulation(CBModelContainer, Simulator):
             raise ValueError(
                 "Model is None or is not an instance of REFRAMED CBModel")
         self.model = model
+        set_default_solver(solver_map[get_default_solver()])
         self.environmental_conditions = OrderedDict() if envcond is None else envcond
         self.constraints = OrderedDict() if constraints is None else constraints
         self.solver = solver

@@ -76,7 +76,6 @@ mewpy.regulation.variable module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

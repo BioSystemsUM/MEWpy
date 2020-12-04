@@ -12,14 +12,6 @@ mewpy.simulation.cobra module
    :undoc-members:
    :show-inheritance:
 
-mewpy.simulation.kinetic module
--------------------------------
-
-.. automodule:: mewpy.simulation.kinetic
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 mewpy.simulation.reframed module
 --------------------------------
 
@@ -35,7 +27,6 @@ mewpy.simulation.simulation module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

@@ -8,7 +8,7 @@ MEWpy
 
   
 
-MEWpy is an integrated Metabolic Engineering Workbench, under development, for strain design optimization. Developed in Python, MEWpy offers methods to explore different classes of constraint-based models (CBM). 
+MEWpy is an integrated Metabolic Engineering Workbench, under development, for strain design optimization. Developed in Python, MEWpy offers methods to explore different classes of constraint-based models (CBM).
 
 * Simulation: allows to simulate different metabolic models considering different phenotype.
   
@@ -45,16 +45,14 @@ MEWpy is an integrated Metabolic Engineering Workbench, under development, for s
 
 * Next releases will enable simulation and optimization strategies for [Expression and Thermodynamics Flux](https://doi.org/10.1371/journal.pcbi.1006835) (ETFL) and [Metabolism and Macromolecular Expression](https://doi.org/10.1371/journal.pcbi.1006302) (ME) models. 
 
-  
-  
-  
-  
 
 ### Usage Examples
 
-Examples are provided as [jupiter notebooks](examples) and as [python scripts](src/mewpy/unittests).
+Examples are provided as in the as [jupiter notebooks](examples) and as [python scripts](examples).
 
+### Documentation
 
+The package documentation is avaliable at [mewpy.readthedocs.io](https://mewpy.readthedocs.io).
 ### Instalation
 
 Installing from Pypi package repository:

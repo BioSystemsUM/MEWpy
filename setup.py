@@ -10,7 +10,8 @@ with open('README.rst') as readme_file:
 
 setup(
     name='mewpy',
-    version='0.1.1',
+    version='0.1.2',
+    python_requires='>=3.6',
     package_dir={'': 'src'},
     packages=find_packages('src'),
     package_data={"": ["*.xml", "*.csv", "*.txt"], 'mewpy': files},
@@ -30,7 +31,7 @@ setup(
     description='mewpy - Metabolic Engineering in Python ',
     license='Apache License Version 2.0',
     keywords='strain optimization',
-    url='',
+    url='https://github.com/BioSystemsUM/mewpy/',
     long_description=open('README.rst').read(),
     classifiers=[
         'Topic :: Utilities',

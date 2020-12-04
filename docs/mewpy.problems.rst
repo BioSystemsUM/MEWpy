@@ -20,14 +20,6 @@ mewpy.problems.genes module
    :undoc-members:
    :show-inheritance:
 
-mewpy.problems.kinetic module
------------------------------
-
-.. automodule:: mewpy.problems.kinetic
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 mewpy.problems.problem module
 -----------------------------
 
@@ -43,7 +35,6 @@ mewpy.problems.reactions module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

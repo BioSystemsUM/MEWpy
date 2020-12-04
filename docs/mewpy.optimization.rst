@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    mewpy.optimization.inspyred
    mewpy.optimization.jmetal
@@ -27,7 +28,6 @@ mewpy.optimization.evaluation module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

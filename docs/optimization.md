@@ -46,7 +46,7 @@ A combinatorial solution that over- or under expresses a set of genes is propaga
 
   
 
-![mewpy-2](mewpy-2.png)
+![](mewpy-2.png)
 
 Fig.2: *Propagation of gene expression values to constraints over reaction fluxes*.
 
@@ -135,7 +135,7 @@ The computational strain optimization method performs modifications to the organ
 
 
 
-![mewpy-3](mewpy-3.png)
+![](mewpy-3.png)
 
 Fig.3 :*Protein over- and under expression.*
 
