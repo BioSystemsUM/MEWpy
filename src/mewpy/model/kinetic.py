@@ -288,7 +288,7 @@ class ODEModel(Model):
                 toModify = set(factorsParam.keys()).intersection(self.reacParamsFactors[rId])
                 if len(toModify) > 0:
                     for elem in toModify:
-                        newExp = re.sub(r"([pv]\['" + elem + "'\])", str(factorsParam[elem]) + r" * \1", newExp)
+                        newExp = re.sub(r"([pv]\['" + elem + r"'\])", str(factorsParam[elem]) + r" * \1", newExp)
             rateExprs.append("    r['{}'] = {}".format(rId, newExp))
 
         balances = []
@@ -364,7 +364,7 @@ class ODEModel(Model):
 
 # auxiliar functions to set the assignment rules by the correct order in the ODE system
 def _build_tree_rules(parent, rules):
-    regexp = "v\[\'(.*?)\'\]"
+    regexp = r"v\[\'(.*?)\'\]"
     children = re.findall(regexp, rules[parent])
     if len(children) == 0:
         return Tree(parent, None)

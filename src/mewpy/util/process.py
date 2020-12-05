@@ -5,7 +5,7 @@ from .constants import EAConstants
 
 # pathos
 try:
-    import pathos.multiprocesssing
+    import pathos.multiprocesssing as multiprocessing
     from pathos.multiprocessing import Pool
 except ImportError:
     import multiprocessing
@@ -106,9 +106,7 @@ else:
             """
             return self.problem.evaluator(candidates, None)
 
-
     class RayEvaluator(Evaluator):
-
         def __init__(self, problem, number_of_actors):
             ray.init(ignore_reinit_error=True)
             self.actors = [RayActor.remote(problem)

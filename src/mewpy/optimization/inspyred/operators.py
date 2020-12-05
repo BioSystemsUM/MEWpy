@@ -47,8 +47,6 @@ def uniform_crossover_KO(random, mom, dad, args):
     :param crossover_rate: The rate at which crossover is performed (default 1.0).
     :returns: Return the offspring of the candidates given as argument.
 
-    
-        
     """
     crossRate = args.setdefault("crossover_rate", 1.0)
     children = []

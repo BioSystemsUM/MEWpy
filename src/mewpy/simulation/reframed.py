@@ -153,7 +153,8 @@ class Simulation(CBModelContainer, Simulator):
             d.update(objective)
         else:
             raise ValueError(
-                'The objective must be a reaction identifier or a dictionary of reaction identifier with respective coeficients.')
+                'The objective must be a reaction identifier or a dictionary of \
+                reaction identifier with respective coeficients.')
 
         self.model.set_objective(d)
 
@@ -581,7 +582,9 @@ class Simulation(CBModelContainer, Simulator):
         """ Flux Variability Analysis (FVA).
 
         :param model: An instance of a constraint-based model.
-        :param float obj_frac: The minimum fraction of the maximum growth rate (default 0.9). Requires that the objective value is at least the fraction times maximum objective value. A value of 0.85 for instance means that the objective has to be at least at 85% percent of its maximum.
+        :param float obj_frac: The minimum fraction of the maximum growth rate (default 0.9).\
+            Requires that the objective value is at least the fraction times maximum objective value.\
+            A value of 0.85 for instance means that the objective has to be at least at 85% percent of its maximum.
         :param list reactions: List of reactions to analyze (default: all).
         :param dic constraints: Additional constraints (optional).
         :param boolean loopless: Run looplessFBA internally (very slow) (default: false).

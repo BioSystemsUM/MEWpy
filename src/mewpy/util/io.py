@@ -1,10 +1,7 @@
 import ast
 import os
-import time
 from collections import OrderedDict
-
 import numpy as np
-
 from .constants import ModelConstants
 from ..optimization.ea import Solution, non_dominated_population
 from ..optimization.ea import filter_duplicates
@@ -363,7 +360,8 @@ class Parser:
         Finds all solutions containing the list of targets
 
         :param targets: (list) List of target ids.
-        :param population: (list) List of solution where to perform the search. If none is provided, the search is performed on the entire population.
+        :param population: (list) List of solution where to perform the search. If none is provided, the search is \
+            performed on the entire population.
         :returns: A list of solutions.
         """
         result = []

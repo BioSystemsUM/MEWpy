@@ -1,8 +1,6 @@
 import math
-
 import networkx as nx
 import numpy as np
-
 from ..simulation import get_simulator
 from ..simulation.simulation import Simulator
 
@@ -10,12 +8,12 @@ from ..simulation.simulation import Simulator
 def create_metabolic_graph(model, directed=True, reactions=None, remove=[], edges_labels=False):
     """ Creates a metabolic graph
 
-    
     :param model: A model or a model containter
     :param (bool) directed: Defines if the graph to be directed or undirected. Defaults to True.
     :param (list) reactions: List of reactions to be included in the graph. Defaults to None, in which\
         all reactions are included.
-    :param list remove: list os metabolites not to be included. May be used to remove cofactores such as ATP/ADP, NAD(P)(H), and acetyl-CoA/CoA.    
+    :param list remove: list os metabolites not to be included. May be used to remove cofactores such as ATP/ADP, \
+        NAD(P)(H), and acetyl-CoA/CoA.
     :param (bool) edges_labels: Adds a reversabily label to edges. Defaults to False.
     :returns: A networkx graph of the metabolic network.
     """
@@ -75,9 +73,8 @@ def shortest_distance(model, reaction, reactions=None, remove=[]):
     :param str reaction: target reaction.
     :param list reactions: List os source reactions. Defaults to None, in which case all model reactions are considered.
     :param list remove: List os metabolites not to be included. May be used to remove path that include \
-        cofactores such as ATP/ADP, NAD(P)(H), and acetyl-CoA/CoA.    
+        cofactores such as ATP/ADP, NAD(P)(H), and acetyl-CoA/CoA.
     :returns: A dictionary of distances.
-    
     """
     if not isinstance(model, Simulator):
         container = get_simulator(model)
@@ -111,7 +108,6 @@ def probabilistic_reaction_targets(model, product, targets, factor=10):
     :param int factor: Maximum number of repetitions, also the distance after which all reactions are\
         considered with equal probability. Defaults to 10.
     :returns: A probabilistic target list.
-    
     """
     distances = shortest_distance(model, product, targets)
     prob_targets = []
@@ -150,7 +146,7 @@ def probabilistic_gene_targets(model, product, targets, factor=10):
     rxns = container.get_reactions_for_genes(genes)
     rxn_distances = shortest_distance(model, product, rxns)
 
-    # genes distances are the maximum of all reaction 
+    # genes distances are the maximum of all reaction
     # distances that they catalyse.
 
     prob_targets = []
@@ -173,7 +169,7 @@ def probabilistic_gene_targets(model, product, targets, factor=10):
 
 def probabilistic_protein_targets(model, product, targets, factor=10):
     """Builds a new target list reflecting the shortest path distances from all original
-    as a probability,ie, proteins used in reactions closer to the product are repeated 
+    as a probability,ie, proteins used in reactions closer to the product are repeated
     more often in the new target list.
 
     :param model: A model or a Simulator instance.
@@ -182,8 +178,4 @@ def probabilistic_protein_targets(model, product, targets, factor=10):
     :param int factor: Maximum number of repetitions. Defaults to 10.
     :returns: A probabilistic target list.
     """
-    if not isinstance(model, Simulator):
-        container = get_simulator(model)
-    else:
-        container = model
     raise NotImplementedError

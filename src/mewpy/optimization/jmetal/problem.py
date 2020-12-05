@@ -1,11 +1,9 @@
-""" JMetal Problems 
+""" JMetal Problems
 """
 import random
-import warnings
 from typing import Tuple, List
-
 from jmetal.core.problem import Problem
-from jmetal.core.solution import Solution, IntegerSolution
+from jmetal.core.solution import Solution
 
 from ..ea import SolutionInterface, dominance_test
 
@@ -66,7 +64,7 @@ class KOSolution(Solution[int], SolutionInterface):
 
     def get_representation(self):
         """
-        Returns a set representation of the candidate 
+        Returns a set representation of the candidate
         """
         return set(self.variables)
 

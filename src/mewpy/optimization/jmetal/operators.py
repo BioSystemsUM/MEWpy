@@ -17,7 +17,7 @@ class ShrinkMutation(Mutation[Solution]):
 
     :param probability: (float), The mutation probability.
     :param min_size: (int) the solution minimum size.
-    
+
     """
 
     def __init__(self, probability: float = 0.1, min_size: int = EAConstants.MIN_SOLUTION_SIZE):
@@ -27,10 +27,10 @@ class ShrinkMutation(Mutation[Solution]):
     def execute(self, solution: Solution) -> Solution:
         """
         Apply the mutation.
-        
+
         :param solution: The candidate solution to be mutated.
         :returns: A mutated solution.
-        
+
         """
         if random.random() <= self.probability and solution.number_of_variables > self.min_size:
             var = copy.copy(solution.variables)
@@ -46,10 +46,10 @@ class ShrinkMutation(Mutation[Solution]):
 
 class GrowMutationKO(Mutation[KOSolution]):
     """ Grow mutation. A gene is added to the solution.
- 
+
     :param probability: (float), The mutation probability.
     :param min_size: (int) the solution minimum size.
-    
+
     """
 
     def __init__(self, probability: float = 0.1, max_size: int = EAConstants.MAX_SOLUTION_SIZE):
@@ -59,10 +59,10 @@ class GrowMutationKO(Mutation[KOSolution]):
     def execute(self, solution: Solution) -> Solution:
         """
         Apply the mutation.
-        
+
         :param solution: The candidate solution to be mutated.
         :returns: A mutated solution.
-        
+
         """
         if random.random() <= self.probability and solution.number_of_variables < self.max_size:
             mutant = copy.copy(solution.variables)
@@ -80,10 +80,10 @@ class GrowMutationKO(Mutation[KOSolution]):
 
 class GrowMutationOU(Mutation[OUSolution]):
     """ Grow mutation. A gene is added to the solution.
- 
+
     :param probability: (float), The mutation probability.
     :param min_size: (int) the solution minimum size.
-    
+
     """
 
     def __init__(self, probability: float = 0.1, max_size: int = EAConstants.MAX_SOLUTION_SIZE):
@@ -93,10 +93,10 @@ class GrowMutationOU(Mutation[OUSolution]):
     def execute(self, solution: Solution) -> Solution:
         """
         Apply the mutation.
-        
+
         :param solution: The candidate solution to be mutated.
         :returns: A mutated solution.
-        
+
         """
         if random.random() <= self.probability and solution.number_of_variables < self.max_size:
             mutant = copy.copy(solution.variables)
@@ -119,7 +119,7 @@ class UniformCrossoverKO(Crossover[KOSolution, KOSolution]):
 
     :param probability: (float) The probability of crossover.
     :param max_size: (int) The solution maximum size.
-    
+
     """
 
     def __init__(self, probability: float = 0.1, max_size: int = EAConstants.MAX_SOLUTION_SIZE):
@@ -173,10 +173,10 @@ class UniformCrossoverKO(Crossover[KOSolution, KOSolution]):
 
 class MutationContainer(Mutation[Solution]):
     """A container for the mutation operators.
-    
+
     :param probability: (float) The probability of applying a mutation.
     :param mutators: (list) The list of mutators.
-    
+
     """
 
     def __init__(self, probability: float = 0.5, mutators=[]):
@@ -184,7 +184,7 @@ class MutationContainer(Mutation[Solution]):
         self.mutators = mutators
 
     def execute(self, solution: Solution) -> Solution:
-        # randomly select a mutator and apply it 
+        # randomly select a mutator and apply it
         if random.random() <= self.probability:
             idx = random.randint(0, len(self.mutators) - 1)
             mutator = self.mutators[idx]
@@ -284,13 +284,13 @@ class SingleMutationOU(Mutation[OUSolution]):
     def execute(self, solution: Solution) -> Solution:
         if random.random() <= self.probability:
             mutant = copy.copy(solution.variables)
-            l = [i for (i, j) in mutant]
+            lix = [i for (i, j) in mutant]
             index = random.randint(0, len(mutant) - 1)
             idx, idy = mutant[index]
             is_mutate_idx = False
             if random.random() > 0.5:
                 idx = random.randint(solution.lower_bound[0], solution.upper_bound[0])
-                while idx in l:
+                while idx in lix:
                     idx = random.randint(solution.lower_bound[0], solution.upper_bound[0])
                 is_mutate_idx = True
             lv = random.randint(solution.lower_bound[1], solution.upper_bound[1])

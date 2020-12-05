@@ -39,7 +39,8 @@ class RFBAModel(IntegratedModel):
         """
         Retrieves the current metabolic and regulatory state
 
-        :return: dict, for convenience returns dict of all regulatory variables where key is the id of the regulatory variable and value can be 0, 1 or float (reactions and metabolites predicates)
+        :return: dict, for convenience returns dict of all regulatory variables where key is the id of the \
+            regulatory variable and value can be 0, 1 or float (reactions and metabolites predicates)
         """
 
         return {var.id: var.expression_coef for var in self.regulatory_variables_gen()}
@@ -118,10 +119,11 @@ class RFBAModel(IntegratedModel):
         Solves the boolean regulatory network for a given specific state.
         It also updates all targets having a valid regulatory interaction associated with it for the resulting state
 
-
-        :param state: dict, key is the id of the regulatory variable while value can be 0, 1 or float (reactions and metabolites predicates)
+        :param state: dict, key is the id of the regulatory variable while value can be 0, 1 or float \
+            (reactions and metabolites predicates)
         :param silently: bool, if True, the state (expression_coef) of the regulatory variables is not changed
-        :return: dict, for convenience returns dict where key is the id of the target and value can be 0, 1 or float (reactions and metabolites predicates)
+        :return: dict, for convenience returns dict where key is the id of the target and value can be 0, 1 or float \
+            (reactions and metabolites predicates)
         """
 
         res = {}
@@ -155,8 +157,10 @@ class RFBAModel(IntegratedModel):
         for the given state
 
 
-        :param state: dict, dict, key is the id of the regulatory variable while value can be 0, 1 or float (reactions and metabolites predicates)
-        :return: dict, for convenience returns dict of all regulatory variables where key is the id of the regulatory variable and value can be 0, 1 or float (reactions and metabolites predicates)
+        :param state: dict, dict, key is the id of the regulatory variable while value can be 0, 1 or float \
+            (reactions and metabolites predicates)
+        :return: dict, for convenience returns dict of all regulatory variables where key is the id of the regulatory \
+            variable and value can be 0, 1 or float (reactions and metabolites predicates)
         """
 
         # Regulatory Rules from the boolean network
@@ -210,8 +214,7 @@ class RFBAModel(IntegratedModel):
         :param maximize: bool, direction for the optimization.
         :param method: None or SimulationMethod, constraint-based model analysis method
         :return: SimulationResult object, it contains the metabolic and regulatory states too.
-        
-        
+
         Solutions are also stored under solution property
         """
 
@@ -256,16 +259,14 @@ class RFBAModel(IntegratedModel):
 
         Objective and constraint-based model analysis method (pFBA, FBA, ...) can be altered here reversibly.
 
-        
-
         :param objective: None or dict, objective for the optimization. None for the current objective
         :param maximize: bool, direction for the optimization.
         :param method: None or SimulationMethod, constraint-based model analysis method
         :param iter_limit: int, iteration limit
         :return: list, list of SimulationResult objects containing the metabolic and regulatory states too.
-        
+
         Solutions are also stored under solution property.
-        
+
         """
 
         self.objective = objective

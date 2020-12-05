@@ -1,13 +1,9 @@
-from random import Random
-from time import time
-
 from jmetal.algorithm.multiobjective import NSGAII, SPEA2
 from jmetal.algorithm.multiobjective.nsgaiii import NSGAIII
 from jmetal.algorithm.multiobjective.nsgaiii import UniformReferenceDirectionFactory
 from jmetal.algorithm.singleobjective import GeneticAlgorithm, SimulatedAnnealing
 from jmetal.operator import BinaryTournamentSelection
 from jmetal.util.termination_criterion import StoppingByEvaluations
-
 from .observers import PrintObjectivesStatObserver, VisualizerObserver
 from .operators import (ShrinkMutation, GrowMutationKO, GrowMutationOU, UniformCrossoverKO,
                         UniformCrossoverOU, SingleMutationKO, SingleMutationOU, SingleMutationOULevel,
@@ -35,10 +31,9 @@ class EA(AbstractEA):
     """
     EA running helper for JMetal.
 
-    
     :param problem: The optimization problem.
     :param initial_population: (list) The EA initial population.
-    :param max_generations: (int) The number of iterations of the EA (stopping criteria). 
+    :param max_generations: (int) The number of iterations of the EA (stopping criteria).
     """
 
     def __init__(self, problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS, mp=True,
@@ -49,8 +44,9 @@ class EA(AbstractEA):
         self.algorithm_name = algorithm
         from mewpy.problems import Strategy
         self.crossover = UniformCrossoverKO(0.8,
-                                            self.problem.candidate_max_size) if self.problem.strategy == Strategy.KO else UniformCrossoverOU(
-            0.5, self.problem.candidate_max_size)
+                                            self.problem.candidate_max_size) \
+            if self.problem.strategy == Strategy.KO else UniformCrossoverOU(
+                 0.5, self.problem.candidate_max_size)
         mutators = []
         if self.problem.strategy == Strategy.KO:
             self.ea_problem = JMetalKOProblem(self.problem)
@@ -66,6 +62,7 @@ class EA(AbstractEA):
             mutators.append(ShrinkMutation(
                 1.0, min_size=self.problem.candidate_min_size))
             mutators.append(SingleMutationOU(1.0))
+            mutators.append(SingleMutationOULevel(1.0))
         self.mutation = MutationContainer(0.3, mutators=mutators)
 
     def _run_so(self):

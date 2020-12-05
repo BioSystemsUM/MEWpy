@@ -129,7 +129,8 @@ class Simulation(CobraModelContainer, Simulator):
             set_objective(self.model, linear_coef)
         else:
             raise ValueError(
-                'The objective must be a reaction identifier or a dictionary of reaction identifier with respective coeficients.')
+                'The objective must be a reaction identifier or a dictionary of \
+                reaction identifier with respective coeficients.')
 
     @property
     def reference(self):
@@ -456,7 +457,7 @@ class Simulation(CobraModelContainer, Simulator):
                 else:
                     reac.bounds = (simul_constraints.get(
                         rxn), simul_constraints.get(rxn))
-            # NOTE: If working directly over optlang use 'max' and 'min'        
+            # NOTE: If working directly over optlang use 'max' and 'min'
             # such is the case with pytfa.core.Model... need to find some workaround
             objective_sense = 'maximize' if maximize else 'minimize'
             if method == SimulationMethod.FBA:
@@ -494,7 +495,9 @@ class Simulation(CobraModelContainer, Simulator):
         """ Flux Variability Analysis (FVA).
 
         :param model: An instance of a constraint-based model.
-        :param float obj_frac: The minimum fraction of the maximum growth rate (default 0.9). Requires that the objective value is at least the fraction times maximum objective value. A value of 0.85 for instance means that the objective has to be at least at 85% percent of its maximum.
+        :param float obj_frac: The minimum fraction of the maximum growth rate (default 0.9). Requires that the \
+            objective value is at least the fraction times maximum objective value. A value of 0.85 for instance \
+            means that the objective has to be at least at 85% percent of its maximum.
         :param list reactions: List of reactions to analyze (default: all).
         :param dic constraints: Additional constraints (optional).
         :param boolean loopless: Run looplessFBA internally (very slow) (default: false).

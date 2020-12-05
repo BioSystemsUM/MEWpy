@@ -140,7 +140,7 @@ def dominance_test(solution1, solution2, maximize=True):
     :param maximize: (bool) maximization (True) or minimization (False)
     :returns: 1 : if the first solution dominates the second; -1 : if the second solution dominates the first; \
          0 : if non of the solutions dominates the other.
-    
+
     """
 
     best_is_one = 0
@@ -187,12 +187,12 @@ def non_dominated_population(solutions, maximize=True, filter_duplicate=True):
             if dominance_test_result == -1:
                 ith_dominated[p].append(q)
                 dominating_ith[q] += 1
-            elif dominance_test_result is 1:
+            elif dominance_test_result == 1:
                 ith_dominated[q].append(p)
                 dominating_ith[p] += 1
 
     for i in range(len(solutions)):
-        if dominating_ith[i] is 0:
+        if dominating_ith[i] == 0:
             front.append(solutions[i])
 
     if filter_duplicate:
@@ -214,13 +214,13 @@ def filter_duplicates(population):
         return filtered
 
     fitered_list = []
-    l = population
-    while len(l) > 1:
-        individual = l[0]
+    p = population
+    while len(p) > 1:
+        individual = p[0]
         fitered_list.append(individual)
-        l = remove_equal(individual, l)
-    if l:
-        fitered_list.extend(l)
+        p = remove_equal(individual, p)
+    if p:
+        fitered_list.extend(p)
     return fitered_list
 
 
@@ -236,11 +236,11 @@ def cmetric(pf1, pf2, maximize=True):
                 r2: percentage of solutions on pf1 dominated by some solution on pf2;
                 pf1_2: solutions on pf2 dominated by some solution on pf1;
                 pf2_1: solutions on pf1 dominated by some solution on pf2.
-    
+
     """
-    # solutions on pf2 dominated by some solution on pf1 
+    # solutions on pf2 dominated by some solution on pf1
     pf1_2 = set()
-    # solutions on pf1 dominated by some solution on pf2 
+    # solutions on pf1 dominated by some solution on pf2
     pf2_1 = set()
     for s1 in pf1:
         for s2 in pf2:

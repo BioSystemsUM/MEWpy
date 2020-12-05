@@ -7,12 +7,11 @@ from ..util.ode import ODEStatus
 
 
 class KineticTargetFlux(KineticEvaluationFunction):
-    """ Target Flux evaluation function. 
+    """ Target Flux evaluation function.
     The fitness value is the flux value of the identified reaction.
 
-    
-    :param reaction: (str) The reaction identifier whose flux value is to be used as fitness. Default None in which case the model objective is considered.
-    
+    :param reaction: (str) The reaction identifier whose flux value is to be used as fitness.\
+        Default None in which case the model objective is considered.
     """
 
     def __init__(self, reaction, maximize=True):
