@@ -1,18 +1,18 @@
 """
 Simulation for COBRApy models
 """
+import logging
+from collections import OrderedDict
+
+import numpy as np
 from cobra.core.model import Model
 from cobra.core.solution import Solution
 from cobra.flux_analysis import pfba, moma, room
+
+from . import get_default_solver, SimulationMethod, SStatus
+from .simulation import Simulator, SimulationResult, ModelContainer
 from ..util.constants import ModelConstants
 from ..util.parsing import evaluate_expression_tree
-from .simulation import Simulator, SimulationResult, ModelContainer
-from . import get_default_solver, SimulationMethod, SStatus
-from collections import OrderedDict
-import numpy as np
-import logging
-
-
 
 LOGGER = logging.getLogger(__name__)
 
@@ -23,6 +23,7 @@ class CobraModelContainer(ModelContainer):
     :param model: A metabolic model.
 
     """
+
     def __init__(self, model: Model):
         if not isinstance(model, Model):
             raise ValueError("The model is not an instance of cobrapy Model")
@@ -84,7 +85,7 @@ class Simulation(CobraModelContainer, Simulator):
 
     """
 
-    def __init__(self, model: Model, objective=None, envcond=None, constraints=None,  solver=None, reference=None):
+    def __init__(self, model: Model, objective=None, envcond=None, constraints=None, solver=None, reference=None):
 
         if not isinstance(model, Model):
             raise ValueError("Model is incompatible or inexistent")
@@ -112,25 +113,23 @@ class Simulation(CobraModelContainer, Simulator):
         self._reset_solver = ModelConstants.RESET_SOLVER
         self.reverse_sintax = []
 
-
-    
     @property
     def objective(self):
         from cobra.util.solver import linear_reaction_coefficients
         d = dict(linear_reaction_coefficients(self.model))
-        return {k.id:v for k,v in d.items()}
+        return {k.id: v for k, v in d.items()}
 
     @objective.setter
-    def objective(self,objective):
-        if isinstance(objective,str):
+    def objective(self, objective):
+        if isinstance(objective, str):
             self.model.objective = objective
-        elif isinstance(objective,dict):
+        elif isinstance(objective, dict):
             from cobra.util.solver import set_objective
-            linear_coef ={self.model.reactions.get_by_id(r_id):v for r_id,v in objective.items()}
-            set_objective(self.model,linear_coef)
+            linear_coef = {self.model.reactions.get_by_id(r_id): v for r_id, v in objective.items()}
+            set_objective(self.model, linear_coef)
         else:
-            raise ValueError('The objective must be a reaction identifier or a dictionary of reaction identifier with respective coeficients.')
-
+            raise ValueError(
+                'The objective must be a reaction identifier or a dictionary of reaction identifier with respective coeficients.')
 
     @property
     def reference(self):
@@ -218,10 +217,10 @@ class Simulation(CobraModelContainer, Simulator):
         drains = self.get_drains()
         rxns = [r for r in drains if self.model.reactions.get_by_id(r).reversibility
                 or ((self.model.reactions.get_by_id(r).lower_bound is None
-                    or self.model.reactions.get_by_id(r).lower_bound < 0)
+                     or self.model.reactions.get_by_id(r).lower_bound < 0)
                     and len(self.model.reactions.get_by_id(r).reactants) > 0)
                 or ((self.model.reactions.get_by_id(r).upper_bound is None
-                    or self.model.reactions.get_by_id(r).upper_bound > 0)
+                     or self.model.reactions.get_by_id(r).upper_bound > 0)
                     and len(self.model.reactions.get_by_id(r).products) > 0)
                 ]
         return rxns
@@ -384,7 +383,7 @@ class Simulation(CobraModelContainer, Simulator):
                     or (len(reaction.products) == 0):
                 return reaction.id
         return None
-    
+
     def find_bounds(self):
         """
         Return the median upper and lower bound of the metabolic model.
@@ -401,7 +400,7 @@ class Simulation(CobraModelContainer, Simulator):
             LOGGER.warning("Could not identify a median upper bound.")
             upper_bound = 1000.0
         return lower_bound, upper_bound
-        
+
     def find_unconstrained_reactions(self):
         """Return list of reactions that are not constrained at all."""
         lower_bound, upper_bound = self.find_bounds()
@@ -490,7 +489,8 @@ class Simulation(CobraModelContainer, Simulator):
                                   maximize=maximize)
         return result
 
-    def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None,format='dict'):
+    def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None,
+            format='dict'):
         """ Flux Variability Analysis (FVA).
 
         :param model: An instance of a constraint-based model.
@@ -510,7 +510,7 @@ class Simulation(CobraModelContainer, Simulator):
         if self.environmental_conditions:
             simul_constraints.update(self.environmental_conditions)
         if constraints:
-             simul_constraints.update(constraints)
+            simul_constraints.update(constraints)
 
         with self.model as model:
 
@@ -531,12 +531,12 @@ class Simulation(CobraModelContainer, Simulator):
         for r_id in reactions:
             variability[r_id] = [
                 float(df.loc[r_id][0]), float(df.loc[r_id][1])]
-        
-        if format=='df':
+
+        if format == 'df':
             import pandas as pd
             e = variability.items()
-            f = [[a,b,c] for  a,[b,c] in e]
-            df = pd.DataFrame(f,columns = ['Reaction ID','Minimum','Maximum'])
+            f = [[a, b, c] for a, [b, c] in e]
+            df = pd.DataFrame(f, columns=['Reaction ID', 'Minimum', 'Maximum'])
             return df
         else:
             return variability
@@ -550,7 +550,8 @@ class GeckoSimulation(Simulation):
     Simulator for geckopy.gecko.GeckoModel
     """
 
-    def __init__(self, model, objective=None, envcond=None, constraints=None,  solver=None, reference=None, protein_prefix=None):
+    def __init__(self, model, objective=None, envcond=None, constraints=None, solver=None, reference=None,
+                 protein_prefix=None):
         try:
             from geckopy.gecko import GeckoModel
             if not isinstance(model, GeckoModel):

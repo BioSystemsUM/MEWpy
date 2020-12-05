@@ -1,7 +1,8 @@
+import warnings
+from collections import OrderedDict
+
 from .problem import AbstractKOProblem, AbstractOUProblem
 from ..util.constants import ModelConstants
-from collections import OrderedDict
-import warnings
 
 
 class GeckoKOProblem(AbstractKOProblem):
@@ -116,7 +117,6 @@ class GeckoOUProblem(AbstractOUProblem):
             target = target - set(self.non_target)
         self._trg_list = list(target)
 
-
     def decode(self, candidate):
         """
         Decodes a candidate, an integer set, into a dictionary of constraints
@@ -127,12 +127,11 @@ class GeckoOUProblem(AbstractOUProblem):
 
                 decoded_candidate["{}{}".format(
                     self.prot_prefix, self.target_list[idx])] = self.levels[lv_idx]
-                
+
             except IndexError:
                 raise IndexError(
                     f"Index out of range: {idx} from {len(self.target_list[idx])}")
         return decoded_candidate
-
 
     def solution_to_constraints(self, candidate):
         """
@@ -164,7 +163,7 @@ class GeckoOUProblem(AbstractOUProblem):
                 continue
             else:
                 constraints[rxn] = (
-                    lv*fluxe_wt, ModelConstants.REACTION_UPPER_BOUND)
+                    lv * fluxe_wt, ModelConstants.REACTION_UPPER_BOUND)
                 # Deals with reverse reactions associated with the protein.
                 # Strategy: The reaction direction with no flux in the wild type (reference) is KO.
                 if prot in self.prot_rev_reactions.keys():

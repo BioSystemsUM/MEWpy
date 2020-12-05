@@ -1,23 +1,25 @@
-from jmetal.algorithm.singleobjective import GeneticAlgorithm, SimulatedAnnealing
-from jmetal.algorithm.multiobjective import NSGAII, SPEA2
-from jmetal.algorithm.multiobjective.nsgaiii import NSGAIII
-from jmetal.algorithm.multiobjective.nsgaiii import UniformReferenceDirectionFactory
-from jmetal.util.termination_criterion import StoppingByEvaluations
-from jmetal.operator import BinaryTournamentSelection
-from ...util.process import MultiProcessorEvaluator
-from ..ea import AbstractEA, Solution 
-from .problem import JMetalKOProblem, JMetalOUProblem
-from .observers import PrintObjectivesStatObserver, VisualizerObserver
-from .operators import (ShrinkMutation,GrowMutationKO,GrowMutationOU,UniformCrossoverKO,
-        UniformCrossoverOU,SingleMutationKO,SingleMutationOU,SingleMutationOULevel,MutationContainer)
-from ...util.constants import EAConstants
-from ...util.process import cpu_count
 from random import Random
 from time import time
 
+from jmetal.algorithm.multiobjective import NSGAII, SPEA2
+from jmetal.algorithm.multiobjective.nsgaiii import NSGAIII
+from jmetal.algorithm.multiobjective.nsgaiii import UniformReferenceDirectionFactory
+from jmetal.algorithm.singleobjective import GeneticAlgorithm, SimulatedAnnealing
+from jmetal.operator import BinaryTournamentSelection
+from jmetal.util.termination_criterion import StoppingByEvaluations
+
+from .observers import PrintObjectivesStatObserver, VisualizerObserver
+from .operators import (ShrinkMutation, GrowMutationKO, GrowMutationOU, UniformCrossoverKO,
+                        UniformCrossoverOU, SingleMutationKO, SingleMutationOU, SingleMutationOULevel,
+                        MutationContainer)
+from .problem import JMetalKOProblem, JMetalOUProblem
+from ..ea import AbstractEA, Solution
+from ...util.constants import EAConstants
+from ...util.process import MultiProcessorEvaluator
+from ...util.process import cpu_count
 
 # SOEA alternatives
-soea_map ={
+soea_map = {
     'GA': GeneticAlgorithm,
     'SA': SimulatedAnnealing
 }
@@ -39,13 +41,15 @@ class EA(AbstractEA):
     :param max_generations: (int) The number of iterations of the EA (stopping criteria). 
     """
 
-    def __init__(self, problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS, mp=True, visualizer=False, algorithm = None):
+    def __init__(self, problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS, mp=True,
+                 visualizer=False, algorithm=None):
 
         super(EA, self).__init__(problem, initial_population=initial_population,
                                  max_generations=max_generations, mp=mp, visualizer=visualizer)
         self.algorithm_name = algorithm
         from mewpy.problems import Strategy
-        self.crossover = UniformCrossoverKO(0.8, self.problem.candidate_max_size) if self.problem.strategy == Strategy.KO else UniformCrossoverOU(
+        self.crossover = UniformCrossoverKO(0.8,
+                                            self.problem.candidate_max_size) if self.problem.strategy == Strategy.KO else UniformCrossoverOU(
             0.5, self.problem.candidate_max_size)
         mutators = []
         if self.problem.strategy == Strategy.KO:
@@ -63,23 +67,22 @@ class EA(AbstractEA):
                 1.0, min_size=self.problem.candidate_min_size))
             mutators.append(SingleMutationOU(1.0))
         self.mutation = MutationContainer(0.3, mutators=mutators)
-        
 
     def _run_so(self):
         """ Runs a single objective EA optimization ()
         """
-        
+
         max_evaluations = self.max_generations * 100
-        
+
         if self.algorithm_name == 'SA':
             print("Running SA")
             self.mutation.probability = 1.0
             algorithm = SimulatedAnnealing(
                 problem=self.ea_problem,
-                mutation=self.mutation.probability, 
+                mutation=self.mutation.probability,
                 termination_criterion=StoppingByEvaluations(max_evaluations=max_evaluations)
             )
-            
+
         else:
             print("Running GA")
             algorithm = GeneticAlgorithm(
@@ -108,39 +111,40 @@ class EA(AbstractEA):
             f = moea_map[self.algorithm_name]
         else:
             if self.ea_problem.number_of_objectives > 2:
-                self.algorithm_name== 'NSGAIII'
+                self.algorithm_name == 'NSGAIII'
             else:
                 f = moea_map['SPEA2']
 
         print(f"Running {self.algorithm_name}")
-        if self.algorithm_name== 'NSGAIII':
-            args ={
-                'problem':self.ea_problem,
-                'population_size':100,
-                'mutation':self.mutation,
-                'crossover':self.crossover,
-                'termination_criterion':StoppingByEvaluations(max_evaluations=max_evaluations),
-                'reference_directions':UniformReferenceDirectionFactory(self.ea_problem.number_of_objectives, n_points=99)
-                 }
+        if self.algorithm_name == 'NSGAIII':
+            args = {
+                'problem': self.ea_problem,
+                'population_size': 100,
+                'mutation': self.mutation,
+                'crossover': self.crossover,
+                'termination_criterion': StoppingByEvaluations(max_evaluations=max_evaluations),
+                'reference_directions': UniformReferenceDirectionFactory(self.ea_problem.number_of_objectives,
+                                                                         n_points=99)
+            }
 
             if self.mp:
-                args['population_evaluator']=MultiProcessorEvaluator(self.ea_problem.evaluate,ncpu)
-                
+                args['population_evaluator'] = MultiProcessorEvaluator(self.ea_problem.evaluate, ncpu)
+
             algorithm = NSGAIII(**args)
 
         else:
-            args ={
-                'problem':self.ea_problem,
-                'population_size':100,
-                'offspring_population_size':100,
-                'mutation':self.mutation,
-                'crossover':self.crossover,
-                'termination_criterion':StoppingByEvaluations(max_evaluations=max_evaluations)
-                 }
+            args = {
+                'problem': self.ea_problem,
+                'population_size': 100,
+                'offspring_population_size': 100,
+                'mutation': self.mutation,
+                'crossover': self.crossover,
+                'termination_criterion': StoppingByEvaluations(max_evaluations=max_evaluations)
+            }
 
             if self.mp:
-                args['population_evaluator']=MultiProcessorEvaluator(self.ea_problem.evaluate,ncpu)
-            
+                args['population_evaluator'] = MultiProcessorEvaluator(self.ea_problem.evaluate, ncpu)
+
             algorithm = f(**args)
 
         if self.visualizer:

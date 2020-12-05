@@ -1,18 +1,18 @@
-from collections import OrderedDict
-from libsbml import AssignmentRule,SBMLReader
-from reframed.core.model import Model
+import os
 import re
-import os 
 import warnings
+from collections import OrderedDict
 
+from libsbml import AssignmentRule, SBMLReader
+from reframed.core.model import Model
 
 
 def load_sbml(filename):
     """ Loads an SBML file.
-    
+
     :param filename: SBML file path, str.
     :returns: SBMLModel
-            
+
     """
 
     if not os.path.exists(filename):
@@ -29,18 +29,18 @@ def load_sbml(filename):
     return sbml_model
 
 
-def load_ODEModel(filename, map = None):
+def load_ODEModel(filename, map=None):
     sbml_model = load_sbml(filename)
-    from reframed.io.sbml import load_compartments,load_metabolites,load_reactions
+    from reframed.io.sbml import load_compartments, load_metabolites, load_reactions
     ode_model = ODEModel(sbml_model.getId())
     load_compartments(sbml_model, ode_model)
     load_metabolites(sbml_model, ode_model)
-    ## adds constants and boundaries to metabolites
+    # adds constants and boundaries to metabolites
     for species in sbml_model.getListOfSpecies():
         m = ode_model.metabolites[species.getId()]
-        if not hasattr(m,"constant"):
+        if not hasattr(m, "constant"):
             m.constant = species.getConstant()
-        if not hasattr(m,"boundary"):
+        if not hasattr(m, "boundary"):
             m.boundary = species.getBoundaryCondition()
     load_reactions(sbml_model, ode_model)
     _load_concentrations(sbml_model, ode_model)
@@ -50,18 +50,16 @@ def load_ODEModel(filename, map = None):
     _load_assignment_rules(sbml_model, ode_model)
     # parse rates, rules and xdot expressions
     ode_model._set_parsed_attr()
-    if isinstance(map,str):
-        print("MAP =",map)
+    if isinstance(map, str):
+        print("MAP =", map)
         aux = OrderedDict([(rId, re.findall(map, ratelaw)) for rId, ratelaw in ode_model.ratelaws.items()])
-        #aux = OrderedDict([(rId ,  [rId+"_"+x for x in re.findall("(rmax\w*)", ratelaw)]) for rId, ratelaw in model.ratelaws.items()])#CHASSAGNOLE
-        ode_model.reacParamsFactors = OrderedDict([(rId , params) for rId, params in aux.items() if len(params) > 0])
+        # aux = OrderedDict([(rId ,  [rId+"_"+x for x in re.findall("(rmax\w*)", ratelaw)]) \
+        #  for rId, ratelaw in model.ratelaws.items()])#CHASSAGNOLE
+        ode_model.reacParamsFactors = OrderedDict([(rId, params) for rId, params in aux.items() if len(params) > 0])
     else:
         ode_model.set_reactions_parameters_factors(map)
 
-        
     return ode_model
-
-
 
 
 def _load_concentrations(sbml_model, odemodel):
@@ -71,7 +69,7 @@ def _load_concentrations(sbml_model, odemodel):
 
 def _load_global_parameters(sbml_model, odemodel):
     for parameter in sbml_model.getListOfParameters():
-            odemodel.set_global_parameter(parameter.getId(), parameter.getValue(), parameter.getConstant())
+        odemodel.set_global_parameter(parameter.getId(), parameter.getValue(), parameter.getConstant())
 
 
 def _load_local_parameters(sbml_model, odemodel):
@@ -91,18 +89,15 @@ def _load_assignment_rules(sbml_model, odemodel):
             odemodel.set_assignment_rule(rule.getVariable(), rule.getFormula())
 
 
-
-
-
 class ODEModel(Model):
 
     def __init__(self, model_id):
         """ ODE Model.
-        
-        :param model: a REFRAMED SBModel or COBRApy Model 
-            
+
+        :param model: a REFRAMED SBModel or COBRApy Model.
+
         """
-        super(ODEModel,self).__init__(model_id)
+        super(ODEModel, self).__init__(model_id)
         self.concentrations = OrderedDict()
         self.constant_params = OrderedDict()
         self.variable_params = OrderedDict()
@@ -111,12 +106,10 @@ class ODEModel(Model):
         self.assignment_rules = OrderedDict()
         self._func_str = None
         self._constants = None
-        self.reacParamsFactors = None  
+        self.reacParamsFactors = None
         self.parsedRates = None
         self.parsedRules = None
         self.parsedXdot = None
-        
-
 
     def get_reactions(self):
         return self.reactions
@@ -126,7 +119,7 @@ class ODEModel(Model):
         self._func_str = None
 
     def add_reaction(self, reaction, replace=True, ratelaw=''):
-        super(ODEModel,self).add_reaction(reaction,replace)
+        super(ODEModel, self).add_reaction(reaction, replace)
         self.ratelaws[reaction.id] = ratelaw
         self.local_params[reaction.id] = OrderedDict()
 
@@ -167,7 +160,6 @@ class ODEModel(Model):
         for r_id in id_list:
             del self.ratelaws[r_id]
             del self.local_params[r_id]
-            
 
     def merge_constants(self):
         constants = OrderedDict()
@@ -197,17 +189,15 @@ class ODEModel(Model):
 
         return parameters
 
-
     def print_balance(self, m_id):
         c_id = self.metabolites[m_id].compartment
         table = self.metabolite_reaction_lookup()
         terms = ["{:+g} * r['{}']".format(coeff, r_id) for r_id, coeff in table[m_id].items()]
-        if len(terms)==0 or (self.metabolites[m_id].constant and self.metabolites[m_id].boundary):
-            expr= "0"
+        if len(terms) == 0 or (self.metabolites[m_id].constant and self.metabolites[m_id].boundary):
+            expr = "0"
         else:
             expr = "1/p['{}'] * ({})".format(c_id, ' '.join(terms))
         return expr
-
 
     def parse_rate(self, r_id, rate):
 
@@ -255,33 +245,32 @@ class ODEModel(Model):
             rule = rule.replace(' ' + p_id + ' ', " v['{}'] ".format(p_id))
 
         for r_id in self.reactions:
-           rule = rule.replace(' ' + r_id + ' ', '({})'.format(parsed_rates[r_id]))
+            rule = rule.replace(' ' + r_id + ' ', '({})'.format(parsed_rates[r_id]))
 
         return rule
 
     def _set_parsed_attr(self):
         self.parsedRates = {rId: self.parse_rate(rId, ratelaw)
-                             for rId, ratelaw in self.ratelaws.items()}
-        
+                            for rId, ratelaw in self.ratelaws.items()}
+
         aux = {pId: self.parse_rule(rule, self.parsedRates)
                for pId, rule in self.assignment_rules.items()}
-        
+
         trees = [_build_tree_rules(vId, aux) for vId in aux.keys()]
         order = _get_oder_rules(trees)
-        
+
         self.parsedRules = OrderedDict([(id, aux[id]) for id in order])
         self.parsedXdot = {mId: self.print_balance(mId) for mId in self.metabolites}
 
-
-
     def build_ode(self, factors):
         """
-        Builds de ODE model
-        
-            
-        :param factors: (dict) The key is the parameter identifier and the value is the level of change values between 0 and 1 represent a under expression, above 1 a over expression and 0 to represent the knockouts.
+        Builds de ODE model.
+
+        :param factors: (dict) The key is the parameter identifier and the value is the level of change \
+            values between 0 and 1 represent a under expression, above 1 a over expression and 0 to represent \
+            the knockouts.
         :returns: Returns  a string with the ode system.
-        
+
         """
 
         # factors: ["vmax1": 0, "vmax2"=2, "ENZYME_ID":0]
@@ -323,16 +312,17 @@ class ODEModel(Model):
                    '    return dxdt\n'
         return func_str
 
-
     def get_ode(self, r_dict=None, params=None, factors=None):
         """
         Build the ODE system.
-        
+
         :param r_dict: (dict) This variable is used to store the reaction rates.
-        :param params: (dict) Parameters and the new values used to replace the original parameters present in the SBML model.
-        :param factors: (dict) The key is the parameter identifier and the value is the level of change values between 0 and 1 represent a under expression, above 1 a over expression and 0 to represent the knockouts.
+        :param params: (dict) Parameters and the new values used to replace the original parameters present \
+            in the SBML model.
+        :param factors: (dict) The key is the parameter identifier and the value is the level of change values \
+            between 0 and 1 represent a under expression, above 1 a over expression and 0 to represent the knockouts.
         :returns: A function used to solve the ODE system.
-            
+
         """
 
         p = self.merge_constants()
@@ -348,24 +338,21 @@ class ODEModel(Model):
 
         exec(self.build_ode(factors), globals())
         ode_func = eval('ode_func')
-        #print "Parameters"
-        #print p
-        #print v
-        #print "-----"
-        #print (self.build_ode(factors))
-        f = lambda t, x: ode_func(t, x, r, p, v)
+
+        def f(t, x):
+            ode_func(t, x, r, p, v)
+
         return f
 
     def set_reactions_parameters_factors(self, map):
         """
         Set a new map with the parameters that can be changed for each reaction.
-        
-        :param map: (dict) The keys is the reaction identifier and the value a list of parameters which can be used to simulate modifications( KO, under/ over expression)
-        
+
+        :param map: (dict) The keys is the reaction identifier and the value a list of parameters which \
+            can be used to simulate modifications( KO, under/ over expression)
+
         """
-
         self.reacParamsFactors = OrderedDict(map) if map else OrderedDict()
-
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -373,8 +360,6 @@ class ODEModel(Model):
 
     def __setstate__(self, state):
         self.__dict__.update(state)
-
-
 
 
 # auxiliar functions to set the assignment rules by the correct order in the ODE system
@@ -403,8 +388,10 @@ def _get_order_nodes(tree):
             res = _get_order_nodes(child) + res
     return res
 
+
 class Tree(object):
     "Generic tree node."
+
     def __init__(self, name='root', children=None):
         self.name = name
         self.children = []
@@ -413,8 +400,9 @@ class Tree(object):
                 self.add_child(child)
 
     def add_child(self, node):
-       # assert isinstance(node, MyTree)
+        # assert isinstance(node, MyTree)
         self.children.append(node)
+
 
 def get_order_nodes(tree):
     if tree.children is None:

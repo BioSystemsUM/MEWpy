@@ -1,8 +1,9 @@
-from .problem import AbstractKOProblem, AbstractOUProblem
-from ..util.parsing import GeneEvaluator, build_tree, Boolean
-from collections import OrderedDict
 import logging
 import warnings
+from collections import OrderedDict
+
+from .problem import AbstractKOProblem, AbstractOUProblem
+from ..util.parsing import GeneEvaluator, build_tree, Boolean
 
 logger = logging.getLogger(__name__)
 
@@ -37,15 +38,15 @@ class GKOProblem(AbstractKOProblem):
         target = genes - essential
         if self.non_target:
             target = target - set(self.non_target)
-        target =  list(target)
+        target = list(target)
         try:
             from ..util.constants import EAConstants
             if EAConstants.PROB_TARGET and self.product:
                 from ..util.graph import probabilistic_gene_targets
-                target = probabilistic_gene_targets(self.model,self.product,target)        
+                target = probabilistic_gene_targets(self.model, self.product, target)
         except Exception as e:
             warnings.warn(str(e))
-            
+
         self._trg_list = target
 
     def solution_to_constraints(self, candidate):
@@ -96,15 +97,15 @@ class GOUProblem(AbstractOUProblem):
         target = set(self.simulator.genes)
         if self.non_target:
             target = target - set(self.non_target)
-        target =  list(target)
+        target = list(target)
         try:
             from ..util.constants import EAConstants
             if EAConstants.PROB_TARGET and self.product:
                 from ..util.graph import probabilistic_gene_targets
-                target = probabilistic_gene_targets(self.model,self.product,target)        
+                target = probabilistic_gene_targets(self.model, self.product, target)
         except Exception as e:
             warnings.warn(str(e))
-            
+
         self._trg_list = target
 
     def __op(self):

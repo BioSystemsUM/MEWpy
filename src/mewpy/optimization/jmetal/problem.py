@@ -1,10 +1,12 @@
 """ JMetal Problems 
 """
-from jmetal.core.solution import Solution, IntegerSolution
-from jmetal.core.problem import Problem
-from typing import Tuple, List
 import random
 import warnings
+from typing import Tuple, List
+
+from jmetal.core.problem import Problem
+from jmetal.core.solution import Solution, IntegerSolution
+
 from ..ea import SolutionInterface, dominance_test
 
 # define EA representation for OU
@@ -17,7 +19,7 @@ class KOSolution(Solution[int], SolutionInterface):
     def __init__(self, lower_bound: int, upper_bound: int, number_of_variables: int, number_of_objectives: int,
                  number_of_constraints: int = 0):
         super(KOSolution, self).__init__(number_of_variables,
-                                         number_of_objectives,number_of_constraints)
+                                         number_of_objectives, number_of_constraints)
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
 
@@ -77,15 +79,14 @@ class KOSolution(Solution[int], SolutionInterface):
     def __str__(self):
         return " ".join((self.variables))
 
-    
-
 
 class OUSolution(Solution[IntTupple], SolutionInterface):
     """
     Class representing a Over/Under expression solution.
     """
 
-    def __init__(self, lower_bound: List[int], upper_bound: List[int], number_of_variables: int, number_of_objectives: int):
+    def __init__(self, lower_bound: List[int], upper_bound: List[int], number_of_variables: int,
+                 number_of_objectives: int):
         super(OUSolution, self).__init__(number_of_variables,
                                          number_of_objectives)
         self.upper_bound = upper_bound

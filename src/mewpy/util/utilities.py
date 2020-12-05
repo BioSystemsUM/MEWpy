@@ -1,5 +1,6 @@
 import time
 
+
 class TimerError(Exception):
     """A custom exception used to report errors in use of Timer class"""
 
@@ -23,7 +24,6 @@ class Timer:
         elapsed_time = time.perf_counter() - self._start_time
         self._start_time = None
         print(f"Elapsed time: {elapsed_time:0.6f} seconds")
-
 
     def __enter__(self):
         """Start a new timer as a context manager"""

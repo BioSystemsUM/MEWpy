@@ -2,25 +2,27 @@
 Simulation for REFRAMED models
 """
 
+import logging
+from collections import OrderedDict
+
+import numpy as np
 from reframed.cobra.simulation import FBA, pFBA, MOMA, lMOMA, ROOM
-from reframed.solvers import solver_instance
 from reframed.core.cbmodel import CBModel
+from reframed.solvers import set_default_solver
+from reframed.solvers import solver_instance
 from reframed.solvers.solution import Solution
 from reframed.solvers.solution import Status as s_status
-from reframed.solvers import set_default_solver
-from ..model.gecko import GeckoModel
+
 from . import SimulationMethod, SStatus, get_default_solver
 from .simulation import Simulator, SimulationResult, ModelContainer
+from ..model.gecko import GeckoModel
 from ..util.constants import ModelConstants
 from ..util.parsing import evaluate_expression_tree
-from collections import OrderedDict
-import numpy as np
-import logging
-
 
 LOGGER = logging.getLogger(__name__)
 
-solver_map = {'gurobi':'gurobi','cplex':'cplex','glpk':'optlang'}
+solver_map = {'gurobi': 'gurobi', 'cplex': 'cplex', 'glpk': 'optlang'}
+
 
 class CBModelContainer(ModelContainer):
     """ A basic container for REFRAMED models.
@@ -28,6 +30,7 @@ class CBModelContainer(ModelContainer):
     :param model: A metabolic model.
 
     """
+
     def __init__(self, model: CBModel):
         if not isinstance(model, CBModel):
             raise ValueError(
@@ -107,7 +110,7 @@ class Simulation(CBModelContainer, Simulator):
 
     """
 
-    def __init__(self, model: CBModel, objective=None, envcond=None, constraints=None,  solver=None, reference=None):
+    def __init__(self, model: CBModel, objective=None, envcond=None, constraints=None, solver=None, reference=None):
 
         if not isinstance(model, CBModel):
             raise ValueError(
@@ -136,22 +139,22 @@ class Simulation(CBModelContainer, Simulator):
             s_status.SUBOPTIMAL: SStatus.SUBOPTIMAL
         }
 
-
     @property
     def objective(self):
         return self.model.get_objective()
-    
+
     @objective.setter
-    def objective(self,objective):
+    def objective(self, objective):
         a = self.model.get_objective()
-        d = {k:0 for k in a}
-        if isinstance(objective,str):
-            d[objective]=1
-        elif isinstance(objective,dict):
+        d = {k: 0 for k in a}
+        if isinstance(objective, str):
+            d[objective] = 1
+        elif isinstance(objective, dict):
             d.update(objective)
         else:
-            raise ValueError('The objective must be a reaction identifier or a dictionary of reaction identifier with respective coeficients.')
-        
+            raise ValueError(
+                'The objective must be a reaction identifier or a dictionary of reaction identifier with respective coeficients.')
+
         self.model.set_objective(d)
 
     @property
@@ -286,12 +289,12 @@ class Simulation(CBModelContainer, Simulator):
         # or migth be using some other identifier which must be included in self.reverse_sufix
         else:
             for a, b in self.reverse_sintax:
-                n = len(reaction_id)-len(a)
-                m = len(reaction_id)-len(b)
-                if reaction_id[n:] == a and reactions[reaction_id[:n]+b]:
-                    return reaction_id[:n]+b
-                elif reaction_id[m:] == b and reactions[reaction_id[:m]+a]:
-                    return reaction_id[:m]+a
+                n = len(reaction_id) - len(a)
+                m = len(reaction_id) - len(b)
+                if reaction_id[n:] == a and reactions[reaction_id[:n] + b]:
+                    return reaction_id[:n] + b
+                elif reaction_id[m:] == b and reactions[reaction_id[:m] + a]:
+                    return reaction_id[:m] + a
                 else:
                     continue
             return None
@@ -445,7 +448,7 @@ class Simulation(CBModelContainer, Simulator):
             LOGGER.warning("Could not identify a median upper bound.")
             upper_bound = 1000.0
         return lower_bound, upper_bound
-        
+
     def find_unconstrained_reactions(self):
         """Return list of reactions that are not constrained at all."""
         lower_bound, upper_bound = self.find_bounds()
@@ -454,7 +457,6 @@ class Simulation(CBModelContainer, Simulator):
             for rxn in self.model.reactions
             if rxn.lb <= lower_bound and rxn.ub >= upper_bound
         ]
-
 
     def get_boundary_reaction(self, metabolite):
 
@@ -535,7 +537,7 @@ class Simulation(CBModelContainer, Simulator):
             reference = self.reference
 
         if method == SimulationMethod.FBA:
-            solution = FBA(self.model,  objective=objective, minimize=not maximize,
+            solution = FBA(self.model, objective=objective, minimize=not maximize,
                            constraints=simul_constraints, solver=a_solver)
         elif method == SimulationMethod.pFBA:
             solution = pFBA(self.model, objective=objective, minimize=not maximize,
@@ -544,10 +546,10 @@ class Simulation(CBModelContainer, Simulator):
             solution = lMOMA(self.model, constraints=simul_constraints,
                              reference=reference, solver=a_solver)
         elif method == SimulationMethod.MOMA:
-            solution = MOMA(self.model,  constraints=simul_constraints,
+            solution = MOMA(self.model, constraints=simul_constraints,
                             reference=reference, solver=a_solver)
         elif method == SimulationMethod.ROOM:
-            solution = ROOM(self.model,  constraints=simul_constraints,
+            solution = ROOM(self.model, constraints=simul_constraints,
                             reference=reference, solver=a_solver)
         # Special case in which only the simulation context is required without any simulatin result
         elif method == SimulationMethod.NONE:
@@ -574,7 +576,8 @@ class Simulation(CBModelContainer, Simulator):
                                   simul_constraints=constraints, maximize=maximize)
         return result
 
-    def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None, format='dict'):
+    def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None,
+            format='dict'):
         """ Flux Variability Analysis (FVA).
 
         :param model: An instance of a constraint-based model.
@@ -595,24 +598,24 @@ class Simulation(CBModelContainer, Simulator):
             _constraints.update(constraints)
         from reframed.cobra.variability import FVA
         res = FVA(self.model, obj_frac=obj_frac, reactions=reactions,
-                   constraints=_constraints, loopless=loopless, internal=internal, solver=solver)
-        if format=='df':
+                  constraints=_constraints, loopless=loopless, internal=internal, solver=solver)
+        if format == 'df':
             import pandas as pd
             e = res.items()
-            f = [[a,b,c] for  a,[b,c] in e]
-            df = pd.DataFrame(f,columns = ['Reaction ID','Minimum','Maximum'])
+            f = [[a, b, c] for a, [b, c] in e]
+            df = pd.DataFrame(f, columns=['Reaction ID', 'Minimum', 'Maximum'])
             return df
         return res
 
 
 class GeckoSimulation(Simulation):
 
-    def __init__(self, model: GeckoModel, objective=None, envcond=None, constraints=None,  solver=None, reference=None, protein_prefix=None):
+    def __init__(self, model: GeckoModel, objective=None, envcond=None, constraints=None, solver=None, reference=None,
+                 protein_prefix=None):
         super(GeckoSimulation, self).__init__(
             model, objective, envcond, constraints, solver, reference)
         self.protein_prefix = protein_prefix if protein_prefix else 'draw_prot_'
         self._essential_proteins = None
-        
 
     @property
     def proteins(self):
@@ -664,4 +667,3 @@ class GeckoSimulation(Simulation):
             return f[d.index(reaction_id)]
         else:
             return None
-

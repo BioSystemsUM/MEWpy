@@ -4,23 +4,24 @@ solvers = []
 
 try:
     import gurobipy
+
     solvers.append('gurobi')
 except ImportError:
     pass
 
-
 try:
     import cplex
+
     solvers.append('cplex')
 except ImportError:
     pass
 
 try:
     import swiglpk
+
     solvers.append('glpk')
 except ImportError:
     pass
-
 
 default_solver = None
 
@@ -35,7 +36,7 @@ def get_default_solver():
     if default_solver:
         return default_solver
 
-    solver_order = ['gurobi','cplex', 'glpk']
+    solver_order = ['gurobi', 'cplex', 'glpk']
 
     for solver in solver_order:
         if solver in solvers:
@@ -60,9 +61,6 @@ def set_default_solver(solvername):
         default_solver = solvername.lower()
     else:
         raise RuntimeError(f"Solver {solvername} not available.")
-
-
-
 
 
 # Model specific simulators mapping:
@@ -149,14 +147,13 @@ def get_container(model):
 
 
 class SimulationMethod(Enum):
-    
-    FBA   = 'FBA'
-    pFBA  = 'pFBA'
-    MOMA  = 'MOMA'
+    FBA = 'FBA'
+    pFBA = 'pFBA'
+    MOMA = 'MOMA'
     lMOMA = 'lMOMA'
-    ROOM  = 'ROOM'
-    NONE  = 'NONE'
-    
+    ROOM = 'ROOM'
+    NONE = 'NONE'
+
     def __eq__(self, other):
         """Overrides equal to enable string name comparison.
         Allows to seamlessly use: 
@@ -164,9 +161,9 @@ class SimulationMethod(Enum):
             SimulationMethod.FBA = 'FBA'
         without requiring an additional level of comparison (SimulationMethod.FBA.name = 'FBA')
         """
-        if isinstance(other,SimulationMethod):
+        if isinstance(other, SimulationMethod):
             return super().__eq__(other)
-        elif isinstance(other,str):
+        elif isinstance(other, str):
             return self.name == other
         else:
             return False
@@ -177,13 +174,12 @@ class SimulationMethod(Enum):
 
 class SStatus(Enum):
     """ Enumeration of possible solution status. """
-    OPTIMAL    = 'Optimal'
-    UNKNOWN    = 'Unknown'
+    OPTIMAL = 'Optimal'
+    UNKNOWN = 'Unknown'
     SUBOPTIMAL = 'Suboptimal'
-    UNBOUNDED  = 'Unbounded'
+    UNBOUNDED = 'Unbounded'
     INFEASIBLE = 'Infeasible'
     INF_OR_UNB = 'Infeasible or Unbounded'
-
 
     def __repr__(self):
         return self.name

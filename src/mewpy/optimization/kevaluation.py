@@ -1,11 +1,9 @@
-
 """
 Kinetic specific evaluation functions
 """
 
 from .evaluation import KineticEvaluationFunction
 from ..util.ode import ODEStatus
-
 
 
 class KineticTargetFlux(KineticEvaluationFunction):
@@ -17,15 +15,15 @@ class KineticTargetFlux(KineticEvaluationFunction):
     
     """
 
-    def __init__(self, reaction, maximize = True):
+    def __init__(self, reaction, maximize=True):
         super(KineticTargetFlux, self).__init__(maximize=maximize, worst_fitness=0.0)
         self.reaction = reaction
-       
+
     def get_fitness(self, simul_results, candidate, **kwargs):
         if simul_results.status == ODEStatus.ERROR:
             return self.worst_fitness
         else:
-            try :
+            try:
                 return simul_results.fluxes[self.reaction]
             except Exception as e:
                 print(e)
@@ -42,4 +40,3 @@ class KineticTargetFlux(KineticEvaluationFunction):
 
     def method_str(self):
         return "Kinetic Target Flux"
-

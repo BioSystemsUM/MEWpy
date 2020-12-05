@@ -5,19 +5,19 @@ GECKO model over COBRApy optimization test
 
 ##################################################################
 """
-from geckopy.gecko import GeckoModel
-from mewpy.simulation.cobra import GeckoSimulation
-from mewpy.simulation import SimulationMethod
-from mewpy.simulation.simulation import SimulationResult
-from mewpy.problems.gecko import GeckoKOProblem, GeckoOUProblem
-from mewpy.optimization.evaluation import BPCY, WYIELD, TargetFlux
-from mewpy.optimization import EA
-from mewpy.util.io import population_to_csv
+import warnings
 from collections import OrderedDict
 from time import time
 
-import warnings
+from geckopy.gecko import GeckoModel
 
+from mewpy.optimization import EA
+from mewpy.optimization.evaluation import BPCY, WYIELD, TargetFlux
+from mewpy.problems.gecko import GeckoKOProblem, GeckoOUProblem
+from mewpy.simulation import SimulationMethod
+from mewpy.simulation.cobra import GeckoSimulation
+from mewpy.simulation.simulation import SimulationResult
+from mewpy.util.io import population_to_csv
 
 ITERATIONS = 100
 
@@ -52,10 +52,10 @@ def gecko_ko(compound, display=False, filename=None):
     #  - A scale factor for the LP can be defined by setting the 'scalefactor' acordingly.
     #  - The scale factor is only used in the solver context and all results are scale free.
     problem = GeckoKOProblem(model,
-                              fevaluation=[evaluator_1, evaluator_2],
-                              envcond=envcond,
-                              scalefactor=None,
-                              candidate_max_size=30)
+                             fevaluation=[evaluator_1, evaluator_2],
+                             envcond=envcond,
+                             scalefactor=None,
+                             candidate_max_size=30)
 
     # A new instance of the EA optimizer
     ea = EA(problem, max_generations=ITERATIONS, mp=True)
@@ -104,11 +104,11 @@ def gecko_ou(compound, display=False, filename=None):
     #  - A scale factor for the LP can be defined by setting the 'scalefactor' acordingly.
     #  - The scale factor is only used in the solver context and all results are scale free.
     problem = GeckoOUProblem(model,
-                              fevaluation=[evaluator_1, evaluator_2],
-                              envcond=envcond,
-                              reference=reference,
-                              scalefactor=None,
-                              candidate_max_size=30)
+                             fevaluation=[evaluator_1, evaluator_2],
+                             envcond=envcond,
+                             reference=reference,
+                             scalefactor=None,
+                             candidate_max_size=30)
 
     # A new instance of the EA optimizer
     ea = EA(problem, max_generations=ITERATIONS, mp=False)

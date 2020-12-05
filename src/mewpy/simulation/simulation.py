@@ -1,5 +1,6 @@
 from abc import abstractclassmethod
 from collections import OrderedDict
+
 from mewpy.simulation import SimulationMethod
 
 
@@ -86,30 +87,29 @@ class Simulator(ModelContainer):
         """
         raise NotImplementedError
 
+    def __evaluator__(self, kwargs, candidate):
+        res = self.simulate(constraints=candidate, **kwargs)
+        return res
 
-    def __evaluator__(self,kwargs,candidate):
-            res = self.simulate(constraints=candidate,**kwargs)
-            return res
-
-    def simulate_mp(self, objective=None, method=SimulationMethod.FBA, maximize=True, constraints_list=None, reference=None,
-                 solver=None, n_mp = None ,**kwargs):
-
+    def simulate_mp(self, objective=None, method=SimulationMethod.FBA, maximize=True, constraints_list=None,
+                    reference=None,
+                    solver=None, n_mp=None, **kwargs):
         from mewpy.utils.process import cpu_count, MultiProcessorEvaluator
         if not n_mp:
             n_mp = cpu_count()
 
-        args={}
-        args['objective'] =objective
+        args = {}
+        args['objective'] = objective
         args['method'] = method
         args['maximize'] = maximize
         args['reference'] = reference
         args.update(kwargs)
         from functools import partial
-        func = partial(self.__evaluator__,args)
+        func = partial(self.__evaluator__, args)
 
         mp_evaluator = MultiProcessorEvaluator(
-                    func, n_mp)
-        res = mp_evaluator.evaluate(constraints_list,None)
+            func, n_mp)
+        res = mp_evaluator.evaluate(constraints_list, None)
         return res
 
 
@@ -141,7 +141,6 @@ class SimulationResult(object):
         # Constraints specific to the simulation
         self.simulation_constraints = simul_constraints if simul_constraints else OrderedDict()
 
-
     def get_constraints(self):
         """
         :returns: All constraints applied during the simulation both persistent and simulation specific.
@@ -161,7 +160,7 @@ class SimulationResult(object):
     @property
     def data_frame(self):
         import pandas as pd
-        df = pd.DataFrame(list(self.fluxes.items()),columns = ['Reaction ID','Flux'])
+        df = pd.DataFrame(list(self.fluxes.items()), columns=['Reaction ID', 'Flux'])
         return df
 
     def get_net_conversion(self, biomassId=None):
@@ -189,16 +188,16 @@ class SimulationResult(object):
                     if firstLeft:
                         firstLeft = False
                     else:
-                        left = left+" + "
-                    left = left+str(-1*fluxValue)
-                    left = left+" "+m[0]
+                        left = left + " + "
+                    left = left + str(-1 * fluxValue)
+                    left = left + " " + m[0]
                 else:
                     if firstRight:
                         firstRight = False
                     else:
-                        right = right+" + "
-                    right = right+str(fluxValue)
-                    right = right+" "+m[0]
+                        right = right + " + "
+                    right = right + str(fluxValue)
+                    right = right + " " + m[0]
 
         if biomassId and biomassId in ssFluxes.keys():
             biomassFlux = ssFluxes[biomassId]
@@ -206,7 +205,7 @@ class SimulationResult(object):
                 if firstRight:
                     firstRight = False
                 else:
-                    right = right+" + "
+                    right = right + " + "
                 right = right + str(biomassFlux)
                 right = right + " " + biomassId
 

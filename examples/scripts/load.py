@@ -2,8 +2,9 @@
 Simple example/tests for loading models
 '''
 
-from mewpy.simulation import get_simulator
 import os
+
+from mewpy.simulation import get_simulator
 
 
 def load_reframed():
@@ -19,7 +20,7 @@ def load_reframed():
     model.summary()
     simul = get_simulator(model)
     simul.summary()
-   
+
 
 def load_ec_gecko():
     """ Loads a GECKO like model from AUTOPACMEN

@@ -1,16 +1,17 @@
-from abc import ABCMeta, abstractmethod
-from itertools import chain
-from collections import OrderedDict
-import numpy as np
-from functools import reduce
 import math
 import warnings
-from ..util.constants import EAConstants
+from abc import ABCMeta, abstractmethod
+from collections import OrderedDict
+from functools import reduce
+from itertools import chain
+
+import numpy as np
+
 from ..simulation import get_simulator, SimulationMethod, SStatus
+from ..util.constants import EAConstants
 
 
 class EvaluationFunction:
-   
     __metaclass__ = ABCMeta
 
     def __init__(self, maximize=True, worst_fitness=0.0):
@@ -28,7 +29,7 @@ class EvaluationFunction:
         :returns: A fitness value.
 
         """
-        
+
         return
 
     @abstractmethod
@@ -63,14 +64,13 @@ class EvaluationFunction:
 
 
 class PhenotypeEvaluationFunction(EvaluationFunction):
-    
+
     def __init__(self, maximize=True, worst_fitness=0.0):
         super(PhenotypeEvaluationFunction, self).__init__(maximize=maximize, worst_fitness=0.0)
 
 
-
 class KineticEvaluationFunction(EvaluationFunction):
-    
+
     def __init__(self, maximize=True, worst_fitness=0.0):
         super(KineticEvaluationFunction, self).__init__(maximize=maximize, worst_fitness=0.0)
 
@@ -90,7 +90,8 @@ class TargetFlux(PhenotypeEvaluationFunction):
     
     """
 
-    def __init__(self, reaction, biomass=None, maximize=True, min_biomass_value=None, min_biomass_per=0.0, method=SimulationMethod.pFBA):
+    def __init__(self, reaction, biomass=None, maximize=True, min_biomass_value=None, min_biomass_per=0.0,
+                 method=SimulationMethod.pFBA):
         super(TargetFlux, self).__init__(maximize=maximize, worst_fitness=0.0)
         self.reaction = reaction
         self.biomass = biomass
@@ -119,7 +120,7 @@ class TargetFlux(PhenotypeEvaluationFunction):
                     sim.model, envcond=sim.envcond, constraints=sim.model_constraints)
                 result = simulation.simulate(objective={self.biomass: 1})
                 self.min_biomass_value = self.min_biomass_per * \
-                    result.fluxes[self.biomass]
+                                         result.fluxes[self.biomass]
 
         if self.biomass and sim.fluxes[self.biomass] < self.min_biomass_value:
             res = self.no_solution
@@ -140,10 +141,11 @@ class TargetFlux(PhenotypeEvaluationFunction):
         return "TargetFlux"
 
     def method_str(self):
-        return "TargetFlux {} with at least {} of biomass ({})".format(self.reaction, self.min_biomass_per, self.biomass)
+        return "TargetFlux {} with at least {} of biomass ({})".format(self.reaction, self.min_biomass_per,
+                                                                       self.biomass)
 
 
-class WYIELD (PhenotypeEvaluationFunction):
+class WYIELD(PhenotypeEvaluationFunction):
     """ Weighted Yield (WYIELD) objective function, a linear combination of the target product minimum and maximum FVA under the introduced metabolic modifications.
 
     :param biomassId: (str) Biomass reaction identifier.
@@ -210,7 +212,7 @@ class WYIELD (PhenotypeEvaluationFunction):
             # computed only once
             if self.min_biomass_value is None or self.min_biomass_value < 0.0:
                 solution = simulation.simulate(
-                        objective={self.biomassId: 1}, scalefactor=scalefactor)
+                    objective={self.biomassId: 1}, scalefactor=scalefactor)
                 wtBiomassValue = solution.fluxes[self.biomassId]
                 minBiomass = wtBiomassValue * self.min_biomass_per
                 self.min_biomass_value = minBiomass
@@ -223,7 +225,7 @@ class WYIELD (PhenotypeEvaluationFunction):
             constraints[self.biomassId] = (biomassFluxValue, 100000.0)
 
             # only need to simulate FVA max if alpha is larger than 0, otherwise it will always be zero
-            if(self.alpha > 0):
+            if (self.alpha > 0):
                 fvaMaxResult = simulation.simulate(
                     objective={self.productId: 1}, constraints=constraints, scalefactor=scalefactor)
                 if fvaMaxResult.status == SStatus.OPTIMAL:
@@ -232,9 +234,9 @@ class WYIELD (PhenotypeEvaluationFunction):
                     return self.no_solution
 
             # only need to simulate FVA min if alpha is lesser than 1, otherwise it will always be zero
-            if(self.alpha < 1):
+            if (self.alpha < 1):
                 fvaMinResult = simulation.simulate(objective={
-                                                   self.productId: 1}, constraints=constraints, maximize=False, scalefactor=scalefactor)
+                    self.productId: 1}, constraints=constraints, maximize=False, scalefactor=scalefactor)
                 if fvaMinResult.status == SStatus.OPTIMAL:
                     fvaMinProd = fvaMinResult.fluxes[self.productId]
                 else:
@@ -278,7 +280,7 @@ class BPCY(PhenotypeEvaluationFunction):
     
     """
 
-    def __init__(self, biomass, product, uptake=None,  maximize=True, **kwargs):
+    def __init__(self, biomass, product, uptake=None, maximize=True, **kwargs):
         super(BPCY, self).__init__(maximize=maximize, worst_fitness=0.0)
         self.biomassId = biomass
         self.productId = product
@@ -335,7 +337,7 @@ class BPCY(PhenotypeEvaluationFunction):
             return "BPCY (" + self.biomassId + " * " + self.productId + ")"
 
 
-class BPCY_FVA (PhenotypeEvaluationFunction):
+class BPCY_FVA(PhenotypeEvaluationFunction):
     """
     This class implements the "Biomass-Product Coupled Yield" objective function with FVA as defined in 
     "OptRAM: In-silico strain design via integrative regulatory-metabolic network modeling". It combines BPCY with WYIELD objective functions. 
@@ -354,7 +356,7 @@ class BPCY_FVA (PhenotypeEvaluationFunction):
     
     """
 
-    def __init__(self, biomass, product, uptake=None,  maximize=True, **kwargs):
+    def __init__(self, biomass, product, uptake=None, maximize=True, **kwargs):
         super(BPCY_FVA, self).__init__(maximize=maximize, worst_fitness=0.0)
         self.biomassId = biomass
         self.productId = product
@@ -415,7 +417,8 @@ class BPCY_FVA (PhenotypeEvaluationFunction):
         if abs(v_max) == abs(v_min):
             return (ssFluxes[self.biomassId] * ssFluxes[self.productId]) / uptake
         else:
-            return ((ssFluxes[self.biomassId] * ssFluxes[self.productId]) / uptake) * (1-math.log(abs((v_max-v_min)/(v_max+v_min))))
+            return ((ssFluxes[self.biomassId] * ssFluxes[self.productId]) / uptake) * (
+                        1 - math.log(abs((v_max - v_min) / (v_max + v_min))))
 
     def required_simulations(self):
         return [self.method]
@@ -430,7 +433,7 @@ class BPCY_FVA (PhenotypeEvaluationFunction):
             return "BPCY_FVA (" + self.biomassId + " * " + self.productId + ")"
 
 
-class AggregatedSum(PhenotypeEvaluationFunction,KineticEvaluationFunction):
+class AggregatedSum(PhenotypeEvaluationFunction, KineticEvaluationFunction):
     """
     Aggredated sum evaluation function. Used to converte MOEAs into Single Objective EAs. 
 
@@ -447,8 +450,8 @@ class AggregatedSum(PhenotypeEvaluationFunction,KineticEvaluationFunction):
         if tradeoffs and len(tradeoffs) == len(fevaluation):
             self.tradeoffs = tradeoffs
         else:
-            self.tradeoffs = [1/len(self.fevaluation)] * \
-                (len(self.fevaluation))
+            self.tradeoffs = [1 / len(self.fevaluation)] * \
+                             (len(self.fevaluation))
 
     def required_simulations(self):
         methods = []
@@ -474,7 +477,7 @@ class AggregatedSum(PhenotypeEvaluationFunction,KineticEvaluationFunction):
         return "Agg"
 
     def method_str(self):
-        return "Aggregated Sum = " + reduce(lambda a, b: a+" "+b, [f.method_str() for f in self.fevaluation], "")
+        return "Aggregated Sum = " + reduce(lambda a, b: a + " " + b, [f.method_str() for f in self.fevaluation], "")
 
 
 class MinCandSize(PhenotypeEvaluationFunction, KineticEvaluationFunction):
@@ -492,7 +495,7 @@ class MinCandSize(PhenotypeEvaluationFunction, KineticEvaluationFunction):
         self.candidate_max_size = candidate_max_size
 
     def get_fitness(self, simulResult, candidate, **kwargs):
-        return 1 - len(candidate)/self.candidate_max_size
+        return 1 - len(candidate) / self.candidate_max_size
 
     def required_simulations(self):
         """
@@ -507,27 +510,25 @@ class MinCandSize(PhenotypeEvaluationFunction, KineticEvaluationFunction):
         return "Minimizes the number of alterations"
 
 
-
 class ModificationType(PhenotypeEvaluationFunction, KineticEvaluationFunction):
     """This Objective function favors solutions with deletions, under expression and over expression, 
     in this same order.
     """
 
-    def __init__(self, penalizations = {'KO':5,'UE':2, 'OE':0} ,maximize=True):
+    def __init__(self, penalizations={'KO': 5, 'UE': 2, 'OE': 0}, maximize=True):
         super(ModificationType, self).__init__(maximize=maximize, worst_fitness=0.0)
         self.penalizations = penalizations
-        
 
     def get_fitness(self, simulResult, candidate, **kwargs):
         sum = 0
         for v in candidate.values():
             if v == 0:
                 sum += self.penalizations['KO']
-            elif v < 1 :
+            elif v < 1:
                 sum += self.penalizations['UE']
             else:
                 sum += self.penalizations['OE']
-        return sum/len(candidate)            
+        return sum / len(candidate)
 
     def required_simulations(self):
         """
@@ -540,5 +541,3 @@ class ModificationType(PhenotypeEvaluationFunction, KineticEvaluationFunction):
 
     def method_str(self):
         return "ModificationType"
-
-

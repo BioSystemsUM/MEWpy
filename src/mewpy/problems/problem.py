@@ -1,12 +1,14 @@
-from enum import IntEnum
+import copy
+import warnings
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-import warnings
+from enum import IntEnum
+
 import numpy as np
-import copy
-from ..util.constants import EAConstants, ModelConstants
+
 from ..optimization.ea import Solution
 from ..simulation import get_simulator
+from ..util.constants import EAConstants, ModelConstants
 
 
 class Strategy(IntEnum):
@@ -46,7 +48,7 @@ class OUBounder(object):
     def __init__(self, lower_bound, upper_bound):
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
-        self.range = [self.upper_bound[i]-self.lower_bound[i] +
+        self.range = [self.upper_bound[i] - self.lower_bound[i] +
                       1 for i in range(len(self.lower_bound))]
 
     def __call__(self, candidate, args):
@@ -69,11 +71,11 @@ class AbstractProblem(ABC):
     :param kwargs: Additional parameters dictionary
     """
 
-    def __init__(self, model, fevaluation=None,**kwargs):
+    def __init__(self, model, fevaluation=None, **kwargs):
         self.model = model
         self.fevaluation = fevaluation
         self.number_of_objectives = len(self.fevaluation)
-        
+
         # simulation context : defines the simulations environment
         self.simul_context = None
         # The target product reaction id may be specified when optimizing for a single product.
@@ -122,7 +124,7 @@ class AbstractProblem(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def solution_to_constraints(self,solution):
+    def solution_to_constraints(self, solution):
         """Converts a decoded solution to metabolict constraints."""
         raise NotImplementedError
 
@@ -170,7 +172,6 @@ class AbstractProblem(ABC):
     def _build_target_list(self):
         raise NotImplementedError
 
-    
     def get_constraints(self, solution):
         """
         :returns: The constrainst enconded into an individual.
@@ -192,7 +193,7 @@ class AbstractProblem(ABC):
         :returns: A list of fitness.
         """
         p = []
-        decoded ={}
+        decoded = {}
         # decoded constraints
         if decode:
             decoded = self.decode(solution)
@@ -222,7 +223,7 @@ class AbstractProblem(ABC):
     def is_maximization(self):
         return all([f.maximize for f in self.fevaluation])
 
-    def simplify(self, solution, tolerance=1e-6,):
+    def simplify(self, solution, tolerance=1e-6, ):
         """
         Simplify a solution by removing the modification that do not affect the final fitness value.
         Two solutions are considered different if the maximum allowed difference between objective values is exceeded.
@@ -243,7 +244,7 @@ class AbstractProblem(ABC):
             simul_constraints = copy.copy(values)
             simul_constraints.remove(entry)
             fit = self.evaluate_solution(simul_constraints)
-            diff = np.abs(np.array(fit)-np.array(fitness))
+            diff = np.abs(np.array(fit) - np.array(fitness))
             is_equal = False
             if isinstance(tolerance, float):
                 is_equal = np.all(diff <= tolerance)
@@ -258,7 +259,7 @@ class AbstractProblem(ABC):
 
         # test all simultaneous removal
         fit = self.evaluate_solution(simul_constraints)
-        diff = np.abs(np.array(fit)-np.array(fitness))
+        diff = np.abs(np.array(fit) - np.array(fitness))
         is_equal = False
         if isinstance(tolerance, float):
             is_equal = np.all(diff <= tolerance)
@@ -296,7 +297,6 @@ class AbstractKOProblem(AbstractProblem):
             model, fevaluation=fevaluation, **kwargs)
         self.strategy = Strategy.KO
 
-
     def decode(self, candidate):
         decoded = {}
         for idx in candidate:
@@ -328,10 +328,9 @@ class AbstractKOProblem(AbstractProblem):
         The KO list index bounder
         """
         if self._bounder is None:
-            max = len(self.target_list)-1
+            max = len(self.target_list) - 1
             self._bounder = KOBounder(0, max)
         return self._bounder
-
 
     def generator(self, random, args):
         """
@@ -341,10 +340,8 @@ class AbstractKOProblem(AbstractProblem):
         solution_size = random.uniform(
             self.candidate_min_size, self.candidate_max_size)
         while len(solution) < solution_size:
-            solution.add(random.randint(0, len(self.target_list)-1))
+            solution.add(random.randint(0, len(self.target_list) - 1))
         return solution
-
-    
 
 
 class AbstractOUProblem(AbstractProblem):
@@ -368,7 +365,6 @@ class AbstractOUProblem(AbstractProblem):
         self.levels = kwargs.get('levels', EAConstants.LEVELS)
         self._reference = kwargs.get('reference', None)
 
-
     def decode(self, candidate):
         """The decoder function for the problem. Needs to be implemented by extending classes."""
         decoded = {}
@@ -376,11 +372,10 @@ class AbstractOUProblem(AbstractProblem):
             try:
                 rxn = self.target_list[idx]
                 lv = self.levels[lv_idx]
-                decoded[rxn]=lv
+                decoded[rxn] = lv
             except IndexError:
-                raise IndexError("Index out of range")    
+                raise IndexError("Index out of range")
         return decoded
-
 
     def encode(self, candidate):
         """
@@ -391,10 +386,9 @@ class AbstractOUProblem(AbstractProblem):
         :returns: a list of index tupple (modification_target_index,level_index). The indexes are
                   problem dependent.
         """
-        
+
         return [(self.target_list.index(k), self.levels.index(lv))
                 for k, lv in candidate.items()]
-
 
     def solution_to_constraints(self, decoded_candidate):
         """
@@ -410,8 +404,8 @@ class AbstractOUProblem(AbstractProblem):
         :returns: a OUBounder object.
         """
         if self._bounder is None:
-            max_idx = len(self.target_list)-1
-            max_lv = len(self.levels)-1
+            max_idx = len(self.target_list) - 1
+            max_lv = len(self.levels) - 1
             self._bounder = OUBounder([0, 0], [max_idx, max_lv])
         return self._bounder
 
@@ -427,8 +421,8 @@ class AbstractOUProblem(AbstractProblem):
         solution_size = random.uniform(
             self.candidate_min_size, self.candidate_max_size)
         while len(solution) < solution_size:
-            idx = random.randint(0, len(self.target_list)-1)
-            lv = random.randint(0, len(self.levels)-1)
+            idx = random.randint(0, len(self.target_list) - 1)
+            lv = random.randint(0, len(self.levels) - 1)
             solution.add((idx, lv))
         return solution
 
@@ -451,9 +445,9 @@ class AbstractOUProblem(AbstractProblem):
         """
         if level > 1:
             if wt >= 0:
-                return (level*wt, ModelConstants.REACTION_UPPER_BOUND)
+                return (level * wt, ModelConstants.REACTION_UPPER_BOUND)
             else:
-                return (-1*ModelConstants.REACTION_UPPER_BOUND, level*wt)
+                return (-1 * ModelConstants.REACTION_UPPER_BOUND, level * wt)
         else:
             return (0, level * wt) if wt >= 0 else (level * wt, 0)
 
@@ -490,6 +484,3 @@ class AbstractOUProblem(AbstractProblem):
             constraints[ko_rxn] = (0, 0)
             constraints[ou_rxn] = self.ou_constraint(lv, fwt)
         return constraints
-
-    
-   

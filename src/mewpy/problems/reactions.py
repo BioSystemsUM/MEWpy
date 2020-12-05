@@ -1,6 +1,7 @@
-from .problem import AbstractKOProblem, AbstractOUProblem
-from collections import OrderedDict
 import warnings
+from collections import OrderedDict
+
+from .problem import AbstractKOProblem, AbstractOUProblem
 
 
 class RKOProblem(AbstractKOProblem):
@@ -33,18 +34,16 @@ class RKOProblem(AbstractKOProblem):
         target = reactions - essential - drains
         if self.non_target is not None:
             target = target - set(self.non_target)
-        target =  list(target)
+        target = list(target)
         try:
             from mewpy.util.constants import EAConstants
             if EAConstants.PROB_TARGET and self.product:
                 from mewpy.util.graph import probabilistic_reaction_targets
-                target = probabilistic_reaction_targets(self.model,self.product,target)        
+                target = probabilistic_reaction_targets(self.model, self.product, target)
         except Exception as e:
             warnings.warn(str(e))
-            
-        self._trg_list = target
 
-   
+        self._trg_list = target
 
 
 class ROUProblem(AbstractOUProblem):
@@ -78,15 +77,15 @@ class ROUProblem(AbstractOUProblem):
         target = reactions  # - drains
         if self.non_target is not None:
             target = target - set(self.non_target)
-        target =  list(target)
+        target = list(target)
         try:
             from ..util.constants import EAConstants
             if EAConstants.PROB_TARGET and self.product:
                 from ..util.graph import probabilistic_reaction_targets
-                target = probabilistic_reaction_targets(self.model,self.product,target)        
+                target = probabilistic_reaction_targets(self.model, self.product, target)
         except Exception as e:
             warnings.warn(str(e))
-            
+
         self._trg_list = target
 
     def solution_to_constraints(self, candidate):

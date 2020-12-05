@@ -1,9 +1,10 @@
 """ Inspyred Operators
 """
 
+import copy
+
 from inspyred.ec.variators.crossovers import crossover
 from inspyred.ec.variators.mutators import mutator
-import copy
 
 
 @mutator
@@ -113,7 +114,7 @@ def uniform_crossover_OU(random, mom, dad, args):
     c_mom = {idx: idy for (idx, idy) in mom if idx in intersection}
     c_dad = {idx: idy for (idx, idy) in dad if idx in intersection}
     rest = [(idx, idy) for (idx, idy) in mom if idx not in intersection] + \
-        [(idx, idy) for (idx, idy) in dad if idx not in intersection]
+           [(idx, idy) for (idx, idy) in dad if idx not in intersection]
     child1 = []
     child2 = []
 
@@ -135,13 +136,13 @@ def uniform_crossover_OU(random, mom, dad, args):
             child1.append(rest[i])
 
     if len(child1) == 0:
-        i = random.randint(0, len(child2)-1)
+        i = random.randint(0, len(child2) - 1)
         p = child2[i]
         child1.append(p)
         child2.remove(p)
 
     if len(child2) == 0:
-        i = random.randint(0, len(child1)-1)
+        i = random.randint(0, len(child1) - 1)
         p = child1[i]
         child2.append(p)
         child1.remove(p)

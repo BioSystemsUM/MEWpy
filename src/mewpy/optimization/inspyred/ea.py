@@ -1,19 +1,20 @@
-from ...util.process import MultiProcessorEvaluator, cpu_count
-from ...util.constants import EAConstants, ModelConstants
-from ..ea import AbstractEA, Solution
-from .problem import InspyredProblem
-import operators as op
-import observers
 from random import Random
 from time import time
+
 import inspyred
+import observers
+import operators as op
 
+from .problem import InspyredProblem
+from ..ea import AbstractEA, Solution
+from ...util.constants import EAConstants, ModelConstants
+from ...util.process import MultiProcessorEvaluator, cpu_count
 
-
-SOEA={
-    'GA':inspyred.ec.EvolutionaryComputation,
-    'SA':inspyred.ec.SA
+SOEA = {
+    'GA': inspyred.ec.EvolutionaryComputation,
+    'SA': inspyred.ec.SA
 }
+
 
 class EA(AbstractEA):
     """

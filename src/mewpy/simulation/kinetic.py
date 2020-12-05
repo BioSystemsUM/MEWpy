@@ -1,10 +1,10 @@
-
-from ..util.ode import KineticConfigurations, SolverConfigurations, ODEStatus, ODESpySolver
-from ..model.kinetic import ODEModel
-from .simulation import SimulationResult
-from collections import OrderedDict
 import threading
 import warnings
+from collections import OrderedDict
+
+from .simulation import SimulationResult
+from ..model.kinetic import ODEModel
+from ..util.ode import KineticConfigurations, SolverConfigurations, ODEStatus, ODESpySolver
 
 
 def kinetic_solve(model, finalParameters, finalFactors, initialConc, timePoints):
@@ -24,7 +24,7 @@ def kinetic_solve(model, finalParameters, finalFactors, initialConc, timePoints)
         X, _ = solver.solve(timePoints)
         # if solver returns a solution where any concentration is negative
         for c in X[1]:
-            if c < -1*SolverConfigurations.RELATIVE_TOL:
+            if c < -1 * SolverConfigurations.RELATIVE_TOL:
                 return ODEStatus.ERROR, {}, {}
 
     except Exception as e:
@@ -43,6 +43,7 @@ class KineticThread(threading.Thread):
     Solves the ODE inside a thread enabling to impose a timeout limit with thread.join(timeout)
 
     """
+
     def __init__(self, model, parameters=None, final_factors=None, initial_concentrations=None, time_steps=None):
         super(KineticThread, self).__init__()
         self.model = model

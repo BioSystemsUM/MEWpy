@@ -1,12 +1,13 @@
 import numpy as np
-from sympy import postorder_traversal
-from sympy.logic.boolalg import And, Or, Not, BooleanFalse, BooleanTrue
-from sympy.core.relational import StrictGreaterThan, StrictLessThan, GreaterThan, LessThan
-from sympy.core.numbers import Zero, One
 from cobamp.core.linear_systems import GenericLinearSystem, VAR_CONTINUOUS, VAR_BINARY
 from cobamp.core.optimization import LinearSystemOptimizer
-from ..simulation.simulation import SimulationResult
+from sympy import postorder_traversal
+from sympy.core.numbers import Zero, One
+from sympy.core.relational import StrictGreaterThan, StrictLessThan, GreaterThan, LessThan
+from sympy.logic.boolalg import And, Or, Not, BooleanFalse, BooleanTrue
+
 from . import IntegratedModel
+from ..simulation.simulation import SimulationResult
 
 _SRFBA_TOL = 1E-10
 
@@ -657,7 +658,7 @@ class SRFBAModel(IntegratedModel):
 
         solution = lso.optimize()
 
-        #building mewpy's solution object
+        # building mewpy's solution object
         flxs = {}
         bools = {}
         regulatory_conditions = {}

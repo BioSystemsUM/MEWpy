@@ -1,10 +1,10 @@
 from warnings import warn
+
 from . import IntegratedModel
 from ..simulation import SStatus
 
 
 class RFBAModel(IntegratedModel):
-
     """
 
     RFBAModel class object inherits everything from the IntegratedModel class.

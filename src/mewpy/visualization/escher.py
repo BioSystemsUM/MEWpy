@@ -1,7 +1,8 @@
-from reframed.core.cbmodel import CBModel
-from reframed.external.cobrapy import to_cobrapy
 import random
 import string
+
+from reframed.core.cbmodel import CBModel
+from reframed.external.cobrapy import to_cobrapy
 
 
 def escher_maps():
@@ -23,7 +24,7 @@ def randomString(stringLength=10):
 def to_json(model, filename=None):
     import cobra
     if not filename:
-        filename = randomString()+".json"
+        filename = randomString() + ".json"
     if isinstance(model, cobra.core.model.Model):
         c_model = model
     elif isinstance(model, CBModel):

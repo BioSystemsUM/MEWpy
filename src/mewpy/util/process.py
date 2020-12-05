@@ -1,7 +1,8 @@
+import copy
 from abc import ABC, abstractmethod
+
 from .constants import EAConstants
 
-import copy
 # pathos
 try:
     import pathos.multiprocesssing
@@ -30,7 +31,7 @@ def cpu_count():
         return EAConstants.NUM_CPUS
     else:
         try:
-            return multiprocessing.cpu_count()//2
+            return multiprocessing.cpu_count() // 2
         except (ImportError, NotImplementedError):
             return 1
 
@@ -105,6 +106,7 @@ else:
             """
             return self.problem.evaluator(candidates, None)
 
+
     class RayEvaluator(Evaluator):
 
         def __init__(self, problem, number_of_actors):
@@ -121,7 +123,7 @@ else:
             size = len(candidates) // self.number_of_actors
             if len(candidates) % self.number_of_actors != 0:
                 size += 1
-            sub_lists = [candidates[i:i+size]
+            sub_lists = [candidates[i:i + size]
                          for i in range(0, len(candidates), size)]
             values = []
             for i in range(self.number_of_actors):

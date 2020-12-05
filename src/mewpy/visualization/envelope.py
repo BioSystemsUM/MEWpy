@@ -1,6 +1,7 @@
+import numpy as np
+
 from ..simulation import get_simulator
 from ..simulation.simulation import Simulator
-import numpy as np
 
 
 def flux_envelope(model, r_x, r_y, steps=10, constraints=None):
@@ -30,7 +31,7 @@ def flux_envelope(model, r_x, r_y, steps=10, constraints=None):
     obj_frac = 0
     # if r_x in simul.get_objective():
     #    obj_frac = 0.0
-        
+
     x_range = simul.FVA(obj_frac=obj_frac, reactions=[r_x], constraints=constraints)
     xmin, xmax = x_range[r_x]
     xvals = np.linspace(xmin, xmax, steps)
@@ -44,7 +45,7 @@ def flux_envelope(model, r_x, r_y, steps=10, constraints=None):
 
     for i, xval in enumerate(xvals):
         _constraints[r_x] = xval
-        y_range = simul.FVA(obj_frac=obj_frac,reactions=[r_y], constraints=_constraints)
+        y_range = simul.FVA(obj_frac=obj_frac, reactions=[r_y], constraints=_constraints)
         ymins[i], ymaxs[i] = y_range[r_y]
 
     return xvals, ymins, ymaxs
@@ -129,7 +130,3 @@ def plot_flux_envelope(model, r_x, r_y, steps=10, substrate=None, constraints=No
     ax.set_ylim((ymin - dy, ymax + dy))
 
     return ax
-
-
-
-

@@ -1,9 +1,11 @@
+import copy
+import logging
+from typing import List, TypeVar
+
+import numpy
 from jmetal.core.observer import Observer
 from jmetal.lab.visualization import StreamingPlot
-from typing import List, TypeVar
-import logging
-import numpy
-import copy
+
 from ..ea import non_dominated_population
 
 S = TypeVar('S')
@@ -70,7 +72,7 @@ class PrintObjectivesStatObserver(Observer):
         self.display_frequency = frequency
         self.first = True
 
-    def fitness_statistics(self, solutions,problem):
+    def fitness_statistics(self, solutions, problem):
         """Return the basic statistics of the population's fitness values.
         :param list solutions: List of solutions.
         :param problem: The jMetalPy problem.
@@ -83,9 +85,9 @@ class PrintObjectivesStatObserver(Observer):
         n = len(first)
         for i in range(n):
             direction = problem.obj_directions[i]
-            factor = 1 if direction== problem.MINIMIZE else -1
+            factor = 1 if direction == problem.MINIMIZE else -1
             f = [(factor * p.objectives[i]) for p in solutions]
-            if direction==problem.MAXIMIZE:
+            if direction == problem.MAXIMIZE:
                 worst_fit = min(f)
                 best_fit = max(f)
             else:
@@ -113,7 +115,7 @@ class PrintObjectivesStatObserver(Observer):
                                                                                       s['mean'],
                                                                                       s['std'])
         if title:
-            return title+"\n"+values
+            return title + "\n" + values
         else:
             return values
 
@@ -123,7 +125,7 @@ class PrintObjectivesStatObserver(Observer):
         problem = kwargs['PROBLEM']
         if (evaluations % self.display_frequency) == 0 and solutions:
             if type(solutions) == list:
-                stats = self.fitness_statistics(solutions,problem)
+                stats = self.fitness_statistics(solutions, problem)
                 message = self.stats_to_str(stats, evaluations, self.first)
                 self.first = False
             else:

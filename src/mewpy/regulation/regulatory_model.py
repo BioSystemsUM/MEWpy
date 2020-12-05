@@ -1,9 +1,11 @@
 from warnings import warn
-from sympy.logic.boolalg import BooleanTrue, BooleanFalse
+
 from sympy.core.numbers import Zero, One
-from ..io import read_tabular_aliases
+from sympy.logic.boolalg import BooleanTrue, BooleanFalse
+
 from .regulatory_interaction import RegulatoryInteraction
 from .regulatory_variable import RegulatoryVariable
+from ..io import read_tabular_aliases
 
 
 class RegulatoryModel(object):
@@ -768,7 +770,6 @@ class RegulatoryModel(object):
 
 
 def solution_decode(solution):
-
     decode = {
         True: 1,
         False: 0,

@@ -1,10 +1,10 @@
+import re
+import sys
 from abc import abstractmethod
 from operator import add, sub, mul, truediv, pow
-from sympy.parsing.sympy_parser import parse_expr
-from sympy import Symbol
-import sys
-import re
 
+from sympy import Symbol
+from sympy.parsing.sympy_parser import parse_expr
 
 # Boolean operator symbols
 S_AND = '&'
@@ -236,6 +236,7 @@ class Syntax:
 class Arithmetic(Syntax):
     """Defines a basic arithmetic sintax.
     """
+
     @staticmethod
     def is_operator(op):
         return op in ['+', '-', '*', '/', '^']
@@ -719,7 +720,6 @@ def bitwise_rule_filter(rule):
     """
 
     for bool, bit_val in Boolean.SYMPY_REPLACE.items():
-
         rule = re.sub(r'\b{}\b'.format(bool), bit_val, rule)
         rule = re.sub(r'\b{}\b'.format(bool.upper()), bit_val, rule)
         rule = re.sub(r'\b{}\b'.format(bool.title()), bit_val, rule)

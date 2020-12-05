@@ -1,36 +1,37 @@
-from reframed.core.cbmodel import CBModel, CBReaction
-from reframed.io.sbml import load_cbmodel
-from reframed.core.model import AttrOrderedDict, Metabolite
-from ..util.constants import ModelConstants
-from collections import OrderedDict
-from six import iteritems, string_types
-from itertools import chain
-import pandas as pd
-import numpy as np
-from math import isinf
-import logging
 import copy
+import logging
 import os
 import re
+from collections import OrderedDict
+from itertools import chain
+from math import isinf
 
+import numpy as np
+import pandas as pd
+from reframed.core.cbmodel import CBModel, CBReaction
+from reframed.core.model import AttrOrderedDict, Metabolite
+from reframed.io.sbml import load_cbmodel
+from six import iteritems, string_types
+
+from ..util.constants import ModelConstants
 
 
 class ModelList(object):
     '''Auxilary class to load predifined ecYeast7 models
     '''
 
-
     def __init__(self):
         self.DATA_FILES = os.path.join(os.path.dirname(__file__), 'data')
         self.PROTEINS_FILE = os.path.join(self.DATA_FILES, 'proteins.txt')
-        self.model_files = dict((re.findall(r'_(.*).xml', f)[0], f) for f in os.listdir(self.DATA_FILES) if f.endswith('.xml'))
+        self.model_files = dict(
+            (re.findall(r'_(.*).xml', f)[0], f) for f in os.listdir(self.DATA_FILES) if f.endswith('.xml'))
         self.models = {}
-
 
     def __getitem__(self, item):
         """Get a bundled GECKO model.
-        
-        :param item: basestring. Either 'single-pool' for the single-protein pool ecYeastGEM model or 'multi-pool' for individually modeled protein pools.
+
+        :param item: basestring. Either 'single-pool' for the single-protein pool ecYeastGEM model or
+        'multi-pool' for individually modeled protein pools.
 
         """
         try:
@@ -43,18 +44,17 @@ class ModelList(object):
             self.models[file_name] = model
         return self.models[file_name]
 
-
-    def simplify_model(self,model):
+    def simplify_model(self, model):
         met_copy = AttrOrderedDict()
         for key, val in model.metabolites.items():
-            k = key.replace('__91__', '_').replace('__93__', '') 
+            k = key.replace('__91__', '_').replace('__93__', '')
             val.id = k
             met_copy[k] = val
         model.metabolites = met_copy
         for rxn in model.reactions.keys():
             stoi = model.reactions[rxn].stoichiometry
             nstoi = OrderedDict()
-            for key , v in stoi.items():
+            for key, v in stoi.items():
                 k = key.replace('__91__', '_').replace('__93__', '')
                 nstoi[k] = v
             model.reactions[rxn].stoichiometry = nstoi
@@ -62,34 +62,37 @@ class ModelList(object):
             if isinf(rxn.ub):
                 rxn.ub = ModelConstants.REACTION_UPPER_BOUND
 
-
     def protein_properties(self):
         return pd.read_csv(self.PROTEINS_FILE, index_col=0)
 
 
 class GeckoModel(CBModel):
-    """Class for representing GECKO models.  Addapted from the original (https://github.com/SysBioChalmers/GECKO/) to reframed
+    """Class for representing GECKO models.
+    Addapted from the original (https://github.com/SysBioChalmers/GECKO/) to reframed.
 
     Implement a model class for Genome-scale model to account for Enzyme Constraints, using Kinetics and Omics [1]_.
 
-
-    
-    :param model: str, A CBModel to apply protein constraints to. Can be 'single-pool' for the bundled ecYeast7 model using only a single pool for all proteins, or 'multi-pool' for the model that has separate pools for all measured proteins. 
-    :param protein_properties: pd.DataFrame, A data frame that defined molecular weight (g/mol) 'mw', for 'uniprot' proteins and their average 'abundance' in ppm.
-    :param sigma: float, The parameter adjusting how much of a protein pool can take part in reactions. Fitted parameter, default is optimized for chemostat experiment in [1]_.
+    :param model: str, A CBModel to apply protein constraints to. Can be 'single-pool' for the bundled ecYeast7 \
+        model using only a single pool for all proteins, or 'multi-pool' for the model that has separate pools \
+        for all measured proteins.
+    :param protein_properties: pd.DataFrame, A data frame that defined molecular weight (g/mol) 'mw', for 'uniprot' \
+        proteins and their average 'abundance' in ppm.
+    :param sigma: float, The parameter adjusting how much of a protein pool can take part in reactions. Fitted \
+        parameter, default is optimized for chemostat experiment in [1]_.
     :param gam: float, The growth associated maintenance cost in mmol / gDW. Default fitted for yeast 8.1.3.
-    :param amino_acid_polymerization_cost: float, The cost for turning amino-acids in proteins in mmol / g. Default taken from [2]_.
-    :param carbohydrate_polymerization_cost: float, The cost for turning monosaccharides in polysaccharides in mmol / g. Default taken from [2]_.
+    :param amino_acid_polymerization_cost: float, The cost for turning amino-acids in proteins in mmol / g. \
+        Default taken from [2]_.
+    :param carbohydrate_polymerization_cost: float, The cost for turning monosaccharides in polysaccharides in \
+        mmol / g. Default taken from [2]_.
     :param c_base: float, The carbohydrate content at dilution rate 0.1 / h. Default taken from yeast 8.1.3.
     :param biomass_reaction_id: str, The identifier for the biomass reaction.
-    :param protein_reaction_id: str, The identifier for the protein reaction. 
+    :param protein_reaction_id: str, The identifier for the protein reaction.
     :param carbohydrate_reaction_id: str, The identifier for the carbohydrate reaction.
     :param protein_pool_exchange_id: str, The identifier of the protein pool exchange reaction.
     :param common_protein_pool_id: str, The identifier of the metabolite representing the common protein pool.
 
-
     References:
-    
+
     .. [1] Benjamin J. Sanchez, Cheng Zhang, Avlant Nilsson, Petri-Jaan Lahtvee, Eduard J. Kerkhoven, Jens Nielsen (
        2017). Improving the phenotype predictions of a yeast genome-scale metabolic model by incorporating enzymatic
        constraints. [Molecular Systems Biology, 13(8): 935, http://www.dx.doi.org/10.15252/msb.20167411
@@ -103,8 +106,8 @@ class GeckoModel(CBModel):
                  carbohydrate_polymerization_cost=12.8, biomass_reaction_id='r_4041',
                  protein_reaction_id='r_4047', carbohydrate_reaction_id='r_4048',
                  protein_pool_exchange_id='prot_pool_exchange', common_protein_pool_id='prot_pool',
-                 reaction_prefix = ''):
-        
+                 reaction_prefix=''):
+
         # load predifined models
         model_list = ModelList()
         if isinstance(model, string_types):
@@ -113,8 +116,8 @@ class GeckoModel(CBModel):
             model_list.simplify_model(model)
         else:
             raise ValueError('Model should be a string denomination or a CBModel instance')
-               
-        super(GeckoModel,self).__init__(model.id)
+
+        super(GeckoModel, self).__init__(model.id)
 
         # import CBModel's data
         self.compartments = copy.deepcopy(model.compartments)
@@ -122,60 +125,53 @@ class GeckoModel(CBModel):
         self.reactions = copy.deepcopy(model.reactions)
         self.genes = copy.deepcopy(model.genes)
 
-
         # biomass reaction id (str)
         if biomass_reaction_id not in self.reactions:
             raise RuntimeError(f"Reaction {biomass_reaction_id} is not in the model")
         self.biomass_reaction = biomass_reaction_id
-        
-        # protein reaction id (CBReaction) 
+
+        # protein reaction id (CBReaction)
         try:
             self.protein_reaction = self.reactions[protein_reaction_id]
         except KeyError:
             logging.warning(f"Protein reaction {protein_reaction_id} is not in the model")
-        
 
-        # carbohydrate reaction id (CBReaction) 
+        # carbohydrate reaction id (CBReaction)
         try:
             self.carbohydrate_reaction = self.reactions[carbohydrate_reaction_id]
         except KeyError:
             logging.warning(f"Carbohydrate reaction {carbohydrate_reaction_id} is not in the model")
-        
-        
+
         # protein properties DataFrame
         if protein_properties:
             self.protein_properties = protein_properties
         else:
             model_list = ModelList()
             self.protein_properties = model_list.protein_properties()
-        
-        
-        # Metabolite of common protein pool 
+
+        # Metabolite of common protein pool
         try:
             self.common_protein_pool = self.metabolites[common_protein_pool_id]
         except KeyError:
             self.common_protein_pool = Metabolite(common_protein_pool_id)
             self.metabolites[common_protein_pool_id] = self.common_protein_pool
-        
-        
+
         # Reaction identified as protein pool exchange
         if protein_pool_exchange_id in self.reactions.keys():
             self.protein_pool_exchange = self.reactions[protein_pool_exchange_id]
         else:
             self.protein_pool_exchange = CBReaction(protein_pool_exchange_id)
             self.protein_pool_exchange.stoichiometry.update({self.common_protein_pool.id: 1.})
-            self.protein_pool_exchange.set_flux_bounds(0,ModelConstants.REACTION_UPPER_BOUND)
+            self.protein_pool_exchange.set_flux_bounds(0, ModelConstants.REACTION_UPPER_BOUND)
             self.add_reaction(self.protein_pool_exchange)
-        
-        
-    
+
         # multi-pool
-        s_protein_exchange = "^"+reaction_prefix+"prot_(.*)_exchange$"
+        s_protein_exchange = "^" + reaction_prefix + "prot_(.*)_exchange$"
         self.protein_exchange_re = re.compile(s_protein_exchange)
-        s_pool_protein_exchange = "^"+reaction_prefix+"draw_prot_(.*)$"
+        s_pool_protein_exchange = "^" + reaction_prefix + "draw_prot_(.*)$"
         self.pool_protein_exchange_re = re.compile(s_pool_protein_exchange)
         self.concentrations = pd.Series(np.nan, index=self.proteins)
-        
+
         # passed parameters
         self.gam = gam
         self.amino_acid_polymerization_cost = amino_acid_polymerization_cost
@@ -199,22 +195,19 @@ class GeckoModel(CBModel):
         # protein reverse reactions mapping
         self._protein_rev_reactions = None
 
-
-
     def fraction_to_ggdw(self, fraction):
         """Convert protein measurements in mass fraction of total to g protein / g DW.
 
-        
-        :param fraction: pd.Series, Data of protein measurements which are absolute quantitative fractions of the total amount of these measured proteins. Normalized to sum == 1.
+        :param fraction: pd.Series, Data of protein measurements which are absolute quantitative fractions \
+            of the total amount of these measured proteins. Normalized to sum == 1.
         :returns: pd.Series, g protein / g DW for the measured proteins
 
         """
         # measurements should be quantitative fractions of the total measured proteins, normalized to unit-length
         fraction = fraction / fraction.sum()
-        fraction_measured = self.protein_properties.loc[list(fraction.index),'abundance'].sum()
+        fraction_measured = self.protein_properties.loc[list(fraction.index), 'abundance'].sum()
         p_measured = self.p_total * fraction_measured
         return fraction.apply(lambda x: x * p_measured)
-
 
     def limit_proteins(self, fractions=None, ggdw=None, p_total=0.448, p_base=0.46):
         """Apply proteomics measurements to model.
@@ -222,18 +215,19 @@ class GeckoModel(CBModel):
         Apply measurements in the form of fractions of total of the measured proteins, or directly as g / gDW. Must
         supply exactly one of `fractions` or `ggdw`.
 
-        
-        :param fractions: pd.Series, Protein abundances in fraction of total (normalized to sum to 1). Ignored if `ggdw` is also supplied.
+        :param fractions: pd.Series, Protein abundances in fraction of total (normalized to sum to 1).  \
+            Ignored if `ggdw` is also supplied.
         :param ggdw: pd.Series, Protein abundances in g / gDW
-        :param p_total: float, measured total protein fraction in cell in g protein / g DW. Should be measured for each experiment, the default here is taken from [2]_.
-        :param p_base: float, protein content at dilution rate 0.1 / h in g protein / g DW. Default taken from yeast 8.1.3.
+        :param p_total: float, measured total protein fraction in cell in g protein / g DW. \
+            Should be measured for each experiment, the default here is taken from [2]_.
+        :param p_base: float, protein content at dilution rate 0.1 / h in g protein / g DW. \
+            Default taken from yeast 8.1.3.
 
         References:
-        
+
         .. [2] Benjamin J. Sanchez, Cheng Zhang, Avlant Nilsson, Petri-Jaan Lahtvee, Eduard J. Kerkhoven, Jens Nielsen (
            2017). Improving the phenotype predictions of a yeast genome-scale metabolic model by incorporating enzymatic
            constraints. [Molecular Systems Biology, 13(8): 935, http://www.dx.doi.org/10.15252/msb.20167411
-
 
         """
         self.p_total = p_total
@@ -256,33 +250,29 @@ class GeckoModel(CBModel):
             else:
                 self.concentrations[protein_id] = value
                 rxn.set_flux_bounds(0, mmol_gdw)
-        
+
         # 2. p_measured is aggregate mass of all matched proteins
         self.p_measured = self.concentrations.sum()
         # 3. fm, mass fraction of measured proteins in the model over total
         self.fm_mass_fraction_matched = self.p_measured / self.p_total
         # 4. mass fraction of unmeasured proteins in the model over all proteins not matched to model
         self.fn_mass_fraction_unmeasured_matched = (
-            self.protein_properties.loc[list(self.unmeasured_proteins)].prod(axis=1).sum() /
-            self.protein_properties.prod(axis=1).sum()
+                self.protein_properties.loc[list(self.unmeasured_proteins)].prod(axis=1).sum() /
+                self.protein_properties.prod(axis=1).sum()
         )
         self.f_mass_fraction_measured_matched_to_total = (
-            self.fn_mass_fraction_unmeasured_matched / (1 - self.fm_mass_fraction_matched))
+                self.fn_mass_fraction_unmeasured_matched / (1 - self.fm_mass_fraction_matched))
         # 5. constrain unmeasured proteins by common pool
         self.constrain_pool()
         self.adjust_biomass_composition()
 
-
-
-
-    
     def constrain_pool(self):
         """Constrain the draw reactions for the unmeasured (common protein pool) proteins.
 
         Proteins without their own protein pool are collectively constrained by the common protein pool. Remove
         protein pools for all proteins that don't have measurements, along with corresponding draw reactions,
         and add these to the common protein pool and reaction.
-        
+
         """
         new_reactions = []
         to_remove = []
@@ -297,19 +287,19 @@ class GeckoModel(CBModel):
         self.fs_matched_adjusted = ((self.p_total - self.p_measured) *
                                     self.f_mass_fraction_measured_matched_to_total *
                                     self.sigma_saturation_factor)
-        self.protein_pool_exchange.set_flux_bounds(0, self.fs_matched_adjusted)                            
+        self.protein_pool_exchange.set_flux_bounds(0, self.fs_matched_adjusted)
 
         # 4. Remove other enzyme usage reactions and replace with pool exchange reactions
         average_mmw = self.protein_properties['mw'].mean() / 1000.
         for protein_id in self.unmeasured_proteins:
             prt = 'prot_{}_exchange'.format(protein_id)
-            if prt in self.reactions: 
-              to_remove.append(prt)  
+            if prt in self.reactions:
+                to_remove.append(prt)
             draw_reaction_id = 'draw_prot_{}'.format(protein_id)
             if draw_reaction_id not in self.reactions.keys():
                 draw_rxn = CBReaction(draw_reaction_id)
                 # defines bounds
-                draw_rxn.set_flux_bounds(0,1000)
+                draw_rxn.set_flux_bounds(0, 1000)
                 self.uniprot[draw_rxn.id] = protein_id
                 protein_pool = self.metabolites['prot_{}_c'.format(protein_id)]
                 try:
@@ -323,15 +313,12 @@ class GeckoModel(CBModel):
             self.add_reaction(rxn)
         self.remove_reactions(to_remove)
 
-
-
-
     def adjust_biomass_composition(self):
         """Adjust the biomass composition.
 
         After changing the protein and carbohydrate content based on measurements, adjust the corresponding
         coefficients of the biomass reaction.
-        
+
         """
         for met in self.protein_reaction.stoichiometry:
             is_prot = 'protein' in self.metabolites[met].name
@@ -358,18 +345,17 @@ class GeckoModel(CBModel):
                                       self.carbohydrate_polymerization_cost * self.c_total)
                 self.reactions[self.biomass_reaction].stoichiometry[met] = coefficient
 
-
-    
     def adjust_pool_bounds(self, min_objective=0.05, inplace=False, tolerance=1e-9):
         """Adjust protein pool bounds minimally to make model feasible.
 
         Bounds from measurements can make the model non-viable or even infeasible. Adjust these minimally by minimizing
         the positive deviation from the measured values.
-        
+
         :param min_objective: float, The minimum value of for the ojective for calling the model viable.
         :param inplace: bool, Apply the adjustments to the model.
         :param tolerance: float, Minimum non-zero value. Solver specific value.
-        :returns: pd.DataFrame, Data frame with the series 'original' bounds and the new 'adjusted' bound, and the optimized 'addition'.
+        :returns: pd.DataFrame, Data frame with the series 'original' bounds and the new 'adjusted' bound, \
+            and the optimized 'addition'.
 
         """
         from reframed.solvers import solver_instance
@@ -381,8 +367,7 @@ class GeckoModel(CBModel):
             solver.add_variable('measured_bound_' + pool.id,
                                 lb=pool.upper_bound, ub=pool.upper_bound)
 
-        
-        #with self.model as model:
+        # with self.model as model:
         #    problem = model.problem
         #    constraint_objective = problem.Constraint(model.objective.expression, name='constraint_objective',
         #                                              lb=min_objective)
@@ -400,17 +385,15 @@ class GeckoModel(CBModel):
         #    model.objective = problem.Objective(new_objective, direction='min')
         #    model.slim_optimize(error_value=None)
         #    primal_values = model.solver.primal_values
-        #adjustments = [(pool.id, primal_values['pool_diff_' + pool.id], pool.upper_bound)
+        # adjustments = [(pool.id, primal_values['pool_diff_' + pool.id], pool.upper_bound)
         #               for pool in model.individual_protein_exchanges
         #               if primal_values['pool_diff_' + pool.id] > tolerance]
-        #result = pd.DataFrame(adjustments, columns=['reaction', 'addition', 'original'])
-        #result['adjusted'] = result['addition'] + result['original']
-        #if inplace:
+        # result = pd.DataFrame(adjustments, columns=['reaction', 'addition', 'original'])
+        # result['adjusted'] = result['addition'] + result['original']
+        # if inplace:
         #    for adj in result.itertuples():
         #        model.reactions.get_by_id(adj.reaction).upper_bound = adj.adjusted
-        #return result
-        
-
+        # return result
 
     @property
     def measured_proteins(self):
@@ -480,28 +463,24 @@ class GeckoModel(CBModel):
                           if re.match(self.pool_protein_exchange_re, rxn)) -
                 {self.protein_pool_exchange})
 
-
-
     @property
     def protein_exchanges(self):
         """Protein-exchange reactions.
             fs_matched_adjusted
-        
+
         :returns: frozenset, Set of protein exchange reactions (individual and common protein pool reactions).
 
         """
         return self.individual_protein_exchanges.union(self.pool_protein_exchanges)
 
-
-
-
     @property
     def protein_rev_reactions(self):
         """
         Pairs of reverse reactions associated with a protein
-        
-        :returns: dictionaty, A dictionary which identifies for each protein (key) the list of reversible reactions pairs.
-            
+
+        :returns: dictionaty, A dictionary which identifies for each protein (key) the list of reversible \
+        reactions pairs.
+
         """
         if not self._protein_rev_reactions:
             proteins = self.proteins
@@ -514,38 +493,18 @@ class GeckoModel(CBModel):
                     for m in lsub:
                         if p in m:
                             sub.append(r_id)
-                in_sub[p]=sub
-            pairs ={}    
-            for k,s in in_sub.items():
+                in_sub[p] = sub
+            pairs = {}
+            for k, s in in_sub.items():
                 revs = [r for r in s if '_REV' in r]
-                if len(revs)>0:
+                if len(revs) > 0:
                     for r in revs:
-                        l = [ a for a in s if r.replace('_REV','') == a]
-                        l.append(r) 
-                        if len(l)==2:
+                        lrx = [a for a in s if r.replace('_REV', '') == a]
+                        lrx.append(r)
+                        if len(lrx) == 2:
                             if k in pairs.keys():
-                                pairs[k].append((l[0],l[1]))
+                                pairs[k].append((lrx[0], lrx[1]))
                             else:
-                                pairs[k]=[(l[0],l[1])]
+                                pairs[k] = [(lrx[0], lrx[1])]
             self._protein_rev_reactions = pairs
-        return self._protein_rev_reactions    
-
-
-
-                 
-
-
-   
-
-
-
-
-
-
-
-
-
-
-    
-
-    
+        return self._protein_rev_reactions

@@ -13,7 +13,7 @@ class IntTuppleBounder(object):
     def __init__(self, lower_bound, upper_bound):
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
-        self.range = [self.upper_bound[i]-self.lower_bound[i] +
+        self.range = [self.upper_bound[i] - self.lower_bound[i] +
                       1 for i in range(len(self.lower_bound))]
 
     def __call__(self, candidate, args):

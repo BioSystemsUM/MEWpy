@@ -1,10 +1,11 @@
 import os
 from warnings import warn
+
 from . import RegulatoryModel, RegulatoryVariable, RegulatoryInteraction
-from ..io import read_tabular_aliases, read_tabular_regulatory_model
 from .regulatory_model import solution_decode
-from ..simulation import get_simulator, SStatus
+from ..io import read_tabular_aliases, read_tabular_regulatory_model
 from ..simulation import SimulationMethod
+from ..simulation import get_simulator, SStatus
 from ..simulation.cobra import Simulation as Cobra_model
 from ..simulation.reframed import Simulation as Reframed_model
 from ..simulation.simulation import SimulationResult

@@ -1,9 +1,10 @@
+import os
+from time import time
+
+from mewpy.optimization import EA
+from mewpy.optimization.evaluation import BPCY_FVA, BPCY, WYIELD
 from mewpy.regulation.optram import OptRAMRegModel, OptRamProblem, load_optram
 from mewpy.simulation import SimulationMethod, get_simulator
-from mewpy.optimization.evaluation import BPCY_FVA, BPCY, WYIELD
-from mewpy.optimization import EA
-from time import time
-import os
 
 
 def test():
@@ -22,29 +23,27 @@ def test():
     PRODUCT_ID = 'r_1912'
     GLC = 'r_1714'
 
-    envcond = {GLC:(-10,0)}
+    envcond = {GLC: (-10, 0)}
 
     # adds the prefix 'G_' to genes. Only for REFRAMED models
     regnet = load_optram(gene_file, ft_file, matrix_file, gene_prefix='G_')
-    
+
     # the general objective is to maximize the target
     from reframed.io.sbml import load_cbmodel
     model = load_cbmodel(model_file)
-    model.set_objective({BIOMASS_ID:1})
-    
+    model.set_objective({BIOMASS_ID: 1})
+
     evaluator_1 = BPCY(BIOMASS_ID, PRODUCT_ID, method=SimulationMethod.lMOMA)
     evaluator_2 = WYIELD(BIOMASS_ID, PRODUCT_ID, parsimonious=True)
-    
+
     # OptRAM problem
     problem = OptRamProblem(model, [evaluator_1, evaluator_2],
-                            regnet, envcond = envcond, candidate_min_size=10, candidate_max_size=30)
+                            regnet, envcond=envcond, candidate_min_size=10, candidate_max_size=30)
 
-    print('Target List:',problem.target_list)
+    print('Target List:', problem.target_list)
     print("\n\n")
-    print('Metabolic Genes',problem.simulator.genes)    
+    print('Metabolic Genes', problem.simulator.genes)
     print("\n\n")
-    
-
 
     ea = EA(problem, max_generations=3, mp=True)
     final_pop = ea.run()

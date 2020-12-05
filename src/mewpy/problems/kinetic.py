@@ -1,6 +1,7 @@
+from collections import OrderedDict
+
 from .problem import AbstractKOProblem, AbstractOUProblem
 from ..simulation.kinetic import KineticSimulation
-from collections import OrderedDict
 
 
 class KineticKOProblem(AbstractKOProblem):

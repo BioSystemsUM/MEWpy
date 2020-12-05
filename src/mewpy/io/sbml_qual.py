@@ -1,9 +1,9 @@
-import libsbml
-import warnings
-from sympy.logic.boolalg import And, Or, Not
-from sympy.core.relational import StrictGreaterThan, StrictLessThan, GreaterThan, LessThan, Eq
-from sympy import sympify, symbols
 import os
+
+import libsbml
+from sympy import sympify, symbols
+from sympy.core.relational import StrictGreaterThan, StrictLessThan, GreaterThan, LessThan, Eq
+from sympy.logic.boolalg import And, Or, Not
 
 DIR = os.path.dirname(os.path.realpath(__file__))
 PATH = os.path.join(DIR, '../../../examples/models/regulation/e_coli_core.xml')
@@ -34,7 +34,6 @@ ASTNODE_NAME = libsbml.AST_NAME
 
 
 def readMathNode(ast_node):
-
     """
     Reads and parses a node of type math ASTNode into a boolean sympy expression.
 
@@ -96,6 +95,7 @@ def readMathNode(ast_node):
         print(e)
         print('Moving on')
         return
+
 
 doc = libsbml.readSBML(PATH)
 

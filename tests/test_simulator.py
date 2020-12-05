@@ -4,7 +4,6 @@ MODELS_PATH = 'tests/data/'
 EC_CORE_MODEL = MODELS_PATH + 'e_coli_core.xml.gz'
 MIN_GROWTH = 0.1
 
-      
 
 class TestReframedSimul(unittest.TestCase):
 
@@ -24,23 +23,23 @@ class TestReframedSimul(unittest.TestCase):
         self.assertGreater(len(essential), 0)
 
     def test_fba(self):
-        res=self.simul.simulate()
+        res = self.simul.simulate()
         self.assertGreater(res.objective_value, MIN_GROWTH)
 
     def test_pfba(self):
-        res=self.simul.simulate(method='pFBA')
+        res = self.simul.simulate(method='pFBA')
         self.assertGreater(res.fluxes[self.BIOMASS_ID], MIN_GROWTH)
 
     def test_moma(self):
-        res=self.simul.simulate(method='MOMA')
+        res = self.simul.simulate(method='MOMA')
         self.assertGreater(res.fluxes[self.BIOMASS_ID], MIN_GROWTH)
 
     def test_lmoma(self):
-        res=self.simul.simulate(method='lMOMA')
+        res = self.simul.simulate(method='lMOMA')
         self.assertGreater(res.fluxes[self.BIOMASS_ID], MIN_GROWTH)
 
     def test_room(self):
-        res=self.simul.simulate(method='ROOM')
+        res = self.simul.simulate(method='ROOM')
         self.assertGreater(res.fluxes[self.BIOMASS_ID], MIN_GROWTH)
 
 
@@ -54,7 +53,6 @@ class TestCobra(TestReframedSimul):
         k = list(self.simul.objective.keys())
         self.BIOMASS_ID = k[0]
 
-    
 
 class TestGeckoLoad(unittest.TestCase):
 
@@ -68,7 +66,6 @@ class TestGeckoLoad(unittest.TestCase):
         from mewpy.simulation import get_simulator
         get_simulator(model)
 
-        
 
 class TestGeckoSimul(unittest.TestCase):
 
@@ -76,12 +73,11 @@ class TestGeckoSimul(unittest.TestCase):
         from mewpy.model.gecko import GeckoModel
         model = GeckoModel('single-pool')
         from mewpy.simulation import get_simulator
-        self.simul=get_simulator(model)
+        self.simul = get_simulator(model)
 
     def test_essential_proteins(self):
         essential = self.simul.essential_proteins()
         self.assertGreater(len(essential), 0)
-
 
 
 if __name__ == '__main__':
