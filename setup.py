@@ -8,7 +8,9 @@ with open('README.rst') as readme_file:
 requirements = ['optlang<1.4.6', 'python-libsbml', 'inspyred', 'reframed',
                 'cobra', 'jmetalpy', 'cobamp', 'networkx']
 
-test_requirements = requirements
+setup_requirements = requirements + ['pytest-runner','cplex'] 
+
+test_requirements = requirements + ['pytest','cplex']
 
 setup(
     name='mewpy',
@@ -20,17 +22,15 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=requirements,
+    setup_requires=setup_requirements,
+    tests_require=test_requirements,
     author='BiSBII CEB University of Minho',
     author_email='vpereira@ceb.uminho.pt',
     description='mewpy - Metabolic Engineering in Python ',
     license='Apache License Version 2.0',
     keywords='strain optimization',
     url='https://github.com/BioSystemsUM/mewpy/',
-    long_description=open('README.rst').read(),
+    long_description=readme,
     test_suite='tests',
-    tests_require=test_requirements,
-    classifiers=[
-        'Topic :: Utilities',
-        'Programming Language :: Python :: 3.7',
-    ],
+    
 )
