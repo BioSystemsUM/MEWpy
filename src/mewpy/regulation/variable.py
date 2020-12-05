@@ -1,3 +1,4 @@
+
 class RegulatoryVariable:
 
     def __init__(self, id=None, name=None, aliases=None):

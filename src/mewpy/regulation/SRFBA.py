@@ -1,13 +1,12 @@
 import numpy as np
+from sympy import postorder_traversal
+from sympy.logic.boolalg import And, Or, Not, BooleanFalse, BooleanTrue
+from sympy.core.relational import StrictGreaterThan, StrictLessThan, GreaterThan, LessThan
+from sympy.core.numbers import Zero, One
 from cobamp.core.linear_systems import GenericLinearSystem, VAR_CONTINUOUS, VAR_BINARY
 from cobamp.core.optimization import LinearSystemOptimizer
-from sympy import postorder_traversal
-from sympy.core.numbers import Zero, One
-from sympy.core.relational import StrictGreaterThan, StrictLessThan, GreaterThan, LessThan
-from sympy.logic.boolalg import And, Or, Not, BooleanFalse, BooleanTrue
-
-from . import IntegratedModel
 from ..simulation.simulation import SimulationResult
+from .integrated_model import IntegratedModel
 
 _SRFBA_TOL = 1E-10
 
@@ -465,8 +464,8 @@ class SRFBAModel(IntegratedModel):
                             last_index = rxn_idx
 
                         elif var_id in self.targets:
-                            # if the arg is in targets only the column is added, as in the next iterations the
-                            # row will be created
+                            # if the arg is in targets only the column is added, as in the next iterations the row
+                            # will be created.
 
                             tg_idx = self.__add_column__(var_id)
                             traversal_results[arg] = tg_idx
@@ -476,9 +475,9 @@ class SRFBAModel(IntegratedModel):
 
                             # if the args of a sympy's expression are regulators or genes,
                             # which are not defined in self.targets or self.reactions, they will never be created
-                            # elsewhere they must be added to the MILP matrix as columns.
+                            # elsewhere they must be added to the MILP matrix as columns
                             # The state can be inferred from the initial state if the variables are in the initial
-                            # state else, the variables are considered as unknown.
+                            # state else, the variables are considered as unknown
 
                             if var_id in self.initial_state:
 

@@ -1,9 +1,7 @@
 import math
 from collections import OrderedDict
-
 import numpy as np
 import pandas as pd
-
 from .variable import RegulatoryVariable
 from ..problems.problem import AbstractOUProblem
 from ..util.constants import EAConstants

@@ -1,16 +1,16 @@
 from warnings import warn
-
-from . import IntegratedModel
+from .integrated_model import IntegratedModel
 from ..simulation import SStatus
 
 
 class RFBAModel(IntegratedModel):
+
     """
 
     RFBAModel class object inherits everything from the IntegratedModel class.
     This object is the standard for simulating a RFBA model.
     First, a boolean regulatory model is solved synchronously
-    It provides the simulate method where one can know all about the metabolic and regulatory analysis of RFBA
+    It provides the simulate method where one can know all about the metabolic and regulatory analysis of RFBA.
 
     """
 
@@ -118,6 +118,7 @@ class RFBAModel(IntegratedModel):
         """
         Solves the boolean regulatory network for a given specific state.
         It also updates all targets having a valid regulatory interaction associated with it for the resulting state
+
 
         :param state: dict, key is the id of the regulatory variable while value can be 0, 1 or float \
             (reactions and metabolites predicates)

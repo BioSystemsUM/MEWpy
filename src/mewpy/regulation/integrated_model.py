@@ -1,10 +1,10 @@
 import os
 from warnings import warn
-from . import RegulatoryModel, RegulatoryVariable, RegulatoryInteraction
-from .regulatory_model import solution_decode
+from .regulatory_model import RegulatoryModel, RegulatoryVariable, RegulatoryInteraction
 from ..io import read_tabular_aliases, read_tabular_regulatory_model
-from ..simulation import SimulationMethod
+from .regulatory_model import solution_decode
 from ..simulation import get_simulator, SStatus
+from ..simulation import SimulationMethod
 from ..simulation.cobra import Simulation as Cobra_model
 from ..simulation.reframed import Simulation as Reframed_model
 from ..simulation.simulation import SimulationResult
@@ -634,8 +634,8 @@ class IntegratedModel(RegulatoryModel):
             regulatory variables is set to off (zero)
         :param filter_nan: bool, filter targets with empty rules
         :param sep: str, separator
-        :param id_col: int, index of the column of the regulatory variables identifiers (those that appear \
-            in the regulatory rules)
+        :param id_col: int, index of the column of the regulatory variables identifiers \
+            (those that appear in the regulatory rules)
         :param rule_col: int, index of the column of the regulatory rules
         :param aliases_cols: int, index of the column of the regulatory variables aliases
         :param header: int or None, index of the header row or None if there is none
@@ -1335,8 +1335,8 @@ class IntegratedModel(RegulatoryModel):
         Method responsible for decoding the RFBA metabolic state, namely the state of all metabolic genes associated
         at least with one reaction in the GPRs rule.
 
-        :param state: dict, key is the id of the regulatory variable (metabolic target) while value can be 0, 1 or \
-            float (reactions and metabolites predicates)
+        :param state: dict, key is the id of the regulatory variable (metabolic target) \
+            while value can be 0, 1 or float (reactions and metabolites predicates)
         :return: SimulationResult object.
         """
 
