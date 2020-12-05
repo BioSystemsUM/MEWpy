@@ -6,10 +6,10 @@ with open('README.rst') as readme_file:
     readme = readme_file.read()
 
 requirements = ['optlang<1.4.6', 'python-libsbml', 'inspyred', 'reframed',
-                'cobra', 'jmetalpy', 'cobamp', 'networkx']
+                'cobra', 'cobamp', 'networkx','matplotlib<3.3']
 
+install_requirements = requirements + ['jmetalpy']
 setup_requirements = requirements + ['pytest-runner','cplex'] 
-
 test_requirements = requirements + ['pytest','cplex']
 
 setup(
@@ -21,7 +21,7 @@ setup(
     package_data={"": ["*.xml", "*.csv", "*.txt"], 'mewpy': files},
     include_package_data=True,
     zip_safe=False,
-    install_requires=requirements,
+    install_requires=install_requirements,
     setup_requires=setup_requirements,
     tests_require=test_requirements,
     author='BiSBII CEB University of Minho',

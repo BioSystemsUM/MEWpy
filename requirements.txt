@@ -7,3 +7,4 @@ inspyred
 jmetalpy
 cobamp
 networkx
+matplotlib<3.3

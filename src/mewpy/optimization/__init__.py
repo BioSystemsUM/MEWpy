@@ -5,14 +5,12 @@ engines = dict()
 
 try:
     from .inspyred.ea import EA as InspyredEA
-
     engines['inspyred'] = InspyredEA
 except ImportError:
     print("inspyred not available")
 
 try:
     from .jmetal.ea import EA as JMetalEA
-
     engines['jmetal'] = JMetalEA
 except ImportError:
     print("jmetal not available")

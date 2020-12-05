@@ -10,7 +10,6 @@ OPTRAM_REGNET = MODELS_PATH + 'regnet.csv'
 
 MIN_GROWTH = 0.1
 
-
 class TestRKOP(unittest.TestCase):
 
     def setUp(self):
@@ -76,14 +75,14 @@ class TestGOUP(TestRKOP):
         self.problem = GOUProblem(model, [])
 
 
-class TestOptRAM(TestRKOP):
+#class TestOptRAM(TestRKOP):
 
-    def setUp(self):
-        from mewpy.regulation.optram import OptRamProblem, load_optram
-        regnet = load_optram(OPTRAM_GENES, OPTRAM_TFS, OPTRAM_REGNET, gene_prefix='G_')
-        from reframed.io.sbml import load_cbmodel
-        model = load_cbmodel(OPTRAM_MODEL)
-        self.problem = OptRamProblem(model, [], regnet)
+#    def setUp(self):
+#        from mewpy.regulation.optram import OptRamProblem, load_optram
+#        regnet = load_optram(OPTRAM_GENES, OPTRAM_TFS, OPTRAM_REGNET, gene_prefix='G_')
+#        from reframed.io.sbml import load_cbmodel
+#        model = load_cbmodel(OPTRAM_MODEL)
+#        self.problem = OptRamProblem(model, [], regnet)
 
 
 if __name__ == '__main__':
