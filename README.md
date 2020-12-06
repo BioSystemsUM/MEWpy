@@ -1,7 +1,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![PyPI version](https://badge.fury.io/py/mewpy.svg)](https://badge.fury.io/py/mewpy)
 [![Documentation Status](https://readthedocs.org/projects/mewpy/badge/?version=latest)](https://mewpy.readthedocs.io/en/latest/?badge=latest)
-
+[![Build Status](https://travis-ci.org/BioSystemsUM/mewpy.svg?branch=master)](https://travis-ci.org/BioSystemsUM/mewpy)
 
 MEWpy
 ============
