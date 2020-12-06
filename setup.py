@@ -1,16 +1,21 @@
 from setuptools import setup, find_packages
+import sys
 
 files = ["model/data/*"]
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
 
-requirements = ['optlang<1.4.6', 'python-libsbml', 'jmetalpy', 'reframed',
+requirements = ['optlang<1.4.6', 'python-libsbml', 'inspyred', 'reframed',
                 'cobra', 'cobamp', 'networkx', 'matplotlib<3.3']
 
-install_requirements = requirements + ['inspyred']
 setup_requirements = requirements + ['pytest-runner']
 test_requirements = requirements + ['pytest', 'cplex']
+install_requirements = requirements
+
+if sys.version_info[1] > 6:
+    install_requirements = install_requirements + ['jmetalpy']
+    test_requirements = test_requirements + ['jmetalpy']
 
 setup(
     name='mewpy',
