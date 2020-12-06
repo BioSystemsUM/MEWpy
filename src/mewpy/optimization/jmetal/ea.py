@@ -4,15 +4,17 @@ from jmetal.algorithm.multiobjective.nsgaiii import UniformReferenceDirectionFac
 from jmetal.algorithm.singleobjective import GeneticAlgorithm, SimulatedAnnealing
 from jmetal.operator import BinaryTournamentSelection
 from jmetal.util.termination_criterion import StoppingByEvaluations
-from .observers import PrintObjectivesStatObserver, VisualizerObserver
+
 from .operators import (ShrinkMutation, GrowMutationKO, GrowMutationOU, UniformCrossoverKO,
                         UniformCrossoverOU, SingleMutationKO, SingleMutationOU, SingleMutationOULevel,
                         MutationContainer)
+from .observers import PrintObjectivesStatObserver, VisualizerObserver
 from .problem import JMetalKOProblem, JMetalOUProblem
 from ..ea import AbstractEA, Solution
 from ...util.constants import EAConstants
 from ...util.process import MultiProcessorEvaluator
 from ...util.process import cpu_count
+from .settings import get_population_size
 
 # SOEA alternatives
 soea_map = {
@@ -41,14 +43,15 @@ class EA(AbstractEA):
 
         super(EA, self).__init__(problem, initial_population=initial_population,
                                  max_generations=max_generations, mp=mp, visualizer=visualizer)
+
         self.algorithm_name = algorithm
+
         from mewpy.problems import Strategy
-        self.crossover = UniformCrossoverKO(0.8,
-                                            self.problem.candidate_max_size) \
-            if self.problem.strategy == Strategy.KO else UniformCrossoverOU(
-                 0.5, self.problem.candidate_max_size)
+
         mutators = []
+
         if self.problem.strategy == Strategy.KO:
+            self.crossover = UniformCrossoverKO(0.8, self.problem.candidate_max_size)
             self.ea_problem = JMetalKOProblem(self.problem)
             mutators.append(GrowMutationKO(
                 1.0, max_size=self.problem.candidate_max_size))
@@ -56,6 +59,7 @@ class EA(AbstractEA):
                 1.0, min_size=self.problem.candidate_min_size))
             mutators.append(SingleMutationKO(1.0))
         else:
+            self.crossover = UniformCrossoverOU(0.5, self.problem.candidate_max_size)
             self.ea_problem = JMetalOUProblem(self.problem)
             mutators.append(GrowMutationOU(
                 1.0, max_size=self.problem.candidate_max_size))
@@ -63,13 +67,17 @@ class EA(AbstractEA):
                 1.0, min_size=self.problem.candidate_min_size))
             mutators.append(SingleMutationOU(1.0))
             mutators.append(SingleMutationOULevel(1.0))
+
         self.mutation = MutationContainer(0.3, mutators=mutators)
+        self.population_size = get_population_size()
+        self.max_evaluations = self.max_generations * self.population_size
+
+    def get_population_size(self):
+        self.population_size
 
     def _run_so(self):
         """ Runs a single objective EA optimization ()
         """
-
-        max_evaluations = self.max_generations * 100
 
         if self.algorithm_name == 'SA':
             print("Running SA")
@@ -77,20 +85,20 @@ class EA(AbstractEA):
             algorithm = SimulatedAnnealing(
                 problem=self.ea_problem,
                 mutation=self.mutation.probability,
-                termination_criterion=StoppingByEvaluations(max_evaluations=max_evaluations)
+                termination_criterion=StoppingByEvaluations(max_evaluations=self.max_evaluations)
             )
 
         else:
             print("Running GA")
             algorithm = GeneticAlgorithm(
                 problem=self.ea_problem,
-                population_size=100,
-                offspring_population_size=100,
+                population_size=self.population_size,
+                offspring_population_size=self.population_size,
                 mutation=self.mutation,
                 crossover=self.crossover,
                 selection=BinaryTournamentSelection(),
                 termination_criterion=StoppingByEvaluations(
-                    max_evaluations=max_evaluations)
+                    max_evaluations=self.max_evaluations)
             )
 
         algorithm.observable.register(observer=PrintObjectivesStatObserver())
@@ -102,7 +110,6 @@ class EA(AbstractEA):
     def _run_mo(self):
         """ Runs a multi objective EA optimization
         """
-        max_evaluations = self.max_generations * 100
         ncpu = cpu_count()
         if self.algorithm_name in moea_map.keys():
             f = moea_map[self.algorithm_name]
@@ -116,12 +123,12 @@ class EA(AbstractEA):
         if self.algorithm_name == 'NSGAIII':
             args = {
                 'problem': self.ea_problem,
-                'population_size': 100,
+                'population_size': self.population_size,
                 'mutation': self.mutation,
                 'crossover': self.crossover,
-                'termination_criterion': StoppingByEvaluations(max_evaluations=max_evaluations),
+                'termination_criterion': StoppingByEvaluations(max_evaluations=self.max_evaluations),
                 'reference_directions': UniformReferenceDirectionFactory(self.ea_problem.number_of_objectives,
-                                                                         n_points=99)
+                                                                         n_points=self.population_size-1)
             }
 
             if self.mp:
@@ -132,11 +139,11 @@ class EA(AbstractEA):
         else:
             args = {
                 'problem': self.ea_problem,
-                'population_size': 100,
-                'offspring_population_size': 100,
+                'population_size': self.population_size,
+                'offspring_population_size': self.population_size,
                 'mutation': self.mutation,
                 'crossover': self.crossover,
-                'termination_criterion': StoppingByEvaluations(max_evaluations=max_evaluations)
+                'termination_criterion': StoppingByEvaluations(max_evaluations=self.max_evaluations)
             }
 
             if self.mp:

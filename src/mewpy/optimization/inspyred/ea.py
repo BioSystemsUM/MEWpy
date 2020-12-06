@@ -2,10 +2,9 @@ from random import Random
 from time import time
 
 import inspyred
-import observers
-import operators as op
-
+from .settings import get_population_size, KO, PARAMETERS, OU
 from .problem import InspyredProblem
+from .observers import results_observer, VisualizerObserver
 from ..ea import AbstractEA, Solution
 from ...util.constants import EAConstants, ModelConstants
 from ...util.process import MultiProcessorEvaluator, cpu_count
@@ -35,34 +34,23 @@ class EA(AbstractEA):
         self.ea_problem = InspyredProblem(self.problem)
         from mewpy.problems import Strategy
         if self.problem.strategy == Strategy.OU:
-            self.variators = [op.uniform_crossover_OU,
-                              op.grow_mutation_OU,
-                              op.shrink_mutation,
-                              op.single_mutation_OU
-                              ]
+            self.variators = OU['variators']
         elif self.problem.strategy == Strategy.KO:
-            self.variators = [op.uniform_crossover_KO,
-                              op.grow_mutation_KO,
-                              op.shrink_mutation,
-                              op.single_mutation_KO
-                              ]
+            self.variators = KO['variators']
         else:
             raise ValueError("Unknow strategy")
 
-        # needs to be defined elsewhere
-        self.args = {
-            'num_selected': 100,
-            'max_generations': self.max_generations,
-            # operators probabilities
-            'gs_mutation_rate': 0.1,
-            'mutation_rate': 0.1,
-            'crossover_rate': 0.9,
-            # candidate size
-            'candidate_min_size': self.problem.candidate_min_size,
-            'candidate_max_size': self.problem.candidate_max_size
-        }
-        if self.problem.number_of_objectives == 1:
-            self.args['tournament_size'] = 7
+        # parameters
+        self.args = PARAMETERS.copy()
+        self.args['max_generations'] = self.max_generations,
+        self.args['candidate_min_size'] = self.problem.candidate_min_size
+        self.args['candidate_max_size'] = self.problem.candidate_max_size
+        if self.problem.number_of_objectives != 1:
+            self.args.pop('tournament_size')
+        self.population_size = get_population_size()
+
+    def get_population_size(self):
+        return self.population_size
 
     def _run_so(self):
         """ Runs a single objective EA optimization
@@ -97,13 +85,13 @@ class EA(AbstractEA):
         ea.selector = inspyred.ec.selectors.tournament_selection
 
         ea.variator = self.variators
-        ea.observer = observers.results_observer
+        ea.observer = results_observer
         ea.replacer = inspyred.ec.replacers.truncation_replacement
         ea.terminator = inspyred.ec.terminators.generation_termination
 
         final_pop = ea.evolve(generator=self.problem.generator,
                               evaluator=self.evaluator,
-                              pop_size=100,
+                              pop_size=self.population_size,
                               seeds=self.initial_population,
                               maximize=self.problem.is_maximization,
                               bounder=self.problem.bounder,
@@ -142,14 +130,14 @@ class EA(AbstractEA):
         ea.terminator = inspyred.ec.terminators.generation_termination
         if self.visualizer:
             axis_labels = [f.short_str() for f in self.problem.fevaluation]
-            observer = observers.VisualizerObserver(axis_labels=axis_labels)
+            observer = VisualizerObserver(axis_labels=axis_labels)
             ea.observer = observer.update
         else:
-            ea.observer = observers.results_observer
+            ea.observer = results_observer
 
         final_pop = ea.evolve(generator=self.problem.generator,
                               evaluator=self.evaluator,
-                              pop_size=100,
+                              pop_size=self.population_size,
                               seeds=self.initial_population,
                               maximize=self.problem.is_maximization,
                               bounder=self.problem.bounder,

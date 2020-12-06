@@ -3,28 +3,32 @@ from ..util.constants import EAConstants
 
 engines = dict()
 
-try:
-    from .inspyred.ea import EA as InspyredEA
-    engines['inspyred'] = InspyredEA
-except ImportError:
-    print("inspyred not available")
+def check_engines():
+    global engines
+    try:
+        from .inspyred.ea import EA as InspyredEA
+        engines['inspyred'] = InspyredEA
+    except ImportError:
+        print("inspyred not available")
 
-try:
-    from .jmetal.ea import EA as JMetalEA
-    engines['jmetal'] = JMetalEA
-except ImportError:
-    print("jmetal not available")
+    try:
+        from .jmetal.ea import EA as JMetalEA
+        engines['jmetal'] = JMetalEA
+    except ImportError:
+        print("jmetal not available")
 
 algorithms = {'inspyred': ['SA', 'GA', 'NSGAII'],
               'jmetal': ['SA', 'GA', 'NSGAII', 'SPEA2', 'NSGAIII']
               }
 
+check_engines()
 default_engine = None
 preferred_EA = 'NSGAII'
 
 
 def get_default_engine():
     global default_engine
+    global engines
 
     if default_engine:
         return default_engine
@@ -49,6 +53,7 @@ def set_default_engine(enginename):
     """
 
     global default_engine
+    global engines
 
     if enginename.lower() in list(engines.keys()):
         default_engine = enginename.lower()
@@ -63,6 +68,7 @@ def set_preferred_EA(algorithm):
     """
     global preferred_EA
     global default_engine
+    global engines
 
     if algorithm in algorithms[get_default_engine()]:
         preferred_EA = algorithm
@@ -87,6 +93,7 @@ def get_available_engines():
     """
     :returns: The list of available engines.
     """
+    global engines
     return list(engines.keys())
 
 
@@ -94,6 +101,7 @@ def get_available_algorithms():
     """
     :returns: The list of available MOEAs.
     """
+    global engines
     algs = []
     for engine in engines.keys():
         algs.extend(algorithms[engine])
@@ -113,8 +121,12 @@ def EA(problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIO
     :returns: An instance of an EA optimizer.
     
     """
+    global engines
+
     if len(engines) == 0:
-        raise RuntimeError('Inspyred or JMetal packages are required')
+        check_engines()
+        if len(engines) == 0:
+            raise RuntimeError('Inspyred or JMetal packages are required')
 
     if algorithm is None or algorithm not in get_available_algorithms():
         algorithm = get_preferred_EA()
