@@ -5,12 +5,12 @@ files = ["model/data/*"]
 with open('README.rst') as readme_file:
     readme = readme_file.read()
 
-requirements = ['optlang<1.4.6', 'python-libsbml', 'inspyred', 'reframed',
-                'cobra', 'cobamp', 'networkx','matplotlib<3.3']
+requirements = ['optlang<1.4.6', 'python-libsbml', 'jmetalpy', 'reframed',
+                'cobra', 'cobamp', 'networkx', 'matplotlib<3.3']
 
-install_requirements = requirements + ['jmetalpy']
-setup_requirements = requirements + ['pytest-runner','cplex'] 
-test_requirements = requirements + ['pytest','cplex']
+install_requirements = requirements + ['inspyred']
+setup_requirements = requirements + ['pytest-runner']
+test_requirements = requirements + ['pytest', 'cplex']
 
 setup(
     name='mewpy',
@@ -32,5 +32,4 @@ setup(
     url='https://github.com/BioSystemsUM/mewpy/',
     long_description=readme,
     test_suite='tests',
-    
 )
