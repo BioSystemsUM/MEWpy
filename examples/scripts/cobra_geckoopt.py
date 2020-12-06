@@ -8,31 +8,28 @@ GECKO model over COBRApy optimization test
 import warnings
 from collections import OrderedDict
 from time import time
-
 from geckopy.gecko import GeckoModel
-
 from mewpy.optimization import EA
-from mewpy.optimization.evaluation import BPCY, WYIELD, TargetFlux
+from mewpy.optimization.evaluation import BPCY, WYIELD
 from mewpy.problems.gecko import GeckoKOProblem, GeckoOUProblem
 from mewpy.simulation import SimulationMethod
 from mewpy.simulation.cobra import GeckoSimulation
-from mewpy.simulation.simulation import SimulationResult
 from mewpy.util.io import population_to_csv
 
 ITERATIONS = 100
 
 
 def gecko_ko(compound, display=False, filename=None):
-    """ GECKO enzyme deletion example. 
+    """ GECKO enzyme deletion example.
     It runs a multi objective optimization for the increased production of a certain compound on yeast.
     The GECKO model is the yeast model companion from the GECKO paper "Improving the phenotype predictions
     of a yeast genome‐scale metabolic model by incorporating enzymatic constraints" https://doi.org/10.15252/msb.20167411.
-    Runs over the GECKO original implementation. 
-    
+    Runs over the GECKO original implementation.
+
     :param compound: A target reaction identifier.
     :param display: Prints the best solution.
     :param filename: If given, saves the results as csv to filename.
-         
+
     """
 
     warnings.filterwarnings("ignore")
@@ -73,16 +70,17 @@ def gecko_ko(compound, display=False, filename=None):
 
 
 def gecko_ou(compound, display=False, filename=None):
-    """ GECKO enzyme over/under expressoion example. 
+    """ GECKO enzyme over/under expressoion example.
     It runs a multi objective optimization for the increased production of a certain compound on yeast.
     The GECKO model is the yeast model companion from the GECKO paper "Improving the phenotype predictions
-    of a yeast genome‐scale metabolic model by incorporating enzymatic constraints" https://doi.org/10.15252/msb.20167411. 
+    of a yeast genome‐scale metabolic model by incorporating enzymatic
+    constraints" https://doi.org/10.15252/msb.20167411.
     Runs over the GECKO original implementation.
-    
+
     :param compound: A target reaction identifier.
     :param display: Prints the best solution.
     :param filename: If given, saves the results as csv to filename.
-         
+
     """
 
     model = GeckoModel('single-pool', biomass_reaction_id='r_2111')

@@ -7,12 +7,9 @@ that improve the production of L-tyrosine in yeast.
 """
 from jmetal.algorithm.multiobjective.ibea import IBEA
 from jmetal.algorithm.multiobjective.nsgaii import NSGAII
-from jmetal.algorithm.multiobjective.nsgaiii import NSGAIII, UniformReferenceDirectionFactory
 from jmetal.algorithm.multiobjective.spea2 import SPEA2
 from jmetal.core.quality_indicator import GenerationalDistance, EpsilonIndicator, HyperVolume
 from jmetal.lab.experiment import Experiment, Job, generate_summary_from_experiment
-from jmetal.operator import BinaryTournamentSelection
-from jmetal.util.comparator import Comparator, MultiComparator
 from jmetal.util.evaluator import MultiprocessEvaluator
 from jmetal.util.termination_criterion import StoppingByEvaluations
 

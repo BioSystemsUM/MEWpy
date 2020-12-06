@@ -185,7 +185,7 @@ def framed_imc1010_model(dynamic=True):
     Some rules had to be adjusted though iJR904 had to be adjusted, as it didn't match SR_FBA original publication or had errors
 
     The following reactions were added as in the original publication:
-    
+
         - h2so: 2 o2_c + h2s_c -> (0, 999999) so4_c + 2 h_c
         - h2st: h2s_e <-> (-999999, 999999) h2s_c
         - h2s_ext: h2s_e -> (0, 999999)
@@ -225,10 +225,11 @@ def framed_imc1010_model(dynamic=True):
         - iJR904 has an additional reaction to ptrcta, namely ORNTA
 
 
-    Target genes with empty rules were set as ON in version 6. Alternatively, the state of all target genes can be set to 1 using the initial state setter
+    Target genes with empty rules were set as ON in version 6. Alternatively, the state of all target genes can be set
+    to 1 using the initial state setter.
 
     :return: rfba model
-    
+
     """
 
     from reframed.io.sbml import load_cbmodel

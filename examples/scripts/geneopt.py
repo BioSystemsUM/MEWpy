@@ -17,11 +17,11 @@ set_default_engine('jmetal')
 
 
 def load_ec():
-    """Loads a configuration for optimizations on E.coli model iJO1366SL, 
+    """Loads a configuration for optimizations on E.coli model iJO1366SL,
     including the model, environmental conditions, non targets for modifications,
     the biomass equation ID, and wild type reference flux values.
 
-    Returns: A dictionary constaining the configuration. 
+    Returns: A dictionary constaining the configuration.
     """
     DIR = os.path.dirname(os.path.realpath(__file__))
     PATH = os.path.join(DIR, '../models/ec/')
@@ -57,11 +57,11 @@ def load_ec():
 
 
 def load_ec2():
-    """Loads a configuration for optimizations on E.coli model iML1515, 
+    """Loads a configuration for optimizations on E.coli model iML1515,
     including the model, environmental conditions, non targets for modifications,
     the biomass equation ID, and wild type reference flux values.
 
-    Returns: A dictionary constaining the configuration. 
+    Returns: A dictionary constaining the configuration.
     """
     DIR = os.path.dirname(os.path.realpath(__file__))
     PATH = os.path.join(DIR, '../models/ec/')
@@ -100,11 +100,11 @@ def load_ec2():
 
 
 def load_yeast():
-    """Loads a configuration for optimizations on yeast model iMM904SL_v6, 
+    """Loads a configuration for optimizations on yeast model iMM904SL_v6,
     including the model, environmental conditions, non targets for modifications,
     the biomass equation ID, and wild type reference flux values.
 
-    Returns: A dictionary constaining the configuration. 
+    Returns: A dictionary constaining the configuration.
     """
     DIR = os.path.dirname(os.path.realpath(__file__))
     PATH = os.path.join(DIR, '../models/yeast/')

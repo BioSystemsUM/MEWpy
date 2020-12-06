@@ -3,7 +3,6 @@ Simple example/tests for loading models
 '''
 
 import os
-
 from mewpy.simulation import get_simulator
 
 

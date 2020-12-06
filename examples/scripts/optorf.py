@@ -1,6 +1,4 @@
 import os
-import time
-
 from mewpy.optimization import EA
 from mewpy.optimization.evaluation import BPCY, WYIELD
 from mewpy.regulation import RFBAModel

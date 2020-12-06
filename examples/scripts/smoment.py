@@ -8,9 +8,11 @@ from mewpy.util.io import population_to_csv
 
 def test1(compound='R_EX_tyr__L_e'):
     """
-    AutoPACMEN, "Automatic construction of metabolic models with enzyme constraints" (https://doi.org/10.1186/s12859-019-3329-9), is able to construct GECKO like models.
-    This example optimizes the production of a compound using the E. coli autoPACMEN model where enzymes are defined as pseudo reactants.
-    
+    AutoPACMEN, "Automatic construction of metabolic models with enzyme constraints"
+    (https://doi.org/10.1186/s12859-019-3329-9), is able to construct GECKO like models.
+    This example optimizes the production of a compound using the E. coli autoPACMEN model
+    where enzymes are defined as pseudo reactants.
+
     """
     DIR = os.path.dirname(os.path.realpath(__file__))
     PATH = os.path.join(DIR, '../models/autopacmen/')
@@ -59,10 +61,13 @@ def test1(compound='R_EX_tyr__L_e'):
 
 def test2(compoud='R_EX_tyr__L_e', filename=None):
     """
-    AutoPACMEN, "Automatic construction of metabolic models with enzyme constraints" (https://doi.org/10.1186/s12859-019-3329-9), is able to construct GECKO like models.
-    This example optimizes the production of a compound using the E. coli autoPACMEN model where enzymes are defined as pseudo reactants.
-    The model defines a linear constraint over the protein pool as reactant, by adding the protein pool as a metabolite in the stochiometric matrix.
-    Therefore, the model may be treated as a regular GSM. 
+    AutoPACMEN, "Automatic construction of metabolic models with enzyme constraints"
+    (https://doi.org/10.1186/s12859-019-3329-9), is able to construct GECKO like models.
+    This example optimizes the production of a compound using the E. coli autoPACMEN model
+    where enzymes are defined as pseudo reactants.
+    The model defines a linear constraint over the protein pool as reactant, by adding the
+    protein pool as a metabolite in the stochiometric matrix.
+    Therefore, the model may be treated as a regular GSM.
 
     """
     DIR = os.path.dirname(os.path.realpath(__file__))

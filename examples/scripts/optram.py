@@ -2,15 +2,15 @@ import os
 from time import time
 
 from mewpy.optimization import EA
-from mewpy.optimization.evaluation import BPCY_FVA, BPCY, WYIELD
-from mewpy.regulation.optram import OptRAMRegModel, OptRamProblem, load_optram
-from mewpy.simulation import SimulationMethod, get_simulator
+from mewpy.optimization.evaluation import BPCY, WYIELD
+from mewpy.regulation.optram import OptRamProblem, load_optram
+from mewpy.simulation import SimulationMethod
 
 
 def test():
     """ An example on to use OptRAM optimization problems to find
     regulatory modification for the increased production of tryptophan.
-    
+
     """
     dir_path = os.path.dirname(os.path.realpath(__file__))
     PATH = os.path.join(dir_path, '../../../examples/models/optram/')

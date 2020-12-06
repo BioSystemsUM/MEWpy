@@ -188,7 +188,7 @@ def gecko_ec():
     model.set_objective({'R_BIOMASS_Ec_iML1515_core_75p37M': 1.0})
 
     # change protein pool bound (suggested by Leslie)
-    # model.reactions['R_prot_pool_exchange'].ub = 0.26 
+    # model.reactions['R_prot_pool_exchange'].ub = 0.26
     from mewpy.simulation import get_simulator, SimulationMethod
 
     c = {'P32131': 0.125, 'P45425': 32, 'P0A6E1': 32, 'P0A9I8': 0, 'P52643': 4, 'P37661': 0.125}
