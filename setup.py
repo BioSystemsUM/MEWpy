@@ -6,16 +6,12 @@ files = ["model/data/*"]
 with open('README.rst') as readme_file:
     readme = readme_file.read()
 
-requirements = ['optlang<1.4.6', 'python-libsbml', 'inspyred', 'reframed',
+requirements = ['optlang<1.4.6', 'numpy~= 1.13', 'python-libsbml', 'inspyred', 'reframed',
                 'cobra', 'cobamp', 'networkx', 'matplotlib<3.3']
 
 setup_requirements = requirements + ['pytest-runner']
 test_requirements = requirements + ['pytest', 'cplex']
 install_requirements = requirements
-
-if sys.version_info[1] > 6:
-    install_requirements = install_requirements + ['jmetalpy']
-    test_requirements = test_requirements + ['jmetalpy']
 
 setup(
     name='mewpy',

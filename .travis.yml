@@ -4,5 +4,6 @@ python:
   - "3.7"
 
 install: pip install tox-travis
-
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
 script: tox

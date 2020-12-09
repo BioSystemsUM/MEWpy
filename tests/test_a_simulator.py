@@ -38,7 +38,7 @@ class TestReframedSimul(unittest.TestCase):
         self.assertGreater(len(uptake_reactions), MIN_GROWTH)
 
     def test_fba(self):
-        """Tests FBA 
+        """Tests FBA
         """
         res = self.simul.simulate()
         self.assertGreater(res.objective_value, MIN_GROWTH)
@@ -67,10 +67,18 @@ class TestReframedSimul(unittest.TestCase):
         res = self.simul.simulate(method='ROOM')
         self.assertGreater(res.fluxes[self.BIOMASS_ID], MIN_GROWTH)
 
+    def test_FVA(self):
+        self.simul.FVA(reactions=['R_EX_succ_e'])
+
+    def test_envelope(self):
+        from mewpy.visualization.envelope import plot_flux_envelope
+        plot_flux_envelope(self.simul, 'R_BIOMASS_Ecoli_core_w_GAM', 'R_EX_succ_e')
+
 
 class TestCobra(TestReframedSimul):
     """Tests COBRApy Simulator
     """
+
     def setUp(self):
         """Set up
         Loads a model
@@ -82,10 +90,18 @@ class TestCobra(TestReframedSimul):
         k = list(self.simul.objective.keys())
         self.BIOMASS_ID = k[0]
 
+    def test_FVA(self):
+        self.simul.FVA(reactions=['EX_succ_e'])
+
+    def test_envelope(self):
+        from mewpy.visualization.envelope import plot_flux_envelope
+        plot_flux_envelope(self.simul, 'BIOMASS_Ecoli_core_w_GAM', 'EX_succ_e')
+
 
 class TestGeckoLoad(unittest.TestCase):
     """Tests GECKO simulator
     """
+
     def test_gecko(self):
         from mewpy.model.gecko import GeckoModel
         GeckoModel('single-pool')
