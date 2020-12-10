@@ -42,7 +42,7 @@ class EA(AbstractEA):
 
         # parameters
         self.args = PARAMETERS.copy()
-        self.args['max_generations'] = self.max_generations,
+        self.args['max_generations'] = max_generations,
         self.args['candidate_min_size'] = self.problem.candidate_min_size
         self.args['candidate_max_size'] = self.problem.candidate_max_size
         if self.problem.number_of_objectives != 1:

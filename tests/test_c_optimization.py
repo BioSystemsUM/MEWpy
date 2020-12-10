@@ -7,7 +7,7 @@ SUCC_ID = 'R_EX_succ_e'
 MIN_GROWTH = 0.1
 
 
-class TestRKOP(unittest.TestCase):
+class TestOptInspyred(unittest.TestCase):
     """ Optimization unittests
     """
 
@@ -18,6 +18,8 @@ class TestRKOP(unittest.TestCase):
         self.model = load_cbmodel(EC_CORE_MODEL)
         from mewpy.optimization.settings import set_default_population_size
         set_default_population_size(10)
+        from mewpy.optimization import set_default_engine
+        set_default_engine('inspyred')
 
     def test_engine(self):
         """Assert the availability of optimization engines
@@ -35,7 +37,8 @@ class TestRKOP(unittest.TestCase):
         from mewpy.problems import RKOProblem
         problem = RKOProblem(self.model, [f1, f2], max_candidate_size=6)
         from mewpy.optimization import EA
-        ea = EA(problem, max_generations=0)
+        ea = EA(problem, max_generations=2)
+        ea.run()
         self.assertEqual(ea.get_population_size(), 10)
 
     def test_OUProblem(self):
@@ -48,5 +51,21 @@ class TestRKOP(unittest.TestCase):
         from mewpy.problems import ROUProblem
         problem = ROUProblem(self.model, [f1, f2, f3], max_candidate_size=6)
         from mewpy.optimization import EA
-        ea = EA(problem, max_generations=0)
+        ea = EA(problem, max_generations=2)
+        ea.run()
         self.assertEqual(ea.get_population_size(), 10)
+
+
+class TestOptJMetal(TestOptInspyred):
+    """ Optimization unittests
+    """
+
+    def setUp(self):
+        """Sets up the the model
+        """
+        from reframed.io.sbml import load_cbmodel
+        self.model = load_cbmodel(EC_CORE_MODEL)
+        from mewpy.optimization.settings import set_default_population_size
+        set_default_population_size(10)
+        from mewpy.optimization import set_default_engine
+        set_default_engine('jmetal')
