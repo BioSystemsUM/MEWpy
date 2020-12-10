@@ -52,7 +52,7 @@ class EA(AbstractEA):
 
         if self.problem.strategy == Strategy.KO:
             self.crossover = UniformCrossoverKO(0.8, self.problem.candidate_max_size)
-            self.ea_problem = JMetalKOProblem(self.problem)
+            self.ea_problem = JMetalKOProblem(self.problem, self.initial_population)
             mutators.append(GrowMutationKO(
                 1.0, max_size=self.problem.candidate_max_size))
             mutators.append(ShrinkMutation(
@@ -60,7 +60,7 @@ class EA(AbstractEA):
             mutators.append(SingleMutationKO(1.0))
         else:
             self.crossover = UniformCrossoverOU(0.5, self.problem.candidate_max_size)
-            self.ea_problem = JMetalOUProblem(self.problem)
+            self.ea_problem = JMetalOUProblem(self.problem, self.initial_population)
             mutators.append(GrowMutationOU(
                 1.0, max_size=self.problem.candidate_max_size))
             mutators.append(ShrinkMutation(
@@ -73,12 +73,12 @@ class EA(AbstractEA):
         self.max_evaluations = self.max_generations * self.population_size
 
     def get_population_size(self):
-        self.population_size
+        return self.population_size
 
     def _run_so(self):
         """ Runs a single objective EA optimization ()
         """
-
+        self.reset_initial_population_counter()
         if self.algorithm_name == 'SA':
             print("Running SA")
             self.mutation.probability = 1.0
@@ -110,6 +110,7 @@ class EA(AbstractEA):
     def _run_mo(self):
         """ Runs a multi objective EA optimization
         """
+        self.reset_initial_population_counter()
         ncpu = cpu_count()
         if self.algorithm_name in moea_map.keys():
             f = moea_map[self.algorithm_name]

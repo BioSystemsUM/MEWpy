@@ -143,7 +143,7 @@ class OUSolution(Solution[IntTupple], SolutionInterface):
 
 class JMetalKOProblem(Problem[KOSolution]):
 
-    def __init__(self, problem):
+    def __init__(self, problem, initial_polulation):
         self.problem = problem
         self.number_of_objectives = len(self.problem.fevaluation)
         self.obj_directions = []
@@ -154,9 +154,15 @@ class JMetalKOProblem(Problem[KOSolution]):
                 self.obj_directions.append(self.MAXIMIZE)
             else:
                 self.obj_directions.append(self.MINIMIZE)
+        self.initial_polulation = initial_polulation
+        self.__next_ini_sol = 0
 
     def create_solution(self) -> KOSolution:
-        solution = self.problem.generator(random, None)
+        if self.__next_ini_sol > len(self.initial_polulation):
+            solution = self.problem.encode(self.initial_polulation[self.__next_ini_sol])
+            self.__next_ini_sol += 1
+        else:
+            solution = self.problem.generator(random, None)
         new_solution = KOSolution(
             self.problem.bounder.lower_bound,
             self.problem.bounder.upper_bound,
@@ -164,6 +170,11 @@ class JMetalKOProblem(Problem[KOSolution]):
             self.problem.number_of_objectives)
         new_solution.variables = list(solution)
         return new_solution
+
+    def reset_initial_population_counter(self):
+        """ Resets the pointer to the next initial population element
+        """
+        self.__next_ini_sol = 0
 
     def get_constraints(self, solution):
         return self.problem.decode(set(solution.variables))
@@ -185,7 +196,7 @@ class JMetalKOProblem(Problem[KOSolution]):
 
 class JMetalOUProblem(Problem[OUSolution]):
 
-    def __init__(self, problem):
+    def __init__(self, problem, initial_polulation):
         self.problem = problem
         self.number_of_objectives = len(self.problem.fevaluation)
         self.obj_directions = []
@@ -196,11 +207,15 @@ class JMetalOUProblem(Problem[OUSolution]):
                 self.obj_directions.append(self.MAXIMIZE)
             else:
                 self.obj_directions.append(self.MINIMIZE)
+        self.initial_polulation = initial_polulation
+        self.__next_ini_sol = 0
 
     def create_solution(self) -> OUSolution:
-        # uses the super class generator
-        solution = self.problem.generator(random, None)
-
+        if self.__next_ini_sol > len(self.initial_polulation):
+            solution = self.problem.encode(self.initial_polulation[self.__next_ini_sol])
+            self.__next_ini_sol += 1
+        else:
+            solution = self.problem.generator(random, None)
         new_solution = OUSolution(
             self.problem.bounder.lower_bound,
             self.problem.bounder.upper_bound,
@@ -208,6 +223,9 @@ class JMetalOUProblem(Problem[OUSolution]):
             self.problem.number_of_objectives)
         new_solution.variables = list(solution)
         return new_solution
+
+    def reset_initial_population_counter(self):
+        self.__next_ini_sol = 0
 
     def get_constraints(self, solution):
         return self.problem.decode(set(solution.variables))
