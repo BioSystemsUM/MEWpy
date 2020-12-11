@@ -172,7 +172,8 @@ class JMetalKOProblem(Problem[KOSolution]):
         return new_solution
 
     def reset_initial_population_counter(self):
-        """ Resets the pointer to the next initial population element
+        """ Resets the pointer to the next initial population element.
+        This strategy is used to overcome the unavailable seeding API in jMetal.
         """
         self.__next_ini_sol = 0
 
@@ -196,7 +197,10 @@ class JMetalKOProblem(Problem[KOSolution]):
 
 class JMetalOUProblem(Problem[OUSolution]):
 
-    def __init__(self, problem, initial_polulation):
+    def __init__(self, problem, initial_polulation=[]):
+        """JMetal OU problem. Encapsulates a MEWpy problem
+        so that it can be used in jMetal.
+        """
         self.problem = problem
         self.number_of_objectives = len(self.problem.fevaluation)
         self.obj_directions = []

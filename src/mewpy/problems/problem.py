@@ -314,7 +314,7 @@ class AbstractKOProblem(AbstractProblem):
 
         :param candidate: The candidate representation.
         """
-        return [self.target_list.index(k) for k in candidate]
+        return set([self.target_list.index(k) for k in candidate])
 
     def solution_to_constraints(self, decoded_candidate):
         """

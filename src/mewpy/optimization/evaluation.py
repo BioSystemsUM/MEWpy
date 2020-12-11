@@ -25,12 +25,11 @@ class EvaluationFunction:
         :returns: A fitness value.
 
         """
-
-        return
+        raise NotImplementedError
 
     @abstractmethod
     def method_str(self):
-        return
+        raise NotImplementedError
 
     def short_str(self):
         return self.method_str
@@ -62,13 +61,13 @@ class EvaluationFunction:
 class PhenotypeEvaluationFunction(EvaluationFunction):
 
     def __init__(self, maximize=True, worst_fitness=0.0):
-        super(PhenotypeEvaluationFunction, self).__init__(maximize=maximize, worst_fitness=0.0)
+        super(PhenotypeEvaluationFunction, self).__init__(maximize=maximize, worst_fitness=worst_fitness)
 
 
 class KineticEvaluationFunction(EvaluationFunction):
 
     def __init__(self, maximize=True, worst_fitness=0.0):
-        super(KineticEvaluationFunction, self).__init__(maximize=maximize, worst_fitness=0.0)
+        super(KineticEvaluationFunction, self).__init__(maximize=maximize, worst_fitness=worst_fitness)
 
 
 class TargetFlux(PhenotypeEvaluationFunction):
@@ -425,7 +424,7 @@ class BPCY_FVA(PhenotypeEvaluationFunction):
             return (ssFluxes[self.biomassId] * ssFluxes[self.productId]) / uptake
         else:
             return ((ssFluxes[self.biomassId] * ssFluxes[self.productId]) / uptake) * (
-                        1 - math.log(abs((v_max - v_min) / (v_max + v_min))))
+                1 - math.log(abs((v_max - v_min) / (v_max + v_min))))
 
     def required_simulations(self):
         return [self.method]
@@ -458,7 +457,7 @@ class AggregatedSum(PhenotypeEvaluationFunction, KineticEvaluationFunction):
             self.tradeoffs = tradeoffs
         else:
             self.tradeoffs = [1 / len(self.fevaluation)] * \
-                             (len(self.fevaluation))
+                (len(self.fevaluation))
 
     def required_simulations(self):
         methods = []

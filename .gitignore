@@ -10,4 +10,6 @@ examples/models/gecko/eciML1515_batch.xml
 .tox
 .eggs
 .coverage
+.pytest_cache
 htmlcov
+run_tox.sh

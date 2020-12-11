@@ -26,10 +26,10 @@ class EA(AbstractEA):
     """
 
     def __init__(self, problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS, mp=True,
-                 visualizer=False, algorithm=None):
+                 visualizer=False, algorithm=None, **kwargs):
 
         super(EA, self).__init__(problem, initial_population=initial_population,
-                                 max_generations=max_generations, mp=mp, visualizer=visualizer)
+                                 max_generations=max_generations, mp=mp, visualizer=visualizer, **kwargs)
 
         self.algorithm_name = algorithm
         self.ea_problem = InspyredProblem(self.problem)
@@ -40,7 +40,9 @@ class EA(AbstractEA):
             self.variators = KO['variators']
         else:
             raise ValueError("Unknow strategy")
-        self.population_size = get_population_size()
+
+        self.population_size = kwargs.get('population_size', get_population_size())
+
         # parameters
         self.args = PARAMETERS.copy()
         self.args['max_generations'] = max_generations,
@@ -149,6 +151,13 @@ class EA(AbstractEA):
         return final_pop
 
     def _convertPopulation(self, population):
+        """Converts a population represented in Inpyred format to
+        MEWpy solution format.
+
+        :param list population: A list of solutions.
+
+        :returns: A MEWpy list of solutions.
+        """
         p = []
         for i in range(len(population)):
             if self.problem.number_of_objectives == 1:

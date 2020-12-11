@@ -3,6 +3,7 @@ from ..util.constants import EAConstants
 
 engines = dict()
 
+
 def check_engines():
     global engines
     try:
@@ -16,6 +17,7 @@ def check_engines():
         engines['jmetal'] = JMetalEA
     except ImportError:
         print("jmetal not available")
+
 
 algorithms = {'inspyred': ['SA', 'GA', 'NSGAII'],
               'jmetal': ['SA', 'GA', 'NSGAII', 'SPEA2', 'NSGAIII']
@@ -48,7 +50,7 @@ def get_default_engine():
 
 def set_default_engine(enginename):
     """ Sets default EA engine.
-   
+
     :param str enginename: Optimization engine (currently available: 'inspyred', 'jmetal')
     """
 
@@ -63,7 +65,7 @@ def set_default_engine(enginename):
 
 def set_preferred_EA(algorithm):
     """Defines de preferred MOEA.
-    
+
     :param str algorithm: The name of the preferred algorithm.
     """
     global preferred_EA
@@ -109,17 +111,23 @@ def get_available_algorithms():
 
 
 def EA(problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS, mp=True, visualizer=False,
-       algorithm=None):
+       algorithm=None, **kwargs):
     """
-    EA running helper. Returns an instance of the EA that reflects the global user configuration settings such as preferred engine and algorithm.
+    EA running helper. Returns an instance of the EA that reflects the global user configuration settings
+    such as preferred engine and algorithm.
 
     :param problem: The optimization problem.
-    :param list initial_population: The EA initial population.
-    :param int max_generations: The number of iterations of the EA (stopping criteria).
-    :param bool mp: If multiprocessing should be used. 
-    :param bool visualizer: If the pareto font should be displayed. Requires a graphic environment.
+    :param list initial_population: The EA initial population. Default [].
+    :param int max_generations: The number of iterations of the EA (stopping criteria). Default globally defined.
+    :param bool mp: If multiprocessing should be used. Default True.
+    :param bool visualizer: If the pareto font should be displayed. Requires a graphic environment. Default False.
+
+    Additional optional arguments:
+
+    :param int population_size: EA population size.
+
     :returns: An instance of an EA optimizer.
-    
+
     """
     global engines
 
@@ -139,4 +147,4 @@ def EA(problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIO
         engine = engines[engs[0]]
 
     return engine(problem, initial_population=initial_population, max_generations=max_generations, mp=mp,
-                  visualizer=visualizer, algorithm=algorithm)
+                  visualizer=visualizer, algorithm=algorithm, **kwargs)

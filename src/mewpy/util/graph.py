@@ -5,7 +5,7 @@ from ..simulation import get_simulator
 from ..simulation.simulation import Simulator
 
 
-def create_metabolic_graph(model, directed=True, reactions=None, remove=[], edges_labels=False):
+def create_metabolic_graph(model, directed=True, reactions=None, remove=[], edges_labels=False, max_degree=None):
     """ Creates a metabolic graph
 
     :param model: A model or a model containter
@@ -62,10 +62,15 @@ def create_metabolic_graph(model, directed=True, reactions=None, remove=[], edge
 
             G[tail][head]['reversible'] = lb < 0
 
+    if max_degree:
+        n = max(G.degree, key=lambda item: item[1])
+        while n[1] > max_degree:
+            G.remove_node(n[0])
+            n = max(G.degree, key=lambda item: item[1])
     return G
 
 
-def shortest_distance(model, reaction, reactions=None, remove=[]):
+def shortest_distance(model, reaction, reactions=None, remove=[], max_degree=None):
     """ Returns the unweighted shortest path distance from a list of reactions to a reaction.
     Distances are the number of required reactions. If there is no pathway between the reactions the distance is inf·
 
@@ -85,7 +90,7 @@ def shortest_distance(model, reaction, reactions=None, remove=[]):
     if reaction not in rxns:
         rxns.append(reaction)
 
-    G = create_metabolic_graph(container, reactions=rxns, remove=remove)
+    G = create_metabolic_graph(container, reactions=rxns, remove=remove, max_degree=max_degree)
     sp = dict(nx.single_target_shortest_path_length(G, reaction))
 
     distances = {}
@@ -97,7 +102,7 @@ def shortest_distance(model, reaction, reactions=None, remove=[]):
     return distances
 
 
-def probabilistic_reaction_targets(model, product, targets, factor=10):
+def probabilistic_reaction_targets(model, product, targets, factor=10, max_degree=5):
     """Builds a new target list reflecting the shortest path distances from all original
     as a probability,ie, reactions closer to the product are repeated more often in the new target list.
     Moreover, reactions from which there is no path (pathway or cofactors usage) to the product are removed.
@@ -109,7 +114,7 @@ def probabilistic_reaction_targets(model, product, targets, factor=10):
         considered with equal probability. Defaults to 10.
     :returns: A probabilistic target list.
     """
-    distances = shortest_distance(model, product, targets)
+    distances = shortest_distance(model, product, targets, max_degree=max_degree)
     prob_targets = []
     for t in targets:
         if distances[t] == np.inf or distances[t] == 0:
@@ -121,7 +126,7 @@ def probabilistic_reaction_targets(model, product, targets, factor=10):
     return prob_targets
 
 
-def probabilistic_gene_targets(model, product, targets, factor=10):
+def probabilistic_gene_targets(model, product, targets, factor=10, max_degree=5):
     """Builds a new target list reflecting the shortest path distances from all original
     as a probability,ie, genes on GPRs of reactions closer to the product are repeated more
     often in the new target list.
@@ -144,7 +149,7 @@ def probabilistic_gene_targets(model, product, targets, factor=10):
         genes = targets
 
     rxns = container.get_reactions_for_genes(genes)
-    rxn_distances = shortest_distance(model, product, rxns)
+    rxn_distances = shortest_distance(model, product, rxns, max_degree=max_degree)
 
     # genes distances are the maximum of all reaction
     # distances that they catalyse.
@@ -167,7 +172,7 @@ def probabilistic_gene_targets(model, product, targets, factor=10):
     return prob_targets
 
 
-def probabilistic_protein_targets(model, product, targets, factor=10):
+def probabilistic_protein_targets(model, product, targets, factor=10, max_degree=5):
     """Builds a new target list reflecting the shortest path distances from all original
     as a probability,ie, proteins used in reactions closer to the product are repeated
     more often in the new target list.

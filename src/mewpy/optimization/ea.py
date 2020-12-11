@@ -89,7 +89,7 @@ class Solution(SolutionInterface):
 class AbstractEA(ABC):
 
     def __init__(self, problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS,
-                 mp=True, visualizer=False):
+                 mp=True, visualizer=False, **kwargs):
 
         self.problem = problem
         self.initial_population = initial_population

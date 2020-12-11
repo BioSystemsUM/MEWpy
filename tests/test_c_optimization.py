@@ -8,7 +8,7 @@ MIN_GROWTH = 0.1
 
 
 class TestOptInspyred(unittest.TestCase):
-    """ Optimization unittests
+    """ Unittests of Inspyred based optimizations.
     """
 
     def setUp(self):
@@ -57,7 +57,7 @@ class TestOptInspyred(unittest.TestCase):
 
 
 class TestOptJMetal(TestOptInspyred):
-    """ Optimization unittests
+    """ Unittests for JMetalPy based optimizations.
     """
 
     def setUp(self):
