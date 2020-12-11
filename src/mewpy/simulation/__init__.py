@@ -4,21 +4,20 @@ solvers = []
 
 try:
     import gurobipy
-
     solvers.append('gurobi')
+    # disables solver output.
+    gurobipy.setParam('OutputFlag', 0)
 except ImportError:
     pass
 
 try:
     import cplex
-
     solvers.append('cplex')
 except ImportError:
     pass
 
 try:
     import swiglpk
-
     solvers.append('glpk')
 except ImportError:
     pass
@@ -27,7 +26,7 @@ default_solver = None
 
 
 def get_default_solver():
-    """ 
+    """
     Returns:
         [type]: [description]
     """
@@ -78,10 +77,10 @@ def get_simulator(model, envcond=None, constraints=None, reference=None):
     """
     Returns a simulator instance for the model.
     The simulator instance is model dependent.
-    Besides able to be used on its own, this function is invoked by EA optimization problems 
+    Besides able to be used on its own, this function is invoked by EA optimization problems
     and by evaluation function instances to perform phenotyoe evaluations of candidate solutions.
 
-    
+
     :param model: the model
     :param dict envcond: A dictionary of environmental conditions.
     :param dict contrainsts: A dictionary of additional persistent constraints.
@@ -125,14 +124,14 @@ def get_container(model):
 
     :param model: An instance of a metabolic model.
     :returns: A container.
-     
+
     """
     try:
         from reframed.core.cbmodel import CBModel
         if isinstance(model, CBModel):
             from mewpy.simulation.reframed import CBModelContainer
             return CBModelContainer(model)
-    except:
+    except Exception:
         pass
 
     try:
@@ -140,7 +139,7 @@ def get_container(model):
         if isinstance(model, Model):
             from mewpy.simulation.cobra import CobraModelContainer
             return CobraModelContainer(model)
-    except:
+    except Exception:
         pass
 
     raise ValueError(f"Unrecognized model class: {model.__class__.name}")
@@ -156,7 +155,7 @@ class SimulationMethod(Enum):
 
     def __eq__(self, other):
         """Overrides equal to enable string name comparison.
-        Allows to seamlessly use: 
+        Allows to seamlessly use:
             SimulationMethod.FBA = SimulationMethod.FBA
             SimulationMethod.FBA = 'FBA'
         without requiring an additional level of comparison (SimulationMethod.FBA.name = 'FBA')

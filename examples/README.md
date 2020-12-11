@@ -2,7 +2,6 @@
 MEWpy examples
 ============
 
-  
 
 This folder contains examples on how MEWpy can be used to perform phenotype simulations and Computational Strain Optimization. 
 
@@ -14,7 +13,7 @@ This folder contains examples on how MEWpy can be used to perform phenotype simu
 
 - The third example, [GOUProblem](GOUproblem.ipynb), aims to increase the production of the same AAA in E. coli by modifying genes expression.
 
-- The last example, [GeckoKOProblem](GeckoKOProblem.ipynb), also targets the same goal in yeast by exploiting a GECKO model and by deleting enzymatic proteins. 
+- The last example, [GeckoKOProblem](GeckoKOProblem.ipynb), also targets the same goal in yeast by exploiting a GECKO model and by deleting enzymatic proteins.
 
 ## Python scripts
 

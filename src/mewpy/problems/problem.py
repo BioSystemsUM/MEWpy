@@ -387,8 +387,8 @@ class AbstractOUProblem(AbstractProblem):
                   problem dependent.
         """
 
-        return [(self.target_list.index(k), self.levels.index(lv))
-                for k, lv in candidate.items()]
+        return set([(self.target_list.index(k), self.levels.index(lv))
+                    for k, lv in candidate.items()])
 
     def solution_to_constraints(self, decoded_candidate):
         """
