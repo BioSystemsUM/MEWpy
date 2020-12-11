@@ -78,7 +78,7 @@ class EA(AbstractEA):
     def _run_so(self):
         """ Runs a single objective EA optimization ()
         """
-        self.reset_initial_population_counter()
+        self.ea_problem.reset_initial_population_counter()
         if self.algorithm_name == 'SA':
             print("Running SA")
             self.mutation.probability = 1.0
@@ -110,7 +110,7 @@ class EA(AbstractEA):
     def _run_mo(self):
         """ Runs a multi objective EA optimization
         """
-        self.reset_initial_population_counter()
+        self.ea_problem.reset_initial_population_counter()
         ncpu = cpu_count()
         if self.algorithm_name in moea_map.keys():
             f = moea_map[self.algorithm_name]

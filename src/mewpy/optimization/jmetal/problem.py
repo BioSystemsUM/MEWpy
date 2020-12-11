@@ -158,7 +158,7 @@ class JMetalKOProblem(Problem[KOSolution]):
         self.__next_ini_sol = 0
 
     def create_solution(self) -> KOSolution:
-        if self.__next_ini_sol > len(self.initial_polulation):
+        if self.__next_ini_sol < len(self.initial_polulation):
             solution = self.problem.encode(self.initial_polulation[self.__next_ini_sol])
             self.__next_ini_sol += 1
         else:
@@ -211,7 +211,7 @@ class JMetalOUProblem(Problem[OUSolution]):
         self.__next_ini_sol = 0
 
     def create_solution(self) -> OUSolution:
-        if self.__next_ini_sol > len(self.initial_polulation):
+        if self.__next_ini_sol < len(self.initial_polulation):
             solution = self.problem.encode(self.initial_polulation[self.__next_ini_sol])
             self.__next_ini_sol += 1
         else:

@@ -5,6 +5,7 @@ import inspyred
 from .settings import get_population_size, KO, PARAMETERS, OU
 from .problem import InspyredProblem
 from .observers import results_observer, VisualizerObserver
+from .terminator import generation_termination
 from ..ea import AbstractEA, Solution
 from ...util.constants import EAConstants, ModelConstants
 from ...util.process import MultiProcessorEvaluator, cpu_count
@@ -39,7 +40,7 @@ class EA(AbstractEA):
             self.variators = KO['variators']
         else:
             raise ValueError("Unknow strategy")
-
+        self.population_size = get_population_size()
         # parameters
         self.args = PARAMETERS.copy()
         self.args['max_generations'] = max_generations,
@@ -47,7 +48,7 @@ class EA(AbstractEA):
         self.args['candidate_max_size'] = self.problem.candidate_max_size
         if self.problem.number_of_objectives != 1:
             self.args.pop('tournament_size')
-        self.population_size = get_population_size()
+        self.seeds = [self.problem.encode(s) for s in initial_population]
 
     def get_population_size(self):
         return self.population_size
@@ -87,12 +88,12 @@ class EA(AbstractEA):
         ea.variator = self.variators
         ea.observer = results_observer
         ea.replacer = inspyred.ec.replacers.truncation_replacement
-        ea.terminator = inspyred.ec.terminators.generation_termination
+        ea.terminator = generation_termination
 
         final_pop = ea.evolve(generator=self.problem.generator,
                               evaluator=self.evaluator,
                               pop_size=self.population_size,
-                              seeds=self.initial_population,
+                              seeds=self.seeds,
                               maximize=self.problem.is_maximization,
                               bounder=self.problem.bounder,
                               **self.args
@@ -127,7 +128,7 @@ class EA(AbstractEA):
         ea = inspyred.ec.emo.NSGA2(prng)
         print("Running NSGAII")
         ea.variator = self.variators
-        ea.terminator = inspyred.ec.terminators.generation_termination
+        ea.terminator = generation_termination
         if self.visualizer:
             axis_labels = [f.short_str() for f in self.problem.fevaluation]
             observer = VisualizerObserver(axis_labels=axis_labels)
@@ -138,7 +139,7 @@ class EA(AbstractEA):
         final_pop = ea.evolve(generator=self.problem.generator,
                               evaluator=self.evaluator,
                               pop_size=self.population_size,
-                              seeds=self.initial_population,
+                              seeds=self.seeds,
                               maximize=self.problem.is_maximization,
                               bounder=self.problem.bounder,
                               **self.args
