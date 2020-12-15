@@ -116,9 +116,9 @@ class EA(AbstractEA):
                     self.ea_problem.evaluate, nmp)
             else:
                 try:
-                    from mewpy.utils.process import RayEvaluator
+                    from mewpy.util.process import RayEvaluator
                     mp_evaluator = RayEvaluator(self.ea_problem, nmp)
-                except ImportError:
+                except Exception:
                     Warning(
                         "Multiprocessing with persistente solver requires ray (pip install ray).")
                     mp_evaluator = MultiProcessorEvaluator(
