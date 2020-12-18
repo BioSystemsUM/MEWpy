@@ -18,6 +18,7 @@ class TestReframedSimul(unittest.TestCase):
         from mewpy.simulation import get_simulator
         self.simul = get_simulator(model)
         self.BIOMASS_ID = model.biomass_reaction
+        self.SUCC = 'R_EX_succ_e'
 
     def test_essential_reactions(self):
         """Tests essential reactions
@@ -36,6 +37,12 @@ class TestReframedSimul(unittest.TestCase):
         """
         uptake_reactions = self.simul.get_uptake_reactions()
         self.assertGreater(len(uptake_reactions), MIN_GROWTH)
+
+    def test_transport_reactions(self):
+        """Tests transport reactions
+        """
+        transport_reactions = self.simul.get_transport_reactions()
+        self.assertGreater(len(transport_reactions), MIN_GROWTH)
 
     def test_fba(self):
         """Tests FBA
@@ -68,11 +75,11 @@ class TestReframedSimul(unittest.TestCase):
         self.assertGreater(res.fluxes[self.BIOMASS_ID], MIN_GROWTH)
 
     def test_FVA(self):
-        self.simul.FVA(reactions=['R_EX_succ_e'])
+        self.simul.FVA(reactions=[self.SUCC])
 
     def test_envelope(self):
         from mewpy.visualization.envelope import plot_flux_envelope
-        plot_flux_envelope(self.simul, 'R_BIOMASS_Ecoli_core_w_GAM', 'R_EX_succ_e')
+        plot_flux_envelope(self.simul, self.BIOMASS_ID, self.SUCC)
 
 
 class TestCobra(TestReframedSimul):
@@ -89,13 +96,7 @@ class TestCobra(TestReframedSimul):
         self.simul = get_simulator(model)
         k = list(self.simul.objective.keys())
         self.BIOMASS_ID = k[0]
-
-    def test_FVA(self):
-        self.simul.FVA(reactions=['EX_succ_e'])
-
-    def test_envelope(self):
-        from mewpy.visualization.envelope import plot_flux_envelope
-        plot_flux_envelope(self.simul, 'BIOMASS_Ecoli_core_w_GAM', 'EX_succ_e')
+        self.SUCC = 'EX_succ_e'
 
 
 class TestGeckoLoad(unittest.TestCase):

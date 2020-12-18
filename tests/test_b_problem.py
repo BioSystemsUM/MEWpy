@@ -11,7 +11,6 @@ OPTRAM_REGNET = MODELS_PATH + 'regnet.csv'
 OPTORF_REG = MODELS_PATH + 'core_TRN_v2.csv'
 OPTORF_ALIASES = MODELS_PATH + 'core_TRN_rfba_aliases.csv'
 
-
 MIN_GROWTH = 0.1
 
 MAX_TRIES = 3
