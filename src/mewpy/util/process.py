@@ -36,8 +36,20 @@ def cpu_count():
             return 1
 
 
-class Evaluator(ABC):
+class Evaluable(ABC):
 
+    @abstractmethod
+    def evaluator(self, candidates, *args):
+        raise NotImplementedError
+
+
+class Evaluator(ABC):
+    """An interface for multiprocessing evaluators
+
+    Raises:
+        NotImplementedError: Requires an evaluated method to
+        be implemented.
+    """
     @abstractmethod
     def evaluate(self, candidates, args):
         raise NotImplementedError
@@ -46,8 +58,11 @@ class Evaluator(ABC):
 class MultiProcessorEvaluator(Evaluator):
 
     def __init__(self, evaluator, mp_num_cpus):
-        """
-        Evaluate the candidates in parallel using ``multiprocessing``.
+        """A multiprocessing evaluator
+
+        Args:
+            evaluator(function): Evaluation function.
+            mp_num_cpus(int): Number of CPUs
         """
         self.pool = Pool(mp_num_cpus)
         self.evaluator = evaluator
@@ -63,6 +78,12 @@ class MultiProcessorEvaluator(Evaluator):
 class DaskEvaluator(Evaluator):
 
     def __init__(self, evaluator, mp_num_cpus, scheduler='processes'):
+        """A Dask multiprocessing evaluator
+
+        Args:
+            evaluator (function): Evaluation function.
+            mp_num_cpus (int): Number of CPUs.
+        """
         self.evaluator = evaluator
         self.scheduler = scheduler
 
@@ -73,6 +94,12 @@ class DaskEvaluator(Evaluator):
 
 class SparkEvaluator(Evaluator):
     def __init__(self, evaluator, mp_num_cpus):
+        """A Spark multiprocessing evaluator
+
+        Args:
+            evaluator (function): Evaluation function.
+            mp_num_cpus (int): Number of CPUs.
+        """
         self.evaluator = evaluator
         self.spark_conf = SparkConf().setAppName(
             "mewpy").setMaster(f"local[{mp_num_cpus}]")
@@ -108,6 +135,12 @@ else:
 
     class RayEvaluator(Evaluator):
         def __init__(self, problem, number_of_actors):
+            """A ray actor responsible for performing evaluations.
+
+            Args:
+                problem: A class implementing an evaluator(list_of_candidates,**kwargs)
+                number_of_actors (int): Number of workers
+            """
             ray.init(ignore_reinit_error=True)
             self.actors = [RayActor.remote(problem)
                            for _ in range(number_of_actors)]

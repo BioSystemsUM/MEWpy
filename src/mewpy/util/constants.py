@@ -2,7 +2,7 @@ class ModelConstants:
     # Default reactions upper bound (used instead of Inf)
     REACTION_UPPER_BOUND = 10000
     # reset solver
-    RESET_SOLVER = False
+    RESET_SOLVER = True
 
 
 class EAConstants:

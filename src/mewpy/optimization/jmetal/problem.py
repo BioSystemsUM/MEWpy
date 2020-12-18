@@ -6,6 +6,7 @@ from jmetal.core.problem import Problem
 from jmetal.core.solution import Solution
 
 from ..ea import SolutionInterface, dominance_test
+from ...util.process import Evaluable
 
 # define EA representation for OU
 IntTupple = Tuple[int]
@@ -141,9 +142,12 @@ class OUSolution(Solution[IntTupple], SolutionInterface):
         return " ".join((self.variables))
 
 
-class JMetalKOProblem(Problem[KOSolution]):
+class JMetalKOProblem(Problem[KOSolution], Evaluable):
 
     def __init__(self, problem, initial_polulation):
+        """JMetal OU problem. Encapsulates a MEWpy problem
+        so that it can be used in jMetal.
+        """
         self.problem = problem
         self.number_of_objectives = len(self.problem.fevaluation)
         self.obj_directions = []
@@ -191,11 +195,17 @@ class JMetalKOProblem(Problem[KOSolution]):
                 solution.objectives[i] = p[i]
         return solution
 
+    def evaluator(self, candidates, *args):
+        res = []
+        for candidate in candidates:
+            res.append(self.evaluate(candidate))
+        return res
+
     def get_name(self) -> str:
         return self.problem.get_name()
 
 
-class JMetalOUProblem(Problem[OUSolution]):
+class JMetalOUProblem(Problem[OUSolution], Evaluable):
 
     def __init__(self, problem, initial_polulation=[]):
         """JMetal OU problem. Encapsulates a MEWpy problem
@@ -244,6 +254,12 @@ class JMetalOUProblem(Problem[OUSolution]):
             else:
                 solution.objectives[i] = p[i]
         return solution
+
+    def evaluator(self, candidates, *args):
+        res = []
+        for candidate in candidates:
+            res.append(self.evaluate(candidate))
+        return res
 
     def get_name(self) -> str:
         return self.problem.get_name()

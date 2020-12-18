@@ -1,4 +1,5 @@
 from inspyred.ec.emo import Pareto
+from ...util.process import Evaluable
 
 
 class IntTuppleBounder(object):
@@ -27,7 +28,7 @@ class IntTuppleBounder(object):
         return bounded_candidate
 
 
-class InspyredProblem:
+class InspyredProblem(Evaluable):
     """Inspyred EA builder helper.
 
         :param problem: the optimization problem.
@@ -51,7 +52,7 @@ class InspyredProblem:
         else:
             return Pareto(p)
 
-    def evaluator(self, candidates, args):
+    def evaluator(self, candidates, *args):
         """
         Evaluator
         Note: shoudn't be dependent on args to ease multiprocessing
