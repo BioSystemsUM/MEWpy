@@ -35,7 +35,8 @@ class GKOProblem(AbstractKOProblem):
 
         genes = set(self.simulator.genes)
         essential = set(self.simulator.essential_genes)
-        target = genes - essential
+        transport = set(self.simulator.get_transport_genes())
+        target = genes - essential - transport
         if self.non_target:
             target = target - set(self.non_target)
         target = list(target)
@@ -94,7 +95,9 @@ class GOUProblem(AbstractOUProblem):
 
     def _build_target_list(self):
 
-        target = set(self.simulator.genes)
+        genes = set(self.simulator.genes)
+        transport = set(self.simulator.get_transport_genes())
+        target = genes - transport
         if self.non_target:
             target = target - set(self.non_target)
         target = list(target)

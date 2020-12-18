@@ -239,20 +239,50 @@ class Simulation(CBModelContainer, Simulator):
         return active_reactions
 
     def update(self):
+        """Updates the model
+        """
         self.model.update()
 
     def add_reaction(self, reaction, replace=True):
+        """Adds a reaction to the model
+
+        Args:
+            reaction: The reaction, a Reframed reaction, to be added.
+            replace (bool, optional): If the reaction should be replaced in case it is already defined.\
+            Defaults to True.
+        """
         self.model.add_reaction(reaction, replace=replace)
 
     def remove_reaction(self, r_id):
+        """Removes a reaction from the model.
+
+        Args:
+            r_id (str): The reaction identifier.
+        """
         self.model.remove_reaction(r_id)
 
     def get_metabolite_reactions(self, metabolite):
+        """List all reactions that have the metabolite as reactant or product.
+
+        Args:
+            metabolite (str): The metabolite identifier.
+
+        Returns:
+            list: List of reactions
+        """
         if not self._index_metabolites_reactions:
             self.__index_metabolites_reactions__()
         return self._index_metabolites_reactions[metabolite]
 
-    def get_metabolite_compartement(self, metabolite):
+    def get_metabolite_compartment(self, metabolite):
+        """Returns the compartment of a metabolite.
+
+        Args:
+            metabolite (str): The metabolite identifier.
+
+        Returns:
+            str: The compartment identifier.
+        """
         return self.model.metabolites[metabolite].compartment
 
     def get_uptake_reactions(self):
@@ -267,6 +297,37 @@ class Simulation(CBModelContainer, Simulator):
                  ((self.model.reactions[r].ub is None or self.model.reactions[r].ub > 0)
                   and len(self.model.reactions[r].get_products())) > 0]
         return reacs
+
+    def get_transport_reactions(self):
+        """
+        :returns: The list of transport reactions.
+        """
+        transport_reactions = []
+        for rx in self.reactions:
+            s_set = set()
+            p_set = set()
+            s = self.model.reactions[rx].get_substrates()
+            for x in s:
+                c = self.model.metabolites[x].compartment
+                s_set.add(c)
+            p = self.model.reactions[rx].get_products()
+            for x in p:
+                c = self.model.metabolites[x].compartment
+                p_set.add(c)
+            if len(s) == 1 and len(p) == 1 and len(p_set.intersection(s_set)) == 0:
+                transport_reactions.append(rx)
+        return transport_reactions
+
+    def get_transport_genes(self):
+        """Returns the list of genes that only catalyze transport reactions.
+        """
+        trp_rxs = self.get_transport_reactions()
+        r_g = self.gene_reactions()
+        genes = []
+        for g, rxs in r_g.items():
+            if set(rxs).issubset(set(trp_rxs)):
+                genes.append(g)
+        return genes
 
     def reverse_reaction(self, reaction_id):
         """
@@ -460,7 +521,6 @@ class Simulation(CBModelContainer, Simulator):
         ]
 
     def get_boundary_reaction(self, metabolite):
-
         """
         Finds the boundary reaction associated with an extracellular metabolite.
         If none is found, None is returned

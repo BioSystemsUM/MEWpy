@@ -226,6 +226,35 @@ class Simulation(CobraModelContainer, Simulator):
                 ]
         return rxns
 
+    def get_transport_reactions(self):
+        """
+        :returns: The list of transport reactions.
+        """
+        transport_reactions = []
+        for rx in self.reactions:
+            s_set = set()
+            p_set = set()
+            s = self.model.reactions.get_by_id(rx).reactants
+            for x in s:
+                s_set.add(x.compartment)
+            p = self.model.reactions.get_by_id(rx).products
+            for x in p:
+                p_set.add(x.compartment)
+            if len(s) == 1 and len(p) == 1 and len(p_set.intersection(s_set)) == 0:
+                transport_reactions.append(rx)
+        return transport_reactions
+
+    def get_transport_genes(self):
+        """Returns the list of genes that only catalyze transport reactions.
+        """
+        trp_rxs = self.get_transport_reactions()
+        r_g = self.gene_reactions()
+        genes = []
+        for g, rxs in r_g.items():
+            if set(rxs).issubset(set(trp_rxs)):
+                genes.append(g)
+        return genes
+
     def reverse_reaction(self, reaction_id):
         """
         Identify if a reaction is reversible and returns the reverse reaction if it is the case.
@@ -315,7 +344,6 @@ class Simulation(CobraModelContainer, Simulator):
         return [reaction.id for reaction in self.model.metabolites.get_by_id(metabolite).reactions]
 
     def get_S(self):
-
         """
         Returns the S matrix as a numpy array
 
@@ -366,7 +394,6 @@ class Simulation(CobraModelContainer, Simulator):
         return list(lbs), list(ubs)
 
     def get_boundary_reaction(self, metabolite):
-
         """
         Finds the boundary reaction associated with an extracellular metabolite.
         If none is found, None is returned

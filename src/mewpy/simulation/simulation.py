@@ -94,7 +94,7 @@ class Simulator(ModelContainer):
     def simulate_mp(self, objective=None, method=SimulationMethod.FBA, maximize=True, constraints_list=None,
                     reference=None,
                     solver=None, n_mp=None, **kwargs):
-        from mewpy.utils.process import cpu_count, MultiProcessorEvaluator
+        from mewpy.util.process import cpu_count, MultiProcessorEvaluator
         if not n_mp:
             n_mp = cpu_count()
 

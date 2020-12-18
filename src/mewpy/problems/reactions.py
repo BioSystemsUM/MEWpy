@@ -28,10 +28,14 @@ class RKOProblem(AbstractKOProblem):
             model, fevaluation=fevaluation, **kwargs)
 
     def _build_target_list(self):
+        """Default modification target builder.
+        Removes drains, transport and essential reactions
+        """
         reactions = set(self.simulator.reactions)
         essential = set(self.simulator.essential_reactions)
         drains = set(self.simulator.get_drains())
-        target = reactions - essential - drains
+        transport = set(self.simulator.get_transport_reactions())
+        target = reactions - essential - drains - transport
         if self.non_target is not None:
             target = target - set(self.non_target)
         target = list(target)
