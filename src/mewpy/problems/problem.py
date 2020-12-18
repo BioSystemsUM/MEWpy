@@ -9,6 +9,7 @@ import numpy as np
 from ..optimization.ea import Solution
 from ..simulation import get_simulator
 from ..util.constants import EAConstants, ModelConstants
+from ..util.process import Evaluable
 
 
 class Strategy(IntEnum):
