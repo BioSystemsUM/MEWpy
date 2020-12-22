@@ -21,7 +21,7 @@ def load_ec():
     including the model, environmental conditions, non targets for modifications,
     the biomass equation ID, and wild type reference flux values.
 
-    Returns: A dictionary constaining the configuration.
+    Returns: A dictionary containing the configuration.
     """
     DIR = os.path.dirname(os.path.realpath(__file__))
     PATH = os.path.join(DIR, '../models/ec/')
@@ -161,9 +161,9 @@ def cb_ou(product, chassis='ec', display=False, filename=None):
     from mewpy.problems import GOUProblem
     problem = GOUProblem(model, fevaluation=[
         evaluator_1, evaluator_2, evaluator_3], envcond=envcond, reference=reference,
-                         candidate_min_size=4, candidate_max_size=6,
-                         operators=("lambda x,y: min(x,y)", "lambda x,y: max(x,y)"),
-                         product=PRODUCT_ID)
+        candidate_min_size=4, candidate_max_size=6,
+        operators=("lambda x,y: min(x,y)", "lambda x,y: max(x,y)"),
+        product=PRODUCT_ID)
 
     ea = EA(problem, max_generations=ITERATIONS, visualizer=False, algorithm='NSGAIII')
     final_pop = ea.run()
