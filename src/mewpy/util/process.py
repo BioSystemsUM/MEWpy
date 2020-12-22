@@ -52,6 +52,7 @@ class Evaluable(ABC):
 
 
 class Evaluator(ABC):
+
     """An interface for multiprocessing evaluators
 
     Raises:
@@ -74,6 +75,7 @@ class MultiProcessorEvaluator(Evaluator):
         """
         self.pool = Pool(mp_num_cpus)
         self.evaluator = evaluator
+        self.__name__ = self.__class__.__name__
 
     def evaluate(self, candidates, args):
         """
@@ -81,6 +83,9 @@ class MultiProcessorEvaluator(Evaluator):
         """
         results = self.pool.map(self.evaluator, candidates)
         return results
+
+    def __call__(self, candidates, args):
+        return self.evaluate(candidates, args)
 
 
 class DaskEvaluator(Evaluator):
@@ -94,10 +99,14 @@ class DaskEvaluator(Evaluator):
         """
         self.evaluator = evaluator
         self.scheduler = scheduler
+        self.__name__ = self.__class__.__name__
 
     def evaluate(self, candidates, args):
         with dask.config.set(scheduler=self.scheduler):
             return list(dask.compute(*[dask.delayed(self.evaluator)(c) for c in candidates]))
+
+    def __call__(self, candidates, args):
+        return self.evaluate(candidates, args)
 
 
 class SparkEvaluator(Evaluator):
@@ -112,11 +121,14 @@ class SparkEvaluator(Evaluator):
         self.spark_conf = SparkConf().setAppName(
             "mewpy").setMaster(f"local[{mp_num_cpus}]")
         self.spark_context = SparkContext(conf=self.spark_conf)
+        self.__name__ = self.__class__.__name__
 
     def evaluate(self, candidates, args):
         solutions_to_evaluate = self.spark_context.parallelize(candidates)
-
         return solutions_to_evaluate.map(lambda s: self.evaluator(s)).collect()
+
+    def __call__(self, candidates, args):
+        return self.evaluate(candidates, args)
 
 
 # ray
@@ -154,6 +166,7 @@ else:
             self.actors = [RayActor.remote(problem)
                            for _ in range(number_of_actors)]
             self.number_of_actors = len(self.actors)
+            self.__name__ = self.__class__.__name__
             print(f"Using {self.number_of_actors} workers.")
 
         def evaluate(self, candidates, args):
@@ -175,6 +188,9 @@ else:
                 for y in x:
                     result.append(y)
             return result
+
+        def __call__(self, candidates, args):
+            return self.evaluate(candidates, args)
 
 
 def get_mp_evaluators():
