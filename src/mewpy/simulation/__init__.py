@@ -87,6 +87,7 @@ def get_simulator(model, envcond=None, constraints=None, reference=None, reset_s
     :param dict contrainsts: A dictionary of additional persistent constraints.
     :returns: An instance of Simulator
     """
+
     instance = None
     name = f"{model.__class__.__module__}.{model.__class__.__name__}"
     if name in map_model_simulator:
@@ -94,7 +95,7 @@ def get_simulator(model, envcond=None, constraints=None, reference=None, reset_s
         module = __import__(module_name, fromlist=[None])
         class_ = getattr(module, class_name)
         instance = class_(model, envcond=envcond,
-                          constraints=constraints, reference=reference)
+                          constraints=constraints, reference=reference, reset_solver=reset_solver)
     else:
         try:
             from cobra.core.model import Model

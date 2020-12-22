@@ -152,10 +152,34 @@ else:
         def evaluate_candidates(self, candidates):
             """Evaluates a sublist of candidates
             """
-            return self.problem.evaluator(candidates, None)
+            if getattr(self.problem, "evaluator", False):
+                return self.problem.evaluator(candidates, None)
+            else:
+                res = []
+                for candidate in candidates:
+                    res.append(self.problem.evaluate(candidate))
+                return res
+
+    @ray.remote
+    class RayActorF:
+        """
+        Each actor (worker) has a solver instance to overcome the need to serialize solvers which may not be pickable.
+        The solver is not reset before each evaluation.
+        """
+
+        def __init__(self, func):
+            self.func = copy.deepcopy(func)
+
+        def evaluate_candidates(self, candidates):
+            """Evaluates a sublist of candidates
+            """
+            res = []
+            for candidate in candidates:
+                res.append(self.func(candidate))
+            return res
 
     class RayEvaluator(Evaluator):
-        def __init__(self, problem, number_of_actors):
+        def __init__(self, problem, number_of_actors, isfunc=False):
             """A ray actor responsible for performing evaluations.
 
             Args:
@@ -163,8 +187,12 @@ else:
                 number_of_actors (int): Number of workers
             """
             ray.init(ignore_reinit_error=True)
-            self.actors = [RayActor.remote(problem)
-                           for _ in range(number_of_actors)]
+            if isfunc:
+                self.actors = [RayActorF.remote(problem)
+                               for _ in range(number_of_actors)]
+            else:
+                self.actors = [RayActor.remote(problem)
+                               for _ in range(number_of_actors)]
             self.number_of_actors = len(self.actors)
             self.__name__ = self.__class__.__name__
             print(f"Using {self.number_of_actors} workers.")
@@ -194,6 +222,8 @@ else:
 
 
 def get_mp_evaluators():
+    """"Returns the list of available multiprocessing evaluators.
+    """
     return MP_Evaluators
 
 
@@ -217,3 +247,25 @@ def get_evaluator(problem, n_mp=cpu_count(), evaluator=ModelConstants.MP_EVALUAT
         return SparkEvaluator(problem.evaluate, n_mp)
     else:
         return MultiProcessorEvaluator(problem.evaluate, n_mp)
+
+
+def get_fevaluator(func, n_mp=cpu_count(), evaluator=ModelConstants.MP_EVALUATOR):
+    """Retuns a multiprocessing evaluator
+
+    Args:
+        problem: a class implementing an evaluate(candidate) function
+        n_mp (int, optional): The number of cpus. Defaults to cpu_count().
+        evaluator (str, optional): The evaluator name: options 'ray','dask','spark'.\
+            Defaults to ModelConstants.MP_EVALUATOR.
+
+    Returns:
+        [type]: [description]
+    """
+    if evaluator == 'ray' and 'ray' in MP_Evaluators:
+        return RayEvaluator(func, n_mp, isfunc=True)
+    elif evaluator == 'dask' and 'dask' in MP_Evaluators:
+        return DaskEvaluator(func, n_mp)
+    elif evaluator == 'spark' and 'spark' in MP_Evaluators:
+        return SparkEvaluator(func, n_mp)
+    else:
+        return MultiProcessorEvaluator(func, n_mp)

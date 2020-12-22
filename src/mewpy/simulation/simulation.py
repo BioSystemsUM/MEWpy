@@ -94,10 +94,7 @@ class Simulator(ModelContainer):
     def simulate_mp(self, objective=None, method=SimulationMethod.FBA, maximize=True, constraints_list=None,
                     reference=None,
                     solver=None, n_mp=None, **kwargs):
-        from mewpy.util.process import cpu_count, MultiProcessorEvaluator
-        if not n_mp:
-            n_mp = cpu_count()
-
+        from mewpy.util.process import get_fevaluator
         args = {}
         args['objective'] = objective
         args['method'] = method
@@ -107,8 +104,7 @@ class Simulator(ModelContainer):
         from functools import partial
         func = partial(self.__evaluator__, args)
 
-        mp_evaluator = MultiProcessorEvaluator(
-            func, n_mp)
+        mp_evaluator = get_fevaluator(func)
         res = mp_evaluator.evaluate(constraints_list, None)
         return res
 

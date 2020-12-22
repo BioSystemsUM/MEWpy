@@ -582,7 +582,7 @@ class GeckoSimulation(Simulation):
     """
 
     def __init__(self, model, objective=None, envcond=None, constraints=None, solver=None, reference=None,
-                 protein_prefix=None):
+                 reset_solver=ModelConstants.RESET_SOLVER, protein_prefix=None):
         try:
             from geckopy.gecko import GeckoModel
             if not isinstance(model, GeckoModel):
@@ -591,7 +591,7 @@ class GeckoSimulation(Simulation):
             raise RuntimeError("The geckopy package is not installed.")
 
         super(GeckoSimulation, self).__init__(
-            model, objective, envcond, constraints, solver, reference)
+            model, objective, envcond, constraints, solver, reference, reset_solver)
         self.protein_prefix = protein_prefix if protein_prefix else 'draw_prot_'
         self._essential_proteins = None
         self._protein_rev_reactions = None

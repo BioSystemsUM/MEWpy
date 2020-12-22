@@ -672,9 +672,9 @@ class Simulation(CBModelContainer, Simulator):
 class GeckoSimulation(Simulation):
 
     def __init__(self, model: GeckoModel, objective=None, envcond=None, constraints=None, solver=None, reference=None,
-                 protein_prefix=None):
+                 reset_solver=ModelConstants.RESET_SOLVER, protein_prefix=None):
         super(GeckoSimulation, self).__init__(
-            model, objective, envcond, constraints, solver, reference)
+            model, objective, envcond, constraints, solver, reference, reset_solver)
         self.protein_prefix = protein_prefix if protein_prefix else 'draw_prot_'
         self._essential_proteins = None
 
