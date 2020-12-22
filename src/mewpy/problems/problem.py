@@ -78,7 +78,8 @@ class AbstractProblem(ABC):
         self.number_of_objectives = len(self.fevaluation)
 
         # simulation context : defines the simulations environment
-        self.simul_context = None
+        self._reset_solver = kwargs.get('reset_solver', ModelConstants.RESET_SOLVER)
+        self._simul = None
         # The target product reaction id may be specified when optimizing for a single product.
         # Only required for probabilistic modification targeting.
         self.product = kwargs.get('product', None)
@@ -141,15 +142,15 @@ class AbstractProblem(ABC):
 
     @property
     def simulator(self):
-        if self.simul_context is None:
-            self.simul_context = get_simulator(
-                self.model, reference=self._reference)
-            self.simul_context.environmental_conditions = self.environmental_conditions
-            self.simul_context.constraints = self.persistent_constraints
-        return self.simul_context
+        if self._simul is None:
+            self._simul = get_simulator(
+                self.model, envcond=self.environmental_conditions,
+                constraints=self.persistent_constraints,
+                reference=self._reference, reset_solver=self._reset_solver)
+        return self._simul
 
     def reset_simulator(self):
-        self.simul_context = None
+        self._simul = None
 
     def __str__(self):
         if self.number_of_objectives > 1:

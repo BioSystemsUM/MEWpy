@@ -110,7 +110,8 @@ class Simulation(CBModelContainer, Simulator):
 
     """
 
-    def __init__(self, model: CBModel, objective=None, envcond=None, constraints=None, solver=None, reference=None):
+    def __init__(self, model: CBModel, objective=None, envcond=None, constraints=None, solver=None, reference=None,
+                 reset_solver=ModelConstants.RESET_SOLVER):
 
         if not isinstance(model, CBModel):
             raise ValueError(
@@ -125,7 +126,7 @@ class Simulation(CBModelContainer, Simulator):
         self._reference = reference
         self._gene_to_reaction = None
         self.solver = solver
-        self._reset_solver = ModelConstants.RESET_SOLVER
+        self._reset_solver = reset_solver
         self.reverse_sintax = [('_b', '_f')]
         self._index_metabolites_reactions = None
         self._m_r_lookup = None
@@ -557,8 +558,6 @@ class Simulation(CBModelContainer, Simulator):
         :param solver: An instance of the solver.
         '''
 
-        a_solver = solver
-
         if not objective:
             objective = self.model.get_objective()
 
@@ -570,16 +569,15 @@ class Simulation(CBModelContainer, Simulator):
         if self.environmental_conditions:
             simul_constraints.update(self.environmental_conditions)
 
-        if not a_solver and not self._reset_solver:
+        a_solver = solver
+        if not self._reset_solver and not a_solver:
             if self.solver is None:
                 self.solver = solver_instance(self.model)
             a_solver = self.solver
 
         # scales the model if a scalling factor is defined.
-        # ... for now resets the solver...
         # ... scalling should be implemented at the solver level.
         if scalefactor:
-            a_solver = None
             for _, rxn in self.model.reactions.items():
                 rxn.lb = rxn.lb * scalefactor
                 rxn.ub = rxn.ub * scalefactor

@@ -12,8 +12,7 @@ from .observers import PrintObjectivesStatObserver, VisualizerObserver
 from .problem import JMetalKOProblem, JMetalOUProblem
 from ..ea import AbstractEA, Solution
 from ...util.constants import EAConstants
-from ...util.process import MultiProcessorEvaluator
-from ...util.process import cpu_count
+from ...util.process import get_evaluator
 from .settings import get_population_size
 
 # SOEA alternatives
@@ -111,7 +110,6 @@ class EA(AbstractEA):
         """ Runs a multi objective EA optimization
         """
         self.ea_problem.reset_initial_population_counter()
-        ncpu = cpu_count()
         if self.algorithm_name in moea_map.keys():
             f = moea_map[self.algorithm_name]
         else:
@@ -129,7 +127,7 @@ class EA(AbstractEA):
         }
 
         if self.mp:
-            args['population_evaluator'] = MultiProcessorEvaluator(self.ea_problem.evaluate, ncpu)
+            args['population_evaluator'] = get_evaluator(self.ea_problem)
 
         print(f"Running {self.algorithm_name}")
         if self.algorithm_name == 'NSGAIII':

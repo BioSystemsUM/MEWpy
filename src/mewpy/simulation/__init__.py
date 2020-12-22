@@ -1,4 +1,5 @@
 from enum import Enum
+from ..util.constants import ModelConstants
 
 solvers = []
 
@@ -6,7 +7,7 @@ try:
     import gurobipy
     solvers.append('gurobi')
     # disables solver output.
-    gurobipy.setParam('OutputFlag', 0)
+    # gurobipy.setParam('OutputFlag', 0)
 except ImportError:
     pass
 
@@ -73,7 +74,7 @@ map_model_simulator = {
 }
 
 
-def get_simulator(model, envcond=None, constraints=None, reference=None):
+def get_simulator(model, envcond=None, constraints=None, reference=None, reset_solver=ModelConstants.RESET_SOLVER):
     """
     Returns a simulator instance for the model.
     The simulator instance is model dependent.
@@ -100,7 +101,7 @@ def get_simulator(model, envcond=None, constraints=None, reference=None):
             if isinstance(model, Model):
                 from .cobra import Simulation
                 instance = Simulation(
-                    model, envcond=envcond, constraints=constraints, reference=reference)
+                    model, envcond=envcond, constraints=constraints, reference=reference, reset_solver=reset_solver)
         except ImportError:
             pass
         if not instance:
@@ -109,7 +110,7 @@ def get_simulator(model, envcond=None, constraints=None, reference=None):
                 if isinstance(model, CBModel):
                     from .reframed import Simulation
                     instance = Simulation(
-                        model, envcond=envcond, constraints=constraints, reference=reference)
+                        model, envcond=envcond, constraints=constraints, reference=reference, reset_solver=reset_solver)
             except ImportError:
                 pass
     if not instance:

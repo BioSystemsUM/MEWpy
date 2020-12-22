@@ -4,8 +4,13 @@ import numpy as np
 from ..simulation import get_simulator
 from ..simulation.simulation import Simulator
 
+METABOLITE = 'metabolite'
+REACTION = 'reaction'
+REV = 'rev'
+IRREV = 'irrev'
 
-def create_metabolic_graph(model, directed=True, reactions=None, remove=[], edges_labels=False, max_degree=None):
+
+def create_metabolic_graph(model, directed=True, reactions=None, remove=[], edges_labels=False, biomass=False):
     """ Creates a metabolic graph
 
     :param model: A model or a model containter
@@ -33,7 +38,7 @@ def create_metabolic_graph(model, directed=True, reactions=None, remove=[], edge
     reactions = list(set(reactions) - set(remove))
 
     for r in reactions:
-        G.add_node(r, label=r, node_class="reaction", node_id=r)
+        G.add_node(r, label=r, node_class=REACTION, node_id=r)
 
     for r in reactions:
         the_metabolites = container.get_reaction_metabolites(r)
@@ -41,7 +46,7 @@ def create_metabolic_graph(model, directed=True, reactions=None, remove=[], edge
             if m in remove:
                 continue
             if m not in G.nodes:
-                G.add_node(m, label=m, node_class="metabolite", node_id=m)
+                G.add_node(m, label=m, node_class=METABOLITE, node_id=m)
             # evaluating if the metabolite has been defined as a reactant or product
             if the_metabolites[m] < 0:
                 (tail, head) = (m, r)
@@ -50,27 +55,46 @@ def create_metabolic_graph(model, directed=True, reactions=None, remove=[], edge
 
             # adding an arc between a metabolite and a reactions
             G.add_edge(tail, head)
-            label = 'irrev'
+            label = IRREV
             lb, _ = container.get_reaction_bounds(r)
 
             if lb < 0:
                 G.add_edge(head, tail)
-                label = 'rev'
+                label = REV
 
             if edges_labels:
                 G[tail][head]['label'] = label
 
             G[tail][head]['reversible'] = lb < 0
-
-    if max_degree:
-        n = max(G.degree, key=lambda item: item[1])
-        while n[1] > max_degree:
-            G.remove_node(n[0])
-            n = max(G.degree, key=lambda item: item[1])
     return G
 
 
-def shortest_distance(model, reaction, reactions=None, remove=[], max_degree=None):
+def filter_by_degree(G, max_degree, inplace=True):
+    s = list(sorted(G.degree, key=lambda item: item[1], reverse=True))
+    stop = False
+    while not stop:
+        # find the metabolite with highest degree
+        print(s[:5])
+        position = 0
+        found = False
+        k = None
+        v = None
+        while not found and position < len(s):
+            k, v = s[position]
+            if G.nodes[k]['node_class'] == METABOLITE:
+                found = True
+            else:
+                position += 1
+        if k and v > max_degree:
+            G.remove_node(k)
+            print('removed ', k)
+            s = list(sorted(G.degree, key=lambda item: item[1], reverse=True))
+        else:
+            stop = True
+    return G
+
+
+def shortest_distance(model, reaction, reactions=None, remove=[]):
     """ Returns the unweighted shortest path distance from a list of reactions to a reaction.
     Distances are the number of required reactions. If there is no pathway between the reactions the distance is inf·
 
@@ -90,7 +114,7 @@ def shortest_distance(model, reaction, reactions=None, remove=[], max_degree=Non
     if reaction not in rxns:
         rxns.append(reaction)
 
-    G = create_metabolic_graph(container, reactions=rxns, remove=remove, max_degree=max_degree)
+    G = create_metabolic_graph(container, reactions=rxns, remove=remove)
     sp = dict(nx.single_target_shortest_path_length(G, reaction))
 
     distances = {}
@@ -102,7 +126,7 @@ def shortest_distance(model, reaction, reactions=None, remove=[], max_degree=Non
     return distances
 
 
-def probabilistic_reaction_targets(model, product, targets, factor=10, max_degree=5):
+def probabilistic_reaction_targets(model, product, targets, factor=10):
     """Builds a new target list reflecting the shortest path distances from all original
     as a probability,ie, reactions closer to the product are repeated more often in the new target list.
     Moreover, reactions from which there is no path (pathway or cofactors usage) to the product are removed.
@@ -114,7 +138,7 @@ def probabilistic_reaction_targets(model, product, targets, factor=10, max_degre
         considered with equal probability. Defaults to 10.
     :returns: A probabilistic target list.
     """
-    distances = shortest_distance(model, product, targets, max_degree=max_degree)
+    distances = shortest_distance(model, product, targets)
     prob_targets = []
     for t in targets:
         if distances[t] == np.inf or distances[t] == 0:
@@ -126,7 +150,7 @@ def probabilistic_reaction_targets(model, product, targets, factor=10, max_degre
     return prob_targets
 
 
-def probabilistic_gene_targets(model, product, targets, factor=10, max_degree=5):
+def probabilistic_gene_targets(model, product, targets, factor=10):
     """Builds a new target list reflecting the shortest path distances from all original
     as a probability,ie, genes on GPRs of reactions closer to the product are repeated more
     often in the new target list.
@@ -149,7 +173,7 @@ def probabilistic_gene_targets(model, product, targets, factor=10, max_degree=5)
         genes = targets
 
     rxns = container.get_reactions_for_genes(genes)
-    rxn_distances = shortest_distance(model, product, rxns, max_degree=max_degree)
+    rxn_distances = shortest_distance(model, product, rxns)
 
     # genes distances are the maximum of all reaction
     # distances that they catalyse.
@@ -172,7 +196,7 @@ def probabilistic_gene_targets(model, product, targets, factor=10, max_degree=5)
     return prob_targets
 
 
-def probabilistic_protein_targets(model, product, targets, factor=10, max_degree=5):
+def probabilistic_protein_targets(model, product, targets, factor=10):
     """Builds a new target list reflecting the shortest path distances from all original
     as a probability,ie, proteins used in reactions closer to the product are repeated
     more often in the new target list.

@@ -85,7 +85,8 @@ class Simulation(CobraModelContainer, Simulator):
 
     """
 
-    def __init__(self, model: Model, objective=None, envcond=None, constraints=None, solver=None, reference=None):
+    def __init__(self, model: Model, objective=None, envcond=None, constraints=None, solver=None, reference=None,
+                 reset_solver=ModelConstants.RESET_SOLVER):
 
         if not isinstance(model, Model):
             raise ValueError("Model is incompatible or inexistent")
@@ -110,7 +111,7 @@ class Simulation(CobraModelContainer, Simulator):
             'unknown': SStatus.UNKNOWN
         }
         self.solver = solver
-        self._reset_solver = ModelConstants.RESET_SOLVER
+        self._reset_solver = reset_solver
         self.reverse_sintax = []
 
     @property

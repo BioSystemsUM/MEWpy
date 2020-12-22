@@ -161,7 +161,7 @@ class OptRamProblem(AbstractOUProblem):
                 # its factor is 1 (see mewpy.util.parsing.GeneEvaluator)
                 lv = tree.evaluate(evaluator.f_operand, evaluator.f_operator)
                 # Adds the reaction constraint.
-                rev_rxn = self.simul_context.reverse_reaction(rxn_id)
+                rev_rxn = self.simulator.reverse_reaction(rxn_id)
                 # Skips if the reverse reaction was already processed.
                 if rev_rxn and rev_rxn in gr_constraints.keys():
                     continue

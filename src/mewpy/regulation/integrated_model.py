@@ -465,7 +465,7 @@ class IntegratedRegulatoryInteraction(RegulatoryInteraction):
     # @tree.setter
     # def tree(self, value):
     #
-    #     from mewpy.utils.parsing import Node
+    #     from mewpy.util.parsing import Node
     #
     #     if value == self._tree:
     #         pass

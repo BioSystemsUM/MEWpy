@@ -1,23 +1,31 @@
 import copy
 from abc import ABC, abstractmethod
 
-from .constants import EAConstants
+from .constants import EAConstants, ModelConstants
+
+
+MP_Evaluators = []
+
 
 # pathos
 try:
     import pathos.multiprocesssing as multiprocessing
     from pathos.multiprocessing import Pool
+    MP_Evaluators.append('mp')
 except ImportError:
     import multiprocessing
     from multiprocessing.pool import Pool
+    MP_Evaluators.append('mp')
 # dask
 try:
     import dask
+    MP_Evaluators.append('dask')
 except ImportError:
     pass
 # pyspark
 try:
     from pyspark import SparkConf, SparkContext
+    MP_Evaluators.append('spark')
 except ImportError:
     pass
 
@@ -114,6 +122,7 @@ class SparkEvaluator(Evaluator):
 # ray
 try:
     import ray
+    MP_Evaluators.append('ray')
 except ImportError:
     pass
 else:
@@ -166,3 +175,29 @@ else:
                 for y in x:
                     result.append(y)
             return result
+
+
+def get_mp_evaluators():
+    return MP_Evaluators
+
+
+def get_evaluator(problem, n_mp=cpu_count(), evaluator=ModelConstants.MP_EVALUATOR):
+    """Retuns a multiprocessing evaluator
+
+    Args:
+        problem: a class implementing an evaluate(candidate) function
+        n_mp (int, optional): The number of cpus. Defaults to cpu_count().
+        evaluator (str, optional): The evaluator name: options 'ray','dask','spark'.\
+            Defaults to ModelConstants.MP_EVALUATOR.
+
+    Returns:
+        [type]: [description]
+    """
+    if evaluator == 'ray' and 'ray' in MP_Evaluators:
+        return RayEvaluator(problem, n_mp)
+    elif evaluator == 'dask' and 'dask' in MP_Evaluators:
+        return DaskEvaluator(problem.evaluate, n_mp)
+    elif evaluator == 'spark' and 'spark' in MP_Evaluators:
+        return SparkEvaluator(problem.evaluate, n_mp)
+    else:
+        return MultiProcessorEvaluator(problem.evaluate, n_mp)

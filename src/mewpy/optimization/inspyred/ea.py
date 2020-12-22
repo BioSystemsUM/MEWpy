@@ -7,8 +7,8 @@ from .problem import InspyredProblem
 from .observers import results_observer, VisualizerObserver
 from .terminator import generation_termination
 from ..ea import AbstractEA, Solution
-from ...util.constants import EAConstants, ModelConstants
-from ...util.process import MultiProcessorEvaluator, cpu_count
+from ...util.constants import EAConstants
+from ...util.process import get_evaluator
 
 SOEA = {
     'GA': inspyred.ec.EvolutionaryComputation,
@@ -62,20 +62,7 @@ class EA(AbstractEA):
         prng.seed(time())
 
         if self.mp:
-            nmp = cpu_count()
-            if ModelConstants.RESET_SOLVER:
-                mp_evaluator = MultiProcessorEvaluator(
-                    self.ea_problem.evaluate, nmp)
-            else:
-                try:
-                    from mewpy.utils.process import RayEvaluator
-                    mp_evaluator = RayEvaluator(self.ea_problem, nmp)
-                except ImportError:
-                    Warning(
-                        "Multiprocessing with persistente solver requires ray (pip install ray). Linux only")
-                    mp_evaluator = MultiProcessorEvaluator(
-                        self.ea_problem.evaluate, nmp)
-            self.evaluator = mp_evaluator.evaluate
+            self.evaluator = get_evaluator(self.ea_problem)
         else:
             self.evaluator = self.ea_problem.evaluator
 
@@ -110,20 +97,7 @@ class EA(AbstractEA):
         prng.seed(time())
 
         if self.mp:
-            nmp = cpu_count()
-            if ModelConstants.RESET_SOLVER:
-                mp_evaluator = MultiProcessorEvaluator(
-                    self.ea_problem.evaluate, nmp)
-            else:
-                try:
-                    from mewpy.util.process import RayEvaluator
-                    mp_evaluator = RayEvaluator(self.ea_problem, nmp)
-                except Exception:
-                    Warning(
-                        "Multiprocessing with persistente solver requires ray (pip install ray).")
-                    mp_evaluator = MultiProcessorEvaluator(
-                        self.ea_problem.evaluate, nmp)
-            self.evaluator = mp_evaluator.evaluate
+            self.evaluator = get_evaluator(self.ea_problem)
         else:
             self.evaluator = self.ea_problem.evaluator
 

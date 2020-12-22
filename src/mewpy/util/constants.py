@@ -2,7 +2,9 @@ class ModelConstants:
     # Default reactions upper bound (used instead of Inf)
     REACTION_UPPER_BOUND = 10000
     # reset solver
-    RESET_SOLVER = True
+    RESET_SOLVER = False
+    # Multiprocessing engine
+    MP_EVALUATOR = 'ray'
 
 
 class EAConstants:

@@ -35,7 +35,7 @@ def get_default_engine():
     if default_engine:
         return default_engine
 
-    engine_order = ['inspyred', 'jmetal']
+    engine_order = ['jmetal', 'inspyred']
 
     for engine in engine_order:
         if engine in list(engines.keys()):
