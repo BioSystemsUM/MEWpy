@@ -161,18 +161,18 @@ result.data_frame
 ```
 
 ```
- 		Reaction ID 	Flux
-0 		CYTDK2 	0.00000
-1 		XPPT 	0.00000
-2 		HXPRT 	0.00000
-3 		NDPK5 	0.00000
-4 		SHK3Dr 	0.33424
-... 	... 	...
-2707 	MPTS 	0.00000
-2708 	MOCOS 	0.00000
-2709 	BMOGDS2 0.00000
-2710 	FESD2s 	0.00000
-2711 	OCTNLL 	0.00000
+        Reaction ID 	Flux
+0       CYTDK2  0.00000
+1       XPPT    0.00000
+2       HXPRT   0.00000
+3       NDPK5   0.00000
+4       SHK3Dr  0.33424
+... 	...     ...
+2707    MPTS    0.00000
+2708    MOCOS   0.00000
+2709    BMOGDS2 0.00000
+2710    FESD2s  0.00000
+2711    OCTNLL  0.00000
 
 2712 rows × 2 columns
 ```
