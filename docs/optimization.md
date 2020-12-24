@@ -61,7 +61,7 @@ gpr = '(G1 or G2) and G3'
 MEWpy converts the GPR rule into a parsing tree (using a Boolean syntax) that is later used for evaluation.
 
 ```python
-from mewpy.utils.parsing import build_tree, Boolean
+from mewpy.util.parsing import build_tree, Boolean
 
 tree = build_tree(gpr,Boolean)
 ```
@@ -83,7 +83,7 @@ tree.print_node()
 To evaluate the **deletion** of a gene, for example G1, we define the list of *ON* genes, that is, G2 and G3, and instantiate a `BooleanEvaluator`. 
 
 ```python
-from mewpy.utils.parsing import BooleanEvaluator
+from mewpy.util.parsing import BooleanEvaluator
 be = BooleanEvaluator(['G2','G3'])
 tree.evaluate(be.f_operand, be.f_operator)
 
@@ -106,7 +106,7 @@ As expected, when deleting G3, the reaction R is knockout.
 **Over or under expressing genes** fallows a similar process, but the Boolean operators are replaced with functions. To that end, we use a GeneEvaluator, identifying the functions to replace the [AND,OR] operators, as well as the genes expression:
 
 ```python
-from mewpy.utils.parsing import GeneEvaluator
+from mewpy.util.parsing import GeneEvaluator
 # G1 and G3 are under expressed to half, and a quarter.
 # G2 is over expressed to twice its expression value.
 genes = {'G1':0.5,'G2':2,'G3':0.25}

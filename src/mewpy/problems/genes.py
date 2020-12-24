@@ -1,8 +1,9 @@
-from .problem import AbstractKOProblem, AbstractOUProblem
-from mewpy.utils.parsing import GeneEvaluator, build_tree, Boolean
-from collections import OrderedDict
 import logging
 import warnings
+from collections import OrderedDict
+
+from .problem import AbstractKOProblem, AbstractOUProblem
+from ..util.parsing import GeneEvaluator, build_tree, Boolean
 
 logger = logging.getLogger(__name__)
 
@@ -34,18 +35,19 @@ class GKOProblem(AbstractKOProblem):
 
         genes = set(self.simulator.genes)
         essential = set(self.simulator.essential_genes)
-        target = genes - essential
+        transport = set(self.simulator.get_transport_genes())
+        target = genes - essential - transport
         if self.non_target:
             target = target - set(self.non_target)
-        target =  list(target)
+        target = list(target)
         try:
-            from mewpy.utils.constants import EAConstants
+            from ..util.constants import EAConstants
             if EAConstants.PROB_TARGET and self.product:
-                from mewpy.utils.graph import probabilistic_gene_targets
-                target = probabilistic_gene_targets(self.model,self.product,target)        
+                from ..util.graph import probabilistic_gene_targets
+                target = probabilistic_gene_targets(self.model, self.product, target)
         except Exception as e:
             warnings.warn(str(e))
-            
+
         self._trg_list = target
 
     def solution_to_constraints(self, candidate):
@@ -93,18 +95,20 @@ class GOUProblem(AbstractOUProblem):
 
     def _build_target_list(self):
 
-        target = set(self.simulator.genes)
+        genes = set(self.simulator.genes)
+        transport = set(self.simulator.get_transport_genes())
+        target = genes - transport
         if self.non_target:
             target = target - set(self.non_target)
-        target =  list(target)
+        target = list(target)
         try:
-            from mewpy.utils.constants import EAConstants
+            from ..util.constants import EAConstants
             if EAConstants.PROB_TARGET and self.product:
-                from mewpy.utils.graph import probabilistic_gene_targets
-                target = probabilistic_gene_targets(self.model,self.product,target)        
+                from ..util.graph import probabilistic_gene_targets
+                target = probabilistic_gene_targets(self.model, self.product, target)
         except Exception as e:
             warnings.warn(str(e))
-            
+
         self._trg_list = target
 
     def __op(self):

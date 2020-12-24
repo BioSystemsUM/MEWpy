@@ -1,11 +1,11 @@
-from mewpy.problems.problem import AbstractOUProblem
-from mewpy.utils.parsing import Boolean, GeneEvaluator, build_tree
-from mewpy.utils.constants import EAConstants
-from mewpy.regulation.variable import RegulatoryVariable
+import math
 from collections import OrderedDict
 import numpy as np
 import pandas as pd
-import math
+from .variable import RegulatoryVariable
+from ..problems.problem import AbstractOUProblem
+from ..util.constants import EAConstants
+from ..util.parsing import Boolean, GeneEvaluator, build_tree
 
 
 def load_optram(gene_filename, tf_filename, matrix_filename, gene_prefix=''):
@@ -22,8 +22,8 @@ def load_optram(gene_filename, tf_filename, matrix_filename, gene_prefix=''):
 
     genes = OrderedDict()
     for index, row in df_genes.iterrows():
-        genes[gene_prefix+row['Name']
-              ] = RegGene(gene_prefix+row['Name'], index, row['id'])
+        genes[gene_prefix + row['Name']
+              ] = RegGene(gene_prefix + row['Name'], index, row['id'])
     tfs = OrderedDict()
     for index, row in df_TFs.iterrows():
         tf = TF(row['Name'], index, row['Expression'])
@@ -79,7 +79,7 @@ class OptRAMRegModel:
         # panda (genes x TFs)
         # TODO: maybe use a list of lists instead of a panda dataframe
         self.regnet = regnet
-        self.tf_expression = [0]*len(self.tfs)
+        self.tf_expression = [0] * len(self.tfs)
         for _, tf in self.tfs.items():
             self.tf_expression[tf.column] = tf.expression
 
@@ -144,8 +144,6 @@ class OptRamProblem(AbstractOUProblem):
                 mgenes_p[g] = p
         return mgenes_p
 
-
-
     def solution_to_constraints(self, decoded_solution):
         mgenes_p = decoded_solution
         gr_constraints = OrderedDict()
@@ -163,7 +161,7 @@ class OptRamProblem(AbstractOUProblem):
                 # its factor is 1 (see mewpy.util.parsing.GeneEvaluator)
                 lv = tree.evaluate(evaluator.f_operand, evaluator.f_operator)
                 # Adds the reaction constraint.
-                rev_rxn = self.simul_context.reverse_reaction(rxn_id)
+                rev_rxn = self.simulator.reverse_reaction(rxn_id)
                 # Skips if the reverse reaction was already processed.
                 if rev_rxn and rev_rxn in gr_constraints.keys():
                     continue

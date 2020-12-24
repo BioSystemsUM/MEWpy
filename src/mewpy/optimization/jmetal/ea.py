@@ -1,23 +1,22 @@
-from jmetal.algorithm.singleobjective import GeneticAlgorithm, SimulatedAnnealing
 from jmetal.algorithm.multiobjective import NSGAII, SPEA2
 from jmetal.algorithm.multiobjective.nsgaiii import NSGAIII
 from jmetal.algorithm.multiobjective.nsgaiii import UniformReferenceDirectionFactory
-from jmetal.util.termination_criterion import StoppingByEvaluations
+from jmetal.algorithm.singleobjective import GeneticAlgorithm, SimulatedAnnealing
 from jmetal.operator import BinaryTournamentSelection
-from mewpy.utils.process import MultiProcessorEvaluator
-from mewpy.optimization.ea import AbstractEA, Solution 
-from .problem import JMetalKOProblem, JMetalOUProblem
-from .observers import PrintObjectivesStatObserver, VisualizerObserver
-from .operators import (ShrinkMutation,GrowMutationKO,GrowMutationOU,UniformCrossoverKO,
-        UniformCrossoverOU,SingleMutationKO,SingleMutationOU,SingleMutationOULevel,MutationContainer)
-from mewpy.utils.constants import EAConstants
-from mewpy.utils.process import cpu_count
-from random import Random
-from time import time
+from jmetal.util.termination_criterion import StoppingByEvaluations
 
+from .operators import (ShrinkMutation, GrowMutationKO, GrowMutationOU, UniformCrossoverKO,
+                        UniformCrossoverOU, SingleMutationKO, SingleMutationOU, SingleMutationOULevel,
+                        MutationContainer)
+from .observers import PrintObjectivesStatObserver, VisualizerObserver
+from .problem import JMetalKOProblem, JMetalOUProblem
+from ..ea import AbstractEA, Solution
+from ...util.constants import EAConstants
+from ...util.process import get_evaluator
+from .settings import get_population_size
 
 # SOEA alternatives
-soea_map ={
+soea_map = {
     'GA': GeneticAlgorithm,
     'SA': SimulatedAnnealing
 }
@@ -33,64 +32,72 @@ class EA(AbstractEA):
     """
     EA running helper for JMetal.
 
-    
     :param problem: The optimization problem.
     :param initial_population: (list) The EA initial population.
-    :param max_generations: (int) The number of iterations of the EA (stopping criteria). 
+    :param max_generations: (int) The number of iterations of the EA (stopping criteria).
     """
 
-    def __init__(self, problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS, mp=True, visualizer=False, algorithm = None):
+    def __init__(self, problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS, mp=True,
+                 visualizer=False, algorithm=None, **kwargs):
 
         super(EA, self).__init__(problem, initial_population=initial_population,
-                                 max_generations=max_generations, mp=mp, visualizer=visualizer)
+                                 max_generations=max_generations, mp=mp, visualizer=visualizer, **kwargs)
+
         self.algorithm_name = algorithm
+
         from mewpy.problems import Strategy
-        self.crossover = UniformCrossoverKO(0.8, self.problem.candidate_max_size) if self.problem.strategy == Strategy.KO else UniformCrossoverOU(
-            0.5, self.problem.candidate_max_size)
+
         mutators = []
+
         if self.problem.strategy == Strategy.KO:
-            self.ea_problem = JMetalKOProblem(self.problem)
+            self.crossover = UniformCrossoverKO(0.8, self.problem.candidate_max_size)
+            self.ea_problem = JMetalKOProblem(self.problem, self.initial_population)
             mutators.append(GrowMutationKO(
                 1.0, max_size=self.problem.candidate_max_size))
             mutators.append(ShrinkMutation(
                 1.0, min_size=self.problem.candidate_min_size))
             mutators.append(SingleMutationKO(1.0))
         else:
-            self.ea_problem = JMetalOUProblem(self.problem)
+            self.crossover = UniformCrossoverOU(0.5, self.problem.candidate_max_size)
+            self.ea_problem = JMetalOUProblem(self.problem, self.initial_population)
             mutators.append(GrowMutationOU(
                 1.0, max_size=self.problem.candidate_max_size))
             mutators.append(ShrinkMutation(
                 1.0, min_size=self.problem.candidate_min_size))
             mutators.append(SingleMutationOU(1.0))
+            mutators.append(SingleMutationOULevel(1.0))
+
         self.mutation = MutationContainer(0.3, mutators=mutators)
-        
+        self.population_size = kwargs.get('population_size', get_population_size())
+        self.max_evaluations = self.max_generations * self.population_size
+
+    def get_population_size(self):
+        return self.population_size
 
     def _run_so(self):
         """ Runs a single objective EA optimization ()
         """
-        
-        max_evaluations = self.max_generations * 100
-        
+        self.ea_problem.reset_initial_population_counter()
         if self.algorithm_name == 'SA':
             print("Running SA")
             self.mutation.probability = 1.0
             algorithm = SimulatedAnnealing(
                 problem=self.ea_problem,
-                mutation=self.mutation.probability, 
-                termination_criterion=StoppingByEvaluations(max_evaluations=max_evaluations)
+                mutation=self.mutation.probability,
+                termination_criterion=StoppingByEvaluations(max_evaluations=self.max_evaluations)
             )
-            
+
         else:
             print("Running GA")
             algorithm = GeneticAlgorithm(
                 problem=self.ea_problem,
-                population_size=100,
-                offspring_population_size=100,
+                population_size=self.population_size,
+                offspring_population_size=self.population_size,
                 mutation=self.mutation,
                 crossover=self.crossover,
                 selection=BinaryTournamentSelection(),
                 termination_criterion=StoppingByEvaluations(
-                    max_evaluations=max_evaluations)
+                    max_evaluations=self.max_evaluations)
             )
 
         algorithm.observable.register(observer=PrintObjectivesStatObserver())
@@ -102,45 +109,33 @@ class EA(AbstractEA):
     def _run_mo(self):
         """ Runs a multi objective EA optimization
         """
-        max_evaluations = self.max_generations * 100
-        ncpu = cpu_count()
+        self.ea_problem.reset_initial_population_counter()
         if self.algorithm_name in moea_map.keys():
             f = moea_map[self.algorithm_name]
         else:
             if self.ea_problem.number_of_objectives > 2:
-                self.algorithm_name== 'NSGAIII'
+                self.algorithm_name == 'NSGAIII'
             else:
                 f = moea_map['SPEA2']
 
+        args = {
+            'problem': self.ea_problem,
+            'population_size': self.population_size,
+            'mutation': self.mutation,
+            'crossover': self.crossover,
+            'termination_criterion': StoppingByEvaluations(max_evaluations=self.max_evaluations)
+        }
+
+        if self.mp:
+            args['population_evaluator'] = get_evaluator(self.ea_problem)
+
         print(f"Running {self.algorithm_name}")
-        if self.algorithm_name== 'NSGAIII':
-            args ={
-                'problem':self.ea_problem,
-                'population_size':100,
-                'mutation':self.mutation,
-                'crossover':self.crossover,
-                'termination_criterion':StoppingByEvaluations(max_evaluations=max_evaluations),
-                'reference_directions':UniformReferenceDirectionFactory(self.ea_problem.number_of_objectives, n_points=99)
-                 }
-
-            if self.mp:
-                args['population_evaluator']=MultiProcessorEvaluator(self.ea_problem.evaluate,ncpu)
-                
+        if self.algorithm_name == 'NSGAIII':
+            args['reference_directions'] = UniformReferenceDirectionFactory(self.ea_problem.number_of_objectives,
+                                                                            n_points=self.population_size-1)
             algorithm = NSGAIII(**args)
-
         else:
-            args ={
-                'problem':self.ea_problem,
-                'population_size':100,
-                'offspring_population_size':100,
-                'mutation':self.mutation,
-                'crossover':self.crossover,
-                'termination_criterion':StoppingByEvaluations(max_evaluations=max_evaluations)
-                 }
-
-            if self.mp:
-                args['population_evaluator']=MultiProcessorEvaluator(self.ea_problem.evaluate,ncpu)
-            
+            args['offspring_population_size'] = self.population_size
             algorithm = f(**args)
 
         if self.visualizer:
@@ -152,6 +147,13 @@ class EA(AbstractEA):
         return result
 
     def _convertPopulation(self, population):
+        """Converts a population represented in Inpyred format to
+        MEWpy solution format.
+
+        :param list population: A list of solutions.
+
+        :returns: A MEWpy list of solutions.
+        """
         p = []
         for i in range(len(population)):
             # Corrects fitness values for maximization problems

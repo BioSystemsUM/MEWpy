@@ -1,14 +1,14 @@
 import os
 from warnings import warn
-from mewpy.regulation import RegulatoryModel, RegulatoryVariable, RegulatoryInteraction
-from mewpy.io import read_tabular_aliases, read_tabular_regulatory_model
-from mewpy.regulation.regulatory_model import solution_decode
-from mewpy.simulation import get_simulator, SStatus
-from mewpy.simulation import SimulationMethod
-from mewpy.simulation.cobra import Simulation as Cobra_model
-from mewpy.simulation.reframed import Simulation as Reframed_model
-from mewpy.simulation.simulation import SimulationResult
-from mewpy.utils.parsing import boolean_rule_from_str, BooleanEvaluator
+from .regulatory_model import RegulatoryModel, RegulatoryVariable, RegulatoryInteraction
+from ..io import read_tabular_aliases, read_tabular_regulatory_model
+from .regulatory_model import solution_decode
+from ..simulation import get_simulator, SStatus
+from ..simulation import SimulationMethod
+from ..simulation.cobra import Simulation as Cobra_model
+from ..simulation.reframed import Simulation as Reframed_model
+from ..simulation.simulation import SimulationResult
+from ..util.parsing import boolean_rule_from_str, BooleanEvaluator
 
 
 class IntegratedRegulatoryVariable(RegulatoryVariable):
@@ -465,7 +465,7 @@ class IntegratedRegulatoryInteraction(RegulatoryInteraction):
     # @tree.setter
     # def tree(self, value):
     #
-    #     from mewpy.utils.parsing import Node
+    #     from mewpy.util.parsing import Node
     #
     #     if value == self._tree:
     #         pass
@@ -630,10 +630,12 @@ class IntegratedModel(RegulatoryModel):
         :param cbm_model: cobra or reframed model objects
         :param cbm_simulation_interface: mewpy simulation object
         :param identifier: str, integrated model identifier
-        :param initial_state: dict, initial state of the regulatory variables. If none, the state of all regulatory variables is set to off (zero)
+        :param initial_state: dict, initial state of the regulatory variables. If none, the state of all \
+            regulatory variables is set to off (zero)
         :param filter_nan: bool, filter targets with empty rules
         :param sep: str, separator
-        :param id_col: int, index of the column of the regulatory variables identifiers (those that appear in the regulatory rules)
+        :param id_col: int, index of the column of the regulatory variables identifiers \
+            (those that appear in the regulatory rules)
         :param rule_col: int, index of the column of the regulatory rules
         :param aliases_cols: int, index of the column of the regulatory variables aliases
         :param header: int or None, index of the header row or None if there is none
@@ -1333,7 +1335,8 @@ class IntegratedModel(RegulatoryModel):
         Method responsible for decoding the RFBA metabolic state, namely the state of all metabolic genes associated
         at least with one reaction in the GPRs rule.
 
-        :param state: dict, key is the id of the regulatory variable (metabolic target) while value can be 0, 1 or float (reactions and metabolites predicates)
+        :param state: dict, key is the id of the regulatory variable (metabolic target) \
+            while value can be 0, 1 or float (reactions and metabolites predicates)
         :return: SimulationResult object.
         """
 
@@ -1405,7 +1408,7 @@ class IntegratedModel(RegulatoryModel):
             return self.cbm_simulation_interface.simulate(objective=self.objective, method=self.cbm_simulation_method,
                                                           maximize=self.maximize, constraints=constraints)
 
-        except:
+        except Exception:
             return SimulationResult(self.cbm_model,
                                     0.0,
                                     {},

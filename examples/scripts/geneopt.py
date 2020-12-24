@@ -1,26 +1,27 @@
 """
 CB model optimization test set that use the JMetalPy EA module
 """
-from mewpy.simulation import SimulationMethod, get_simulator
-from mewpy.optimization.evaluation import WYIELD, BPCY, ModificationType
-from mewpy.optimization import EA, set_default_engine
-import mewpy.utils.utilities as utl
-from collections import OrderedDict
-from reframed.io.sbml import load_cbmodel
-from time import time
 import os
+from collections import OrderedDict
+from time import time
 
+from reframed.io.sbml import load_cbmodel
+
+from mewpy.optimization import EA, set_default_engine
+from mewpy.optimization.evaluation import WYIELD, BPCY, ModificationType
+from mewpy.simulation import SimulationMethod, get_simulator
+from mewpy.util.io import population_to_csv
 
 ITERATIONS = 300
 set_default_engine('jmetal')
 
 
 def load_ec():
-    """Loads a configuration for optimizations on E.coli model iJO1366SL, 
+    """Loads a configuration for optimizations on E.coli model iJO1366SL,
     including the model, environmental conditions, non targets for modifications,
     the biomass equation ID, and wild type reference flux values.
 
-    Returns: A dictionary constaining the configuration. 
+    Returns: A dictionary containing the configuration.
     """
     DIR = os.path.dirname(os.path.realpath(__file__))
     PATH = os.path.join(DIR, '../models/ec/')
@@ -56,11 +57,11 @@ def load_ec():
 
 
 def load_ec2():
-    """Loads a configuration for optimizations on E.coli model iML1515, 
+    """Loads a configuration for optimizations on E.coli model iML1515,
     including the model, environmental conditions, non targets for modifications,
     the biomass equation ID, and wild type reference flux values.
 
-    Returns: A dictionary constaining the configuration. 
+    Returns: A dictionary constaining the configuration.
     """
     DIR = os.path.dirname(os.path.realpath(__file__))
     PATH = os.path.join(DIR, '../models/ec/')
@@ -99,11 +100,11 @@ def load_ec2():
 
 
 def load_yeast():
-    """Loads a configuration for optimizations on yeast model iMM904SL_v6, 
+    """Loads a configuration for optimizations on yeast model iMM904SL_v6,
     including the model, environmental conditions, non targets for modifications,
     the biomass equation ID, and wild type reference flux values.
 
-    Returns: A dictionary constaining the configuration. 
+    Returns: A dictionary constaining the configuration.
     """
     DIR = os.path.dirname(os.path.realpath(__file__))
     PATH = os.path.join(DIR, '../models/yeast/')
@@ -134,12 +135,11 @@ def cb_ou(product, chassis='ec', display=False, filename=None):
 
     Args:
         product (str): the ID of the compound reaction exchange to be optimized
-        chassis (str, optional): The chassis, 'ec'(E.coli iJO1366Sl) , 'ec2' (E.coli iML1515) or 'ys' (yeast). Defaults to 'ec'.
+        chassis (str, optional): The chassis, 'ec'(E.coli iJO1366Sl) , 'ec2' (E.coli iML1515) or 'ys' (yeast).
+                                 Defaults to 'ec'.
         display (bool, optional): [description]. Defaults to False.
         filename ([type], optional): [description]. Defaults to None.
     """
-    
-        
     if chassis == 'ec2':
         conf = load_ec2()
     elif chassis == 'ys':
@@ -158,15 +158,14 @@ def cb_ou(product, chassis='ec', display=False, filename=None):
     # Favors deletion and under expression modifications
     evaluator_3 = ModificationType()
 
-
     from mewpy.problems import GOUProblem
     problem = GOUProblem(model, fevaluation=[
-                         evaluator_1, evaluator_2,evaluator_3], envcond=envcond, reference=reference,
-                         candidate_min_size=4, candidate_max_size=6,
-                         operators=("lambda x,y: min(x,y)", "lambda x,y: max(x,y)"),
-                         product = PRODUCT_ID)
+        evaluator_1, evaluator_2, evaluator_3], envcond=envcond, reference=reference,
+        candidate_min_size=4, candidate_max_size=6,
+        operators=("lambda x,y: min(x,y)", "lambda x,y: max(x,y)"),
+        product=PRODUCT_ID)
 
-    ea = EA(problem, max_generations=ITERATIONS, visualizer=False,algorithm='NSGAIII')
+    ea = EA(problem, max_generations=ITERATIONS, visualizer=False, algorithm='NSGAIII')
     final_pop = ea.run()
 
     if display:
@@ -176,7 +175,7 @@ def cb_ou(product, chassis='ec', display=False, filename=None):
 
     if filename:
         print("Simplifying and saving solutions to file")
-        utl.population_to_csv(problem, final_pop, filename, simplify=False)
+        population_to_csv(problem, final_pop, filename, simplify=False)
 
 
 def cb_ko(product, chassis='ec', display=False, filename=None):
@@ -184,7 +183,8 @@ def cb_ko(product, chassis='ec', display=False, filename=None):
 
     Args:
         product (str): the ID of the compound reaction exchange to be optimized
-        chassis (str, optional): The chassis, 'ec'(E.coli iJO1366Sl) , 'ec2' (E.coli iML1515) or 'ys' (yeast). Defaults to 'ec'.
+        chassis (str, optional): The chassis, 'ec'(E.coli iJO1366Sl) , 'ec2' (E.coli iML1515) or 'ys' (yeast).
+                                 Defaults to 'ec'.
         display (bool, optional): [description]. Defaults to False.
         filename ([type], optional): [description]. Defaults to None.
     """
@@ -206,7 +206,7 @@ def cb_ko(product, chassis='ec', display=False, filename=None):
     evaluator_2 = WYIELD(BIOMASS_ID, PRODUCT_ID)
     from mewpy.problems.genes import GKOProblem
     problem = GKOProblem(model, fevaluation=[
-                         evaluator_1, evaluator_2], non_target=non_target, envcond=envcond, reference=reference)
+        evaluator_1, evaluator_2], non_target=non_target, envcond=envcond, reference=reference)
 
     ea = EA(problem, max_generations=ITERATIONS, mp=True)
     final_pop = ea.run()
@@ -218,40 +218,34 @@ def cb_ko(product, chassis='ec', display=False, filename=None):
 
     if filename:
         print("Simplifying and saving solutions to file")
-        utl.population_to_csv(problem, final_pop, filename, simplify=False)
+        population_to_csv(problem, final_pop, filename, simplify=False)
 
 
 if __name__ == '__main__':
 
-    from reframed.solvers import set_default_solver
     RUNS = 10
     compounds_EC = {"TYR": "R_EX_tyr_DASH_L_LPAREN_e_RPAREN_",
                     "PHE": "R_EX_phe_DASH_L_LPAREN_e_RPAREN_",
                     "TRP": "R_EX_trp_DASH_L_LPAREN_e_RPAREN_"}
 
-    compounds_YS = { "PHE": "R_EX_phe_L_e_",
-                     "TYR": "R_EX_tyr_L_e_",
-                     "TRY": "R_EX_trp_L_e_"
-                   }
+    compounds_YS = {"PHE": "R_EX_phe_L_e_",
+                    "TYR": "R_EX_tyr_L_e_",
+                    "TRY": "R_EX_trp_L_e_"
+                    }
 
-    
     for k, v in compounds_EC.items():
         for i in range(RUNS):
             millis = int(round(time() * 1000))
             cb_ko(v, filename="CBMODEL_{}_KO_{}.csv".format(k, millis))
-    
     for k, v in compounds_EC.items():
         for i in range(RUNS):
             millis = int(round(time() * 1000))
             cb_ou(v, filename="CBMODEL_{}_OU_{}.csv".format(k, millis))
-    
     for k, v in compounds_YS.items():
         for i in range(RUNS):
             millis = int(round(time() * 1000))
             cb_ko(v, chassis='ys', filename="CBMODEL_{}_KO_{}.csv".format(k, millis))
-        
     for k, v in compounds_EC.items():
         for i in range(RUNS):
             millis = int(round(time() * 1000))
             cb_ou(v, chassis='ec', filename="CBMODEL_{}_OU_{}_.csv".format(k, millis))
-

@@ -1,4 +1,4 @@
-mewpy
+numpy
 optlang<1.4.6
 python-libsbml
 reframed
@@ -8,3 +8,4 @@ jmetalpy
 cobamp
 networkx
 matplotlib<3.3
+

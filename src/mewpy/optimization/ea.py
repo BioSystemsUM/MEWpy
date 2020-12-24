@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
-from mewpy.utils.constants import EAConstants
-from collections import OrderedDict
+from ..util.constants import EAConstants
 
 
 class SolutionInterface(ABC):
     """ An interface for EA solutions.
     """
+
     @abstractmethod
     def get_fitness(self):
         """
@@ -22,15 +22,15 @@ class SolutionInterface(ABC):
 
 class Solution(SolutionInterface):
 
-    def __init__(self, values, fitness, constraints=None, is_maximize = True):
+    def __init__(self, values, fitness, constraints=None, is_maximize=True):
         """
         EA Solution
-        
-        :param values: Representation of the solution 
-        :param fitness:  A list of fitness values
-        :param constraints: Decoding of the representation into metabolic constraints
-        :param is_maximize: If the solution results from a maximization problem
-        
+
+        :param values: Representation of the solution.
+        :param fitness:  A list of fitness values.
+        :param constraints: Decoding of the representation into metabolic constraints.
+        :param is_maximize: If the solution results from a maximization problem.
+
         """
         self.values = values
         self.fitness = fitness
@@ -88,7 +88,8 @@ class Solution(SolutionInterface):
 
 class AbstractEA(ABC):
 
-    def __init__(self, problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS, mp=True, visualizer=False):
+    def __init__(self, problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS,
+                 mp=True, visualizer=False, **kwargs):
 
         self.problem = problem
         self.initial_population = initial_population
@@ -132,13 +133,13 @@ class AbstractEA(ABC):
 def dominance_test(solution1, solution2, maximize=True):
     """
     Testes Pareto dominance
-        
+
     :param solution1: The first solution.
     :param solution2: The second solution.
     :param maximize: (bool) maximization (True) or minimization (False)
-    :returns: 1 : if the first solution dominates the second; -1 : if the second solution dominates the first;\
+    :returns: 1 : if the first solution dominates the second; -1 : if the second solution dominates the first; \
          0 : if non of the solutions dominates the other.
-    
+
     """
 
     best_is_one = 0
@@ -180,19 +181,18 @@ def non_dominated_population(solutions, maximize=True, filter_duplicate=True):
 
     for p in range(len(solutions) - 1):
         for q in range(p + 1, len(solutions)):
-            dominance_test_result = dominance_test(solutions[p], solutions[q],maximize=maximize)
+            dominance_test_result = dominance_test(solutions[p], solutions[q], maximize=maximize)
 
             if dominance_test_result == -1:
                 ith_dominated[p].append(q)
                 dominating_ith[q] += 1
-            elif dominance_test_result is 1:
+            elif dominance_test_result == 1:
                 ith_dominated[q].append(p)
                 dominating_ith[p] += 1
 
     for i in range(len(solutions)):
-        if dominating_ith[i] is 0:
+        if dominating_ith[i] == 0:
             front.append(solutions[i])
-
 
     if filter_duplicate:
         result = filter_duplicates(front)
@@ -201,33 +201,32 @@ def non_dominated_population(solutions, maximize=True, filter_duplicate=True):
     return result
 
 
-
 def filter_duplicates(population):
     """ Filters equal solutions from a population
     """
+
     def remove_equal(individual, population):
         filtered = []
         for other in population:
             if individual != other:
                 filtered.append(other)
         return filtered
-    
+
     fitered_list = []
-    l = population
-    while len(l) > 1:
-        individual = l[0]
+    p = population
+    while len(p) > 1:
+        individual = p[0]
         fitered_list.append(individual)
-        l = remove_equal(individual, l)
-    if l:
-        fitered_list.extend(l)
+        p = remove_equal(individual, p)
+    if p:
+        fitered_list.extend(p)
     return fitered_list
 
 
-
-def cmetric(pf1,pf2,maximize = True):
+def cmetric(pf1, pf2, maximize=True):
     """
     Computes the c-metric quality indicator.
-    
+
     :param pf1: The first pareto front.
     :param pf2: The second pareto front.
     :param maximize: (bool) maximization (True) or minimization (False).
@@ -236,19 +235,19 @@ def cmetric(pf1,pf2,maximize = True):
                 r2: percentage of solutions on pf1 dominated by some solution on pf2;
                 pf1_2: solutions on pf2 dominated by some solution on pf1;
                 pf2_1: solutions on pf1 dominated by some solution on pf2.
-    
+
     """
-    # solutions on pf2 dominated by some solution on pf1 
+    # solutions on pf2 dominated by some solution on pf1
     pf1_2 = set()
-    # solutions on pf1 dominated by some solution on pf2 
+    # solutions on pf1 dominated by some solution on pf2
     pf2_1 = set()
     for s1 in pf1:
         for s2 in pf2:
-            d = dominance_test(s1,s2,maximize=maximize)
-            if d ==1 : 
+            d = dominance_test(s1, s2, maximize=maximize)
+            if d == 1:
                 pf1_2.add(s2)
             elif d == -1:
                 pf2_1.add(s1)
-    r1 = len(pf1_2)/len(pf2)
-    r2 = len(pf2_1)/len(pf1)
-    return r1,r2, pf1_2,pf2_1
+    r1 = len(pf1_2) / len(pf2)
+    r2 = len(pf2_1) / len(pf1)
+    return r1, r2, pf1_2, pf2_1

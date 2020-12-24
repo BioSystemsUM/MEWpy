@@ -1,10 +1,10 @@
+import re
+import sys
 from abc import abstractmethod
 from operator import add, sub, mul, truediv, pow
-from sympy.parsing.sympy_parser import parse_expr
-from sympy import Symbol
-import sys
-import re
 
+from sympy import Symbol
+from sympy.parsing.sympy_parser import parse_expr
 
 # Boolean operator symbols
 S_AND = '&'
@@ -236,6 +236,7 @@ class Syntax:
 class Arithmetic(Syntax):
     """Defines a basic arithmetic sintax.
     """
+
     @staticmethod
     def is_operator(op):
         return op in ['+', '-', '*', '/', '^']
@@ -420,8 +421,8 @@ def build_tree(exp, rules):
                 stack.append(i)
 
             else:
-                while stack and stack[-1] != '(' and rules.is_greater_precedence(stack[-1], i) and rules.associativity(
-                        i) == 0:
+                while stack and stack[-1] != '(' and rules.is_greater_precedence(stack[-1], i) \
+                        and rules.associativity(i) == 0:
                     popped_item = stack.pop()
                     t = Node(popped_item)
                     t1 = tree_stack.pop()
@@ -494,7 +495,8 @@ def special_chars_filter(rule, special_chars=None):
 
 
     :param rule: str, the regulatory rule
-    :param special_chars: dict or None, special (or not) chars to be replaced. BOOL_SPECIAL_CHARS by default special_chars argument must have unique keys and unique values!!
+    :param special_chars: dict or None, special (or not) chars to be replaced. BOOL_SPECIAL_CHARS by default \
+        special_chars argument must have unique keys and unique values!!
     :returns: str, the new parsed rule
     :returns: dict, the occurred replacements {replace: special_char}
     """
@@ -632,7 +634,8 @@ def variable_from_str(expression, filter=True, special_chars=None, replaces=None
 
     :param expression: str, expression
     :param filter: bool, if filter, special_chars_filter and starts_with_digit_filter are applied
-    :param special_chars: dict, dict or None, special (or not) chars to be replaced. BOOL_SPECIAL_CHARS is used by default. special_chars argument must have unique keys and unique values!!
+    :param special_chars: dict, dict or None, special (or not) chars to be replaced. BOOL_SPECIAL_CHARS is used by \
+        default. special_chars argument must have unique keys and unique values!!
     :param replaces: dict, replaces occurred for aliases construction. None is the default.
     :return: regulatory variable Sympy Symbol, regulatory variable
     :return: alias: dict, the new variable name map to the old one
@@ -719,7 +722,6 @@ def bitwise_rule_filter(rule):
     """
 
     for bool, bit_val in Boolean.SYMPY_REPLACE.items():
-
         rule = re.sub(r'\b{}\b'.format(bool), bit_val, rule)
         rule = re.sub(r'\b{}\b'.format(bool.upper()), bit_val, rule)
         rule = re.sub(r'\b{}\b'.format(bool.title()), bit_val, rule)
@@ -741,8 +743,10 @@ def boolean_rule_from_str(rule):
     :returns rule: str, parsed boolean rule
     :return elements: list, all elements in the rule (operators and operands)
     :return sympify: Sympy Boolean object Or, And or Not, Sympy Symbol object, or Sympy Integral object
-    :return symbols: dict, all regulatory variables in the regulatory rule. Keys stand for their new IDs and values stand for their sympy symbols
-    :return symbols: dict, all regulatory variables in the regulatory rule. Keys stand for their new IDs and values stand for their aliases
+    :return symbols: dict, all regulatory variables in the regulatory rule. Keys stand for their new IDs \
+        and values stand for their sympy symbols
+    :return symbols: dict, all regulatory variables in the regulatory rule. Keys stand for their new IDs \
+        and values stand for their aliases
     """
 
     regex_str = '|'.join(['(' + regex + '[0-9.]+)' + '|' +

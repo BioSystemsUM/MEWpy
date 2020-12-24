@@ -5,8 +5,8 @@ from sympy.core.relational import StrictGreaterThan, StrictLessThan, GreaterThan
 from sympy.core.numbers import Zero, One
 from cobamp.core.linear_systems import GenericLinearSystem, VAR_CONTINUOUS, VAR_BINARY
 from cobamp.core.optimization import LinearSystemOptimizer
-from mewpy.simulation.simulation import SimulationResult
-from mewpy.regulation import IntegratedModel
+from ..simulation.simulation import SimulationResult
+from .integrated_model import IntegratedModel
 
 _SRFBA_TOL = 1E-10
 
@@ -464,8 +464,8 @@ class SRFBAModel(IntegratedModel):
                             last_index = rxn_idx
 
                         elif var_id in self.targets:
-                            # if the arg is in targets only the column is added, as in the next iterations the row will be
-                            # created
+                            # if the arg is in targets only the column is added, as in the next iterations the row
+                            # will be created.
 
                             tg_idx = self.__add_column__(var_id)
                             traversal_results[arg] = tg_idx
@@ -474,10 +474,10 @@ class SRFBAModel(IntegratedModel):
                         else:
 
                             # if the args of a sympy's expression are regulators or genes,
-                            # which are not defined in self.targets or self.reactions, they will never be created elsewhere
-                            # they must be added to the MILP matrix as columns
-                            # The state can be inferred from the initial state if the variables are in the initial state
-                            # else, the variables are considered as unknown
+                            # which are not defined in self.targets or self.reactions, they will never be created
+                            # elsewhere they must be added to the MILP matrix as columns
+                            # The state can be inferred from the initial state if the variables are in the initial
+                            # state else, the variables are considered as unknown
 
                             if var_id in self.initial_state:
 
@@ -631,7 +631,7 @@ class SRFBAModel(IntegratedModel):
         :param objective: None or dict, objective for the optimization. None for the current objective
         :param maximize: bool, direction for the optimization.
         :return: SimulationResult object, it contains the metabolic and regulatory states too.
-        
+
         Solutions are also stored under solution property
         """
 
@@ -657,7 +657,7 @@ class SRFBAModel(IntegratedModel):
 
         solution = lso.optimize()
 
-        #building mewpy's solution object
+        # building mewpy's solution object
         flxs = {}
         bools = {}
         regulatory_conditions = {}

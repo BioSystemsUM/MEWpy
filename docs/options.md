@@ -1,17 +1,13 @@
 ## Options
 
-
-
-MEWpy makes available a large set of options, some being globally defined in *mewpy.util.constants*.
-
-
+MEWpy makes available a large set of options, some being globally defined in _mewpy.util.constants_.
 
 **Number of processors for parallel solutions evaluation.**
 
-By default, MEWpy uses half of the available treads to run parallel evaluations.  However, a user may define the number of parallel threads by altering the *NUM_CPUS* constant in mewpy.util.constants:
+By default, MEWpy uses half of the available treads to run parallel evaluations. However, a user may define the number of parallel threads by altering the `NUM_CPUS` constant in `mewpy.util.constants`:
 
 ```python
-from mewpy.utils.constants import EAConstants
+from mewpy.util.constants import EAConstants
 # uses 32 parallel threads
 EAConstants.NUM_CPUS = 32
 ```
@@ -37,7 +33,7 @@ problem = GOUProblem(model,levels=levels)
 
 **Number of modifications.**
 
-The minimum and the maximum number of modifications may be defined directly in the problem definition. For example to allow a maximum of  gene deletions:
+The minimum and the maximum number of modifications may be defined directly in the problem definition. For example to allow a maximum of gene deletions:
 
 ```python
 from mewpy.problems import GKOProblem
@@ -52,6 +48,8 @@ problem = GKOProblem(model,candidate_min_size=4,candidate_max_size=6)
 ```
 
 The default minimum number of modifications is 1, while the maximum is 30. When both the minimum and the maximum number of modifications are equal, all solutions will have the same common number of modifications.
+
+
 
 **Optimization algorithm.**
 
@@ -69,3 +67,41 @@ ea = EA(problem, max_generations=ITERATIONS, algorithm='NSGAIII')
 ```
 
 Note that when using a single objective, only Simulated Annealing (SA) and Genetic Algorithm (GA) are allowed. Any other configuration will be ignored. The same is true when choosing single objective algorithms to solve multi objective problems. To run multi objective problems using a single objective algorithms please refer to the AggregatedSum evaluation function.
+
+
+
+**Seeding an EA with an initial population.**
+
+The EAs may be seeded with a list of solutions, to guide the optimization or to give it a push start.
+
+For deletion problems, the initial population is a list of solutions, represented as lists of modification targets. For example, for a reaction knock out problem, the initial population would be of the sort:
+
+```python
+init_pop = [['R_1', 'R_10'],
+            ['R_3', 'R_2', 'R_5'],
+            ...
+           ]
+
+ea = EA(problem,initial_population=init_pop)
+```
+
+where each`'R_i'` is a reaction on the modification target list. The modification target list, when not explicitly provided, can be retrieve from the problem instance:
+
+```python
+problem.target_list
+```
+
+
+
+For over-/under-regulation optimization problems, the initial population is a list of dictionaries:
+
+```python
+init_pop = [{'R_1':2, 'R_10':0},
+            {'R_3':8, 'R_2':0.5, 'R_5':0},
+            ...
+           ]
+
+ea = EA(problem,initial_population=init_pop)
+```
+
+where each item is of the form`modification_target: fold_level`, where the folds levels are values in the list of allowed expression levels.

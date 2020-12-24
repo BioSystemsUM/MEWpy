@@ -1,6 +1,6 @@
 from warnings import warn
-from mewpy.utils.parsing import generic_regulatory_rule_parser
-from mewpy.regulation.regulatory_variable import RegulatoryVariable
+from ..util.parsing import generic_regulatory_rule_parser
+from .regulatory_variable import RegulatoryVariable
 
 
 class RegulatoryInteraction(object):

@@ -1,12 +1,14 @@
 import os
-import pandas as pd
+
 import numpy as np
-from mewpy.utils.parsing import BOOLEAN_SPECIAL_CHARS
+import pandas as pd
+
+from ..util.parsing import BOOLEAN_SPECIAL_CHARS
 
 
-def read_tabular_regulatory_model(file_or_filepath, sep=None, id_col=None, rule_col=None, aliases_cols=None, header=None,
+def read_tabular_regulatory_model(file_or_filepath, sep=None, id_col=None, rule_col=None, aliases_cols=None,
+                                  header=None,
                                   special_chars=None, compartments_ids=None):
-
     if not sep:
         sep = ','
 
@@ -59,8 +61,7 @@ def read_tabular_regulatory_model(file_or_filepath, sep=None, id_col=None, rule_
         for char in special_chars:
 
             if char not in BOOLEAN_SPECIAL_CHARS:
-
-                new_char = char.replace(')','_').replace('(','_').replace(' ','_')
+                new_char = char.replace(')', '_').replace('(', '_').replace(' ', '_')
                 BOOLEAN_SPECIAL_CHARS[char] = '_' + new_char + '_'
 
     if compartments_ids:
@@ -76,7 +77,6 @@ def read_tabular_regulatory_model(file_or_filepath, sep=None, id_col=None, rule_
         for char in special_chars:
 
             if char not in BOOLEAN_SPECIAL_CHARS:
-
                 new_char = char.replace(')', '_').replace('(', '_').replace(' ', '_')
                 BOOLEAN_SPECIAL_CHARS[char] = '_' + new_char + '_'
 
@@ -101,8 +101,8 @@ def read_tabular_regulatory_model(file_or_filepath, sep=None, id_col=None, rule_
 
     return csv
 
-def read_tabular_aliases(file_or_filepath, sep=None, id_col=None, aliases_cols=None, header=None):
 
+def read_tabular_aliases(file_or_filepath, sep=None, id_col=None, aliases_cols=None, header=None):
     if not sep:
         sep = ','
 
@@ -150,8 +150,8 @@ def read_tabular_aliases(file_or_filepath, sep=None, id_col=None, aliases_cols=N
 
     return csv
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     file = "iMC1010v4.csv"
     os.chdir('../../../examples/models/')
 

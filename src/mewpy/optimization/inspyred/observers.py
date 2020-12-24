@@ -1,6 +1,7 @@
-from inspyred.ec.emo import Pareto
-from mewpy.visualization.plot import StreamingPlot
 import numpy
+from inspyred.ec.emo import Pareto
+
+from mewpy.visualization.plot import StreamingPlot
 
 
 def fitness_statistics(population):
@@ -125,7 +126,7 @@ def non_dominated_population(population, maximize=True):
     """
     population.sort(reverse=True)
     non_dominated = []
-    for i in range(len(population)-1):
+    for i in range(len(population) - 1):
         individual = population[i]
         j = 0
         dominates = True

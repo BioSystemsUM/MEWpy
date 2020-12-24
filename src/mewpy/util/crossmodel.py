@@ -44,9 +44,9 @@ class NotationTranslator:
 
         p = len(source_prefix)
         if isinstance(representation, list):
-            return [destination_prefix+self.translate(value[p:]) for value in representation]
+            return [destination_prefix + self.translate(value[p:]) for value in representation]
         else:
-            return {destination_prefix+self.translate(value[p:]): level for value, level in representation.items()}
+            return {destination_prefix + self.translate(value[p:]): level for value, level in representation.items()}
 
     def get_list(self, name):
         return self.db[name].tolist()

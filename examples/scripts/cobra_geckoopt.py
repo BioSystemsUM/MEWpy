@@ -5,34 +5,31 @@ GECKO model over COBRApy optimization test
 
 ##################################################################
 """
-from geckopy.gecko import GeckoModel
-from mewpy.simulation.cobra import GeckoSimulation
-from mewpy.simulation import SimulationMethod
-from mewpy.simulation.simulation import SimulationResult
-from mewpy.problems.gecko import GeckoKOProblem, GeckoOUProblem
-from mewpy.optimization.evaluation import BPCY, WYIELD, TargetFlux
-from mewpy.optimization import EA
-import mewpy.utils.utilities as utl
+import warnings
 from collections import OrderedDict
 from time import time
-
-import warnings
-
+from geckopy.gecko import GeckoModel
+from mewpy.optimization import EA
+from mewpy.optimization.evaluation import BPCY, WYIELD
+from mewpy.problems.gecko import GeckoKOProblem, GeckoOUProblem
+from mewpy.simulation import SimulationMethod
+from mewpy.simulation.cobra import GeckoSimulation
+from mewpy.util.io import population_to_csv
 
 ITERATIONS = 100
 
 
 def gecko_ko(compound, display=False, filename=None):
-    """ GECKO enzyme deletion example. 
+    """ GECKO enzyme deletion example.
     It runs a multi objective optimization for the increased production of a certain compound on yeast.
     The GECKO model is the yeast model companion from the GECKO paper "Improving the phenotype predictions
     of a yeast genome‐scale metabolic model by incorporating enzymatic constraints" https://doi.org/10.15252/msb.20167411.
-    Runs over the GECKO original implementation. 
-    
+    Runs over the GECKO original implementation.
+
     :param compound: A target reaction identifier.
     :param display: Prints the best solution.
     :param filename: If given, saves the results as csv to filename.
-         
+
     """
 
     warnings.filterwarnings("ignore")
@@ -52,10 +49,10 @@ def gecko_ko(compound, display=False, filename=None):
     #  - A scale factor for the LP can be defined by setting the 'scalefactor' acordingly.
     #  - The scale factor is only used in the solver context and all results are scale free.
     problem = GeckoKOProblem(model,
-                              fevaluation=[evaluator_1, evaluator_2],
-                              envcond=envcond,
-                              scalefactor=None,
-                              candidate_max_size=30)
+                             fevaluation=[evaluator_1, evaluator_2],
+                             envcond=envcond,
+                             scalefactor=None,
+                             candidate_max_size=30)
 
     # A new instance of the EA optimizer
     ea = EA(problem, max_generations=ITERATIONS, mp=True)
@@ -69,20 +66,21 @@ def gecko_ko(compound, display=False, filename=None):
     # save final population to file
     if filename:
         print("Simplifying and saving solutions to file")
-        utl.population_to_csv(problem, final_pop, filename, simplify=False)
+        population_to_csv(problem, final_pop, filename, simplify=False)
 
 
 def gecko_ou(compound, display=False, filename=None):
-    """ GECKO enzyme over/under expressoion example. 
+    """ GECKO enzyme over/under expressoion example.
     It runs a multi objective optimization for the increased production of a certain compound on yeast.
     The GECKO model is the yeast model companion from the GECKO paper "Improving the phenotype predictions
-    of a yeast genome‐scale metabolic model by incorporating enzymatic constraints" https://doi.org/10.15252/msb.20167411. 
+    of a yeast genome‐scale metabolic model by incorporating enzymatic
+    constraints" https://doi.org/10.15252/msb.20167411.
     Runs over the GECKO original implementation.
-    
+
     :param compound: A target reaction identifier.
     :param display: Prints the best solution.
     :param filename: If given, saves the results as csv to filename.
-         
+
     """
 
     model = GeckoModel('single-pool', biomass_reaction_id='r_2111')
@@ -104,11 +102,11 @@ def gecko_ou(compound, display=False, filename=None):
     #  - A scale factor for the LP can be defined by setting the 'scalefactor' acordingly.
     #  - The scale factor is only used in the solver context and all results are scale free.
     problem = GeckoOUProblem(model,
-                              fevaluation=[evaluator_1, evaluator_2],
-                              envcond=envcond,
-                              reference=reference,
-                              scalefactor=None,
-                              candidate_max_size=30)
+                             fevaluation=[evaluator_1, evaluator_2],
+                             envcond=envcond,
+                             reference=reference,
+                             scalefactor=None,
+                             candidate_max_size=30)
 
     # A new instance of the EA optimizer
     ea = EA(problem, max_generations=ITERATIONS, mp=False)
@@ -122,7 +120,7 @@ def gecko_ou(compound, display=False, filename=None):
     # save final population to file
     if filename:
         print("Simplifying and saving solutions to file")
-        utl.population_to_csv(problem, final_pop, filename, simplify=False)
+        population_to_csv(problem, final_pop, filename, simplify=False)
 
 
 if __name__ == '__main__':

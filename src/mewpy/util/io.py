@@ -1,12 +1,11 @@
-from mewpy.optimization.ea import Solution, non_dominated_population
-from mewpy.utils.constants import ModelConstants
-from mewpy.simulation import get_simulator, SimulationMethod
-from mewpy.optimization.ea import filter_duplicates
-from collections import OrderedDict
-import numpy as np
-import time
 import ast
 import os
+from collections import OrderedDict
+import numpy as np
+from .constants import ModelConstants
+from ..optimization.ea import Solution, non_dominated_population
+from ..optimization.ea import filter_duplicates
+from ..simulation import get_simulator, SimulationMethod
 
 # xml escapes
 escapes = {'&': '&#38', '<': '&lt', '>': '&gt', "'": '&#39', '"': '&#34'}
@@ -164,20 +163,20 @@ class Parser:
 
         if parse_constraints:
             # temporary compatibility with previous version
-            if tokens[self.n_obj+1].startswith('{'):
-                constrainst = ast.literal_eval(tokens[self.n_obj+1])
-            elif tokens[self.n_obj+1].startswith('OrderedDict'):
-                constrainst = eval(tokens[self.n_obj+1])
+            if tokens[self.n_obj + 1].startswith('{'):
+                constrainst = ast.literal_eval(tokens[self.n_obj + 1])
+            elif tokens[self.n_obj + 1].startswith('OrderedDict'):
+                constrainst = eval(tokens[self.n_obj + 1])
             else:
                 constrainst = {}
-                i = self.n_obj+1
-                while i < len(tokens)-2:
-                    if is_number(tokens[i+2]):
-                        constrainst[tokens[i]] = (float(tokens[i+1]), float(tokens[i+2]))
-                        i = i+3
+                i = self.n_obj + 1
+                while i < len(tokens) - 2:
+                    if is_number(tokens[i + 2]):
+                        constrainst[tokens[i]] = (float(tokens[i + 1]), float(tokens[i + 2]))
+                        i = i + 3
                     else:
-                        constrainst[tokens[i]] = (float(tokens[i+1]), float(tokens[i+1]))
-                        i = i+2
+                        constrainst[tokens[i]] = (float(tokens[i + 1]), float(tokens[i + 1]))
+                        i = i + 2
 
         else:
             constrainst = None
@@ -259,19 +258,19 @@ class Parser:
         if n == self.obj_labels:
             labels = self.obj_labels
         else:
-            labels = [f"Obj_{i}" for i in range(1, n+1)]
+            labels = [f"Obj_{i}" for i in range(1, n + 1)]
 
         for solution in population:
             r = []
             u = []
             m = []
-            
-            constraints = {} 
+
+            constraints = {}
             constraints.update(solution.constraints)
 
             try:
                 res = simul.simulate(
-                        objective={biomass: 1}, method=SimulationMethod.pFBA, constraints=constraints)
+                    objective={biomass: 1}, method=SimulationMethod.pFBA, constraints=constraints)
                 if res.fluxes:
                     # pFBA
                     biomass_value = res.fluxes[biomass]
@@ -287,7 +286,7 @@ class Parser:
                     for rx in reactions:
                         u.append(res.fluxes[rx])
                     # FVA
-                    constraints[biomass] = (biomass_value*0.99, 100000.0)
+                    constraints[biomass] = (biomass_value * 0.99, 100000.0)
                     res = simul.simulate(objective={product: 1}, constraints=constraints, maximize=False)
                     if res.fluxes:
                         m.append(res.fluxes[product])
@@ -312,12 +311,12 @@ class Parser:
         import pandas as pd
         df_values = pd.DataFrame(data_values, columns=["Solution"])
         df_fitness = pd.DataFrame(data_fitness, columns=labels)
-        df_fba = pd.DataFrame(data_fba, columns=['Biomass_pFBA', product+'_pFBA', carbon_source+'_pFBA'])
-        df_lmoma = pd.DataFrame(data_lmoma, columns=['Biomass_lMOMA', product+'_lMOMA', carbon_source+'_lMOMA'])
-        df_fva = pd.DataFrame(data_fva, columns=[product+'_FVAmin_99', product+'_FVAmax_99'])
+        df_fba = pd.DataFrame(data_fba, columns=['Biomass_pFBA', product + '_pFBA', carbon_source + '_pFBA'])
+        df_lmoma = pd.DataFrame(data_lmoma, columns=['Biomass_lMOMA', product + '_lMOMA', carbon_source + '_lMOMA'])
+        df_fva = pd.DataFrame(data_fva, columns=[product + '_FVAmin_99', product + '_FVAmax_99'])
         # df_constraints = pd.DataFrame(data_constraints, columns=['Constraints'])
-        
-        df_all = df_values.join(df_fitness).join(df_fba).join(df_lmoma).join(df_fva) #.join(df_constraints)
+
+        df_all = df_values.join(df_fitness).join(df_fba).join(df_lmoma).join(df_fva)  # .join(df_constraints)
 
         return df_all, filtered_population
 
@@ -361,7 +360,8 @@ class Parser:
         Finds all solutions containing the list of targets
 
         :param targets: (list) List of target ids.
-        :param population: (list) List of solution where to perform the search. If none is provided, the search is performed on the entire population.
+        :param population: (list) List of solution where to perform the search. If none is provided, the search is \
+            performed on the entire population.
         :returns: A list of solutions.
         """
         result = []
@@ -373,38 +373,3 @@ class Parser:
             if all([v in solution.values.keys() for v in target]):
                 result.append(solution)
         return result
-
-
-class TimerError(Exception):
-    """A custom exception used to report errors in use of Timer class"""
-
-
-class Timer:
-    def __init__(self):
-        self._start_time = None
-
-    def start(self):
-        """Start a new timer"""
-        if self._start_time is not None:
-            raise TimerError(f"Timer is running. Use .stop() to stop it")
-
-        self._start_time = time.perf_counter()
-
-    def stop(self):
-        """Stop the timer, and report the elapsed time"""
-        if self._start_time is None:
-            raise TimerError(f"Timer is not running. Use .start() to start it")
-
-        elapsed_time = time.perf_counter() - self._start_time
-        self._start_time = None
-        print(f"Elapsed time: {elapsed_time:0.6f} seconds")
-
-
-    def __enter__(self):
-        """Start a new timer as a context manager"""
-        self.start()
-        return self
-
-    def __exit__(self, *exc_info):
-        """Stop the context manager timer"""
-        self.stop()

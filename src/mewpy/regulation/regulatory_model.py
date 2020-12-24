@@ -1,9 +1,9 @@
 from warnings import warn
-from mewpy.io import read_tabular_aliases
-from mewpy.regulation.regulatory_interaction import RegulatoryInteraction
-from mewpy.regulation.regulatory_variable import RegulatoryVariable
 from sympy.logic.boolalg import BooleanTrue, BooleanFalse
 from sympy.core.numbers import Zero, One
+from ..io import read_tabular_aliases
+from .regulatory_interaction import RegulatoryInteraction
+from .regulatory_variable import RegulatoryVariable
 
 
 class RegulatoryModel(object):

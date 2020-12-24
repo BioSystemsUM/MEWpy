@@ -1,19 +1,20 @@
-from mewpy.utils.process import MultiProcessorEvaluator, cpu_count
-from mewpy.utils.constants import EAConstants, ModelConstants
-from mewpy.optimization.ea import AbstractEA, Solution
-from mewpy.optimization.inspyred.problem import InspyredProblem
-from mewpy.optimization.inspyred import operators as op
-from mewpy.optimization.inspyred import observers
 from random import Random
 from time import time
+
 import inspyred
+from .settings import get_population_size, KO, PARAMETERS, OU
+from .problem import InspyredProblem
+from .observers import results_observer, VisualizerObserver
+from .terminator import generation_termination
+from ..ea import AbstractEA, Solution
+from ...util.constants import EAConstants
+from ...util.process import get_evaluator
 
-
-
-SOEA={
-    'GA':inspyred.ec.EvolutionaryComputation,
-    'SA':inspyred.ec.SA
+SOEA = {
+    'GA': inspyred.ec.EvolutionaryComputation,
+    'SA': inspyred.ec.SA
 }
+
 
 class EA(AbstractEA):
     """
@@ -25,43 +26,34 @@ class EA(AbstractEA):
     """
 
     def __init__(self, problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS, mp=True,
-                 visualizer=False, algorithm=None):
+                 visualizer=False, algorithm=None, **kwargs):
 
         super(EA, self).__init__(problem, initial_population=initial_population,
-                                 max_generations=max_generations, mp=mp, visualizer=visualizer)
+                                 max_generations=max_generations, mp=mp, visualizer=visualizer, **kwargs)
 
         self.algorithm_name = algorithm
         self.ea_problem = InspyredProblem(self.problem)
         from mewpy.problems import Strategy
         if self.problem.strategy == Strategy.OU:
-            self.variators = [op.uniform_crossover_OU,
-                              op.grow_mutation_OU,
-                              op.shrink_mutation,
-                              op.single_mutation_OU
-                              ]
+            self.variators = OU['variators']
         elif self.problem.strategy == Strategy.KO:
-            self.variators = [op.uniform_crossover_KO,
-                              op.grow_mutation_KO,
-                              op.shrink_mutation,
-                              op.single_mutation_KO
-                              ]
+            self.variators = KO['variators']
         else:
             raise ValueError("Unknow strategy")
 
-        # needs to be defined elsewhere
-        self.args = {
-            'num_selected': 100,
-            'max_generations': self.max_generations,
-            # operators probabilities
-            'gs_mutation_rate': 0.1,
-            'mutation_rate': 0.1,
-            'crossover_rate': 0.9,
-            # candidate size
-            'candidate_min_size': self.problem.candidate_min_size,
-            'candidate_max_size': self.problem.candidate_max_size
-        }
-        if self.problem.number_of_objectives == 1:
-            self.args['tournament_size'] = 7
+        self.population_size = kwargs.get('population_size', get_population_size())
+
+        # parameters
+        self.args = PARAMETERS.copy()
+        self.args['max_generations'] = max_generations,
+        self.args['candidate_min_size'] = self.problem.candidate_min_size
+        self.args['candidate_max_size'] = self.problem.candidate_max_size
+        if self.problem.number_of_objectives != 1:
+            self.args.pop('tournament_size')
+        self.seeds = [self.problem.encode(s) for s in initial_population]
+
+    def get_population_size(self):
+        return self.population_size
 
     def _run_so(self):
         """ Runs a single objective EA optimization
@@ -70,20 +62,7 @@ class EA(AbstractEA):
         prng.seed(time())
 
         if self.mp:
-            nmp = cpu_count()
-            if ModelConstants.RESET_SOLVER:
-                mp_evaluator = MultiProcessorEvaluator(
-                    self.ea_problem.evaluate, nmp)
-            else:
-                try:
-                    from mewpy.utils.process import RayEvaluator
-                    mp_evaluator = RayEvaluator(self.ea_problem, nmp)
-                except ImportError:
-                    Warning(
-                        "Multiprocessing with persistente solver requires ray (pip install ray). Linux only")
-                    mp_evaluator = MultiProcessorEvaluator(
-                        self.ea_problem.evaluate, nmp)
-            self.evaluator = mp_evaluator.evaluate
+            self.evaluator = get_evaluator(self.ea_problem)
         else:
             self.evaluator = self.ea_problem.evaluator
 
@@ -96,14 +75,14 @@ class EA(AbstractEA):
         ea.selector = inspyred.ec.selectors.tournament_selection
 
         ea.variator = self.variators
-        ea.observer = observers.results_observer
+        ea.observer = results_observer
         ea.replacer = inspyred.ec.replacers.truncation_replacement
-        ea.terminator = inspyred.ec.terminators.generation_termination
+        ea.terminator = generation_termination
 
         final_pop = ea.evolve(generator=self.problem.generator,
                               evaluator=self.evaluator,
-                              pop_size=100,
-                              seeds=self.initial_population,
+                              pop_size=self.population_size,
+                              seeds=self.seeds,
                               maximize=self.problem.is_maximization,
                               bounder=self.problem.bounder,
                               **self.args
@@ -118,38 +97,25 @@ class EA(AbstractEA):
         prng.seed(time())
 
         if self.mp:
-            nmp = cpu_count()
-            if ModelConstants.RESET_SOLVER:
-                mp_evaluator = MultiProcessorEvaluator(
-                    self.ea_problem.evaluate, nmp)
-            else:
-                try:
-                    from mewpy.utils.process import RayEvaluator
-                    mp_evaluator = RayEvaluator(self.ea_problem, nmp)
-                except ImportError:
-                    Warning(
-                        "Multiprocessing with persistente solver requires ray (pip install ray).")
-                    mp_evaluator = MultiProcessorEvaluator(
-                        self.ea_problem.evaluate, nmp)
-            self.evaluator = mp_evaluator.evaluate
+            self.evaluator = get_evaluator(self.ea_problem)
         else:
             self.evaluator = self.ea_problem.evaluator
 
         ea = inspyred.ec.emo.NSGA2(prng)
         print("Running NSGAII")
         ea.variator = self.variators
-        ea.terminator = inspyred.ec.terminators.generation_termination
+        ea.terminator = generation_termination
         if self.visualizer:
             axis_labels = [f.short_str() for f in self.problem.fevaluation]
-            observer = observers.VisualizerObserver(axis_labels=axis_labels)
+            observer = VisualizerObserver(axis_labels=axis_labels)
             ea.observer = observer.update
         else:
-            ea.observer = observers.results_observer
+            ea.observer = results_observer
 
         final_pop = ea.evolve(generator=self.problem.generator,
                               evaluator=self.evaluator,
-                              pop_size=100,
-                              seeds=self.initial_population,
+                              pop_size=self.population_size,
+                              seeds=self.seeds,
                               maximize=self.problem.is_maximization,
                               bounder=self.problem.bounder,
                               **self.args
@@ -159,6 +125,13 @@ class EA(AbstractEA):
         return final_pop
 
     def _convertPopulation(self, population):
+        """Converts a population represented in Inpyred format to
+        MEWpy solution format.
+
+        :param list population: A list of solutions.
+
+        :returns: A MEWpy list of solutions.
+        """
         p = []
         for i in range(len(population)):
             if self.problem.number_of_objectives == 1:

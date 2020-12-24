@@ -1,7 +1,8 @@
-from mewpy.regulation import RFBAModel
+import os
 import time
 import warnings
-import os
+
+from mewpy.regulation import RFBAModel
 
 warnings.filterwarnings("ignore")
 
@@ -17,10 +18,10 @@ def sample_network(dynamic=True):
 
     import cobra.io
     from mewpy.simulation.cobra import Simulation
-   
-    DIR = os.path.dirname(os.path.realpath(__file__)) 
-    cbm_model_f = os.path.join(DIR,'../models/regulation/SampleNet.xml')
-    reg_model_f = os.path.join(DIR,'../models/regulation/SampleRegNet.csv')
+
+    DIR = os.path.dirname(os.path.realpath(__file__))
+    cbm_model_f = os.path.join(DIR, '../models/regulation/SampleNet.xml')
+    reg_model_f = os.path.join(DIR, '../models/regulation/SampleRegNet.csv')
 
     _BIOMASS_ID = 'r11'
 
@@ -121,8 +122,8 @@ def cobra_ecoli_core_model(dynamic=True):
     from mewpy.simulation.cobra import Simulation
 
     DIR = os.path.dirname(os.path.realpath(__file__))
-    reg_model_f = os.path.join(DIR,'../models/regulation/core_TRN_v2.csv')
-    aliases_f = os.path.join(DIR,'../models/regulation/core_TRN_rfba_aliases.csv')
+    reg_model_f = os.path.join(DIR, '../models/regulation/core_TRN_v2.csv')
+    aliases_f = os.path.join(DIR, '../models/regulation/core_TRN_rfba_aliases.csv')
 
     _BIOMASS_ID = 'Biomass_Ecoli_core'
     _O2 = 'EX_o2_e'
@@ -181,10 +182,11 @@ def framed_imc1010_model(dynamic=True):
     This model uses the E. coli metabolic model iJR904 available at https://www.ebi.ac.uk/biomodels/MODEL1507180060
     and published at https://doi.org/10.1186/gb-2003-4-9-r54
 
-    Some rules had to be adjusted though iJR904 had to be adjusted, as it didn't match SR_FBA original publication or had errors
+    Some rules had to be adjusted though iJR904 had to be adjusted, as it didn't match SR_FBA original publication
+    or had errors.
 
     The following reactions were added as in the original publication:
-    
+
         - h2so: 2 o2_c + h2s_c -> (0, 999999) so4_c + 2 h_c
         - h2st: h2s_e <-> (-999999, 999999) h2s_c
         - h2s_ext: h2s_e -> (0, 999999)
@@ -224,19 +226,20 @@ def framed_imc1010_model(dynamic=True):
         - iJR904 has an additional reaction to ptrcta, namely ORNTA
 
 
-    Target genes with empty rules were set as ON in version 6. Alternatively, the state of all target genes can be set to 1 using the initial state setter
+    Target genes with empty rules were set as ON in version 6. Alternatively, the state of all target genes can be set
+    to 1 using the initial state setter.
 
     :return: rfba model
-    
+
     """
 
     from reframed.io.sbml import load_cbmodel
     from mewpy.simulation.reframed import Simulation
 
-    DIR = os.path.dirname(os.path.realpath(__file__)) 
-    cbm_model_f = os.path.join(DIR,"../models/regulation/iJR904_srfba.xml")
-    reg_model_f = os.path.join(DIR,'../models/regulation/imc1010_v6.csv')
-    aliases_f = os.path.join(DIR,'../models/regulation/imc1010_rfba_aliases.csv')
+    DIR = os.path.dirname(os.path.realpath(__file__))
+    cbm_model_f = os.path.join(DIR, "../models/regulation/iJR904_srfba.xml")
+    reg_model_f = os.path.join(DIR, '../models/regulation/imc1010_v6.csv')
+    aliases_f = os.path.join(DIR, '../models/regulation/imc1010_rfba_aliases.csv')
     # env_cond_f = os.path.join(DIR,"../models/regulation/imc1010_env_cond.xlsx")
 
     _BIOMASS_ID = 'R_BiomassEcoli'
