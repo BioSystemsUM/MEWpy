@@ -10,7 +10,6 @@ from mewpy.simulation import SimulationMethod
 def test():
     """ An example on to use OptRAM optimization problems to find
     regulatory modification for the increased production of tryptophan.
-
     """
     dir_path = os.path.dirname(os.path.realpath(__file__))
     PATH = os.path.join(dir_path, '../../../examples/models/optram/')
@@ -27,7 +26,6 @@ def test():
 
     # adds the prefix 'G_' to genes. Only for REFRAMED models
     regnet = load_optram(gene_file, ft_file, matrix_file, gene_prefix='G_')
-
     # the general objective is to maximize the target
     from reframed.io.sbml import load_cbmodel
     model = load_cbmodel(model_file)

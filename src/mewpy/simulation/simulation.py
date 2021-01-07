@@ -137,6 +137,7 @@ class SimulationResult(object):
         # Constraints specific to the simulation
         self.simulation_constraints = simul_constraints if simul_constraints else OrderedDict()
 
+
     def get_constraints(self):
         """
         :returns: All constraints applied during the simulation both persistent and simulation specific.

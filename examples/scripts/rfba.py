@@ -182,7 +182,8 @@ def framed_imc1010_model(dynamic=True):
     This model uses the E. coli metabolic model iJR904 available at https://www.ebi.ac.uk/biomodels/MODEL1507180060
     and published at https://doi.org/10.1186/gb-2003-4-9-r54
 
-    Some rules had to be adjusted though iJR904 had to be adjusted, as it didn't match SR_FBA original publication or had errors
+    Some rules had to be adjusted though iJR904 had to be adjusted, as it didn't match SR_FBA original publication
+    or had errors.
 
     The following reactions were added as in the original publication:
 

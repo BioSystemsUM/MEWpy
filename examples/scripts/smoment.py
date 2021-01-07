@@ -75,7 +75,6 @@ def test2(compoud='R_EX_tyr__L_e', filename=None):
     DATA_FILE = os.path.join(PATH, "iJO1366_sMOMENT_2019_06_25.xml")
     from reframed.io.sbml import load_cbmodel
     model = load_cbmodel(DATA_FILE)
-
     sim = get_simulator(model)
     s = sim.simulate()
     print(s)
@@ -89,7 +88,7 @@ def test2(compoud='R_EX_tyr__L_e', filename=None):
     # implements a knockout over genes that encode enzymes
     BIOMASS_ID = 'R_BIOMASS_Ec_iJO1366_WT_53p95M'
     PRODUCT_ID = compoud
-    from mewpy.optimization.evaluation import BPCY, WYIELD, TargetFlux
+    from mewpy.optimization.evaluation import BPCY, WYIELD
     from mewpy.simulation import SimulationMethod
     evaluator_1 = BPCY(BIOMASS_ID, PRODUCT_ID, method=SimulationMethod.lMOMA)
     evaluator_2 = WYIELD(BIOMASS_ID, PRODUCT_ID)

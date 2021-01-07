@@ -40,7 +40,7 @@ from mewpy.problems import GKOProblem
 problem = GKOProblem(model,candidate_max_size=6)
 ```
 
-Likewise the minimum number of modifications may be explecitly defined:
+Likewise the minimum number of modifications may be explicitly defined:
 
 ```python
 from mewpy.problems import GKOProblem

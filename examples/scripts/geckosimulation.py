@@ -5,15 +5,12 @@ GECKO over REFRAMED
 
 ##################################################################
 """
-import os
-import statistics
-from collections import OrderedDict
-
-import pandas as pd
-
 from mewpy.model.gecko import GeckoModel, ModelList
-from mewpy.simulation import SimulationMethod
 from mewpy.simulation.reframed import GeckoSimulation
+from mewpy.simulation import SimulationMethod
+from collections import OrderedDict
+import pandas as pd
+import os
 
 
 def simulation_one():
@@ -22,7 +19,6 @@ def simulation_one():
     """
     model = GeckoModel('single-pool')
     simulation = GeckoSimulation(model)
-
     result = simulation.simulate(method=SimulationMethod.pFBA)
     wt_fluxes = result.fluxes
 
@@ -32,11 +28,11 @@ def simulation_one():
         for protein_id in rev_pairs.keys():
             constraints = OrderedDict()
             rxn = 'draw_prot_{}'.format(protein_id)
-            constraints[rxn] = (0, 0.5 * wt_fluxes[rxn])
+            constraints[rxn] = (0, 0.5*wt_fluxes[rxn])
             result = simulation.simulate(constraints=constraints, method=SimulationMethod.pFBA)
             ssfluxes = result.fluxes
             if ssfluxes:
-                f.write(protein_id + ";;;;;;\n")
+                f.write(protein_id+";;;;;;\n")
                 for r_id, r_rev_id in rev_pairs[protein_id]:
                     f.write("{}; {}; ; {}; {}; ;{}; {}\n".format(r_id, r_rev_id, wt_fluxes[r_id], wt_fluxes[r_rev_id],
                                                                  ssfluxes[r_id], ssfluxes[r_rev_id]))
@@ -52,21 +48,20 @@ def simulation_two():
     with open('target-prot-single-pool.txt', 'w') as f:
         for p in model.proteins:
             if p not in essential_prot:
-                f.write(p + "\n")
+                f.write(p+"\n")
 
 
 def simulation_three():
     constraints = {'draw_prot_Q04396': (2.3029771980628338e-07, 1000), 'draw_prot_P27515': (0, 0.0),
                    'draw_prot_P53687': (0.0, 1000), 'draw_prot_P81450': 0,
-                   'draw_prot_P41939': (3.944331158229099e-06, 1000), 'r_0659_REVNo1': 0, 'draw_prot_P19657': (0, 0.0),
+                   'draw_prot_P41939': (3.944331158229099e-06, 1000),	'r_0659_REVNo1': 0, 'draw_prot_P19657': (0, 0.0),
                    'draw_prot_P37254': (0.0, 1000),
                    'draw_prot_P33317': (0, 0.0), 'draw_prot_P54114': (0, 0.0), 'draw_prot_P25373': (0.0, 1000),
                    'draw_prot_P08067': (0, 2.1621430284827036e-06),
-                   'draw_prot_P39002': (0.0, 1000), 'draw_prot_Q04792': (0.0, 1000), 'draw_prot_Q12320': (0.0, 1000),
-                   'draw_prot_P07347': (0.0, 1000), 'draw_prot_P00958': (0, 3.4862363761891556e-06),
+                   'draw_prot_P39002': (0.0, 1000), 'draw_prot_Q04792': (0.0, 1000),	'draw_prot_Q12320':	(0.0, 1000),	'draw_prot_P07347': (0.0, 1000), 'draw_prot_P00958': (0, 3.4862363761891556e-06),
                    'draw_prot_P15179': (0, 0.0), 'draw_prot_P53332': (0.0, 1000), 'draw_prot_P23202': (0.0, 1000),
-                   'draw_prot_P21672': (0, 0.0), 'draw_prot_P32191': (0, 0.0),
-                   'draw_prot_P38071': 0, 'draw_prot_P06169': (0.00019588347980199452, 1000), 'draw_prot_P22803': 0,
+                   'draw_prot_P21672':	(0, 0.0), 'draw_prot_P32191': (0, 0.0),
+                   'draw_prot_P38071': 0, 'draw_prot_P06169':	(0.00019588347980199452, 1000), 'draw_prot_P22803': 0,
                    'draw_prot_P38986': (0.0, 1000),
                    'draw_prot_P32621': (0.0, 1000), 'draw_prot_P27472': (1.7311263946838522e-07, 1000),
                    'draw_prot_P00549': (0, 1.624598159388334e-05),
@@ -129,6 +124,7 @@ def test_gecko_adjustment_sanchez_etal():
 
 
 def simulation_four():
+
     constraints = {'draw_prot_P17505': 0,
                    'draw_prot_P54885': 0,
                    'draw_prot_P50107': 0,
@@ -214,14 +210,20 @@ def gecko_ec():
     # print(c2)
     sim = get_simulator(model)
 
-    # c2 = {'R_draw_prot_P0AFV4': 0.0, 'R_draw_prot_P67910': (0.0, 0.0), 'R_draw_prot_P02924': (0.0, 0.0), 'R_draw_prot_P07639': (1.1271272290940493e-07, 10000), 'R_draw_prot_P39172': 0.0, 'R_draw_prot_P0AER3': (0.0, 10000), 'R_draw_prot_P0A991': (0.0, 10000), 'R_draw_prot_P0ACD8': (0.0, 0.0), 'R_draw_prot_P00805': (0.0, 10000), 'R_draw_prot_P28635': (0.0, 0.0), 'R_draw_prot_P33593': (0.0, 0.0), 'R_draw_prot_P0A9H5': (0.0, 10000), 'R_draw_prot_P0A6L4': (0.0, 10000), 'R_draw_prot_P60560': (0.0, 10000), 'R_draw_prot_P37001': 0.0, 'R_draw_prot_P37355': (0.0, 0.0), 'R_draw_prot_P0AEE5': (0.0, 0.0), 'R_draw_prot_P0ABA0': (0.0, 0.0), 'R_draw_prot_P0ABK5': (0.0, 10000)}
+    # c2 = {'R_draw_prot_P0AFV4': 0.0, 'R_draw_prot_P67910': (0.0, 0.0), 'R_draw_prot_P02924': (0.0, 0.0),
+    #       'R_draw_prot_P07639': (1.1271272290940493e-07, 10000), 'R_draw_prot_P39172': 0.0,
+    #       'R_draw_prot_P0AER3': (0.0, 10000), 'R_draw_prot_P0A991': (0.0, 10000), 'R_draw_prot_P0ACD8': (0.0, 0.0),
+    #       'R_draw_prot_P00805': (0.0, 10000), 'R_draw_prot_P28635': (0.0, 0.0), 'R_draw_prot_P33593': (0.0, 0.0),
+    #       'R_draw_prot_P0A9H5': (0.0, 10000), 'R_draw_prot_P0A6L4': (0.0, 10000), 'R_draw_prot_P60560': (0.0, 10000),
+    #       'R_draw_prot_P37001': 0.0, 'R_draw_prot_P37355': (0.0, 0.0), 'R_draw_prot_P0AEE5': (0.0, 0.0),
+    #       'R_draw_prot_P0ABA0': (0.0, 0.0), 'R_draw_prot_P0ABK5': (0.0, 10000)}
     c2 = {'R_draw_prot_P69922': (0.0, 10000), 'R_draw_prot_P32176': (0.0, 0.0), 'R_draw_prot_P11349': (0.0, 10000),
           'R_draw_prot_P37646': 0.0, 'R_draw_prot_P76577': (0.0, 0.0), 'R_draw_prot_P77788': (0.0, 0.0),
-          'R_draw_prot_P0AG20': (0.0, 10000), 'R_draw_prot_P63224': 0.0,
-          'R_draw_prot_P62623': (0.0, 3.28753677758505e-07), 'R_draw_prot_P10907': (0.0, 0.0),
-          'R_draw_prot_P0AER5': (0.0, 0.0), 'R_draw_prot_P27254': (0.0, 10000),
-          'R_draw_prot_P0A6E1': (4.0254906190734055e-05, 10000), 'R_draw_prot_P0A924': 0.0,
-          'R_draw_prot_P32055': (0.0, 10000), 'R_draw_prot_P21179': 0.0, 'R_draw_prot_P10378': 0.0}
+          'R_draw_prot_P0AG20': (0.0, 10000), 'R_draw_prot_P63224': 0.0, 'R_draw_prot_P62623': (
+          0.0, 3.28753677758505e-07), 'R_draw_prot_P10907': (0.0, 0.0), 'R_draw_prot_P0AER5': (0.0, 0.0),
+          'R_draw_prot_P27254': (0.0, 10000), 'R_draw_prot_P0A6E1': (4.0254906190734055e-05, 10000),
+          'R_draw_prot_P0A924': 0.0, 'R_draw_prot_P32055': (0.0, 10000), 'R_draw_prot_P21179': 0.0,
+          'R_draw_prot_P10378': 0.0}
 
     print("\nFBA")
     res = sim.simulate(method=SimulationMethod.FBA, constraints=c2)

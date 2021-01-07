@@ -18,7 +18,8 @@ def test_1():
     Example on how to evaluate Boolean expressions containing conditions
     """
     # boolean example with conditions
-    expression = "( (Lrp AND NOT (leu_L_e_>0)) OR NOT(((GlnG AND GlnB AND GlnD) AND RpoN) AND ((glu_L_e_>0) OR (arg_L_e_>0) OR (asp_L_e_>0) OR (his_L_e_>0) OR (pro_L_e_>0) )))"
+    expression = "( (Lrp AND NOT (leu_L_e_>0)) OR NOT(((GlnG AND GlnB AND GlnD) AND RpoN) AND ((glu_L_e_>0) OR \
+                       (arg_L_e_>0) OR (asp_L_e_>0) OR (his_L_e_>0) OR (pro_L_e_>0) )))"
     # expression = " (x > 0 or C or B) and not ph == 5 "
     t = build_tree(expression, Boolean)
 
@@ -59,12 +60,12 @@ def test_2():
     res = t.evaluate(evaluator.f_operand, evaluator.f_operator)
     print(evaluator.true_list, " ==> ", res)
     for _ in range(20):
-        l = []
+        g = []
         n = random.randint(1, len(genes))
         for _ in range(n):
             i = random.randint(0, len(genes) - 1)
-            l.append(genes[i])
-        evaluator.set_true_list(l)
+            g.append(genes[i])
+        evaluator.set_true_list(g)
         res = t.evaluate(evaluator.f_operand, evaluator.f_operator)
         print(evaluator.true_list, " ==> ", res)
 

@@ -135,11 +135,11 @@ def cb_ou(product, chassis='ec', display=False, filename=None):
 
     Args:
         product (str): the ID of the compound reaction exchange to be optimized
-        chassis (str, optional): The chassis, 'ec'(E.coli iJO1366Sl) , 'ec2' (E.coli iML1515) or 'ys' (yeast). Defaults to 'ec'.
+        chassis (str, optional): The chassis, 'ec'(E.coli iJO1366Sl) , 'ec2' (E.coli iML1515) or 'ys' (yeast).
+                                 Defaults to 'ec'.
         display (bool, optional): [description]. Defaults to False.
         filename ([type], optional): [description]. Defaults to None.
     """
-
     if chassis == 'ec2':
         conf = load_ec2()
     elif chassis == 'ys':
@@ -183,7 +183,8 @@ def cb_ko(product, chassis='ec', display=False, filename=None):
 
     Args:
         product (str): the ID of the compound reaction exchange to be optimized
-        chassis (str, optional): The chassis, 'ec'(E.coli iJO1366Sl) , 'ec2' (E.coli iML1515) or 'ys' (yeast). Defaults to 'ec'.
+        chassis (str, optional): The chassis, 'ec'(E.coli iJO1366Sl) , 'ec2' (E.coli iML1515) or 'ys' (yeast).
+                                 Defaults to 'ec'.
         display (bool, optional): [description]. Defaults to False.
         filename ([type], optional): [description]. Defaults to None.
     """
@@ -222,8 +223,6 @@ def cb_ko(product, chassis='ec', display=False, filename=None):
 
 if __name__ == '__main__':
 
-    from reframed.solvers import set_default_solver
-
     RUNS = 10
     compounds_EC = {"TYR": "R_EX_tyr_DASH_L_LPAREN_e_RPAREN_",
                     "PHE": "R_EX_phe_DASH_L_LPAREN_e_RPAREN_",
@@ -238,17 +237,14 @@ if __name__ == '__main__':
         for i in range(RUNS):
             millis = int(round(time() * 1000))
             cb_ko(v, filename="CBMODEL_{}_KO_{}.csv".format(k, millis))
-
     for k, v in compounds_EC.items():
         for i in range(RUNS):
             millis = int(round(time() * 1000))
             cb_ou(v, filename="CBMODEL_{}_OU_{}.csv".format(k, millis))
-
     for k, v in compounds_YS.items():
         for i in range(RUNS):
             millis = int(round(time() * 1000))
             cb_ko(v, chassis='ys', filename="CBMODEL_{}_KO_{}.csv".format(k, millis))
-
     for k, v in compounds_EC.items():
         for i in range(RUNS):
             millis = int(round(time() * 1000))
