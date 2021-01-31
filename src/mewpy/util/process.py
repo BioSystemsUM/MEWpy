@@ -202,10 +202,14 @@ else:
             Divides the candidates into sublists to be evaluated by each actor
             """
             size = len(candidates) // self.number_of_actors
-            if len(candidates) % self.number_of_actors != 0:
-                size += 1
-            sub_lists = [candidates[i:i + size]
-                         for i in range(0, len(candidates), size)]
+            n = len(candidates) % self.number_of_actors
+            sub_lists = []
+            p = 0
+            for _ in range(self.number_of_actors):
+                d = size + 1 if n > 0 else size
+                sub_lists.append(candidates[p:p + d])
+                p = p + d
+                n -= 1
             values = []
             for i in range(self.number_of_actors):
                 actor = self.actors[i]
@@ -213,8 +217,7 @@ else:
             r = ray.get(values)
             result = []
             for x in r:
-                for y in x:
-                    result.append(y)
+                result += x
             return result
 
         def __call__(self, candidates, args):

@@ -45,6 +45,7 @@ class EA(AbstractEA):
 
         # parameters
         self.args = PARAMETERS.copy()
+        self.args['num_selected'] = self.population_size
         self.args['max_generations'] = max_generations,
         self.args['candidate_min_size'] = self.problem.candidate_min_size
         self.args['candidate_max_size'] = self.problem.candidate_max_size
