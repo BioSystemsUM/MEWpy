@@ -516,7 +516,8 @@ class Simulation(CobraModelContainer, Simulator):
                                   status=status, envcond=self.environmental_conditions,
                                   model_constraints=self.constraints,
                                   simul_constraints=constraints,
-                                  maximize=maximize)
+                                  maximize=maximize,
+                                  method=method)
         return result
 
     def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None,

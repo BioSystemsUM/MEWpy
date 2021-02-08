@@ -162,23 +162,33 @@ class JMetalKOProblem(Problem[KOSolution], Evaluable):
         self.__next_ini_sol = 0
 
     def create_solution(self) -> KOSolution:
-        if self.__next_ini_sol < len(self.initial_polulation):
-            solution = self.problem.encode(self.initial_polulation[self.__next_ini_sol])
-            self.__next_ini_sol += 1
-        else:
+        solution = None
+        flag = False
+        while self.__next_ini_sol < len(self.initial_polulation) and not flag:
+            s = self.initial_polulation[self.__next_ini_sol]
+            try:
+                solution = self.problem.encode(s)
+                flag = True
+                self.__next_ini_sol += 1
+            except ValueError as e:
+                print("Skipping seed:", s, " ", e)
+                self.__next_ini_sol += 1
+        if not solution:
             solution = self.problem.generator(random, None)
         new_solution = KOSolution(
             self.problem.bounder.lower_bound,
             self.problem.bounder.upper_bound,
             len(solution),
             self.problem.number_of_objectives)
-        new_solution.variables = list(solution)
+        new_solution.variables = list(solution)[:]
         return new_solution
 
     def reset_initial_population_counter(self):
         """ Resets the pointer to the next initial population element.
         This strategy is used to overcome the unavailable seeding API in jMetal.
         """
+        import random
+        random.shuffle(self.initial_polulation)
         self.__next_ini_sol = 0
 
     def get_constraints(self, solution):
@@ -225,20 +235,30 @@ class JMetalOUProblem(Problem[OUSolution], Evaluable):
         self.__next_ini_sol = 0
 
     def create_solution(self) -> OUSolution:
-        if self.__next_ini_sol < len(self.initial_polulation):
-            solution = self.problem.encode(self.initial_polulation[self.__next_ini_sol])
-            self.__next_ini_sol += 1
-        else:
+        solution = None
+        flag = False
+        while self.__next_ini_sol < len(self.initial_polulation) and not flag:
+            s = self.initial_polulation[self.__next_ini_sol]
+            try:
+                solution = self.problem.encode(s)
+                flag = True
+                self.__next_ini_sol += 1
+            except ValueError as e:
+                print("Skipping seed:", s, " ", e)
+                self.__next_ini_sol += 1
+        if not solution:
             solution = self.problem.generator(random, None)
         new_solution = OUSolution(
             self.problem.bounder.lower_bound,
             self.problem.bounder.upper_bound,
             len(solution),
             self.problem.number_of_objectives)
-        new_solution.variables = list(solution)
+        new_solution.variables = list(solution)[:]
         return new_solution
 
     def reset_initial_population_counter(self):
+        import random
+        random.shuffle(self.initial_polulation)
         self.__next_ini_sol = 0
 
     def get_constraints(self, solution):

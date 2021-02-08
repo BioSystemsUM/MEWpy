@@ -113,7 +113,7 @@ class SimulationResult(object):
     """Class that represents simulation results and performs operations over them."""
 
     def __init__(self, model, objective_value, fluxes=None, status=None, envcond=None, model_constraints=None,
-                 simul_constraints=None, maximize=True):
+                 simul_constraints=None, maximize=True, method=None):
         """
         :param model: A model instance.
         :param objective_value: The phenotype simulation objective value.
@@ -136,6 +136,7 @@ class SimulationResult(object):
         self.model_constraints = model_constraints if model_constraints else OrderedDict()
         # Constraints specific to the simulation
         self.simulation_constraints = simul_constraints if simul_constraints else OrderedDict()
+        self.method = method
 
     def get_constraints(self):
         """
@@ -148,10 +149,10 @@ class SimulationResult(object):
         return constraints
 
     def __repr__(self):
-        return "objective: {}\nStatus: {}".format(self.objective_value, self.status)
+        return f"objective: {self.objective_value}\nStatus: {self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}"
 
     def __str__(self):
-        return "objective: {}\nStatus: {}".format(self.objective_value, self.status)
+        return f"objective: {self.objective_value}\nStatus: {self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}"
 
     @property
     def data_frame(self):
