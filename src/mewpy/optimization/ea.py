@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+import signal
+import sys
 from ..util.constants import EAConstants
 
 
@@ -85,6 +87,12 @@ class Solution(SolutionInterface):
     def __hash__(self):
         return hash(str(self.values))
 
+    def toDict(self):
+        d = {'values': self.values,
+             'fitness': self.fitness,
+             'constraints': self.constraints}
+        return d
+
 
 class AbstractEA(ABC):
 
@@ -102,6 +110,8 @@ class AbstractEA(ABC):
         """ Runs the optimization for the defined problem.
         The number of objectives is defined to be the number of evaluation functions in fevalution.
         """
+        # Register signal handler for linux
+        signal.signal(signal.SIGINT, self.__signalHandler)
 
         if self.problem.fevaluation is None or len(self.problem.fevaluation) == 0:
             raise ValueError("At leat one objective should be provided.")
@@ -117,6 +127,22 @@ class AbstractEA(ABC):
         self.final_population = self._convertPopulation(final_pop)
         return self.final_population
 
+    def __signalHandler(self, signum, frame):
+        print("Dumping current population.")
+        try:
+            pop = self._get_current_population()
+            data = [s.toDict() for s in pop]
+            import json
+            from datetime import datetime
+            now = datetime.now()
+            dt_string = now.strftime("%d%m%Y-%H%M%S")
+            with open(f'mewpy-dump-{dt_string}.json', 'w') as outfile:
+                json.dump(data, outfile)
+        except Exception:
+            print("Unable to dump population.")
+        print("Exiting")
+        sys.exit(0)
+
     @abstractmethod
     def _convertPopulation(self, population):
         raise NotImplementedError
@@ -127,6 +153,10 @@ class AbstractEA(ABC):
 
     @abstractmethod
     def _run_mo(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def _get_current_population(self):
         raise NotImplementedError
 
 

@@ -79,7 +79,7 @@ class EA(AbstractEA):
         ea.observer = results_observer
         ea.replacer = inspyred.ec.replacers.truncation_replacement
         ea.terminator = generation_termination
-
+        self.algorithm = ea
         final_pop = ea.evolve(generator=self.problem.generator,
                               evaluator=self.evaluator,
                               pop_size=self.population_size,
@@ -112,7 +112,7 @@ class EA(AbstractEA):
             ea.observer = observer.update
         else:
             ea.observer = results_observer
-
+        self.algorithm = ea
         final_pop = ea.evolve(generator=self.problem.generator,
                               evaluator=self.evaluator,
                               pop_size=self.population_size,
@@ -138,10 +138,16 @@ class EA(AbstractEA):
             if self.problem.number_of_objectives == 1:
                 obj = [population[i].fitness]
             else:
-                obj = population[i].fitness
+                obj = population[i].fitness.values
             val = population[i].candidate
             values = self.problem.decode(val)
             const = self.problem.solution_to_constraints(values)
             solution = Solution(values, obj, const)
             p.append(solution)
         return p
+
+    def _get_current_population(self):
+        """Dumps the population for gracefull exit."""
+        pop = self.algorithm.population
+        cv = self._convertPopulation(pop)
+        return cv
