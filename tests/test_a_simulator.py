@@ -81,6 +81,11 @@ class TestReframedSimul(unittest.TestCase):
         from mewpy.visualization.envelope import plot_flux_envelope
         plot_flux_envelope(self.simul, self.BIOMASS_ID, self.SUCC)
 
+    def test_solver(self):
+        from mewpy.solvers import solver_instance
+        solver = solver_instance(self.simul)
+        solver.solve()
+
 
 class TestCobra(TestReframedSimul):
     """Tests COBRApy Simulator

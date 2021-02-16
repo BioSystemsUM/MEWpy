@@ -114,6 +114,7 @@ class Simulation(CobraModelContainer, Simulator):
         self.solver = solver
         self._reset_solver = reset_solver
         self.reverse_sintax = []
+        self._m_r_lookup = None
 
     @property
     def objective(self):
@@ -341,6 +342,19 @@ class Simulation(CobraModelContainer, Simulator):
         '''
         return self.model.metabolites.get_by_id(metabolite) in self.model.reactions.get_by_id(reaction).products
 
+    def metabolite_reaction_lookup(self, force_recalculate=False):
+        """ Return the network topology as a nested map from metabolite to reaction to coefficient.
+        :return: a dictionary lookup table
+        """
+
+        if not self._m_r_lookup or force_recalculate:
+            self._m_r_lookup = OrderedDict([(m_id, OrderedDict()) for m_id in self.metabolites])
+            for i, reaction in enumerate(self.model.reactions):
+                for m, coeff in reaction.metabolites.items():
+                    self._m_r_lookup[m.id][reaction.id] = coeff
+
+        return self._m_r_lookup
+
     def get_metabolite_reactions(self, metabolite):
 
         return [reaction.id for reaction in self.model.metabolites.get_by_id(metabolite).reactions]
@@ -449,7 +463,7 @@ class Simulation(CobraModelContainer, Simulator):
 
     # The simulator
     def simulate(self, objective=None, method=SimulationMethod.FBA, maximize=True,
-                 constraints=None, reference=None, scalefactor=None):
+                 constraints=None, reference=None, scalefactor=None, solver=None):
         '''
         Simulates a phenotype when applying a set constraints using the specified method.
 

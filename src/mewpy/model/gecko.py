@@ -257,11 +257,11 @@ class GeckoModel(CBModel):
         self.fm_mass_fraction_matched = self.p_measured / self.p_total
         # 4. mass fraction of unmeasured proteins in the model over all proteins not matched to model
         self.fn_mass_fraction_unmeasured_matched = (
-                self.protein_properties.loc[list(self.unmeasured_proteins)].prod(axis=1).sum() /
-                self.protein_properties.prod(axis=1).sum()
+            self.protein_properties.loc[list(self.unmeasured_proteins)].prod(axis=1).sum() /
+            self.protein_properties.prod(axis=1).sum()
         )
         self.f_mass_fraction_measured_matched_to_total = (
-                self.fn_mass_fraction_unmeasured_matched / (1 - self.fm_mass_fraction_matched))
+            self.fn_mass_fraction_unmeasured_matched / (1 - self.fm_mass_fraction_matched))
         # 5. constrain unmeasured proteins by common pool
         self.constrain_pool()
         self.adjust_biomass_composition()
@@ -361,12 +361,13 @@ class GeckoModel(CBModel):
         from reframed.solvers import solver_instance
         solver = solver_instance(self)
         solver.add_constraint(
-            'constraint_objective', self.get_objective, sense='>', rhs=min_objective)
+            'constraint_objective', self.get_objective, sense='>', rhs=min_objective, update=False)
         for pool in self.individual_protein_exchanges:
-            solver.add_variable('pool_diff_' + pool.id, lb=0)
+            solver.add_variable('pool_diff_' + pool.id, lb=0, update=False)
             solver.add_variable('measured_bound_' + pool.id,
-                                lb=pool.upper_bound, ub=pool.upper_bound)
-
+                                lb=pool.upper_bound, ub=pool.upper_bound, update=False)
+        solver.update()
+        solution = solver.solve()
         # with self.model as model:
         #    problem = model.problem
         #    constraint_objective = problem.Constraint(model.objective.expression, name='constraint_objective',

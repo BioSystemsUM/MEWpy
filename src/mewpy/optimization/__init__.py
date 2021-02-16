@@ -1,4 +1,3 @@
-from .ea import Solution
 from ..util.constants import EAConstants
 
 engines = dict()

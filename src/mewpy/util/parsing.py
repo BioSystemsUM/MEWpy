@@ -152,7 +152,7 @@ class Node(object):
         :returns: True if the node is a unary operation False otherwise.
         """
         return (self.left.is_empty_leaf() and not self.right.is_empty_leaf()) or (
-                not self.left.is_empty_leaf() and self.right.is_empty_leaf())
+            not self.left.is_empty_leaf() and self.right.is_empty_leaf())
 
     def is_binary(self):
         """
@@ -366,7 +366,7 @@ class GeneEvaluator:
     :param or_operator: function to be applied instead of ('or','|') (not case sensitive)
     """
 
-    def __init__(self, genes_value, and_operator, or_operator, prefix=""):
+    def __init__(self, genes_value, and_operator=min, or_operator=max, prefix=""):
 
         self.genes_value = genes_value
         self.and_operator = and_operator

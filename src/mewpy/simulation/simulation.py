@@ -108,6 +108,14 @@ class Simulator(ModelContainer):
         res = mp_evaluator.evaluate(constraints_list, None)
         return res
 
+    @abstractclassmethod
+    def get_reaction_bounds(self, r_id):
+        raise NotImplementedError
+
+    @abstractclassmethod
+    def metabolite_reaction_lookup(self, force_recalculate=False):
+        raise NotImplementedError
+
 
 class SimulationResult(object):
     """Class that represents simulation results and performs operations over them."""
