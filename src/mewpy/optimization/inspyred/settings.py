@@ -25,9 +25,7 @@ KO = {
                   single_mutation_KO]
 }
 
-PARAMETERS = {'num_selected': get_population_size(),
-              # operators probabilities
-              'gs_mutation_rate': 0.1,
+PARAMETERS = {'gs_mutation_rate': 0.1,
               'mutation_rate': 0.1,
               'crossover_rate': 0.9,
               'tournament_size': 7,

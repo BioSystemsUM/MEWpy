@@ -101,6 +101,7 @@ class EA(AbstractEA):
             )
 
         algorithm.observable.register(observer=PrintObjectivesStatObserver())
+        self.algorithm = algorithm
         algorithm.run()
 
         result = algorithm.solutions
@@ -141,7 +142,7 @@ class EA(AbstractEA):
         if self.visualizer:
             algorithm.observable.register(observer=VisualizerObserver())
         algorithm.observable.register(observer=PrintObjectivesStatObserver())
-
+        self.algorithm = algorithm
         algorithm.run()
         result = algorithm.solutions
         return result
@@ -168,3 +169,9 @@ class EA(AbstractEA):
             solution = Solution(values, obj, const)
             p.append(solution)
         return p
+
+    def _get_current_population(self):
+        """Dumps the population for gracefull exit."""
+        pop = self.algorithm.solutions
+        cv = self._convertPopulation(pop)
+        return cv

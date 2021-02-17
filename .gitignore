@@ -13,3 +13,4 @@ examples/models/gecko/eciML1515_batch.xml
 .pytest_cache
 htmlcov
 run_tox.sh
+tests/reports/

@@ -37,7 +37,7 @@ class TestOptInspyred(unittest.TestCase):
         from mewpy.problems import RKOProblem
         problem = RKOProblem(self.model, [f1, f2], max_candidate_size=6)
         from mewpy.optimization import EA
-        ea = EA(problem, max_generations=1)
+        ea = EA(problem, max_generations=2)
         ea.run()
         self.assertEqual(ea.get_population_size(), 10)
 
