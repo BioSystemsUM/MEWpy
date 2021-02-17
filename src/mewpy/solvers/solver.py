@@ -189,7 +189,7 @@ class Solver(object):
             pool_gap (float): maximum relative gap for solutions in pool (optional)
 
         Returns:
-            framed.solvers.solution.Solution: solution
+            Solution: solution
         """
 
         # An exception is raised if the subclass does not implement this method.
