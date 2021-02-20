@@ -175,9 +175,19 @@ def dominance_test(solution1, solution2, maximize=True):
     best_is_one = 0
     best_is_two = 0
 
-    for i in range(len(solution1.fitness)):
-        value1 = solution1.fitness[i]
-        value2 = solution2.fitness[i]
+    if isinstance(solution1, list):
+        s1 = solution1
+    else:
+        s1 = solution1.fitness
+
+    if isinstance(solution2, list):
+        s2 = solution2
+    else:
+        s2 = solution2.fitness
+
+    for i in range(len(s1)):
+        value1 = s1[i]
+        value2 = s2[i]
         if value1 != value2:
             if value1 < value2:
                 best_is_one = 1

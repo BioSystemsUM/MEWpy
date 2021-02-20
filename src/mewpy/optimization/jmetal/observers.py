@@ -3,67 +3,59 @@ import logging
 from typing import List, TypeVar
 
 import numpy
-from jmetal.core.observer import Observer
-from jmetal.lab.visualization import StreamingPlot
-
-from ..ea import non_dominated_population
+from mewpy.visualization.plot import StreamingPlot
+from ..ea import non_dominated_population, Solution
 
 S = TypeVar('S')
 LOGGER = logging.getLogger('mewpy')
 
 
-class VisualizerObserver(Observer):
+class VisualizerObserver():
 
     def __init__(self,
                  reference_front: List[S] = None,
                  reference_point: list = None,
                  display_frequency: float = 1.0,
-                 non_dominated=True) -> None:
+                 non_dominated=False, axis_labels=None) -> None:
         self.figure = None
         self.display_frequency = display_frequency
         self.reference_point = reference_point
         self.reference_front = reference_front
         self.non_dominated = non_dominated
+        self.axis_labels = axis_labels
 
     def update(self, *args, **kwargs):
         evaluations = kwargs['EVALUATIONS']
         solutions = kwargs['SOLUTIONS']
+        obj_directions = kwargs['PROBLEM'].obj_directions
 
         if solutions:
+            population = [Solution(s.variables, s.objectives) for s in solutions]
+
+            # check if reference point has changed
+            # reference_point = kwargs.get('REFERENCE_POINT', None)
+            # negative fitness values are converted to positive
+            for i in range(len(population)):
+                obj = population[i].fitness
+                population[i].fitness = [(-1*obj[k]*obj_directions[k]) for k in range(len(obj))]
+
+            nds = non_dominated_population(population)
+            ds = None
+
+            if not self.non_dominated:
+                ds = list(set(population)-set(nds))
+
             if self.figure is None:
+                self.figure = StreamingPlot(axis_labels=self.axis_labels)
+                self.figure.plot(nds, dominated=ds)
+            else:
+                self.figure.update(nds, dominated=ds)
 
-                axis_labels = None
-                problem = kwargs['PROBLEM']
-                if problem and problem.obj_labels:
-                    axis_labels = problem.obj_labels
-
-                self.figure = StreamingPlot(reference_point=self.reference_point,
-                                            reference_front=self.reference_front,
-                                            axis_labels=axis_labels)
-                self.figure.plot(solutions)
-
-            if (evaluations % self.display_frequency) == 0:
-                # check if reference point has changed
-                reference_point = kwargs.get('REFERENCE_POINT', None)
-                # negative fitness values are converted to positive
-                population = copy.copy(solutions)
-                if self.non_dominated:
-                    population = non_dominated_population(population)
-                for i in range(len(population)):
-                    obj = [abs(x) for x in population[i].objectives]
-                    population[i].objectives = obj
-
-                if reference_point:
-                    self.reference_point = reference_point
-                    self.figure.update(population, reference_point)
-                else:
-                    self.figure.update(population)
-
-                self.figure.ax.set_title(
-                    'Eval: {}'.format(evaluations), fontsize=13)
+            self.figure.ax.set_title(
+                'Eval: {}'.format(evaluations), fontsize=13)
 
 
-class PrintObjectivesStatObserver(Observer):
+class PrintObjectivesStatObserver():
 
     def __init__(self, frequency: float = 1.0) -> None:
         """ Show the number of evaluations, best fitness and computing time.

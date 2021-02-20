@@ -31,10 +31,8 @@ class Plot:
         :param solutions: List of solutions where each solution is a list of fitness values
         :return: Pandas dataframe with one column for each objective and one row for each solution.
         """
-        if solutions is None:
-            raise Exception('Front is none!')
-
-        points = pd.DataFrame(solutions)
+        p = [s.fitness for s in solutions]
+        points = pd.DataFrame(p)
         return points, points.shape[1]
 
     def plot(self, front, label='', normalize=False, filename=None, format='eps'):
@@ -206,9 +204,10 @@ class StreamingPlot:
 
         self.fig, self.ax = plt.subplots()
         self.sc = None
+        self.scf = None
         self.axis = None
 
-    def plot(self, front):
+    def plot(self, front, dominated=None):
         # Get data
         points, dimension = Plot.get_points(front)
 
@@ -220,24 +219,30 @@ class StreamingPlot:
             for point in self.reference_point:
                 self.scp, = self.ax.plot(*[[p] for p in point], c='r', ls='None', marker='*', markersize=3)
 
-        # If any reference front, plot
-        if self.reference_front:
-            rpoints, _ = Plot.get_points(self.reference_front)
-            self.scf, = self.ax.plot(*[rpoints[column].tolist() for column in rpoints.columns.values],
-                                     c='k', ls='None', marker='*', markersize=1)
-
         # Plot data
         self.sc, = self.ax.plot(*[points[column].tolist() for column in points.columns.values],
                                 ls='None', marker='o', markersize=4)
 
+        # dominated points
+        # if dominated:
+        #    rpoints, _ = Plot.get_points(dominated)
+        #    self.scf, = self.ax.plot(*[[p] for p in rpoints],
+        #                             c='g', ls='None', marker='o', markersize=1)
+
         # Show plot
         plt.show(block=False)
 
-    def update(self, front, reference_point=None):
+    def update(self, front, dominated=None, reference_point=None):
         if self.sc is None:
             raise Exception('Figure is none')
 
         points, dimension = Plot.get_points(front)
+
+        # if dominated:
+        #    dpoints = Plot.get_points(dominated)
+        #    self.scf.set_data(dpoints[0], dpoints[1])
+        #    if dimension == 3:
+        #        self.scf.set_3d_properties(dpoints[2])
 
         # Replace with new points
         self.sc.set_data(points[0], points[1])
