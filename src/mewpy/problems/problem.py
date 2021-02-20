@@ -319,7 +319,8 @@ class AbstractKOProblem(AbstractProblem):
 
     def solution_to_constraints(self, decoded_candidate):
         """
-        Converts a candidate, a dictionary of reactions, into a dictionary of constraints
+        Converts a candidate, a dictionary of reactions, into a dictionary of constraints.
+        This is problem specific. By default return the decoded candidate.
         """
         return decoded_candidate
 
@@ -393,7 +394,8 @@ class AbstractOUProblem(AbstractProblem):
 
     def solution_to_constraints(self, decoded_candidate):
         """
-        Decodes a candidate, a dictionary of reactions, into a dictionary of constraints
+        Decodes a candidate, a dictionary of reactions, into a dictionary of constraints.
+        This is problem specific. By default return the decoded candidate.
         """
         return decoded_candidate
 
@@ -421,10 +423,15 @@ class AbstractOUProblem(AbstractProblem):
         solution = set()
         solution_size = random.uniform(
             self.candidate_min_size, self.candidate_max_size)
+        idxs = []
         while len(solution) < solution_size:
             idx = random.randint(0, len(self.target_list) - 1)
             lv = random.randint(0, len(self.levels) - 1)
-            solution.add((idx, lv))
+            # idx = self.target_list.index(random.choice(self.target_list))
+            # lv = self.levels.index(random.choice(self.levels))
+            if idx not in idxs:
+                solution.add((idx, lv))
+                idxs.append(idx)
         return solution
 
     @property

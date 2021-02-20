@@ -144,6 +144,27 @@ class OptRamProblem(AbstractOUProblem):
                 mgenes_p[g] = p
         return mgenes_p
 
+    def encode(self, candidate):
+        """
+        Translates a candidate solution in problem specific representation to
+        an iterable of ids, or (ids, folds).
+
+        :param iterable candidate: The candidate representation.
+        :returns: a list of index tupple (modification_target_index,level_index). The indexes are
+                  problem dependent.
+        """
+        res = set()
+        for k, lv in candidate.items():
+            target = self.target_list.index(k)
+            # unaltered expression
+            if lv in self.levels:
+                idx = self.levels.index(lv)
+            else:
+                raise RuntimeError("Can not encode candidate")
+            res.add((target, idx))
+
+        return res
+
     def solution_to_constraints(self, decoded_solution):
         mgenes_p = decoded_solution
         gr_constraints = OrderedDict()

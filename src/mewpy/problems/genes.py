@@ -52,7 +52,7 @@ class GKOProblem(AbstractKOProblem):
 
     def solution_to_constraints(self, candidate):
         """
-        Cpnverts a candidate, an set of genes into a dictionary of constraints.
+        Converts a candidate, an set of genes into a dictionary of constraints.
         """
         genes = list(candidate.keys())
         active_genes = set(self.simulator.genes) - set(genes)
