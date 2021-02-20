@@ -2,6 +2,7 @@ import numpy
 from inspyred.ec.emo import Pareto
 
 from mewpy.visualization.plot import StreamingPlot
+from ..ea import Solution, non_dominated_population
 
 
 def fitness_statistics(population):
@@ -75,7 +76,7 @@ def results_observer(population, num_generations, num_evaluations, args):
 class VisualizerObserver():
 
     def __init__(self, reference_front=None, reference_point=None, display_frequency=1, axis_labels=None,
-                 non_dominated=True, print_stats=True):
+                 non_dominated=False, print_stats=True):
         self.figure = None
         self.display_frequency = display_frequency
         self.reference_point = reference_point
@@ -87,104 +88,29 @@ class VisualizerObserver():
     def update(self, population, num_generations, num_evaluations, args):
         generations = num_generations
         evaluations = num_evaluations
-
-        if population:
-            if self.non_dominated:
-                pop = non_dominated_population(population)
+        p = []
+        for s in population:
+            if isinstance(s.fitness, Pareto):
+                a = Solution(s.candidate, s.fitness.values)
             else:
-                pop = population
+                a = Solution(s.candidate, [s.fitness])
+            p.append(a)
 
-            if self.figure is None:
-                self.figure = StreamingPlot(axis_labels=self.axis_labels)
-                solutions = []
-                for i in range(len(pop)):
-                    obj = pop[i].fitness
-                    solutions.append(obj)
-                self.figure.plot(solutions)
+        nds = non_dominated_population(p)
+        ds = None
 
-            if (generations % self.display_frequency) == 0:
-                solutions = []
-                for i in range(len(pop)):
-                    obj = pop[i].fitness
-                    solutions.append(obj)
-                self.figure.update(solutions)
-                self.figure.ax.set_title(
-                    'Eval: {}'.format(evaluations), fontsize=13)
+        if not self.non_dominated:
+            ds = list(set(p)-set(nds))
 
-            if self.print_stats:
-                results_observer(population, num_generations,
-                                 num_evaluations, args)
+        if self.figure is None:
+            self.figure = StreamingPlot(axis_labels=self.axis_labels)
+            self.figure.plot(nds, dominated=ds)
 
+        if (generations % self.display_frequency) == 0:
+            self.figure.update(nds, dominated=ds)
+            self.figure.ax.set_title(
+                'Eval: {}'.format(evaluations), fontsize=13)
 
-def non_dominated_population(population, maximize=True):
-    """ The non dominated solutions from the population.
-
-    :param population: A list of individuals.
-    :param maximize: (bool) Optimization direction.
-    :returns: a list of non-dominated solutions.
-
-    """
-    population.sort(reverse=True)
-    non_dominated = []
-    for i in range(len(population) - 1):
-        individual = population[i]
-        j = 0
-        dominates = True
-        while j < len(population) and dominates:
-            if dominance_test(individual, population[j], maximize=maximize) == -1:
-                dominates = False
-            else:
-                j += 1
-        if dominates:
-            non_dominated.append(individual)
-
-    result = non_dominated
-    return result
-
-
-def dominance_test(solution1, solution2, maximize=True):
-    """
-    Testes Pareto dominance.
-
-    :param solution1: The first solution.
-    :param solution2: The second solution
-    :param maximize: (bool) maximization (True) or minimization (False)
-
-    :returns: 1, if the first solution dominates the second;
-            -1, if the second solution dominates the first;
-            0, if non of the solutions dominates the other.
-
-    """
-    best_is_one = 0
-    best_is_two = 0
-
-    if isinstance(solution1.fitness, Pareto):
-        values1 = solution1.fitness.values
-        values2 = solution2.fitness.values
-    else:
-        values1 = [solution1.fitness]
-        values2 = [solution2.fitness]
-
-    for i in range(len(values1)):
-        value1 = values1[i]
-        value2 = values2[i]
-        if value1 != value2:
-            if value1 < value2:
-                best_is_two = 1
-            if value1 > value2:
-                best_is_one = 1
-
-    if best_is_one > best_is_two:
-        if maximize:
-            result = 1
-        else:
-            result = -1
-    elif best_is_two > best_is_one:
-        if maximize:
-            result = -1
-        else:
-            result = 1
-    else:
-        result = 0
-
-    return result
+        if self.print_stats:
+            results_observer(population, num_generations,
+                             num_evaluations, args)
