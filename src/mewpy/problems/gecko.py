@@ -1,5 +1,4 @@
 import warnings
-from collections import OrderedDict
 
 from .problem import AbstractKOProblem, AbstractOUProblem
 from ..util.constants import ModelConstants
@@ -59,7 +58,7 @@ class GeckoKOProblem(AbstractKOProblem):
         """
         Decodes a candidate, an integer set, into a dictionary of constraints
         """
-        decoded_candidate = OrderedDict()
+        decoded_candidate = dict()
         for idx in candidate:
             try:
                 decoded_candidate["{}{}".format(
@@ -121,7 +120,7 @@ class GeckoOUProblem(AbstractOUProblem):
         """
         Decodes a candidate, an integer set, into a dictionary of constraints
         """
-        decoded_candidate = OrderedDict()
+        decoded_candidate = dict()
         for idx, lv_idx in candidate:
             try:
 
@@ -135,14 +134,14 @@ class GeckoOUProblem(AbstractOUProblem):
 
     def solution_to_constraints(self, candidate):
         """
-        Converts a candidate, a set (protein,lv), into a dictionary of constraints
+        Converts a candidate, a dict {protein:lv}, into a dictionary of constraints
         Reverseble reactions associated to proteins with over expression are KO
         according to the flux volume in the wild type.
 
         :param candidate: The candidate to be decoded.
         :returns: A dictionary of metabolic constraints.
         """
-        constraints = OrderedDict()
+        constraints = dict()
 
         if self.prot_rev_reactions is None:
             self.prot_rev_reactions = self.simulator.protein_rev_reactions

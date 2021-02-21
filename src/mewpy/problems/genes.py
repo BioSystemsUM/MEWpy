@@ -1,6 +1,5 @@
 import logging
 import warnings
-from collections import OrderedDict
 
 from .problem import AbstractKOProblem, AbstractOUProblem
 from ..util.parsing import GeneEvaluator, build_tree, Boolean
@@ -52,7 +51,7 @@ class GKOProblem(AbstractKOProblem):
 
     def solution_to_constraints(self, candidate):
         """
-        Converts a candidate, an set of genes into a dictionary of constraints.
+        Converts a candidate, dict of genes:0 into a dictionary of constraints.
         """
         genes = list(candidate.keys())
         active_genes = set(self.simulator.genes) - set(genes)
@@ -133,9 +132,9 @@ class GOUProblem(AbstractOUProblem):
 
     def solution_to_constraints(self, candidate):
         """
-        Decodes a candidate, a set of (genes,lv) into a dictionary of reaction constraints
+        Decodes a candidate, a dict of genes:lv into a dictionary of reaction constraints
         """
-        gr_constraints = OrderedDict()
+        gr_constraints = dict()
         genes = candidate
 
         # operators check

@@ -1,7 +1,6 @@
 import copy
 import warnings
 from abc import ABC, abstractmethod
-from collections import OrderedDict
 from enum import IntEnum
 
 import numpy as np
@@ -203,7 +202,7 @@ class AbstractProblem(ABC):
             constraints = solution
 
         # pre simulation
-        simulation_results = OrderedDict()
+        simulation_results = dict()
         try:
             for method in self.methods:
                 simulation_result = self.simulator.simulate(
@@ -237,14 +236,14 @@ class AbstractProblem(ABC):
 
         """
 
-        values = self.encode(solution.values)
-        fitness = self.evaluate_solution(values)
+        enc_values = self.encode(solution.values)
+        fitness = self.evaluate_solution(enc_values)
         one_to_remove = {}
         # single removal
-        for entry in values:
-            simul_constraints = copy.copy(values)
-            simul_constraints.remove(entry)
-            fit = self.evaluate_solution(simul_constraints)
+        for entry in enc_values:
+            simul_enc_values = copy.copy(enc_values)
+            simul_enc_values.remove(entry)
+            fit = self.evaluate_solution(simul_enc_values)
             diff = np.abs(np.array(fit) - np.array(fitness))
             is_equal = False
             if isinstance(tolerance, float):
@@ -254,12 +253,12 @@ class AbstractProblem(ABC):
             if is_equal:
                 one_to_remove[entry] = fit
 
-        simul_constraints = copy.copy(values)
+        simul_enc_values = copy.copy(enc_values)
         for entry in one_to_remove.keys():
-            simul_constraints.remove(entry)
+            simul_enc_values.remove(entry)
 
         # test all simultaneous removal
-        fit = self.evaluate_solution(simul_constraints)
+        fit = self.evaluate_solution(simul_enc_values)
         diff = np.abs(np.array(fit) - np.array(fitness))
         is_equal = False
         if isinstance(tolerance, float):
@@ -268,17 +267,17 @@ class AbstractProblem(ABC):
             is_equal = np.all(diff <= np.array(tolerance))
 
         if is_equal:
-            v = self.decode(simul_constraints)
-            c = self.solution_to_constraints(simul_constraints)
+            v = self.decode(simul_enc_values)
+            c = self.solution_to_constraints(v)
             simplification = Solution(v, fitness, c)
             return [simplification]
         else:
             res = []
             for entry, fit in one_to_remove.items():
-                simul_constraints = copy.copy(values)
-                simul_constraints.remove(entry)
-                v = self.decode(simul_constraints)
-                c = self.solution_to_constraints(simul_constraints)
+                simul_enc_values = copy.copy(enc_values)
+                simul_enc_values.remove(entry)
+                v = self.decode(simul_enc_values)
+                c = self.solution_to_constraints(v)
                 simplification = Solution(v, fitness, c)
                 res.append(simplification)
             return res
@@ -295,7 +294,7 @@ class AbstractProblem(ABC):
         pop = []
         for solution in population:
             res = self.simplify(solution)
-            pop.append(res)
+            pop.extend(res)
         return pop
 
 
@@ -314,7 +313,7 @@ class AbstractKOProblem(AbstractProblem):
         self.strategy = Strategy.KO
 
     def decode(self, candidate):
-        decoded = {}
+        decoded = dict()
         for idx in candidate:
             try:
                 decoded[self.target_list[idx]] = 0
