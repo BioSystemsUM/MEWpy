@@ -294,7 +294,7 @@ class AbstractProblem(ABC):
         pop = []
         for solution in population:
             res = self.simplify(solution)
-            pop.append(res)
+            pop.extend(res)
         return pop
 
 
