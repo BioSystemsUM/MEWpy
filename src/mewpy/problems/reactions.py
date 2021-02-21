@@ -94,10 +94,11 @@ class ROUProblem(AbstractOUProblem):
 
     def solution_to_constraints(self, candidate):
         """
-        Decodes a candidate, an set (idx,lv) into a dictionary of constraints
+        Decodes a candidate, an dict {idx:lv} into a dictionary of constraints
         Suposes that reverseble reactions have been treated and bounded with positive flux values
         """
-        constraints = OrderedDict()
+        constraints = dict()
+        print(type(candidate), candidate)
         for rxn, lv in candidate.items():
             rev_rxn = self.simulator.reverse_reaction(rxn)
             # skips if the reverse reaction was already processed

@@ -36,7 +36,7 @@ class Solution(SolutionInterface):
         """
         self.values = values
         self.fitness = fitness
-        self.constraints = {} if constraints is None else dict(constraints)
+        self.constraints = {} if constraints is None else constraints
         self._is_maximize = is_maximize
 
     def get_fitness(self):
