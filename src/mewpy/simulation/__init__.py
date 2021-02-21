@@ -88,30 +88,6 @@ except ImportError:
 default_solver = None
 
 
-def get_default_solver():
-    """ 
-    Returns:
-        [type]: [description]
-    """
-    global default_solver
-
-    if default_solver:
-        return default_solver
-
-    solver_order = ['gurobi', 'cplex', 'glpk']
-
-    for solver in solver_order:
-        if solver in solvers:
-            default_solver = solver
-            break
-
-    if not default_solver:
-        raise RuntimeError("No solver available.")
-
-    return default_solver
-
-
-
 # Model specific simulators mapping:
 # Entries take the form:  full_model_class_path -> (simulator_path, simulator_class_name)
 # TODO: use qualified names
@@ -144,6 +120,15 @@ def get_simulator(model, envcond=None, constraints=None, reference=None, reset_s
         class_ = getattr(module, class_name)
         instance = class_(model, envcond=envcond,
                           constraints=constraints, reference=reference, reset_solver=reset_solver)
+    elif "etfl" in name:
+        try:
+            from .cobra import Simulation
+            instance = Simulation(
+                model, envcond=envcond, constraints=constraints, reference=reference, reset_solver=reset_solver)
+            instance._MAX_STR = 'max'
+            instance._MIN_STR = 'min'
+        except Exception:
+            raise RuntimeError("Could not create simulator for the ETFL model")
     else:
         try:
             from cobra.core.model import Model

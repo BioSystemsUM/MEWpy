@@ -116,6 +116,9 @@ class Simulation(CobraModelContainer, Simulator):
         self.reverse_sintax = []
         self._m_r_lookup = None
 
+        self._MAX_STR = 'maximize'
+        self._MIN_STR = 'minimize'
+
     @property
     def objective(self):
         from cobra.util.solver import linear_reaction_coefficients
@@ -502,7 +505,7 @@ class Simulation(CobraModelContainer, Simulator):
                         rxn), simul_constraints.get(rxn))
             # NOTE: If working directly over optlang use 'max' and 'min'
             # such is the case with pytfa.core.Model... need to find some workaround
-            objective_sense = 'maximize' if maximize else 'minimize'
+            objective_sense = self._MAX_STR if maximize else self._MIN_STR
             if method == SimulationMethod.FBA:
                 solution = model.optimize(objective_sense=objective_sense)
             elif method == SimulationMethod.pFBA:

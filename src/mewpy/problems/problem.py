@@ -268,7 +268,7 @@ class AbstractProblem(ABC):
             is_equal = np.all(diff <= np.array(tolerance))
 
         if is_equal:
-            v = self.encode(simul_constraints)
+            v = self.decode(simul_constraints)
             c = self.solution_to_constraints(simul_constraints)
             simplification = Solution(v, fitness, c)
             return [simplification]
@@ -277,11 +277,26 @@ class AbstractProblem(ABC):
             for entry, fit in one_to_remove.items():
                 simul_constraints = copy.copy(values)
                 simul_constraints.remove(entry)
-                v = self.encode(simul_constraints)
+                v = self.decode(simul_constraints)
                 c = self.solution_to_constraints(simul_constraints)
                 simplification = Solution(v, fitness, c)
                 res.append(simplification)
             return res
+
+    def simplify_population(self, population):
+        """Simplifies a population of solutions
+
+        Args:
+            population (list): List of mewpy.optimization.ea.Solution
+
+        Returns:
+            list: Simplified population
+        """
+        pop = []
+        for solution in population:
+            res = self.simplify(solution)
+            pop.append(res)
+        return pop
 
 
 class AbstractKOProblem(AbstractProblem):
@@ -319,7 +334,8 @@ class AbstractKOProblem(AbstractProblem):
 
     def solution_to_constraints(self, decoded_candidate):
         """
-        Converts a candidate, a dictionary of reactions, into a dictionary of constraints
+        Converts a candidate, a dictionary of reactions, into a dictionary of constraints.
+        This is problem specific. By default return the decoded candidate.
         """
         return decoded_candidate
 
@@ -368,7 +384,7 @@ class AbstractOUProblem(AbstractProblem):
 
     def decode(self, candidate):
         """The decoder function for the problem. Needs to be implemented by extending classes."""
-        decoded = {}
+        decoded = dict()
         for idx, lv_idx in candidate:
             try:
                 rxn = self.target_list[idx]
@@ -393,7 +409,8 @@ class AbstractOUProblem(AbstractProblem):
 
     def solution_to_constraints(self, decoded_candidate):
         """
-        Decodes a candidate, a dictionary of reactions, into a dictionary of constraints
+        Decodes a candidate, a dictionary of reactions, into a dictionary of constraints.
+        This is problem specific. By default return the decoded candidate.
         """
         return decoded_candidate
 
@@ -421,10 +438,15 @@ class AbstractOUProblem(AbstractProblem):
         solution = set()
         solution_size = random.uniform(
             self.candidate_min_size, self.candidate_max_size)
+        idxs = []
         while len(solution) < solution_size:
             idx = random.randint(0, len(self.target_list) - 1)
             lv = random.randint(0, len(self.levels) - 1)
-            solution.add((idx, lv))
+            # idx = self.target_list.index(random.choice(self.target_list))
+            # lv = self.levels.index(random.choice(self.levels))
+            if idx not in idxs:
+                solution.add((idx, lv))
+                idxs.append(idx)
         return solution
 
     @property

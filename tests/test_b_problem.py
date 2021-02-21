@@ -1,4 +1,5 @@
 import unittest
+import pytest
 
 MODELS_PATH = 'tests/data/'
 EC_CORE_MODEL = MODELS_PATH + 'e_coli_core.xml.gz'
@@ -37,7 +38,8 @@ class TestRKOP(unittest.TestCase):
         import random
         candidate = self.problem.generator(random, None)
         solution = self.problem.decode(candidate)
-        self.assertGreater(len(solution), 0)
+        n_candidate = self.problem.encode(solution)
+        self.assertEqual(candidate, n_candidate)
 
     def test_to_constraints(self):
         """
@@ -97,6 +99,14 @@ class TestOptRAM(TestRKOP):
         from reframed.io.sbml import load_cbmodel
         model = load_cbmodel(OPTRAM_MODEL)
         self.problem = OptRamProblem(model, [], regnet)
+
+    @pytest.mark.xfail
+    def test_decode(self):
+        import random
+        candidate = self.problem.generator(random, None)
+        solution = self.problem.decode(candidate)
+        n_candidate = self.problem.encode(solution)
+        self.assertEqual(candidate, n_candidate)
 
     def test_simul_constraints(self):
         """ Can not be run with a community cplex.
