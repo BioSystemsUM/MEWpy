@@ -57,7 +57,7 @@ def xml_constraints(constraints, separator=""):
     return out_str
 
 
-def population_to_csv(problem, candidates, filename, simplify=False, non_dominated=True):
+def population_to_csv(problem, candidates, filename, simplify=False, non_dominated=False, sep=';'):
     """ Saves a population of solution candidates to csv
     """
     if non_dominated:
@@ -75,9 +75,9 @@ def population_to_csv(problem, candidates, filename, simplify=False, non_dominat
 
     population.sort(reverse=True)
     with open(filename, 'w') as f:
-        title = [str(x).replace(";", " ") for x in problem.fevaluation]
-        title.extend([";", "solution", "\n"])
-        f.write(";".join(x for x in title))
+        title = [str(x).replace(sep, " ") for x in problem.fevaluation]
+        title.extend([sep, "solution", "\n"])
+        f.write(sep.join(x for x in title))
         for individual in population:
             line = []
             if problem.number_of_objectives == 1:
@@ -89,7 +89,7 @@ def population_to_csv(problem, candidates, filename, simplify=False, non_dominat
             line.append("")
             line.append(str(individual.constraints))
             line.append("\n")
-            f.write(";".join(x for x in line))
+            f.write(sep.join(x for x in line))
 
 
 def population_to_xml(problem, candidates, filename, simplify=False, non_dominated=True):

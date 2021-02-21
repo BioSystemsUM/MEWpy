@@ -268,7 +268,7 @@ class AbstractProblem(ABC):
             is_equal = np.all(diff <= np.array(tolerance))
 
         if is_equal:
-            v = self.encode(simul_constraints)
+            v = self.decode(simul_constraints)
             c = self.solution_to_constraints(simul_constraints)
             simplification = Solution(v, fitness, c)
             return [simplification]
@@ -277,11 +277,26 @@ class AbstractProblem(ABC):
             for entry, fit in one_to_remove.items():
                 simul_constraints = copy.copy(values)
                 simul_constraints.remove(entry)
-                v = self.encode(simul_constraints)
+                v = self.decode(simul_constraints)
                 c = self.solution_to_constraints(simul_constraints)
                 simplification = Solution(v, fitness, c)
                 res.append(simplification)
             return res
+
+    def simplify_population(self, population):
+        """Simplifies a population of solutions
+
+        Args:
+            population (list): List of mewpy.optimization.ea.Solution
+
+        Returns:
+            list: Simplified population
+        """
+        pop = []
+        for solution in population:
+            res = self.simplify(solution)
+            pop.append(res)
+        return pop
 
 
 class AbstractKOProblem(AbstractProblem):
@@ -369,7 +384,7 @@ class AbstractOUProblem(AbstractProblem):
 
     def decode(self, candidate):
         """The decoder function for the problem. Needs to be implemented by extending classes."""
-        decoded = {}
+        decoded = dict()
         for idx, lv_idx in candidate:
             try:
                 rxn = self.target_list[idx]
