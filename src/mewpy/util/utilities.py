@@ -54,3 +54,49 @@ def copy_func(f):
     g = functools.update_wrapper(g, f)
     g.__kwdefaults__ = f.__kwdefaults__
     return g
+
+
+class Dispatcher:
+
+    def __init__(self):
+
+        """
+        Dispatcher for the simulate method of the Simulation interface
+        It allows a simplification of the if else chain of methods provided as input to the simulate method
+
+        based on https://stackoverflow.com/questions/36836161/singledispatch-based-on-value-instead-of-type
+        (Ilja Everilä)
+
+        """
+
+        # weak ref key for the garbage collector
+        self.registry = {}
+
+    def __get__(self, instance, owner):
+
+        if instance is None:
+            return self
+
+        return self.dispatch(instance, owner)
+
+    def dispatch(self, instance, owner):
+
+        def wrapper(state, *args, **kwargs):
+
+            method = self.registry.get(state).__get__(instance, owner)
+
+            return method(*args, **kwargs)
+
+        return wrapper
+
+    def register(self, state):
+
+        def wrapper(method):
+
+            self.registry[state] = method
+
+            return method
+
+        return wrapper
+
+

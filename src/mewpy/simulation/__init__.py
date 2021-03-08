@@ -147,6 +147,22 @@ def get_simulator(model, envcond=None, constraints=None, reference=None, reset_s
                         model, envcond=envcond, constraints=constraints, reference=reference, reset_solver=reset_solver)
             except ImportError:
                 pass
+
+        if not instance:
+            try:
+
+                from slimpy.core import Model, MetabolicModel, RegulatoryModel
+
+                if isinstance(model, (Model, MetabolicModel, RegulatoryModel)):
+                    from .slim import Simulation
+                    instance = Simulation(model,
+                                          envcond=envcond,
+                                          constraints=constraints,
+                                          reference=reference,
+                                          reset_solver=reset_solver)
+            except ImportError:
+                pass
+
     if not instance:
         raise ValueError(f"The model <{name}> has no defined simulator.")
     return instance

@@ -1,9 +1,9 @@
-from abc import abstractclassmethod
+from abc import abstractmethod
 from collections import OrderedDict
 
 from mewpy.simulation import SimulationMethod
 
-
+# TODO: shouldn't inherit from metaclass=ABCMeta, so that the implementation errors can be raised?
 class ModelContainer:
     """Interface for Model container.
        Provides an abstraction from models implementations.
@@ -25,6 +25,7 @@ class ModelContainer:
         """
         raise NotImplementedError
 
+    # TODO: should it belong to this interface? the main containers don't have an implementation for this
     @property
     def proteins(self):
         """
@@ -41,10 +42,7 @@ class ModelContainer:
         """
         raise NotImplementedError
 
-    @property
-    def medium(self):
-        raise NotImplementedError
-
+    # TODO: property to be consistent with the others?
     def get_drains(self):
         return NotImplementedError
 
@@ -59,6 +57,8 @@ class ModelContainer:
         print(f"Reactions: {len(self.reactions)}")
         print(f"Genes: {len(self.genes)}")
 
+    # TODO: should it belong to this interface? the main containers don't have an implementation for this and
+    #  it is actually repeated in the simulator where it seems right to me
     def set_objective(self, reaction):
         raise NotImplementedError
 
@@ -68,7 +68,7 @@ class Simulator(ModelContainer):
     Interface for simulators
     """
 
-    @abstractclassmethod
+    @abstractmethod
     def simulate(self, objective=None, method=SimulationMethod.FBA, maximize=True, constraints=None, reference=None,
                  solver=None, **kwargs):
         """Abstract method to run a phenotype simulation.
@@ -78,7 +78,7 @@ class Simulator(ModelContainer):
         """
         raise NotImplementedError
 
-    @abstractclassmethod
+    @abstractmethod
     def FVA(self, obj_frac=0, reactions=None, constraints=None, loopless=False, internal=None, solver=None):
         """ Abstract method to run Flux Variability Analysis (FVA).
 
@@ -108,11 +108,12 @@ class Simulator(ModelContainer):
         res = mp_evaluator.evaluate(constraints_list, None)
         return res
 
-    @abstractclassmethod
+    # TODO: @abstractclassmethod is deprecated
+    @abstractmethod
     def get_reaction_bounds(self, r_id):
         raise NotImplementedError
 
-    @abstractclassmethod
+    @abstractmethod
     def metabolite_reaction_lookup(self, force_recalculate=False):
         raise NotImplementedError
 
@@ -146,7 +147,6 @@ class SimulationResult(object):
         self.simulation_constraints = simul_constraints if simul_constraints else OrderedDict()
         self.method = method
 
-
     def get_constraints(self):
         """
         :returns: All constraints applied during the simulation both persistent and simulation specific.
@@ -158,7 +158,7 @@ class SimulationResult(object):
         return constraints
 
     def __repr__(self):
-        return f"objective: {self.objective_value}\nStatus: {self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}"
+        return f"objective: {self.objective_value}\nStatus: {self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method} "
 
     def __str__(self):
         return f"objective: {self.objective_value}\nStatus: {self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}"

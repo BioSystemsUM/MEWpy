@@ -23,7 +23,7 @@ LOGGER = logging.getLogger(__name__)
 
 solver_map = {'gurobi': 'gurobi', 'cplex': 'cplex', 'glpk': 'optlang'}
 
-
+# TODO: missing proteins and set objective implementations
 class CBModelContainer(ModelContainer):
     """ A basic container for REFRAMED models.
 
@@ -110,6 +110,7 @@ class Simulation(CBModelContainer, Simulator):
 
     """
 
+    # TODO: the parent init call is missing ... super() can resolve the mro of the simulation diamond inheritance
     def __init__(self, model: CBModel, objective=None, envcond=None, constraints=None, solver=None, reference=None,
                  reset_solver=ModelConstants.RESET_SOLVER):
 
@@ -171,6 +172,8 @@ class Simulation(CBModelContainer, Simulator):
                 method=SimulationMethod.pFBA).fluxes
         return self._reference
 
+    # TODO: unless the property is called as class.essential_reactions.fget(min_growth) the arg will never be used.
+    #  Perhaps this can be a method and not a property, since it takes a bit to compute essential reactions or genes
     @property
     def essential_reactions(self, min_growth=0.01):
         """Essential reactions are those when knocked out enable a biomass flux value above a minimal growth defined as
@@ -194,6 +197,8 @@ class Simulation(CBModelContainer, Simulator):
                     self._essential_reactions.append(rxn)
         return self._essential_reactions
 
+    # TODO: unless the property is called as class.essential_reactions.fget(min_growth) the arg will never be used.
+    #  Perhaps this can be a method and not a property, since it takes a bit to compute essential reactions or genes
     @property
     def essential_genes(self, min_growth=0.01):
         """Essential genes are those when deleted enable a biomass flux value above a minimal growth defined as
@@ -210,7 +215,7 @@ class Simulation(CBModelContainer, Simulator):
         wt_growth = wt_solution.objective_value
         genes = self.model.genes
         for gene in genes:
-            active_genes = set(self.model.genes) - set([gene])
+            active_genes = set(self.model.genes) - {gene}
             active_reactions = self.evaluate_gprs(active_genes)
             inactive_reactions = set(
                 self.model.reactions) - set(active_reactions)
@@ -262,6 +267,8 @@ class Simulation(CBModelContainer, Simulator):
         """
         self.model.remove_reaction(r_id)
 
+    # TODO: I added this, but I think it can be removed. It really depends on the discussion about the regulatory
+    #  layer implementation
     def get_metabolite_reactions(self, metabolite):
         """List all reactions that have the metabolite as reactant or product.
 
@@ -275,6 +282,8 @@ class Simulation(CBModelContainer, Simulator):
             self.__index_metabolites_reactions__()
         return self._index_metabolites_reactions[metabolite]
 
+    # TODO: I added this, but I think it can be removed. It really depends on the discussion about the regulatory
+    #  layer implementation
     def get_metabolite_compartment(self, metabolite):
         """Returns the compartment of a metabolite.
 
@@ -362,6 +371,8 @@ class Simulation(CBModelContainer, Simulator):
                     continue
             return None
 
+    # TODO: I added this, but I think it can be removed. It really depends on the discussion about the regulatory
+    #  layer implementation
     def gene_reactions(self):
         """
         :returns: a map of genes to reactions.
@@ -381,6 +392,8 @@ class Simulation(CBModelContainer, Simulator):
             self._gene_to_reaction = gr
         return self._gene_to_reaction
 
+    # TODO: I added this, but I think it can be removed. It really depends on the discussion about the regulatory
+    #  layer implementation
     def get_reactions_for_genes(self, genes):
         """
         Returns the list of reactions catalysed by a list of genes
@@ -396,6 +409,8 @@ class Simulation(CBModelContainer, Simulator):
             reactions.extend(self._gene_to_reaction[gene])
         return reactions
 
+    # TODO: I added this, but I think it can be removed. It really depends on the discussion about the regulatory
+    #  layer implementation
     def get_reaction_metabolites(self, reaction):
         '''
         Returns all metabolites of a given reaction
@@ -406,6 +421,8 @@ class Simulation(CBModelContainer, Simulator):
         '''
         return self.model.reactions[reaction].stoichiometry
 
+    # TODO: I added this, but I think it can be removed. It really depends on the discussion about the regulatory
+    #  layer implementation
     def is_reactant(self, reaction, metabolite):
         '''
         Returns if a metabolite is reactant into a given reaction
@@ -418,6 +435,8 @@ class Simulation(CBModelContainer, Simulator):
             raise KeyError("{} not in {}".format(metabolite, reaction))
         return self.model.reactions[reaction].stoichiometry[metabolite] < 0.0
 
+    # TODO: I added this, but I think it can be removed. It really depends on the discussion about the regulatory
+    #  layer implementation
     def is_product(self, reaction, metabolite):
         '''
         Returns if a metabolite is product into a given reaction.
@@ -430,6 +449,8 @@ class Simulation(CBModelContainer, Simulator):
             raise KeyError("{} not in {}".format(metabolite, reaction))
         return self.model.reactions[reaction].stoichiometry[metabolite] > 0.0
 
+    # TODO: I added this, but I think it can be removed. It really depends on the discussion about the regulatory
+    #  layer implementation
     def __index_metabolites_reactions__(self):
         self._index_metabolites_reactions = {}
         for reaction in self.reactions:
@@ -455,12 +476,17 @@ class Simulation(CBModelContainer, Simulator):
 
         return self._m_r_lookup
 
+    # TODO: this is repeated
     def set_objective(self, reaction):
         self.model.set_objective({reaction: 1})
 
+    # TODO: I suppose that this was added by me when I didn't know the existence of the objective property,
+    #  so it can be removed actually. It has been wrongly used
     def get_objective(self):
         return list(self.objective.keys())
 
+    # TODO: I added this, but I think it can be removed. It really depends on the discussion about the regulatory
+    #  layer implementation
     def get_S(self):
         """
         Returns the S matrix as a numpy array
@@ -485,6 +511,8 @@ class Simulation(CBModelContainer, Simulator):
 
         return lb if lb > -np.inf else -999999, ub if ub < np.inf else 999999
 
+    # TODO: I added this, but I think it can be removed. It really depends on the discussion about the regulatory
+    #  layer implementation
     def get_bounds(self):
         """
         Returns the whole set of lower and upper bounds as numpy arrays
@@ -521,6 +549,8 @@ class Simulation(CBModelContainer, Simulator):
             if rxn.lb <= lower_bound and rxn.ub >= upper_bound
         ]
 
+    # TODO: I added this, but I think it can be removed. It really depends on the discussion about the regulatory
+    #  layer implementation
     def get_boundary_reaction(self, metabolite):
         """
         Finds the boundary reaction associated with an extracellular metabolite.
@@ -561,6 +591,8 @@ class Simulation(CBModelContainer, Simulator):
         if not objective:
             objective = self.model.get_objective()
 
+        # TODO: the update order here may be changed. I believe that if one wants to pass additional constraints to
+        #  simulate, he/she intends to overwrite the constraints of the simulator, right?
         simul_constraints = OrderedDict()
         if constraints:
             simul_constraints.update(constraints)
@@ -590,6 +622,10 @@ class Simulation(CBModelContainer, Simulator):
                             x * scalefactor for x in constraint)
                     else:
                         raise ValueError("Could not scale the model")
+
+        # TODO: I have implemented a single dispatch for this, so we can avoid coding long if else chains.
+        #  If it is too "obscure", a dictionary can be used, or a function like get_simulation_method.
+        #  Either way, I believe it would be maintainable to have a hidden method for each simulation method
 
         # TODO: simplifly ...
         if method in [SimulationMethod.lMOMA, SimulationMethod.MOMA, SimulationMethod.ROOM] and reference is None:
