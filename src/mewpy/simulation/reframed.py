@@ -455,8 +455,6 @@ class Simulation(CBModelContainer, Simulator):
 
         return self._m_r_lookup
 
-    def set_objective(self, reaction):
-        self.model.set_objective({reaction: 1})
 
     def get_objective(self):
         return list(self.objective.keys())

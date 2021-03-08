@@ -1,5 +1,4 @@
-
-from collections import Iterable
+""" Adapted from Daniel Machado's REFRAMED"""
 from .solver import Solver, VarType, Parameter, default_parameters
 from .solution import Solution, Status
 from cplex import Cplex, infinity, SparsePair
@@ -334,10 +333,10 @@ class CplexSolver(Solver):
                 values, s_prices, r_costs = None, None, None
 
                 if get_values:
-                    if isinstance(get_values, Iterable):
+                    try:
                         get_values = list(get_values)
                         values = dict(zip(get_values, problem.solution.get_values(get_values)))
-                    else:
+                    except Exception:
                         values = dict(zip(self.var_ids, problem.solution.get_values()))
 
                 if shadow_prices:
@@ -435,10 +434,10 @@ class CplexSolver(Solver):
             obj = pool.get_objective_value(i)
 
             if get_values:
-                if isinstance(get_values, Iterable):
+                try:
                     get_values = list(get_values)
                     values = dict(zip(get_values, pool.get_values(i, get_values)))
-                else:
+                except Exception:
                     values = dict(zip(self.var_ids, pool.get_values(i)))
             else:
                 values = None

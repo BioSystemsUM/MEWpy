@@ -1,4 +1,4 @@
-from collections import Iterable
+""" Adapted from Daniel Machado's REFRAMED"""
 from .solver import Solver, VarType, Parameter, default_parameters
 from .solution import Solution, Status
 from gurobipy import Model as GurobiModel, GRB, quicksum
@@ -246,10 +246,10 @@ class GurobiSolver(Solver):
                 values, s_prices, r_costs = None, None, None
 
                 if get_values:
-                    if isinstance(get_values, Iterable):
+                    try:
                         get_values = list(get_values)
                         values = {r_id: problem.getVarByName(r_id).X for r_id in get_values}
-                    else:
+                    except Exception:
                         values = {r_id: problem.getVarByName(r_id).X for r_id in self.var_ids}
 
                 if shadow_prices:
@@ -305,10 +305,10 @@ class GurobiSolver(Solver):
             self.problem.setParam(GRB.param.SolutionNumber, i)
             obj = self.problem.PoolObjVal
             if get_values:
-                if isinstance(get_values, Iterable):
+                try:
                     get_values = list(get_values)
                     values = {r_id: self.problem.getVarByName(r_id).Xn for r_id in get_values}
-                else:
+                except Exception:
                     values = {r_id: self.problem.getVarByName(r_id).Xn for r_id in self.var_ids}
             else:
                 values = None
