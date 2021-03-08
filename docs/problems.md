@@ -60,7 +60,7 @@ final_pop = ea.run()
 
 ## Gene Constraint Problems
 
-Optimizations of genes' expression modifications are run by setting and running the intended problem. Gene deletion optimization problems are defined as a GKOProblem while gene over- or under expression optimization use the GOUProblem class.
+Optimizations of genes' expression are run by setting and running the intended problem. Gene deletion optimization problems are defined as a GKOProblem while gene over- or under expression optimization use the GOUProblem class.
 
 
 

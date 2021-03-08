@@ -1,3 +1,4 @@
+""" Adapted from Daniel Machado's REFRAMED"""
 from enum import Enum
 import re
 

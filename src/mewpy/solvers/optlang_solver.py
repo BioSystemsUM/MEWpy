@@ -1,10 +1,10 @@
+""" Adapted from Daniel Machado's REFRAMED"""
 from optlang import Model, Variable, Constraint, Objective
 from optlang.symbolics import Zero, add
 from .solver import Solver, VarType, Parameter, default_parameters
 from .solution import Solution, Status
 from math import inf
 from warnings import warn
-from collections import Iterable
 
 
 status_mapping = {
@@ -242,8 +242,10 @@ class OptLangSolver(Solver):
             if get_values:
                 values = dict(problem.primal_values)
 
-                if isinstance(get_values, Iterable):
+                try:
                     values = {x: values[x] for x in get_values}
+                except Exception:
+                    pass
 
             if shadow_prices:
                 s_prices = dict(problem.shadow_prices)

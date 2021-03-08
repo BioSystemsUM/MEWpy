@@ -33,7 +33,7 @@ problem = GOUProblem(model,levels=levels)
 
 **Number of modifications.**
 
-The minimum and the maximum number of modifications may be defined directly in the problem definition. For example to allow a maximum of gene deletions:
+The minimum and the maximum number of modifications may be defined directly in the problem definition. For example to allow a maximum of 6 gene deletions:
 
 ```python
 from mewpy.problems import GKOProblem
@@ -47,13 +47,13 @@ from mewpy.problems import GKOProblem
 problem = GKOProblem(model,candidate_min_size=4,candidate_max_size=6)
 ```
 
-The default minimum number of modifications is 1, while the maximum is 30. When both the minimum and the maximum number of modifications are equal, all solutions will have the same common number of modifications.
+The default minimum and maximum number of modifications are 1 and 30 respectively. When both the minimum and the maximum number of modifications are equal, all solutions will have the same number of modifications.
 
 
 
 **Optimization algorithm.**
 
-MEWpy resorts to the Inspyred and JMetalPy packages to evolve modification solutions. If both packages are installed, MEWpy uses Inpyred by default, running the Non-dominated Sorting Genetic Algorithm (NSGA-II) for multi-objective optimizations and a Genetic Algorithm (GA) for single objective problems. To alter the engine preference to JMetalPy the following must be added to your script:
+MEWpy resorts to Inspyred and JMetalPy packages to evolve modification solutions. If both packages are installed, MEWpy uses Inpyred by default, running the Non-dominated Sorting Genetic Algorithm (NSGA-II) for multi-objective optimizations and a Genetic Algorithm (GA) for single objective problems. To alter the engine preference to JMetalPy the following must be added to your script:
 
 ```python
 from mewpy.optimization import set_default_engine

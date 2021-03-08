@@ -1,10 +1,10 @@
-from abc import abstractclassmethod
+from abc import abstractmethod, ABC
 from collections import OrderedDict
 
 from mewpy.simulation import SimulationMethod
 
 
-class ModelContainer:
+class ModelContainer(ABC):
     """Interface for Model container.
        Provides an abstraction from models implementations.
     """
@@ -68,7 +68,7 @@ class Simulator(ModelContainer):
     Interface for simulators
     """
 
-    @abstractclassmethod
+    @abstractmethod
     def simulate(self, objective=None, method=SimulationMethod.FBA, maximize=True, constraints=None, reference=None,
                  solver=None, **kwargs):
         """Abstract method to run a phenotype simulation.
@@ -78,7 +78,7 @@ class Simulator(ModelContainer):
         """
         raise NotImplementedError
 
-    @abstractclassmethod
+    @abstractmethod
     def FVA(self, obj_frac=0, reactions=None, constraints=None, loopless=False, internal=None, solver=None):
         """ Abstract method to run Flux Variability Analysis (FVA).
 
@@ -108,11 +108,11 @@ class Simulator(ModelContainer):
         res = mp_evaluator.evaluate(constraints_list, None)
         return res
 
-    @abstractclassmethod
+    @abstractmethod
     def get_reaction_bounds(self, r_id):
         raise NotImplementedError
 
-    @abstractclassmethod
+    @abstractmethod
     def metabolite_reaction_lookup(self, force_recalculate=False):
         raise NotImplementedError
 
@@ -146,7 +146,6 @@ class SimulationResult(object):
         self.simulation_constraints = simul_constraints if simul_constraints else OrderedDict()
         self.method = method
 
-
     def get_constraints(self):
         """
         :returns: All constraints applied during the simulation both persistent and simulation specific.
@@ -158,10 +157,12 @@ class SimulationResult(object):
         return constraints
 
     def __repr__(self):
-        return f"objective: {self.objective_value}\nStatus: {self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}"
+        return (f"objective: {self.objective_value}\nStatus: "
+                f"{self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}")
 
     def __str__(self):
-        return f"objective: {self.objective_value}\nStatus: {self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}"
+        return (f"objective: {self.objective_value}\nStatus: "
+                f"{self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}")
 
     @property
     def data_frame(self):
