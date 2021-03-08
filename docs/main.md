@@ -1,7 +1,7 @@
 # Introduction
 **Metabolic Engineering Workbench in python**
 
-MEWpy is a Computational Strain Optimization (CSO) tool able to aggregate different types of constraint-based models and simulation approaches. It relies on Evolutionary Algorithms (EAs) to identify the set of genetic modifications that favor and optimize a desired metabolic engineering goal. One of the main advantages of EAs is to enable the simultaneous optimizations of more than one objectives (product rate, growth rate, number of modifications, etc.), sometimes conflicting,  and deliver in a single run a set of trade-off solutions between the objectives.
+MEWpy is a Computational Strain Optimization (CSO) tool able to aggregate different types of constraint-based models and simulation approaches. It relies on Evolutionary Algorithms (EAs) to identify the set of genetic modifications that favor and optimize a desired metabolic engineering goal. One of the main advantages of using EAs is that they enable the simultaneous optimizations of more than one objectives (product rate, growth rate, number of modifications, etc.), sometimes conflicting,  and deliver in a single run a set of trade-off solutions between the objectives.
 
 
 ![](mewpy-arch.png)
