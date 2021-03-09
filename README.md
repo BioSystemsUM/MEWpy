@@ -34,7 +34,9 @@ MEWpy is an integrated Metabolic Engineering Workbench, under development, for s
 - MEWPy currently supports [REFRAMED](https://github.com/cdanielmachado/reframed) and [COBRApy](https://opencobra.github.io/cobrapy/) simulation environments.
 - The optimization engine relies on either [inspyred](https://github.com/aarongarrett/inspyred) or [jMetalPy](https://github.com/jMetal/jMetalPy) packages, which are used for creating biologically-inspired computational intelligence algorithms in Python.
 
-- Next releases will enable simulation and optimization strategies for [Expression and Thermodynamics Flux](https://doi.org/10.1371/journal.pcbi.1006835) (ETFL) and [Metabolism and Macromolecular Expression](https://doi.org/10.1371/journal.pcbi.1006302) (ME) models.
+- MEWpy may also be used to run simulation and optimization strategies on [Expression and Thermodynamics Flux](https://doi.org/10.1371/journal.pcbi.1006835) (ETFL).
+
+- Next releases will be compatible with [Metabolism and Macromolecular Expression](https://doi.org/10.1371/journal.pcbi.1006302) (ME) models.
 
 ### Usage Examples
 

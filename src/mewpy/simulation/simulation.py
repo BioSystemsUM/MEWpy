@@ -1,10 +1,10 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from collections import OrderedDict
 
 from mewpy.simulation import SimulationMethod
 
-# TODO: shouldn't inherit from metaclass=ABCMeta, so that the implementation errors can be raised?
-class ModelContainer:
+
+class ModelContainer(ABC):
     """Interface for Model container.
        Provides an abstraction from models implementations.
     """
@@ -25,7 +25,6 @@ class ModelContainer:
         """
         raise NotImplementedError
 
-    # TODO: should it belong to this interface? the main containers don't have an implementation for this
     @property
     def proteins(self):
         """
@@ -42,7 +41,10 @@ class ModelContainer:
         """
         raise NotImplementedError
 
-    # TODO: property to be consistent with the others?
+    @property
+    def medium(self):
+        raise NotImplementedError
+
     def get_drains(self):
         return NotImplementedError
 
@@ -57,8 +59,6 @@ class ModelContainer:
         print(f"Reactions: {len(self.reactions)}")
         print(f"Genes: {len(self.genes)}")
 
-    # TODO: should it belong to this interface? the main containers don't have an implementation for this and
-    #  it is actually repeated in the simulator where it seems right to me
     def set_objective(self, reaction):
         raise NotImplementedError
 
@@ -108,7 +108,6 @@ class Simulator(ModelContainer):
         res = mp_evaluator.evaluate(constraints_list, None)
         return res
 
-    # TODO: @abstractclassmethod is deprecated
     @abstractmethod
     def get_reaction_bounds(self, r_id):
         raise NotImplementedError
@@ -158,10 +157,12 @@ class SimulationResult(object):
         return constraints
 
     def __repr__(self):
-        return f"objective: {self.objective_value}\nStatus: {self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method} "
+        return (f"objective: {self.objective_value}\nStatus: "
+                f"{self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}")
 
     def __str__(self):
-        return f"objective: {self.objective_value}\nStatus: {self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}"
+        return (f"objective: {self.objective_value}\nStatus: "
+                f"{self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}")
 
     @property
     def data_frame(self):
