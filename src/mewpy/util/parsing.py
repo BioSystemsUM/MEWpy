@@ -169,6 +169,15 @@ class Node(object):
         else:
             return self.left.get_operands().union(self.right.get_operands())
 
+    def get_parameters(self):
+        if self.is_leaf():
+            if self.value != EMPTY_LEAF and not is_number(self.value):
+                return {self.value}
+            else:
+                return set()
+        else:
+            return self.left.get_operands().union(self.right.get_operands())
+
     def print_node(self, level=0):
         tabs = ""
         for _ in range(level):
@@ -205,6 +214,21 @@ class Node(object):
         """
         ops = self.get_operands()
         return set([i for i in ops if is_condition(i)])
+
+    def replace(self, map: dict):
+        """Apply the mapping replacing to the tree
+
+        Args:
+            map (dict): replacement mapping
+
+        Returns:
+            Node: new Tree with replace entries
+        """
+        v = map[self.value] if self.value in map.keys() else self.value
+        if self.is_leaf():
+            return Node(v, None, None)
+        else:
+            return Node(v, self.replace(self.left), self.replace(self.right))
 
 
 class Syntax:
