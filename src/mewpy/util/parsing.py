@@ -228,7 +228,16 @@ class Node(object):
         if self.is_leaf():
             return Node(v, None, None)
         else:
-            return Node(v, self.replace(self.left), self.replace(self.right))
+            return Node(v, self.left.replace(map), self.right.replace(map))
+
+    def to_infix(self) -> str:
+        if self.is_leaf():
+            if self.value == EMPTY_LEAF:
+                return ''
+            else:
+                return str(self.value)
+        else:
+            return ''.join(['( ', self.left.to_infix(), ' ', self.value, ' ', self.right.to_infix(), ' )'])
 
 
 class Syntax:
@@ -236,23 +245,23 @@ class Syntax:
        with operators, their precedence and associativity.
     """
 
-    @abstractmethod
+    @ abstractmethod
     def is_operator(self, op):
         raise NotImplementedError
 
-    @abstractmethod
+    @ abstractmethod
     def is_greater_precedence(self, op1, op2):
         raise NotImplementedError
 
-    @abstractmethod
+    @ abstractmethod
     def associativity(self, op):
         raise NotImplementedError
 
-    @staticmethod
+    @ staticmethod
     def arity(op):
         return 2
 
-    @staticmethod
+    @ staticmethod
     def replace():
         return {}
 
@@ -261,21 +270,21 @@ class Arithmetic(Syntax):
     """Defines a basic arithmetic sintax.
     """
 
-    @staticmethod
+    @ staticmethod
     def is_operator(op):
         return op in ['+', '-', '*', '/', '^']
 
-    @staticmethod
+    @ staticmethod
     def is_greater_precedence(op1, op2):
         pre = {'+': 0, '-': 0, '*': 1, '/': 1, '^': 2}
         return pre[op1] >= pre[op2]
 
-    @staticmethod
+    @ staticmethod
     def associativity(op):
         ass = {'+': 0, '-': 0, '*': 0, '/': 0, '^': 1}
         return ass[op]
 
-    @staticmethod
+    @ staticmethod
     def arity(op):
         ar = {'+': 2, '-': 2, '*': 2, '/': 2, '^': 2}
         return ar[op]
@@ -283,15 +292,15 @@ class Arithmetic(Syntax):
 
 class ArithmeticEvaluator:
 
-    @staticmethod
+    @ staticmethod
     def f_operator(op):
-        operators = {'+': add, '-': sub, '*': mul, '/': truediv, '^': pow}
+        operators = {'+': add, '-': sub, '*': mul, '/': truediv, '^': pow, 'pow': pow}
         if op in operators.keys():
             return operators[op]
         else:
             raise ValueError(f"Operator {op} not defined")
 
-    @staticmethod
+    @ staticmethod
     def f_operand(op):
         if is_number(op):
             return float(op)
@@ -305,26 +314,26 @@ class Boolean(Syntax):
     be defined as a binary operator (NOT a) = (EMPTY NOT a)
     """
 
-    @staticmethod
+    @ staticmethod
     def is_operator(op):
         return op in [S_AND, S_OR, S_NOT]
 
-    @staticmethod
+    @ staticmethod
     def is_greater_precedence(op1, op2):
         pre = {S_AND: 0, S_OR: 0, S_NOT: 1}
         return pre[op1] >= pre[op2]
 
-    @staticmethod
+    @ staticmethod
     def associativity(op):
         ass = {S_AND: 0, S_OR: 0, S_NOT: 1}
         return ass[op]
 
-    @staticmethod
+    @ staticmethod
     def arity(op):
         ar = {S_AND: 2, S_OR: 2, S_NOT: 1}
         return ar[op]
 
-    @staticmethod
+    @ staticmethod
     def replace():
         r = {'not': [EMPTY_LEAF, S_NOT], 'and': [S_AND],
              'or': [S_OR], '&': [S_AND], '|': [S_OR], '~': [EMPTY_LEAF, S_NOT]}
@@ -411,6 +420,32 @@ class GeneEvaluator:
             return 1
 
 
+def tokenize_function(exp: str):
+    p = 0
+    s = -1
+    tokens = []
+    i = 0
+    while i < len(exp):
+        if exp[i] == '(':
+            s += 1
+            if s == 0:
+                p = i+1
+            if not tokens:
+                tokens = [exp[:i]]
+        elif exp[i] == ')':
+            s -= 1
+            if s == -1:
+                tokens.append(exp[p:i])
+        elif exp[i] == ',' and s == 0:
+            tokens.append(exp[p:i])
+            p = i+1
+        i += 1
+    if not tokens:
+        return [exp]
+    else:
+        return tokens
+
+
 # Tree
 def build_tree(exp, rules):
     """ Builds a parsing syntax tree for basic mathematical expressions
@@ -421,32 +456,55 @@ def build_tree(exp, rules):
     replace_dic = rules.replace()
     exp_ = tokenize_infix_expression(exp)
     exp_list = []
-    for i in exp_:
-        if i.lower() in replace_dic:
-            exp_list.extend(replace_dic[i.lower()])
+    for token in exp_:
+        if token.lower() in replace_dic:
+            exp_list.extend(replace_dic[token.lower()])
         else:
-            exp_list.append(i)
+            exp_list.append(token)
     stack = []
     tree_stack = []
     predecessor = None
-    for i in exp_list:
-        if not (rules.is_operator(i) or i in ['(', ')']):
+    i = 0
+    while i < len(exp_list):
+        token = exp_list[i]
+        if not (rules.is_operator(token) or token in ['(', ')']):
+            if i < len(exp_list)-2 and exp_list[i+1] == '(':
+                s = 1
+                p = i+2
+                while p < len(exp_list) or s > 0:
+                    if exp_list[p] == '(':
+                        s += 1
+                    elif exp_list[p] == ')':
+                        s -= 1
+                    p += 1
+                token = ' '.join(exp_list[i:p])
+                i = p - 1
+
             if predecessor and not (rules.is_operator(predecessor) or predecessor in ['(', ')']):
                 s = tree_stack[-1].value
-                tree_stack[-1].value = s + " " + i
+                tree_stack[-1].value = s + " " + token
             else:
-                t = Node(i)
+                if '(' in token:
+                    f = tokenize_function(token)
+                    if len(f) == 2:
+                        t = Node(f[0], Node(EMPTY_LEAF), build_tree(f[1], rules))
+                    elif len(f) == 3:
+                        t = Node(f[0], build_tree(f[1], rules), build_tree(f[2], rules))
+                    else:
+                        t = Node(token)
+                else:
+                    t = Node(token)
                 tree_stack.append(t)
-        elif rules.is_operator(i):
+        elif rules.is_operator(token):
             if not stack or stack[-1] == '(':
-                stack.append(i)
+                stack.append(token)
 
-            elif rules.is_greater_precedence(i, stack[-1]) and rules.associativity(i) == 1:
-                stack.append(i)
+            elif rules.is_greater_precedence(token, stack[-1]) and rules.associativity(token) == 1:
+                stack.append(token)
 
             else:
-                while stack and stack[-1] != '(' and rules.is_greater_precedence(stack[-1], i) \
-                        and rules.associativity(i) == 0:
+                while stack and stack[-1] != '(' and rules.is_greater_precedence(stack[-1], token) \
+                        and rules.associativity(token) == 0:
                     popped_item = stack.pop()
                     t = Node(popped_item)
                     t1 = tree_stack.pop()
@@ -454,12 +512,12 @@ def build_tree(exp, rules):
                     t.right = t1
                     t.left = t2
                     tree_stack.append(t)
-                stack.append(i)
+                stack.append(token)
 
-        elif i == '(':
+        elif token == '(':
             stack.append('(')
 
-        elif i == ')':
+        elif token == ')':
             while stack[-1] != '(':
                 popped_item = stack.pop()
                 t = Node(popped_item)
@@ -469,7 +527,8 @@ def build_tree(exp, rules):
                 t.left = t2
                 tree_stack.append(t)
             stack.pop()
-        predecessor = i
+        predecessor = token
+        i += 1
 
     while stack:
         popped_item = stack.pop()
