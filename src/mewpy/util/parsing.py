@@ -117,14 +117,26 @@ class Node(object):
     :param right: The right node or None.
     """
 
-    def __init__(self, value, left=None, right=None):
+    def __init__(self, value, left=None, right=None, tp=0):
+        """Binary tree.  Empty leafs with None or 'EMPTY_LEAF' are always left sided.
+
+        Args:
+            value : Node value
+            left (Node, optional): [description]. Defaults to None.
+            right (Node, optional): [description]. Defaults to None.
+            tp (int, optional): 1-Unary function, 2-binary function. Defaults to 0.
+
+        Raises:
+            ValueError
+        """
         if left is not None and not isinstance(left, Node):
-            raise ValueError("Invalid left element")
+            raise ValueError("Invalid right element")
         if right is not None and not isinstance(right, Node):
             raise ValueError("Invalid right element")
         self.value = value
         self.left = left
         self.right = right
+        self.tp = tp
 
     def __repr__(self):
         return self.__str__()
@@ -176,7 +188,7 @@ class Node(object):
             else:
                 return set()
         else:
-            return self.left.get_operands().union(self.right.get_operands())
+            return self.left.get_parameters().union(self.right.get_parameters())
 
     def print_node(self, level=0):
         tabs = ""
@@ -215,7 +227,7 @@ class Node(object):
         ops = self.get_operands()
         return set([i for i in ops if is_condition(i)])
 
-    def replace(self, map: dict):
+    def replace(self, r_map: dict):
         """Apply the mapping replacing to the tree
 
         Args:
@@ -224,11 +236,11 @@ class Node(object):
         Returns:
             Node: new Tree with replace entries
         """
-        v = map[self.value] if self.value in map.keys() else self.value
         if self.is_leaf():
+            v = r_map[self.value] if self.value in r_map.keys() else self.value
             return Node(v, None, None)
         else:
-            return Node(v, self.left.replace(map), self.right.replace(map))
+            return Node(self.value, self.left.replace(r_map), self.right.replace(r_map), self.tp)
 
     def to_infix(self) -> str:
         if self.is_leaf():
@@ -236,8 +248,18 @@ class Node(object):
                 return ''
             else:
                 return str(self.value)
+        elif self.tp == 2:
+            return ''.join([self.value, '( ', self.left.to_infix(), ' , ', self.right.to_infix(), ' )'])
+        elif self.tp == 1:
+            return ''.join([self.value, '( ', self.right.to_infix(), ' )'])
         else:
             return ''.join(['( ', self.left.to_infix(), ' ', self.value, ' ', self.right.to_infix(), ' )'])
+
+    def copy(self):
+        if self.is_leaf():
+            return Node(self.value.copy(), None, None)
+        else:
+            return Node(self.value.copy(), self.left.copy(), self.right.copy(), self.tp)
 
 
 class Syntax:
@@ -471,7 +493,7 @@ def build_tree(exp, rules):
             if i < len(exp_list)-2 and exp_list[i+1] == '(':
                 s = 1
                 p = i+2
-                while p < len(exp_list) or s > 0:
+                while p < len(exp_list) and s > 0:
                     if exp_list[p] == '(':
                         s += 1
                     elif exp_list[p] == ')':
@@ -487,9 +509,9 @@ def build_tree(exp, rules):
                 if '(' in token:
                     f = tokenize_function(token)
                     if len(f) == 2:
-                        t = Node(f[0], Node(EMPTY_LEAF), build_tree(f[1], rules))
+                        t = Node(f[0], Node(EMPTY_LEAF), build_tree(f[1], rules), 1)
                     elif len(f) == 3:
-                        t = Node(f[0], build_tree(f[1], rules), build_tree(f[2], rules))
+                        t = Node(f[0], build_tree(f[1], rules), build_tree(f[2], rules), 2)
                     else:
                         t = Node(token)
                 else:
