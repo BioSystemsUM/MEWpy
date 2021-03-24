@@ -105,7 +105,7 @@ class LinearProblem(LinearProblemInterface):
 
         """
 
-        Linear programing base implementation. A slim model is converted into a linear problem using reframed/mewpy
+        Linear programing base implementation. A mewpy model is converted into a linear problem using reframed/mewpy
         solver interface. Both CPLEX and Gurobi solvers are currently supported. Other solvers may also be supported
         using an additional OptLang solver interface. However, CPLEX and Gurobi are recommended for certain problems.
 
@@ -120,7 +120,7 @@ class LinearProblem(LinearProblemInterface):
         Alternatively, one can impose temporary constraints during problem optimization
         (see the method for further details)
 
-        :param model: a slim Model, MetabolicModel, RegulatoryModel or all. The model is used to retrieve
+        :param model: a mewpy Model, MetabolicModel, RegulatoryModel or all. The model is used to retrieve
         variables and constraints to the linear problem
 
         :param solver: A Solver, CplexSolver, GurobiSolver or OptLangSolver instance.
@@ -163,7 +163,7 @@ class LinearProblem(LinearProblemInterface):
         self._quadratic_objective = {}
         self._minimize = True
 
-        # Observer pattern: a linear problem object is an observer of a slim model.
+        # Observer pattern: a linear problem object is an observer of a mewpy model.
         # When the model is changed, a notification with the change is sent to all observers (linear problems).
         # The linear problem implementation specific for each method processes the notification accordingly.
         # Finally, when the linear problem is updated,
@@ -244,9 +244,9 @@ class LinearProblem(LinearProblemInterface):
 
         """
 
-        slim model of this simulator
+        mewpy model of this simulator
 
-        :return: a slim Model, MetabolicModel, RegulatoryModel or all
+        :return: a mewpy Model, MetabolicModel, RegulatoryModel or all
         """
 
         return self._model
