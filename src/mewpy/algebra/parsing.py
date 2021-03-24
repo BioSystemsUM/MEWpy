@@ -16,7 +16,7 @@ from .constants import (BOOLEAN_STATES,
                         GLOBAL_RELATIONAL_OPERATORS,
                         BOOLEAN_ESCAPE_CHARS,
                         RELATIONAL_ESCAPE_CHARS,
-                        GLOBAL_SLIM_OPERATORS)
+                        GLOBAL_MEWPY_OPERATORS)
 
 _relational_ops = set()
 _relational_ops.update(GLOBAL_RELATIONAL_OPERATORS)
@@ -496,7 +496,7 @@ def evaluate_expression(symbolic_expression, local_dict=None, global_dict=None):
         local_dict = {}
 
     if not global_dict:
-        global_dict = GLOBAL_SLIM_OPERATORS
+        global_dict = GLOBAL_MEWPY_OPERATORS
 
     return eval(symbolic_expression, global_dict, local_dict)
 
