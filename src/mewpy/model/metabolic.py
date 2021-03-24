@@ -6,7 +6,7 @@ from mewpy.util import recorder, serialize, iterable, generator
 
 if TYPE_CHECKING:
     from mewpy.algebra import Expression
-    from mewpy.variables import Gene, Metabolite, Reaction
+    from mewpy.variables import gene, Metabolite, Reaction
 
 
 # TODO: methods stubs
@@ -15,7 +15,7 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
     def __init__(self,
                  identifier: Any,
                  compartments: Dict[str, str] = None,
-                 genes: Dict[str, 'Gene'] = None,
+                 genes: Dict[str, 'gene'] = None,
                  metabolites: Dict[str, 'Metabolite'] = None,
                  objective: Dict['Reaction', Union[float, int]] = None,
                  reactions: Dict[str, 'Reaction'] = None,
@@ -79,7 +79,7 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
 
     @serialize('genes', 'genes')
     @property
-    def genes(self) -> Dict[str, 'Gene']:
+    def genes(self) -> Dict[str, 'gene']:
         return self._genes.copy()
 
     @serialize('metabolites', 'metabolites')
@@ -125,7 +125,7 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
 
     @genes.setter
     @recorder
-    def genes(self, value: Dict[str, 'Gene']):
+    def genes(self, value: Dict[str, 'gene']):
 
         if not value:
             value = {}
@@ -288,7 +288,7 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
 
         return generator(self.exchanges)
 
-    def yield_genes(self) -> Generator['Gene', None, None]:
+    def yield_genes(self) -> Generator['gene', None, None]:
 
         return generator(self._genes)
 
@@ -312,7 +312,7 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
     # Operations/Manipulations
     # -----------------------------------------------------------------------------
 
-    def get(self, identifier: Any, default=None) -> Union['Gene', 'Metabolite', 'Reaction']:
+    def get(self, identifier: Any, default=None) -> Union['gene', 'Metabolite', 'Reaction']:
 
         if identifier in self._metabolites:
             return self._metabolites[identifier]
@@ -327,9 +327,9 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
             return super(MetabolicModel, self).get(identifier=identifier, default=default)
 
     def add(self,
-            variables: Union[List[Union['Gene', 'Metabolite', 'Reaction']],
-                             Tuple[Union['Gene', 'Metabolite', 'Reaction']],
-                             Set[Union['Gene', 'Metabolite', 'Reaction']]],
+            variables: Union[List[Union['gene', 'Metabolite', 'Reaction']],
+                             Tuple[Union['gene', 'Metabolite', 'Reaction']],
+                             Set[Union['gene', 'Metabolite', 'Reaction']]],
             *types: str,
             comprehensive: bool = True,
             history=True):
@@ -417,9 +417,9 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
                                         history=False)
 
     def remove(self,
-               variables: Union[List[Union['Gene', 'Metabolite', 'Reaction']],
-                                Tuple[Union['Gene', 'Metabolite', 'Reaction']],
-                                Set[Union['Gene', 'Metabolite', 'Reaction']]],
+               variables: Union[List[Union['gene', 'Metabolite', 'Reaction']],
+                                Tuple[Union['gene', 'Metabolite', 'Reaction']],
+                                Set[Union['gene', 'Metabolite', 'Reaction']]],
                *types: str,
                remove_orphans: bool = False, history=True):
 
@@ -516,9 +516,9 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
     def update(self,
                compartments: Dict[str, str] = None,
                objective: Dict['Reaction', Union[float, int]] = None,
-               variables: Union[List[Union['Gene', 'Metabolite', 'Reaction']],
-                                Tuple[Union['Gene', 'Metabolite', 'Reaction']],
-                                Set[Union['Gene', 'Metabolite', 'Reaction']]] = None,
+               variables: Union[List[Union['gene', 'Metabolite', 'Reaction']],
+                                Tuple[Union['gene', 'Metabolite', 'Reaction']],
+                                Set[Union['gene', 'Metabolite', 'Reaction']]] = None,
                **kwargs):
 
         if compartments is not None:
