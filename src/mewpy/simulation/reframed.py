@@ -591,8 +591,6 @@ class Simulation(CBModelContainer, Simulator):
         if not objective:
             objective = self.model.get_objective()
 
-        # TODO: the update order here may be changed. I believe that if one wants to pass additional constraints to
-        #  simulate, he/she intends to overwrite the constraints of the simulator, right?
         simul_constraints = OrderedDict()
         if constraints:
             simul_constraints.update(constraints)
