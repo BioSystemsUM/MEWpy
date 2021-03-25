@@ -2,12 +2,12 @@ import math
 from collections import OrderedDict
 import numpy as np
 import pandas as pd
-from .variable import RegulatoryVariable
 from ..problems.problem import AbstractOUProblem
 from ..util.constants import EAConstants
 from ..util.parsing import Boolean, GeneEvaluator, build_tree
 
 
+# TODO: should it be in io?
 def load_optram(gene_filename, tf_filename, matrix_filename, gene_prefix=''):
     """
     Loads a OptRAM regulatory model from csv files:
@@ -33,7 +33,8 @@ def load_optram(gene_filename, tf_filename, matrix_filename, gene_prefix=''):
     return model
 
 
-class RegGene(RegulatoryVariable):
+# TODO: I created RegulatoryVariable, but it was removed with the model integration. See init module of this sub-package
+class RegGene:
     """Genes included in the regulatory model
 
        args:
@@ -44,13 +45,14 @@ class RegGene(RegulatoryVariable):
 
     """
 
-    def __init__(self, name, row, optramid, aliases=None):
-        super().__init__(name=name, aliases=aliases)
+    def __init__(self, name, row, optramid):
+        self.name = name
         self.row = row
         self.optramid = optramid
 
 
-class TF(RegulatoryVariable):
+# TODO: I created RegulatoryVariable, but it was removed with the model integration. See init module of this sub-package
+class TF:
     """Transcription factor
 
     args:
@@ -60,11 +62,14 @@ class TF(RegulatoryVariable):
     """
 
     def __init__(self, name, column, expression=1):
-        super().__init__(name=name)
+        self.name = name
         self.column = column
         self.expression = expression
 
 
+# TODO: I think this can be somehow integrated with the new mewpy models.
+#  OptRAMRegModel can be a subclass of the model. If so, RegGene and TF should also be subclasses of Variable.
+#  I can give it a try if you don't mind, but if it takes too long to implement as such, it doesn't harm either :)
 class OptRAMRegModel:
     def __init__(self, genes, tfs, regnet):
         """
