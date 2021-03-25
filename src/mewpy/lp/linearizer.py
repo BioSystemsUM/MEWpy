@@ -5,11 +5,10 @@ from typing import List, TYPE_CHECKING
 from mewpy.solvers.solver import VarType
 from mewpy.util.constants import ModelConstants
 from mewpy.util.utilities import iterable
-from mewpy.variables.coefficient import bounds_from_symbol, bounds_from_variable
 
 from .linear_problem import LinearProblem
 from .linear_containers import ConstraintContainer, VariableContainer, concat_constraints
-from .linear_utils import integer_coefficients
+from .linear_utils import integer_coefficients, bounds_from_symbol, bounds_from_variable
 from .notification import Notification
 
 if TYPE_CHECKING:

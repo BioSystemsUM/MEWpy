@@ -1,4 +1,54 @@
+from typing import Union, TYPE_CHECKING
+
+from mewpy.algebra import Symbolic
+
+if TYPE_CHECKING:
+    from mewpy.variables import Variable
+
 integer_coefficients = ((0, 0), (1, 1), (0.0, 0.0), (1.0, 1.0), (0, 1), (0.0, 1.0))
+
+
+def bounds_from_symbol(symbol: Union[str, Symbolic],
+                       model=None,
+                       default=None):
+    if default is None:
+        default = (0.0, 1.0)
+
+    if not model:
+        return default
+
+    if isinstance(symbol, Symbolic):
+        symbol = symbol.name
+
+    variable = model.get(symbol, None)
+
+    if variable is None:
+        return default
+
+    return bounds_from_variable(variable=variable, model=model, default=default)
+
+
+def bounds_from_variable(variable: Union[str, 'Variable'],
+                         model=None,
+                         default=None):
+    if default is None:
+        default = (0, 1)
+
+    if isinstance(variable, str):
+
+        if model is None:
+            return default
+
+        variable = model.get(variable, None)
+
+        if variable is None:
+            return default
+
+    if hasattr(variable, 'coefficient'):
+        return variable.coefficient.bounds
+
+    else:
+        return default
 
 
 class Node:

@@ -1,8 +1,8 @@
 import unittest
-import os
 
-MODELS_PATH = os.path.join(os.getcwd(), 'data/')
+MODELS_PATH = 'tests/data/'
 EC_CORE_MODEL = MODELS_PATH + 'e_coli_core.xml.gz'
+EC_CORE_MODEL2 = MODELS_PATH + 'ecoli_core_model.xml'
 MIN_GROWTH = 0.1
 
 
@@ -105,16 +105,16 @@ class TestCobra(TestReframedSimul):
         self.SUCC = 'EX_succ_e'
 
 
-class TestSlim(TestReframedSimul):
-    """Tests Slim Simulator
+class TestMew(TestReframedSimul):
+    """Tests Mew Simulator
     """
 
     def setUp(self):
         """Set up
         Loads a model
         """
-        from slimpy.io import read_sbml
-        model = read_sbml(EC_CORE_MODEL, regulatory=False)
+        from mewpy.io import read_sbml
+        model = read_sbml(EC_CORE_MODEL2, regulatory=False)
         from mewpy.simulation import get_simulator
         self.simul = get_simulator(model)
         k = list(self.simul.objective.keys())
@@ -124,13 +124,13 @@ class TestSlim(TestReframedSimul):
     def test_essential_reactions(self):
         """Tests essential reactions
         """
-        essential = self.simul.essential_reactions
+        essential = self.simul.essential_reactions()
         self.assertGreater(len(essential), 0)
 
     def test_essential_genes(self):
         """Tests essential genes
         """
-        essential = self.simul.essential_genes
+        essential = self.simul.essential_genes()
         self.assertGreater(len(essential), 0)
 
     def test_uptake_reactions(self):
@@ -173,7 +173,7 @@ class TestSlim(TestReframedSimul):
         pass
 
     def test_FVA(self):
-        pass
+        self.simul.FVA(reactions=self.simul.reactions[0:2])
 
     def test_envelope(self):
         pass

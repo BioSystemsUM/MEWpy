@@ -10,7 +10,7 @@ from mewpy.variables import Reaction
 from mewpy.util.constants import ModelConstants
 from mewpy.util.utilities import Dispatcher
 from mewpy.analysis import FBA, pFBA, fva
-from mewpy.solvers.solution import Solution
+from mewpy.solvers.solution import Solution, Status
 
 if TYPE_CHECKING:
     from mewpy.solvers.solver import Solver
@@ -221,12 +221,12 @@ class Simulation(MewModelContainer, Simulator):
         self._m_r_lookup = None
 
         self.__status_mapping = {
-            'optimal': SStatus.OPTIMAL,
-            'unbounded': SStatus.UNBOUNDED,
-            'infeasible': SStatus.INFEASIBLE,
-            'infeasible_or_unbounded': SStatus.INF_OR_UNB,
-            'suboptimal': SStatus.SUBOPTIMAL,
-            'unknown': SStatus.UNKNOWN
+            Status.OPTIMAL: SStatus.OPTIMAL,
+            Status.UNBOUNDED: SStatus.UNBOUNDED,
+            Status.INFEASIBLE: SStatus.INFEASIBLE,
+            Status.INF_OR_UNB: SStatus.INF_OR_UNB,
+            Status.UNKNOWN: SStatus.UNKNOWN,
+            Status.SUBOPTIMAL: SStatus.SUBOPTIMAL
         }
 
         # TODO: Caching linear problems, so that multiple builds of a fba, pfba, etc linear problem can be avoided.
@@ -259,7 +259,6 @@ class Simulation(MewModelContainer, Simulator):
             self._reference = self.simulate(method=SimulationMethod.pFBA).fluxes
         return self._reference
 
-    @property
     def essential_reactions(self) -> List[str]:
 
         """
@@ -295,7 +294,6 @@ class Simulation(MewModelContainer, Simulator):
 
         return self._essential_reactions
 
-    @property
     def essential_genes(self) -> List[str]:
 
         """
@@ -612,7 +610,7 @@ class Simulation(MewModelContainer, Simulator):
 
             self.__pfba.build()
 
-        old_sense = self.__fba.minimize
+        old_sense = self.__pfba.minimize
 
         sol = self.__pfba.optimize(objective=objective,
                                    minimize=minimize,
@@ -682,10 +680,12 @@ class Simulation(MewModelContainer, Simulator):
                                              minimize=not maximize,
                                              constraints=constraints)
 
+        status = self.__status_mapping[solution.status]
+
         return SimulationResult(model=self.model,
                                 objective_value=solution.fobj,
                                 fluxes=solution.values,
-                                status=solution.status,
+                                status=status,
                                 envcond=self.environmental_conditions,
                                 model_constraints=self.constraints,
                                 simul_constraints=constraints,

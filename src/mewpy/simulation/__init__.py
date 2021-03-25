@@ -113,6 +113,8 @@ def get_simulator(model, envcond=None, constraints=None, reference=None, reset_s
     :param model: the model
     :param dict envcond: A dictionary of environmental conditions.
     :param dict constraints: A dictionary of additional persistent constraints.
+    :param dict reference: A dictionary of the wild type flux values
+    :param bool reset_solver: Whether to reset the solver before each simulation
     :returns: An instance of Simulator
     """
 

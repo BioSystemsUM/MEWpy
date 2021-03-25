@@ -68,10 +68,11 @@ class DynamicSolution:
         else:
             _solutions = {}
 
-            time = list(time)
-
-            if not time:
+            if time is None:
                 time = [i for i in range(len(solutions))]
+
+            else:
+                time = list(time)
 
             for t, solution in zip(time, solutions):
                 setattr(self, f't_{t}', solution)
