@@ -129,8 +129,8 @@ class LinearProblem(LinearProblemInterface):
         If none, a new solver is instantiated. An instantiated solver may be used but it will be overwritten
         if build is true.
 
-        :param build: Whether to build the linear problem upon instantiation
-        :param attach: Whether to attach the linear problem to the model upon instantiation
+        :param build: Whether to build the linear problem upon instantiation. Default: False
+        :param attach: Whether to attach the linear problem to the model upon instantiation. Default: False
 
         """
         if not model:

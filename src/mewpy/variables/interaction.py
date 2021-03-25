@@ -1,5 +1,6 @@
 from typing import Any, TYPE_CHECKING, Dict, Union, Generator, Tuple
 
+# TODO: this module depends on pandas dataframes. Should it be set as package requirement?
 try:
     # noinspection PyPackageRequirements
     from pandas import concat, DataFrame
