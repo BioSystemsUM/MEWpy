@@ -1,7 +1,6 @@
 from typing import Union
 
 from mewpy.solvers.solver import Solver
-
 from mewpy.solution import ModelSolution
 from mewpy.model import Model, MetabolicModel, RegulatoryModel
 

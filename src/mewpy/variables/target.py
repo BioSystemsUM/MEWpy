@@ -1,6 +1,8 @@
 from typing import Any, TYPE_CHECKING, Set, Union, Dict, Generator, Tuple, List
 
-from mewpy.util import recorder, serialize, generator
+from mewpy.util.utilities import generator
+from mewpy.util.serilization import serialize
+from mewpy.util.history import recorder
 from .coefficient import Coefficient
 from .variable import Variable
 

@@ -1,16 +1,12 @@
 from typing import Any, Dict, Union, TYPE_CHECKING, Tuple, Generator, List
 
-from mewpy.algebra import Expression
+from mewpy.algebra import Expression, parse_expression
 from mewpy.lp import Notification
-from mewpy.util import (SLIM_LB,
-                        SLIM_UB,
-                        SLIM_TOL,
-                        recorder,
-                        expression_warning,
-                        serialize,
-                        parse_expression,
-                        generator)
-
+from mewpy.util.utilities import generator
+from mewpy.util.serilization import serialize
+from mewpy.util.history import recorder
+from mewpy.util.constants import ModelConstants
+from mewpy.io.engines.engines_utils import expression_warning
 from .coefficient import Coefficient
 from .variable import Variable, variables_from_symbolic
 
@@ -54,7 +50,7 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
 
         # the coefficient bounds initializer sets minimum and maximum bounds of MEWPY_LB and MEWPY_UB
         if not bounds:
-            lb, ub = SLIM_LB, SLIM_UB
+            lb, ub = ModelConstants.REACTION_LOWER_BOUND, ModelConstants.REACTION_UPPER_BOUND
 
         else:
             lb, ub = bounds
@@ -180,7 +176,7 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     @serialize('reversibility', None)
     @property
     def reversibility(self) -> bool:
-        return self.lower_bound < -SLIM_TOL and self.upper_bound > SLIM_TOL
+        return self.lower_bound < - ModelConstants.TOLERANCE and self.upper_bound > ModelConstants.TOLERANCE
 
     @serialize('equation', None)
     @property
@@ -251,7 +247,7 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     def bounds(self, value: Tuple[Union[float, int], Union[float, int]]):
 
         if not value:
-            value = (SLIM_LB, SLIM_UB)
+            value = (ModelConstants.REACTION_LOWER_BOUND, ModelConstants.REACTION_UPPER_BOUND)
 
         self.coefficient.coefficients = value
 
@@ -260,7 +256,7 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     def lower_bound(self, value: Union[float, int]):
 
         if not value:
-            value = SLIM_LB
+            value = ModelConstants.REACTION_LOWER_BOUND
 
         value = (value,  self.upper_bound)
 
@@ -271,7 +267,7 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     def upper_bound(self, value: Union[float, int]):
 
         if not value:
-            value = SLIM_UB
+            value = ModelConstants.REACTION_UPPER_BOUND
 
         value = (self.lower_bound, value)
 

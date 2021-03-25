@@ -5,7 +5,7 @@ from typing import Type, Union, TYPE_CHECKING
 # noinspection PyPackageRequirements
 from pandas import Series, DataFrame, concat
 
-from mewpy.util import SLIM_TOL
+from mewpy.util.constants import ModelConstants
 from mewpy.solution.solution import ModelSolutionInterface
 
 if TYPE_CHECKING:
@@ -53,7 +53,7 @@ class ModelSolution(ModelSolutionInterface, PolymorphicSolution):
                  shadow_prices=None,
                  model=None,
                  simulator=None,
-                 tol=SLIM_TOL):
+                 tol=ModelConstants.TOLERANCE):
 
         if not method:
             method = 'fba'
@@ -85,7 +85,7 @@ class ModelSolution(ModelSolutionInterface, PolymorphicSolution):
         self._shadow_prices = shadow_prices
         self._model = model
         self._simulator = simulator
-        self.tol = SLIM_TOL
+        self.tol = tol
 
     @staticmethod
     def _filter_mid_term_variables(x, model):

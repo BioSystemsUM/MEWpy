@@ -1,14 +1,14 @@
 from collections import defaultdict
 from typing import Union, TYPE_CHECKING, Tuple
 
-from slimpy.core import Model
-from slimpy.io.engines import JSON
+from mewpy.model import Model
+from .engines import JSON
 
 if TYPE_CHECKING:
-    from slimpy.core import Model, MetabolicModel, RegulatoryModel
-    from slimpy.io.builder import Builder
-    from slimpy.io.reader import Reader
-    from slimpy.io.writer import Writer
+    from mewpy.model import Model, MetabolicModel, RegulatoryModel
+    from .builder import Builder
+    from .reader import Reader
+    from .writer import Writer
 
 
 class Director:

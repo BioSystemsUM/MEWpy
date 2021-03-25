@@ -1,6 +1,6 @@
 import abc
 
-from mewpy.util.miscellaneous import solution_decode
+from .algebra_utils import solution_decode
 
 
 def _walk(symbolic, reverse=False):

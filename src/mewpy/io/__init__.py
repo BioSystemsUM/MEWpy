@@ -1,6 +1,6 @@
 from typing import Union, TYPE_CHECKING
 
-from ..simulation import get_container, get_simulator
+from mewpy.simulation import get_container, get_simulator
 
 from .director import Director
 from .reader import Reader
@@ -15,7 +15,6 @@ from .engines import (Engines,
                       JSON,
                       RegulatorySBML,
                       MetabolicSBML)
-
 from .engines.csv import read_gene_expression_dataset, read_coregflux_influence_matrix
 
 if TYPE_CHECKING:

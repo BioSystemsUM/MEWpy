@@ -3,7 +3,8 @@ from functools import partial
 from typing import List, TYPE_CHECKING
 
 from mewpy.solvers.solver import VarType
-from mewpy.util import SLIM_TOL, SLIM_LB, SLIM_UB, iterable
+from mewpy.util.constants import ModelConstants
+from mewpy.util.utilities import iterable
 from mewpy.variables.coefficient import bounds_from_symbol, bounds_from_variable
 
 from .linear_problem import LinearProblem
@@ -14,6 +15,11 @@ from .notification import Notification
 if TYPE_CHECKING:
     from mewpy.algebra import Symbolic
     from mewpy.variables import Reaction, Metabolite
+
+
+MEWPY_LB = ModelConstants.REACTION_LOWER_BOUND
+MEWPY_UB = ModelConstants.REACTION_UPPER_BOUND
+MEWPY_TOL = ModelConstants.TOLERANCE
 
 
 # TODO: missing documentation and typing
@@ -337,7 +343,7 @@ class LogicLinearizer(LinearProblem):
             operand = op_l
             c_val = float(op_r.value)
 
-        _lb, _ub = bounds_from_symbol(symbol=operand, model=self.model, default=(SLIM_LB, SLIM_UB))
+        _lb, _ub = bounds_from_symbol(symbol=operand, model=self.model, default=(MEWPY_LB, MEWPY_UB))
 
         _lb = float(_lb)
         _ub = float(_ub)
@@ -345,12 +351,12 @@ class LogicLinearizer(LinearProblem):
         # -inf;comparison_val
         # add Greater row (a(r_LB - value - tolerance) + r > r_LB) and set mip bounds to lb;inf
         _coefs = [
-            {greater_op: c_val + SLIM_TOL - _ub, operand.key(): 1.0},
-            {greater_op: _lb - c_val - SLIM_TOL, operand.key(): 1.0}
+            {greater_op: c_val + MEWPY_TOL - _ub, operand.key(): 1.0},
+            {greater_op: _lb - c_val - MEWPY_TOL, operand.key(): 1.0}
         ]
 
-        _lbs = [SLIM_LB, _lb]
-        _ubs = [c_val + SLIM_TOL, SLIM_UB]
+        _lbs = [MEWPY_LB, _lb]
+        _ubs = [c_val + MEWPY_TOL, MEWPY_UB]
 
         return ConstraintContainer(name=None, coefs=_coefs, lbs=_lbs, ubs=_ubs)
 
@@ -383,18 +389,18 @@ class LogicLinearizer(LinearProblem):
             operand = op_l
             c_val = float(op_r.value)
 
-        _lb, _ub = bounds_from_symbol(symbol=operand, model=self.model, default=(SLIM_LB, SLIM_UB))
+        _lb, _ub = bounds_from_symbol(symbol=operand, model=self.model, default=(MEWPY_LB, MEWPY_UB))
         _lb = float(_lb)
         _ub = float(_ub)
         # add Less row (a(value + tolerance - r_LB) + r > value + tolerance) and set mip bounds to
         # -inf;-comparison_val
         # add Less row (a(r_UB - value - tolerance) + r < r_UB) and set mip bounds to lb;inf
         _coefs = [
-            {less_op: c_val + SLIM_TOL - _lb, operand.key(): 1.0},
-            {less_op: _ub - c_val - SLIM_TOL, operand.key(): 1.0}
+            {less_op: c_val + MEWPY_TOL - _lb, operand.key(): 1.0},
+            {less_op: _ub - c_val - MEWPY_TOL, operand.key(): 1.0}
         ]
-        _lbs = [c_val + SLIM_TOL, SLIM_LB]
-        _ubs = [SLIM_UB, _ub]
+        _lbs = [c_val + MEWPY_TOL, MEWPY_LB]
+        _ubs = [MEWPY_UB, _ub]
 
         return ConstraintContainer(name=None, coefs=_coefs, lbs=_lbs, ubs=_ubs)
 
@@ -734,13 +740,13 @@ class GPRLinearizer(LogicLinearizer):
 
         variables.append(boolean_variable_linear_variable)
 
-        lb, ub = bounds_from_variable(reaction, model=self.model, default=(SLIM_LB, SLIM_UB))
+        lb, ub = bounds_from_variable(reaction, model=self.model, default=(MEWPY_LB, MEWPY_UB))
 
         coefs = [{reaction: 1.0, boolean_variable: -float(ub)},
                  {reaction: 1.0, boolean_variable: -float(lb)}]
 
-        lbs = [SLIM_LB - float(ub), 0.0]
-        ubs = [0.0, SLIM_UB - float(lb)]
+        lbs = [MEWPY_LB - float(ub), 0.0]
+        ubs = [0.0, MEWPY_UB - float(lb)]
 
         cnt = ConstraintContainer(name=None,
                                   coefs=coefs,

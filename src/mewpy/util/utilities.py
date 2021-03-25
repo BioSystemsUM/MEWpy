@@ -1,6 +1,8 @@
 import functools
+import re
 import types
 import time
+from collections import Iterable
 
 
 class TimerError(Exception):
@@ -99,4 +101,22 @@ class Dispatcher:
 
         return wrapper
 
+
+def iterable(obj, is_string=False):
+    if isinstance(obj, Iterable):
+
+        if is_string and isinstance(obj, str):
+            return (obj,)
+
+        return obj
+
+    return (obj,)
+
+
+def generator(container):
+    return (value for value in container.values())
+
+
+# Taken from the talented team responsible for developing cobrapy!!!!
+chemical_formula_re = re.compile('([A-Z][a-z]?)([0-9.]+[0-9.]?|(?=[A-Z])?)')
 

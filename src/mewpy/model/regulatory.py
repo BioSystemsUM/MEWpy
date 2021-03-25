@@ -2,7 +2,9 @@ from typing import Any, TYPE_CHECKING, Union, Generator, Dict, List, Tuple, Set
 
 from mewpy.model.model import Model
 from mewpy.lp import Notification
-from mewpy.util import recorder, serialize, iterable, generator
+from mewpy.util.history import recorder
+from mewpy.util.serilization import serialize
+from mewpy.util.utilities import iterable, generator
 
 if TYPE_CHECKING:
     from mewpy.variables import Interaction, Regulator, Target, Metabolite, Reaction

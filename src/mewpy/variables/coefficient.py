@@ -1,6 +1,7 @@
 from typing import Union, List, Tuple, TYPE_CHECKING, Set
 
-from mewpy.util import SLIM_LB, SLIM_UB, SLIM_TOL, recorder
+from mewpy.util.history import recorder
+from mewpy.util.constants import ModelConstants
 from mewpy.algebra import Symbolic
 from mewpy.lp import Notification
 
@@ -83,10 +84,10 @@ class Coefficient:
         # useful for reactions
 
         if lb is None:
-            lb = SLIM_LB
+            lb = ModelConstants.REACTION_LOWER_BOUND
 
         if ub is None:
-            ub = SLIM_UB
+            ub = ModelConstants.REACTION_UPPER_BOUND
 
         return cls(variable=variable,
                    coefficients=(lb, ub))
@@ -106,7 +107,7 @@ class Coefficient:
 
     @property
     def is_active(self) -> bool:
-        return self.active_coefficient > SLIM_TOL
+        return self.active_coefficient > ModelConstants.TOLERANCE
 
     @property
     def minimum_coefficient(self) -> Union[int, float]:

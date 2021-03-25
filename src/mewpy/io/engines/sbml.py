@@ -6,19 +6,27 @@ from typing import Union, TYPE_CHECKING
 from mewpy.algebra import Expression, Symbol, Or, And, NoneAtom, Float
 from mewpy.model import RegulatoryModel, MetabolicModel
 from mewpy.io.dto import DataTransferObject, VariableRecord, History, FunctionTerm, CompartmentRecord
-from mewpy.util import SLIM_UB, SLIM_LB
+from mewpy.util.constants import ModelConstants
+
 from .engine import Engine
-from .utils import (build_symbolic, get_sbml_doc_to_read, ASTNODE_BOOLEAN_VALUES,
-                    ASTNODE_RELATIONAL_OPERATORS, ASTNODE_NAME, ASTNODE_BOOLEAN_OPERATORS,
-                    pattern_notes, f_id, F_GENE, F_SPECIE, F_REACTION, convert_fbc, get_sbml_doc_to_write, UNIT_ID,
-                    UNITS, add_sbml_parameter, LOWER_BOUND_ID, SBO_DEFAULT_FLUX_BOUND, UPPER_BOUND_ID,
-                    ZERO_BOUND_ID, BOUND_MINUS_INF, BOUND_PLUS_INF, get_sbml_lb_id, get_sbml_ub_id, set_gpr,
-                    write_sbml_doc, F_SPECIE_REV, F_GENE_REV, F_REACTION_REV, SBO_FLUX_BOUND,
-                    F_TRANSITION, fs_id, F_TRANSITION_REV, ASTNODE_VALUES, set_math,
-                    expression_warning, sbml_warning)
+from .engines_utils import (build_symbolic,
+                            ASTNODE_BOOLEAN_VALUES, ASTNODE_RELATIONAL_OPERATORS,
+                            ASTNODE_NAME, ASTNODE_BOOLEAN_OPERATORS, ASTNODE_VALUES,
+                            pattern_notes,
+                            f_id, fs_id,
+                            F_GENE, F_SPECIE, F_REACTION, F_SPECIE_REV, F_GENE_REV, F_REACTION_REV, F_TRANSITION,
+                            F_TRANSITION_REV,
+                            convert_fbc, get_sbml_doc_to_write, get_sbml_doc_to_read,
+                            UNIT_ID, UNITS,
+                            add_sbml_parameter, LOWER_BOUND_ID, UPPER_BOUND_ID, ZERO_BOUND_ID,
+                            BOUND_MINUS_INF, BOUND_PLUS_INF,
+                            SBO_DEFAULT_FLUX_BOUND, SBO_FLUX_BOUND,
+                            get_sbml_lb_id, get_sbml_ub_id, write_sbml_doc,
+                            set_math, set_gpr,
+                            expression_warning, sbml_warning)
 
 if TYPE_CHECKING:
-    from mewpy.model import RegulatoryModel, Model, MetabolicModel
+    from mewpy.model import Model, MetabolicModel, RegulatoryModel
 
 
 class RegulatorySBML(Engine):
@@ -66,7 +74,10 @@ class RegulatorySBML(Engine):
                 if 'state' in st.lower():
                     st = int(st.lower().replace('state', '').strip())
 
-                level = level.replace('+inf', f'{SLIM_UB}').replace('-inf', f'{SLIM_LB}')
+                lb = ModelConstants.REACTION_LOWER_BOUND
+                ub = ModelConstants.REACTION_UPPER_BOUND
+
+                level = level.replace('+inf', f'{ub}').replace('-inf', f'{lb}')
 
                 min_coef, max_coef = level.split(',')
 
@@ -1335,7 +1346,7 @@ class MetabolicSBML(Engine):
 
             if rxn_fbc:
 
-                rxn_bounds = [SLIM_LB, SLIM_UB]
+                rxn_bounds = [ModelConstants.REACTION_LOWER_BOUND, ModelConstants.REACTION_UPPER_BOUND]
 
                 # bounds in fbc parameters section
                 bounds_ids = (rxn_fbc.getLowerFluxBound(), rxn_fbc.getUpperFluxBound())
@@ -1376,7 +1387,7 @@ class MetabolicSBML(Engine):
                 # bounds encoded in the kinetic law. Not advised
                 kinetic_law = reaction.getKineticLaw()
 
-                rxn_bounds = [SLIM_LB, SLIM_UB]
+                rxn_bounds = [ModelConstants.REACTION_LOWER_BOUND, ModelConstants.REACTION_UPPER_BOUND]
 
                 # parameters of the kinetic law
                 kinetic_parameters = ('LOWER_BOUND', 'UPPER_BOUND')
@@ -1404,7 +1415,7 @@ class MetabolicSBML(Engine):
                                              f"Bounds have not been detected. Bounds have been set to default. Try to "
                                              f"set all bounds explicitly on all reactions using the fbc plugin"))
 
-                rxn_bounds = [SLIM_LB, SLIM_UB]
+                rxn_bounds = [ModelConstants.REACTION_LOWER_BOUND, ModelConstants.REACTION_UPPER_BOUND]
 
             # ------------------------------------------------
             # Reaction stoichiometry and metabolites
@@ -1555,7 +1566,8 @@ class MetabolicSBML(Engine):
 
             reaction_record = VariableRecord(id=f'EX_{extracellular_met.id}',
                                              name=f'EX_{extracellular_met.id}',
-                                             bounds=(SLIM_LB, SLIM_UB),
+                                             bounds=(ModelConstants.REACTION_LOWER_BOUND,
+                                                     ModelConstants.REACTION_UPPER_BOUND),
                                              metabolites={extracellular_met.id: extracellular_met},
                                              reactants={extracellular_met.id: extracellular_met},
                                              stoichiometry={extracellular_met.id: -1})
@@ -1773,13 +1785,13 @@ class MetabolicSBML(Engine):
         # -----------------------------------------------------------------------------
         add_sbml_parameter(sbml_model=self.dto.model,
                            parameter_id=LOWER_BOUND_ID,
-                           value=SLIM_LB,
+                           value=ModelConstants.REACTION_LOWER_BOUND,
                            constant=True,
                            sbo=SBO_DEFAULT_FLUX_BOUND)
 
         add_sbml_parameter(sbml_model=self.dto.model,
                            parameter_id=UPPER_BOUND_ID,
-                           value=SLIM_UB,
+                           value=ModelConstants.REACTION_UPPER_BOUND,
                            constant=True,
                            sbo=SBO_DEFAULT_FLUX_BOUND)
 

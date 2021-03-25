@@ -1,9 +1,10 @@
 from re import findall
 from typing import Any, Dict, Generator, Union, TYPE_CHECKING
 
-from mewpy.util import recorder, serialize, generator
+from mewpy.util.utilities import generator, chemical_formula_re
+from mewpy.util.serilization import serialize
+from mewpy.util.history import recorder
 from mewpy.util.constants import atomic_weights
-from mewpy.util.parsing import chemical_formula_re
 from .variable import Variable
 
 if TYPE_CHECKING:

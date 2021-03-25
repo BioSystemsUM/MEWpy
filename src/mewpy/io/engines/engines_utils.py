@@ -7,9 +7,9 @@ from typing import Tuple
 
 import libsbml
 
-from mewpy.util import SLIM_LB, SLIM_UB, parse_expression
+from mewpy.util.constants import ModelConstants
 from mewpy.algebra import (And, Or, Not, Less, Greater, LessEqual, GreaterEqual, BoolFalse, BoolTrue,
-                            NoneAtom, Symbolic, Equal)
+                           NoneAtom, Symbolic, Equal, parse_expression)
 
 
 def build_symbolic(expression) -> Tuple[Symbolic, str]:
@@ -285,7 +285,7 @@ def add_sbml_parameter(sbml_model, parameter_id, value, constant=True, sbo=None,
 def get_sbml_lb_id(sbml_model, reaction, unit_definition=None):
     value = reaction.lower_bound
 
-    if value == SLIM_LB:
+    if value == ModelConstants.REACTION_LOWER_BOUND:
         return LOWER_BOUND_ID
 
     elif value == 0:
@@ -302,7 +302,7 @@ def get_sbml_lb_id(sbml_model, reaction, unit_definition=None):
 def get_sbml_ub_id(sbml_model, reaction, unit_definition=None):
     value = reaction.upper_bound
 
-    if value == SLIM_UB:
+    if value == ModelConstants.REACTION_UPPER_BOUND:
         return UPPER_BOUND_ID
 
     elif value == 0:
@@ -336,7 +336,6 @@ def set_gpr(engine, warning, reaction, sbml_rxn_fbc):
 
 
 def set_math(identifier, expression, function_term):
-
     math = libsbml.parseL3Formula(expression)
 
     op = function_term.setMath(math)
@@ -367,6 +366,7 @@ def write_sbml_doc(io, doc):
     elif hasattr(io, 'write'):
         sbml = libsbml.writeSBMLToString(doc)
         io.write(sbml)
+
 
 # -----------------------------------------------------------------------------
 # Warning stuff

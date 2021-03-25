@@ -1,7 +1,7 @@
 from typing import Type, Union, TYPE_CHECKING
 
-from mewpy.io.builder import Builder
-from mewpy.io.engines import Engines
+from .builder import Builder
+from .engines import Engines
 
 if TYPE_CHECKING:
 

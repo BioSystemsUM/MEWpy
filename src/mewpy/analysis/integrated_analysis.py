@@ -4,11 +4,11 @@ from typing import Union, TYPE_CHECKING, List, Dict, Tuple
 # TODO: this module depends on pandas dataframes. Should it be set as package requirement?
 from pandas import DataFrame
 
+from mewpy.util.constants import ModelConstants
+from mewpy.variables import Regulator, Reaction, Gene
 from .rfba import RFBA
 from .srfba import SRFBA
 from .analysis_utils import decode_solver_solution
-from mewpy.util import SLIM_UB
-from mewpy.variables import Regulator, Reaction, Gene
 
 if TYPE_CHECKING:
     from mewpy.model import Model, MetabolicModel, RegulatoryModel
@@ -145,7 +145,7 @@ def _inputs_processing(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'
             if sol is None:
                 sol = 0.0
 
-            constraints[obj_rxn] = (fraction * sol, SLIM_UB)
+            constraints[obj_rxn] = (fraction * sol, ModelConstants.REACTION_UPPER_BOUND)
 
     if not reactions:
         reactions = model.reactions.keys()

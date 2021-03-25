@@ -3,20 +3,19 @@ from io import StringIO
 from token import NAME, OP, NUMBER
 from tokenize import generate_tokens, untokenize
 
-from mewpy.algebra.symbolic import NoneAtom, Symbolic
-
-from .constants import (BOOLEAN_STATES,
-                        BOOLEAN_OPERATORS,
-                        TRUE,
-                        FALSE,
-                        RELATIONAL_STATES,
-                        RELATIONAL_OPERATORS,
-                        RELATIONAL_EQUAL_OPERATORS,
-                        GLOBAL_RELATIONAL_EQUAL_OPERATORS,
-                        GLOBAL_RELATIONAL_OPERATORS,
-                        BOOLEAN_ESCAPE_CHARS,
-                        RELATIONAL_ESCAPE_CHARS,
-                        GLOBAL_MEWPY_OPERATORS)
+from .symbolic import NoneAtom, Symbolic
+from .algebra_constants import (BOOLEAN_STATES,
+                                BOOLEAN_OPERATORS,
+                                TRUE,
+                                FALSE,
+                                RELATIONAL_STATES,
+                                RELATIONAL_OPERATORS,
+                                RELATIONAL_EQUAL_OPERATORS,
+                                GLOBAL_RELATIONAL_EQUAL_OPERATORS,
+                                GLOBAL_RELATIONAL_OPERATORS,
+                                BOOLEAN_ESCAPE_CHARS,
+                                RELATIONAL_ESCAPE_CHARS,
+                                GLOBAL_MEWPY_OPERATORS)
 
 _relational_ops = set()
 _relational_ops.update(GLOBAL_RELATIONAL_OPERATORS)

@@ -4,10 +4,10 @@ from warnings import warn
 # TODO: this module depends on pandas dataframes. Should it be set as package requirement?
 from pandas import DataFrame, concat
 
-from mewpy.algebra import Symbolic
 from .milp_bool import milpBool
 from .sim_bool import SimBool
 from .analysis_utils import decode_solver_solution
+from mewpy.algebra import Symbolic
 from mewpy.variables import Regulator
 
 if TYPE_CHECKING:

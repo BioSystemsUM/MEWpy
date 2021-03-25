@@ -5,9 +5,9 @@ from typing import Dict, Union, TYPE_CHECKING, Callable
 # noinspection PyPackageRequirements
 from pandas import DataFrame
 
-from mewpy.util.miscellaneous import solution_decode
-from mewpy.algebra.parsing import tokenize
-from mewpy.algebra.symbolic import _walk, NoneAtom, Symbolic
+from .algebra_utils import solution_decode
+from .parsing import tokenize
+from .symbolic import _walk, NoneAtom, Symbolic
 
 if TYPE_CHECKING:
     from mewpy.variables import Gene, Metabolite, Reaction, Regulator

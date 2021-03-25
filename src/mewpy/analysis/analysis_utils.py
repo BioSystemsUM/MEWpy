@@ -1,6 +1,5 @@
 from mewpy.solvers.solution import Status
-
-from mewpy.util import SLIM_LB, SLIM_UB
+from mewpy.util.constants import ModelConstants
 
 
 def decode_solver_solution(solution, minimize=True, status=False):
@@ -14,11 +13,11 @@ def decode_solver_solution(solution, minimize=True, status=False):
 
         if minimize:
 
-            sol_f_obj = SLIM_LB
+            sol_f_obj = ModelConstants.REACTION_LOWER_BOUND
 
         else:
 
-            sol_f_obj = SLIM_UB
+            sol_f_obj = ModelConstants.REACTION_UPPER_BOUND
 
     else:
         sol_f_obj = None

@@ -18,12 +18,12 @@ except ImportError:
 
     Reframed_Model = str
 
-from slimpy.algebra import Symbolic, NoneAtom
-from slimpy.variables import Variable
+from mewpy.algebra import Symbolic, NoneAtom
+from mewpy.variables import Variable
 
 if TYPE_CHECKING:
-    from slimpy.variables import Gene, Interaction, Metabolite, Reaction, Regulator, Target
-    from slimpy.core import Model, MetabolicModel, RegulatoryModel
+    from mewpy.variables import Gene, Interaction, Metabolite, Reaction, Regulator, Target
+    from mewpy.model import Model, MetabolicModel, RegulatoryModel
 
 
 @dataclass

@@ -17,7 +17,7 @@ from mewpy.algebra import Expression, And, Symbol, NoneAtom
 from mewpy.io.dto import VariableRecord, DataTransferObject, FunctionTerm
 
 from .engine import Engine
-from .utils import build_symbolic, expression_warning, csv_warning
+from .engines_utils import build_symbolic, expression_warning, csv_warning
 
 if TYPE_CHECKING:
     from mewpy.model import RegulatoryModel, Model, MetabolicModel

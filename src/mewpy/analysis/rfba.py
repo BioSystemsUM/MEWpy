@@ -2,9 +2,8 @@ from typing import Union
 from warnings import warn
 
 from mewpy.solvers.solver import Solver
-
 from mewpy.model import Model, MetabolicModel, RegulatoryModel
-from mewpy.util import SLIM_TOL
+from mewpy.util.constants import ModelConstants
 from mewpy.lp import MetabolicLinearizer
 from mewpy.solution import ModelSolution, DynamicSolution
 
@@ -396,12 +395,12 @@ class RFBA(MetabolicLinearizer):
 
                     if key in self._regulatory_reactions or key in self._regulatory_metabolites:
 
-                        if abs(val) > SLIM_TOL:
+                        if abs(val) > ModelConstants.TOLERANCE:
                             val = True
                         else:
                             val = False
 
-                        if abs(sol_val) > SLIM_TOL:
+                        if abs(sol_val) > ModelConstants.TOLERANCE:
                             sol_val = True
                         else:
                             sol_val = False

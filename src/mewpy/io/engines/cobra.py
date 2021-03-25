@@ -6,7 +6,7 @@ from mewpy.io.dto import VariableRecord, DataTransferObject, CompartmentRecord, 
 from mewpy.algebra import Expression, NoneAtom
 
 from .engine import Engine
-from .utils import build_symbolic, expression_warning, cobra_warning
+from .engines_utils import build_symbolic, expression_warning, cobra_warning
 
 if TYPE_CHECKING:
     from mewpy.model import RegulatoryModel, Model, MetabolicModel

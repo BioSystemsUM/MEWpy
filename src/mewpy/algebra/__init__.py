@@ -1,5 +1,7 @@
 from .expression import Expression
 from .symbolic import *
+from .parsing import parse_expression
+from .algebra_utils import solution_decode
 
 # TODO: I have implemented an algebra sub-package that allows smooth modeling operations with variables
 #  and algebra expressions of any kind. It is similar to sympy expression handling. It is also similar to

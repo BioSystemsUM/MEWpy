@@ -1,12 +1,13 @@
 from typing import Any, Union, Type, TYPE_CHECKING, List, Set, Dict
 
-from mewpy.util import HistoryManager, recorder, serialize, Serializer
+from mewpy.util.history import HistoryManager, recorder
+from mewpy.util.serilization import serialize, Serializer
 from mewpy.lp import Notification
 
 # Preventing circular dependencies that only happen due to type checking
 if TYPE_CHECKING:
     from mewpy.model import MetabolicModel, RegulatoryModel
-    from mewpy.variables import gene, Interaction, Metabolite, Reaction, Regulator, Target
+    from mewpy.variables import Gene, Interaction, Metabolite, Reaction, Regulator, Target
     from mewpy.lp import LinearProblem
 
 
@@ -362,7 +363,7 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
 
         return self.__deepcopy__()
 
-    def get(self, identifier: Any, default=None) -> Union['gene',
+    def get(self, identifier: Any, default=None) -> Union['Gene',
                                                           'Interaction',
                                                           'Metabolite',
                                                           'Reaction',
@@ -501,7 +502,7 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
                        identifier: Any,
                        name: str = None,
                        compartments: Dict[str, str] = None,
-                       genes: Dict[str, 'gene'] = None,
+                       genes: Dict[str, 'Gene'] = None,
                        metabolites: Dict[str, 'Metabolite'] = None,
                        objective: Dict['Reaction', Union[float, int]] = None,
                        reactions: Dict[str, 'Reaction'] = None) -> 'MetabolicModel':
