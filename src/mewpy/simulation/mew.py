@@ -1,37 +1,37 @@
-import logging
 from typing import Union, Dict, Tuple, List, TYPE_CHECKING
 
+import logging
 import numpy as np
-from slimpy.core import Model, MetabolicModel, RegulatoryModel
-from slimpy.variables import Reaction
 
-from scr.slimpy.analysis import FBA
-from scr.slimpy.solution import ModelSolution
 from . import SimulationMethod, SStatus
 from .simulation import Simulator, SimulationResult, ModelContainer
-from ..util.constants import ModelConstants
-from ..util.utilities import Dispatcher
+from mewpy.model import Model, MetabolicModel, RegulatoryModel
+from mewpy.variables import Reaction
+from mewpy.util.constants import ModelConstants
+from mewpy.util.utilities import Dispatcher
+from mewpy.analysis import FBA, pFBA, fva
+from mewpy.solvers.solution import Solution
 
 if TYPE_CHECKING:
-    from ..solvers.solver import Solver
-    from ..solvers import CplexSolver, GurobiSolver, OptLangSolver
+    from mewpy.solvers.solver import Solver
+    from mewpy.solvers import CplexSolver, GurobiSolver, OptLangSolver
 
 LOGGER = logging.getLogger(__name__)
 
 
-class SlimModelContainer(ModelContainer):
+class MewModelContainer(ModelContainer):
 
     def __init__(self, model: Union[Model, MetabolicModel, RegulatoryModel]):
 
         """
-        A slim model container. It provides an interface to access slim model containers
+        A mew model container. It provides an interface to access mew model containers
 
         :type model: Union[Model, MetabolicModel, RegulatoryModel]
-        :param model: A slim Model, MetabolicModel, RegulatoryModel or all together
+        :param model: A mew Model, MetabolicModel, RegulatoryModel or all together
         """
 
         if not isinstance(model, (Model, MetabolicModel, RegulatoryModel)):
-            raise ValueError("The model is not an instance of slim.core.Model")
+            raise ValueError("The model is not an instance of mew.model.Model")
 
         self.model = model
 
@@ -67,6 +67,11 @@ class SlimModelContainer(ModelContainer):
     def proteins(self):
         return []
 
+    @property
+    def medium(self):
+        return {rxn.id: rxn.lower_bound for rxn in self.model.yield_exchanges()
+                if rxn.lower_bound < ModelConstants.TOLERANCE}
+
     # -----------------------------------------------------------------------------
     # Metabolic dynamic attributes
     # -----------------------------------------------------------------------------
@@ -88,12 +93,14 @@ class SlimModelContainer(ModelContainer):
 
     def get_gpr(self, reaction_id):
 
-        reaction = self.model.get(reaction_id)
+        if self.model.is_metabolic():
 
-        if reaction:
+            reaction = self.model.get(reaction_id)
 
-            if not reaction.gpr.is_none:
-                return reaction.gpr.to_string()
+            if reaction:
+
+                if not reaction.gpr.is_none:
+                    return reaction.gpr.to_string()
 
         return
 
@@ -103,7 +110,8 @@ class SlimModelContainer(ModelContainer):
 
     def set_objective(self, reaction):
 
-        self.model.objective = reaction
+        if self.model.is_metabolic():
+            self.model.objective = reaction
 
     # -----------------------------------------------------------------------------
     # Regulatory static attributes
@@ -157,7 +165,7 @@ class SlimModelContainer(ModelContainer):
             print(f"Targets: {len(self.targets)}")
 
 
-class Simulation(SlimModelContainer, Simulator):
+class Simulation(MewModelContainer, Simulator):
     dispatcher = Dispatcher()
 
     def __init__(self,
@@ -169,7 +177,7 @@ class Simulation(SlimModelContainer, Simulator):
                  reset_solver=ModelConstants.RESET_SOLVER):
 
         """
-        Simulation supports simulation of a slim Model, MetabolicModel, RegulatoryModel or all.
+        Simulation supports simulation of a mew Model, MetabolicModel, RegulatoryModel or all.
         Additional environmental conditions and constraints can be set using this interface.
         The objective function can be altered too.
         A reference wild type reaction flux values can be provided for convenience.
@@ -177,7 +185,7 @@ class Simulation(SlimModelContainer, Simulator):
         Simulation offers several methods to retrieve additional information from the model.
 
         :type model: Union[Model, MetabolicModel, RegulatoryModel]
-        :param model: A slim Model, MetabolicModel, RegulatoryModel or all together
+        :param model: A mew Model, MetabolicModel, RegulatoryModel or all together
 
         Optional:
 
@@ -220,6 +228,12 @@ class Simulation(SlimModelContainer, Simulator):
             'suboptimal': SStatus.SUBOPTIMAL,
             'unknown': SStatus.UNKNOWN
         }
+
+        # TODO: Caching linear problems, so that multiple builds of a fba, pfba, etc linear problem can be avoided.
+        #  It allows fast simulations. However, model and simulator can be out of sync. Is this controlled by the reset
+        #  solver flag?
+        self.__fba = None
+        self.__pfba = None
 
     # -----------------------------------------------------------------------------
     # Metabolic interface
@@ -354,7 +368,7 @@ class Simulation(SlimModelContainer, Simulator):
     def add_reaction(self, reaction: Reaction, replace: bool = True, comprehensive=True):
 
         """
-        Adds a reaction to the slim model
+        Adds a reaction to the mew model
 
         :param reaction: Reaction object to be added
         :param replace: Whether to replace the reaction in the model if already exists
@@ -378,7 +392,7 @@ class Simulation(SlimModelContainer, Simulator):
     def remove_reaction(self, reaction: Reaction, remove_orphans=True):
 
         """
-        Removes a reaction from the slim model
+        Removes a reaction from the mew model
 
         :param reaction: Reaction object to be removed
         :param remove_orphans: Whether to remove metabolites and genes orphans associated with the reaction in the model
@@ -415,6 +429,9 @@ class Simulation(SlimModelContainer, Simulator):
 
         """
 
+        if not self.model.is_metabolic():
+            return []
+
         ext = self.model.external_compartment
 
         return [rxn.id for rxn in self.model.yield_reactions()
@@ -428,6 +445,10 @@ class Simulation(SlimModelContainer, Simulator):
         :return: the list genes associated with transport reactions.
 
         """
+
+        if not self.model.is_metabolic():
+            return []
+
         ext = self.model.external_compartment
 
         genes = set()
@@ -439,7 +460,6 @@ class Simulation(SlimModelContainer, Simulator):
 
         return list(genes)
 
-    # TODO: The models provided to mewpy should always be reversible?
     def reverse_reaction(self, reaction_id: str) -> Union[str, None]:
 
         """
@@ -505,7 +525,7 @@ class Simulation(SlimModelContainer, Simulator):
         """
 
         It finds the median upper and lower bound of the metabolic model.
-        Bounds can vary from model to model. slim set reactions bounds to (-999999.0, 999999.0) by default.
+        Bounds can vary from model to model. mew set reactions bounds to (-999999.0, 999999.0) by default.
 
         :return: a tuple of median upper and lower bounds
         """
@@ -549,20 +569,80 @@ class Simulation(SlimModelContainer, Simulator):
     # Simulation
     # -----------------------------------------------------------------------------
 
-    @dispatcher.register(SimulationMethod.FBA)
-    def _fba(self, model):
+    # TODO: Should the new simulation methods that use metabolic/regulatory models, namely milpFBA, milpBool, RFBA,
+    #  SimBool and SRFBA be added here? and to the SimulationMethod enumerator?
+    #  The problem is that if one uses gets the simulator from a cobrapy or reframed model,
+    #  we have no alternative rather than raise errors, such as here with moma and room
 
-        return FBA(model=model).optimize()
+    @dispatcher.register(SimulationMethod.FBA)
+    def _fba(self, model, objective, minimize, constraints, *args, **kwargs):
+
+        if self.__fba is None:
+            self.__fba = FBA(model=model,
+                             solver=None,
+                             build=True,
+                             attach=False)
+
+        elif self._reset_solver:
+
+            self.__fba.build()
+
+        old_sense = self.__fba.minimize
+
+        sol = self.__fba.optimize(objective=objective,
+                                  minimize=minimize,
+                                  constraints=constraints,
+                                  to_solver=True,
+                                  get_values=True)
+
+        self.__fba.set_objective(linear=self.objective, minimize=old_sense)
+
+        return sol
 
     @dispatcher.register(SimulationMethod.pFBA)
-    def _pfba(self, model):
+    def _pfba(self, model, objective, minimize, constraints, *args, **kwargs):
 
-        return FBA(model=model).optimize()
+        if self.__pfba is None:
+            self.__pfba = pFBA(model=model,
+                               solver=None,
+                               build=True,
+                               attach=False)
+
+        elif self._reset_solver:
+
+            self.__pfba.build()
+
+        old_sense = self.__fba.minimize
+
+        sol = self.__pfba.optimize(objective=objective,
+                                   minimize=minimize,
+                                   constraints=constraints,
+                                   to_solver=True,
+                                   get_values=True)
+
+        self.__pfba.set_objective(linear=self.objective, minimize=old_sense)
+
+        return sol
+
+    @dispatcher.register(SimulationMethod.MOMA)
+    def _moma(self, *args, **kwargs):
+
+        raise NotImplementedError('MOMA is not currently available with mewpy models')
+
+    @dispatcher.register(SimulationMethod.lMOMA)
+    def _lmoma(self, *args, **kwargs):
+
+        raise NotImplementedError('lMOMA is not currently available with mewpy models')
+
+    @dispatcher.register(SimulationMethod.ROOM)
+    def _romm(self, *args, **kwargs):
+
+        raise NotImplementedError('ROOM is not currently available with mewpy models')
 
     @dispatcher.register(SimulationMethod.NONE)
-    def _none(self, model):
+    def _none(self, *args, **kwargs):
 
-        return ModelSolution(method=None, x=None, objective_value=None, status='unknown')
+        return Solution()
 
     def simulate(self,
                  objective: Dict[str, Union[int, float]] = None,
@@ -591,41 +671,21 @@ class Simulation(SlimModelContainer, Simulator):
         environmental conditions and further constraints
         """
 
-        if not objective:
-            objective = self.objective
-
         if not constraints:
             constraints = {}
 
-        simulation_constraints = {**self.constraints, **self.environmental_conditions, **constraints}
+        simulation_constraints = {**constraints, **self.constraints, **self.environmental_conditions}
 
-        with self.model:
-
-            if maximize:
-
-                self.model.objective = objective
-
-            else:
-                self.model.objective = {key: -coef for key, coef in objective.items()}
-
-            for rxn, cnt in simulation_constraints.items():
-
-                if isinstance(cnt, tuple):
-
-                    self.model.get(rxn).bounds = cnt
-
-                else:
-
-                    self.model.get(rxn).bounds = (cnt, cnt)
-
-            solution: ModelSolution = self.dispatcher(method, self.model)
-
-        status = self.__status_mapping[solution.status]
+        solution: Solution = self.dispatcher(method,
+                                             model=self.model,
+                                             objective=objective,
+                                             minimize=not maximize,
+                                             constraints=constraints)
 
         return SimulationResult(model=self.model,
-                                objective_value=solution.objective_value,
-                                fluxes=solution.x,
-                                status=status,
+                                objective_value=solution.fobj,
+                                fluxes=solution.values,
+                                status=solution.status,
                                 envcond=self.environmental_conditions,
                                 model_constraints=self.constraints,
                                 simul_constraints=constraints,
@@ -661,30 +721,19 @@ class Simulation(SlimModelContainer, Simulator):
         if not constraints:
             constraints = {}
 
-        simulation_constraints = {**self.constraints, **self.environmental_conditions, **constraints}
+        simulation_constraints = {**constraints, **self.constraints, **self.environmental_conditions}
 
-        with self.model:
-            for rxn, cnt in simulation_constraints.items():
-
-                if isinstance(cnt, tuple):
-
-                    self.model.get(rxn).bounds = cnt
-
-                else:
-
-                    self.model.get(rxn).bounds = (cnt, cnt)
-
-            from slimpy.analysis import FVA
-            fva = FVA(self.model)
-
-            solution = fva.run(initial_objective=1, minimize_initial=False)
+        solution = fva(model=self.model,
+                       fraction=obj_frac,
+                       reactions=reactions,
+                       constraints=simulation_constraints,
+                       to_dict=format == 'dict')
 
         if format == 'df':
-
             import pandas as pd
-            e = solution.items()
-            f = [[a, b, c] for a, [b, c] in e]
-            df = pd.DataFrame(f, columns=['Reaction ID', 'Minimum', 'Maximum'])
+
+            df = pd.concat([pd.DataFrame(solution.index), solution], axis=1)
+            df.columns = ['Reaction ID', 'Minimum', 'Maximum']
 
             return df
 

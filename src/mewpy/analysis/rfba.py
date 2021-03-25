@@ -15,7 +15,7 @@ class RFBA(MetabolicLinearizer):
                  model: Union[Model, MetabolicModel, RegulatoryModel],
                  solver: Union[str, Solver, None] = None,
                  build: bool = True,
-                 attach: bool = True):
+                 attach: bool = False):
 
         """
         Regulatory Flux Balance Analysis (RFBA) of a metabolic-regulatory model.

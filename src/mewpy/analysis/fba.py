@@ -14,7 +14,7 @@ class FBA(MetabolicLinearizer):
                  model: Union[Model, MetabolicModel, RegulatoryModel],
                  solver: Union[str, Solver, None] = None,
                  build: bool = True,
-                 attach: bool = True):
+                 attach: bool = False):
 
         """
         Flux Balance Analysis (FBA) of a metabolic model. Regular implementation of a FBA for a metabolic model.
@@ -94,8 +94,7 @@ class FBA(MetabolicLinearizer):
                  shadow_prices=False,
                  reduced_costs=False,
                  pool_size=0,
-                 pool_gap=None,
-                 **kwargs) -> Union[ModelSolution, Solution]:
+                 pool_gap=None) -> Union[ModelSolution, Solution]:
 
         self._set_objective(linear=objective, minimize=minimize)
 
@@ -210,7 +209,7 @@ class milpFBA(MetabolicLinearizer, GPRLinearizer):
                  model: Union[Model, MetabolicModel, RegulatoryModel],
                  solver: Union[str, Solver, None] = None,
                  build: bool = True,
-                 attach: bool = True):
+                 attach: bool = False):
 
         """
         Mixed-Integer Flux Balance Analysis (FBA) of a metabolic model.
@@ -336,8 +335,7 @@ class milpFBA(MetabolicLinearizer, GPRLinearizer):
                  shadow_prices=False,
                  reduced_costs=False,
                  pool_size=0,
-                 pool_gap=None,
-                 **kwargs):
+                 pool_gap=None):
 
         self._set_objective(linear=objective, minimize=minimize)
 
@@ -382,7 +380,7 @@ class pFBA(FBA):
                  model: Union[Model, MetabolicModel, RegulatoryModel],
                  solver: Union[str, Solver, None] = None,
                  build: bool = True,
-                 attach: bool = True):
+                 attach: bool = False):
 
         """
         Parsimonious Flux Balance Analysis (FBA) of a metabolic model.
@@ -426,8 +424,7 @@ class pFBA(FBA):
                  shadow_prices=False,
                  reduced_costs=False,
                  pool_size=0,
-                 pool_gap=None,
-                 **kwargs) -> Union[ModelSolution, Solution]:
+                 pool_gap=None) -> Union[ModelSolution, Solution]:
 
         self._set_objective(linear=objective, minimize=minimize)
 

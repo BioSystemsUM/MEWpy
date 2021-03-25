@@ -15,7 +15,7 @@ class milpBool(GPRLinearizer, InteractionLinearizer):
                  model: Union[Model, MetabolicModel, RegulatoryModel],
                  solver: Union[str, Solver, None] = None,
                  build: bool = True,
-                 attach: bool = True):
+                 attach: bool = False):
 
         """
         Mixed-Integer Boolean simulation (milpBool) of a regulatory model.
@@ -143,8 +143,7 @@ class milpBool(GPRLinearizer, InteractionLinearizer):
                  shadow_prices=False,
                  reduced_costs=False,
                  pool_size=0,
-                 pool_gap=None,
-                 **kwargs) -> Union[ModelSolution, Solution]:
+                 pool_gap=None) -> Union[ModelSolution, Solution]:
 
         if minimize is None:
             minimize = self._minimize

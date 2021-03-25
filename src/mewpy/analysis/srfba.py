@@ -13,7 +13,7 @@ class SRFBA(MetabolicLinearizer, GPRLinearizer, InteractionLinearizer):
                  model: Union[Model, MetabolicModel, RegulatoryModel],
                  solver: Union[str, Solver, None] = None,
                  build: bool = True,
-                 attach: bool = True):
+                 attach: bool = False):
 
         """
         Steady-state Regulatory Flux Balance Analysis (SRFBA) of a metabolic-regulatory model.
@@ -153,8 +153,7 @@ class SRFBA(MetabolicLinearizer, GPRLinearizer, InteractionLinearizer):
                  shadow_prices=False,
                  reduced_costs=False,
                  pool_size=0,
-                 pool_gap=None,
-                 **kwargs):
+                 pool_gap=None):
 
         self._set_objective(linear=objective, minimize=minimize)
 

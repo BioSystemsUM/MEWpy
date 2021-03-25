@@ -1,4 +1,5 @@
 from enum import Enum
+
 from ..util.constants import ModelConstants
 
 solvers = []
@@ -94,7 +95,10 @@ default_solver = None
 map_model_simulator = {
     'geckopy.gecko.GeckoModel': ('mewpy.simulation.cobra', 'GeckoSimulation'),
     'mewpy.model.gecko.GeckoModel': ('mewpy.simulation.reframed', 'GeckoSimulation'),
-    'mewpy.model.smoment.SMomentModel': ('mewpy.simulation.reframed', 'GeckoSimulation')
+    'mewpy.model.smoment.SMomentModel': ('mewpy.simulation.reframed', 'GeckoSimulation'),
+    'mewpy.model.model.Model': ('mewpy.simulation.mew', 'Simulation'),
+    'mewpy.model.metabolic.MetabolicModel': ('mewpy.simulation.mew', 'Simulation'),
+    'mewpy.model.regulatory.RegulatoryModel': ('mewpy.simulation.mew', 'Simulation')
 }
 
 
@@ -108,7 +112,7 @@ def get_simulator(model, envcond=None, constraints=None, reference=None, reset_s
 
     :param model: the model
     :param dict envcond: A dictionary of environmental conditions.
-    :param dict contrainsts: A dictionary of additional persistent constraints.
+    :param dict constraints: A dictionary of additional persistent constraints.
     :returns: An instance of Simulator
     """
 
@@ -148,21 +152,6 @@ def get_simulator(model, envcond=None, constraints=None, reference=None, reset_s
             except ImportError:
                 pass
 
-        if not instance:
-            try:
-
-                from slimpy.core import Model, MetabolicModel, RegulatoryModel
-
-                if isinstance(model, (Model, MetabolicModel, RegulatoryModel)):
-                    from .slim import Simulation
-                    instance = Simulation(model,
-                                          envcond=envcond,
-                                          constraints=constraints,
-                                          reference=reference,
-                                          reset_solver=reset_solver)
-            except ImportError:
-                pass
-
     if not instance:
         raise ValueError(f"The model <{name}> has no defined simulator.")
     return instance
@@ -177,6 +166,15 @@ def get_container(model):
     :returns: A container.
 
     """
+
+    from mewpy.model import Model, RegulatoryModel, MetabolicModel
+
+    if isinstance(model, (Model, MetabolicModel, RegulatoryModel)):
+
+        from .mew import MewModelContainer
+
+        return MewModelContainer(model)
+
     try:
         from reframed.core.cbmodel import CBModel
         if isinstance(model, CBModel):

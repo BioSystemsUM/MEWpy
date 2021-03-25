@@ -101,7 +101,7 @@ class LinearProblem(LinearProblemInterface):
                  model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
                  solver: Union[str, Solver] = None,
                  build: bool = True,
-                 attach: bool = True):
+                 attach: bool = False):
 
         """
 
@@ -487,45 +487,16 @@ class LinearProblem(LinearProblemInterface):
     # Optimization
     # -----------------------------------------------------------------------------
 
-    def optimize(self,
-                 linear=None,
-                 quadratic=None,
-                 minimize=None,
-                 constraints=None,
-                 to_solver=False,
-                 get_values=True,
-                 shadow_prices=False,
-                 reduced_costs=False,
-                 pool_size=0,
-                 pool_gap=None) -> Union[ModelSolution, Solution]:
+    def optimize(self, *args, **kwargs) -> Union[ModelSolution, Solution]:
 
-        if minimize is None:
-            minimize = self._minimize
+        """
 
-        self._set_objective(linear=linear, quadratic=quadratic, minimize=minimize)
+        Abstract implementation
 
-        solver_solution = self._solver.solve(linear=linear,
-                                             quadratic=quadratic,
-                                             minimize=minimize,
-                                             model=None,
-                                             constraints=constraints,
-                                             get_values=get_values,
-                                             shadow_prices=shadow_prices,
-                                             reduced_costs=reduced_costs,
-                                             pool_size=pool_size,
-                                             pool_gap=pool_gap)
+        :return: ModelSolution or Solution (from solver) objects
+        """
 
-        if to_solver:
-            return solver_solution
-
-        if minimize:
-            sense = 'minimize'
-
-        else:
-            sense = 'maximize'
-
-        return ModelSolution.from_solver(method=self.method, solution=solver_solution, model=self.model,
-                                         objective_direction=sense)
+        # The concrete implementation is defined by each simulation method, e.g. fba, pfba, etc
 
     # -----------------------------------------------------------------------------
     # Operations/Manipulations - build and clean
