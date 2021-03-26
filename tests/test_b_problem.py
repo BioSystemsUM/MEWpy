@@ -9,8 +9,8 @@ OPTRAM_GENES = MODELS_PATH + 'mgene.csv'
 OPTRAM_TFS = MODELS_PATH + 'TFnames.csv'
 OPTRAM_REGNET = MODELS_PATH + 'regnet.csv'
 
-OPTORF_REG = MODELS_PATH + 'core_TRN_v2.csv'
-OPTORF_ALIASES = MODELS_PATH + 'core_TRN_rfba_aliases.csv'
+EC_CORE_MODEL2 = MODELS_PATH + 'ecoli_core_model.xml'
+EC_CORE_REG_MODEL = MODELS_PATH + 'e_coli_core_trn.csv'
 
 MIN_GROWTH = 0.1
 
@@ -122,29 +122,40 @@ class TestOptRAM(TestRKOP):
 class TestOptORF(unittest.TestCase):
 
     def setUp(self):
-        import cobra.test
-        model = cobra.test.create_test_model("textbook")
+
         _BIOMASS_ID = 'Biomass_Ecoli_core'
+        _O2 = 'EX_o2_e'
+        _GLC = 'EX_glc__D_e'
+        _FUM = 'EX_fum_e'
+        _AC = 'EX_ac_e'
+        _GLU = 'EX_glu__L_e'
+        _LAC = 'EX_lac__D_e'
+        _SUC = 'EX_succ_e'
+
+        from mewpy.io import read_model, Engines, Reader
+
+        metabolic_reader = Reader(Engines.MetabolicSBML, EC_CORE_MODEL2)
+        regulatory_reader = Reader(Engines.RegulatoryCSV,
+                                   EC_CORE_REG_MODEL,
+                                   sep=',',
+                                   id_col=1,
+                                   rule_col=2,
+                                   aliases_cols=[0],
+                                   header=0)
+
+        model = read_model(metabolic_reader, regulatory_reader)
 
         envcond = {'EX_glc__D_e': (-10, 100000.0)}
         from mewpy.simulation import get_simulator
         sim = get_simulator(model, envcond=envcond)
         sim.objective = _BIOMASS_ID
-        from mewpy.regulation import RFBAModel
-        rfba = RFBAModel.from_tabular_format(OPTORF_REG, model, sim,
-                                             sep=',', id_col=1, rule_col=2, aliases_cols=[0], header=0)
-        rfba.update_aliases_from_tabular_format_file(OPTORF_ALIASES, id_col=1, aliases_cols=[0])
-
-        initial_state = {var: 1 for var in rfba.targets}
-        initial_state.update({_BIOMASS_ID: 0.1})
-        rfba.initial_state = initial_state
 
         _PRODUCT_ID = "EX_succ_e"
         from mewpy.optimization.evaluation import BPCY, WYIELD
         evaluator_1 = BPCY(_BIOMASS_ID, _PRODUCT_ID, method='pFBA')
         evaluator_2 = WYIELD(_BIOMASS_ID, _PRODUCT_ID)
-        from mewpy.regulation.optorf import OptOrfProblem
-        self.problem = OptOrfProblem(model, [evaluator_1, evaluator_2], rfba, candidate_max_size=6)
+        from mewpy.regulation.optorf import OptORFProblem
+        self.problem = OptORFProblem(model, [evaluator_1, evaluator_2], candidate_max_size=6)
 
     def test_targets(self):
         target = self.problem.target_list

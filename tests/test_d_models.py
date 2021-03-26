@@ -278,7 +278,7 @@ class TestMewModel(unittest.TestCase):
 
         # to json
         model_writer = Writer(Engines.JSON,
-                              io='e_coli_core_write.json',
+                              io=MODELS_PATH + 'e_coli_core_write.json',
                               model=model)
 
         write_model(model_writer)
