@@ -436,6 +436,17 @@ class Variable(Serializer, metaclass=MetaVariable, factory=True):
         context.reset()
 
     # -----------------------------------------------------------------------------
+    # Serialization
+    # -----------------------------------------------------------------------------
+    def __getstate__(self):
+        attributes = self.to_dict()
+        return attributes
+
+    def __setstate__(self, state):
+        new_variable = Variable.from_dict(state)
+        self.__dict__ = new_variable.__dict__.copy()
+
+    # -----------------------------------------------------------------------------
     # Operations/Manipulations
     # -----------------------------------------------------------------------------
 

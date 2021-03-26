@@ -1,8 +1,8 @@
 import os
+
 from mewpy.optimization import EA
 from mewpy.optimization.evaluation import BPCY, WYIELD
-from mewpy.regulation import RFBAModel
-from mewpy.regulation.optorf import OptOrfProblem
+from mewpy.regulation.optorf import OptORFProblem
 from mewpy.simulation import SimulationMethod
 
 
@@ -25,35 +25,41 @@ def optorf_imc():
     :return:
     """
 
-    from reframed.io.sbml import load_cbmodel
-    from mewpy.simulation.reframed import Simulation
-
     DIR = os.path.dirname(os.path.realpath(__file__))
     cbm_model_f = os.path.join(DIR, "../models/regulation/iJR904_srfba.xml")
-    reg_model_f = os.path.join(DIR, '../models/regulation/imc1010_v6.csv')
-    aliases_f = os.path.join(DIR, '../models/regulation/imc1010_rfba_aliases.csv')
-    # env_cond_f = "../../../examples/models/regulation/imc1010_env_cond.xlsx"
+    reg_model_f = os.path.join(DIR, '../models/regulation/imc1010.csv')
 
-    _BIOMASS_ID = 'R_BiomassEcoli'
-    _O2 = 'R_EX_o2_e'
-    _GLC = 'R_EX_glc_DASH_D_e'
-    _CO2 = 'R_EX_co2_e'
-    _FE2 = "R_EX_fe2_e"
-    _H = "R_EX_h_e"
-    _H2O = "R_EX_h2o_e"
-    _K = "R_EX_k_e"
-    _NA1 = "R_EX_na1_e"
-    _NH4 = "R_EX_nh4_e"
-    _PI = "R_EX_pi_e"
-    _SO4 = "R_EX_so4_e"
-    _SUCC = "R_EX_succ_e"
-    _ETOH = "R_EX_etoh_e"
+    _BIOMASS_ID = 'BiomassEcoli'
+    _O2 = 'EX_o2_e'
+    _GLC = 'EX_glc_DASH_D_e'
+    _CO2 = 'EX_co2_e'
+    _FE2 = "EX_fe2_e"
+    _H = "EX_h_e"
+    _H2O = "EX_h2o_e"
+    _K = "EX_k_e"
+    _NA1 = "EX_na1_e"
+    _NH4 = "EX_nh4_e"
+    _PI = "EX_pi_e"
+    _SO4 = "EX_so4_e"
+    _SUCC = "EX_succ_e"
+    _ETOH = "EX_etoh_e"
 
-    _GLY = "R_EX_gly_e"
-    _DALA = "R_EX_ala_DASH_D_e"
+    _GLY = "EX_gly_e"
+    _DALA = "EX_ala_DASH_D_e"
 
-    model = load_cbmodel(cbm_model_f)
-    model.set_objective({_BIOMASS_ID: 1})
+    from mewpy.io import read_model, Engines, Reader
+
+    metabolic_reader = Reader(Engines.MetabolicSBML, cbm_model_f)
+    regulatory_reader = Reader(Engines.RegulatoryCSV,
+                               reg_model_f,
+                               sep=';',
+                               id_col=1,
+                               rule_col=4,
+                               aliases_cols=[0, 2, 3],
+                               header=0)
+
+    model = read_model(metabolic_reader, regulatory_reader)
+    model.objective = {_BIOMASS_ID: 1}
 
     envcond = {_GLC: (-18.5, 100000.0),
                # _SUCC: (0.0, 100000.0),
@@ -66,39 +72,35 @@ def optorf_imc():
                # _H2O: (-55.0, 100000.0)
                }
 
-    simulation = Simulation(model, envcond=envcond)
+    for rxn, bds in envcond.items():
+        model.get(rxn).bounds = bds
 
-    rfba = RFBAModel.from_tabular_format(reg_model_f, model, simulation,
-                                         sep=';', id_col=1, rule_col=4, aliases_cols=[0, 2, 3], header=0)
-    rfba.update_aliases_from_tabular_format_file(aliases_f, sep=';', id_col=0, aliases_cols=[1])
+    for gene in model.yield_genes():
+        gene.coefficient.coefficients = (1, )
 
-    initial_state = {var: 1 for var in rfba.targets}
-    initial_state.update({_BIOMASS_ID: 0.1})
-    rfba.initial_state = initial_state
+    model.get(_BIOMASS_ID).lower_bound = 0.1
 
     _PRODUCT_ID = _ETOH
 
     evaluator_1 = BPCY(_BIOMASS_ID, _PRODUCT_ID, method=SimulationMethod.pFBA)
     evaluator_2 = WYIELD(_BIOMASS_ID, _PRODUCT_ID)
 
-    problem = OptOrfProblem(model, [evaluator_1, evaluator_2], rfba, candidate_max_size=6)
+    problem = OptORFProblem(model, [evaluator_1, evaluator_2], candidate_max_size=6)
 
-    ea = EA(problem, max_generations=100, mp=True)
+    ea = EA(problem, max_generations=100, mp=False)
     final_pop = ea.run()
 
-    import mewpy.utils.utilities as utl
+    from mewpy.util.io import population_to_csv
 
     filename = "OPTORF{}_KO_{}.csv".format(_PRODUCT_ID, "iJR904_srfba")
-    utl.population_to_csv(problem, final_pop, filename, simplify=False)
+    population_to_csv(problem, final_pop, filename, simplify=False)
 
 
 def optorf_ec():
-    import cobra.test
-    from mewpy.simulation.cobra import Simulation
 
     DIR = os.path.dirname(os.path.realpath(__file__))
-    reg_model_f = os.path.join(DIR, '../models/regulation/core_TRN_v2.csv')
-    aliases_f = os.path.join(DIR, '../models/regulation/core_TRN_rfba_aliases.csv')
+    cbm_model_f = os.path.join(DIR, "../models/regulation/ecoli_core_model.xml")
+    reg_model_f = os.path.join(DIR, '../models/regulation/e_coli_core_trn.csv')
 
     _BIOMASS_ID = 'Biomass_Ecoli_core'
     _O2 = 'EX_o2_e'
@@ -109,38 +111,43 @@ def optorf_ec():
     _LAC = 'EX_lac__D_e'
     _SUC = 'EX_succ_e'
 
-    model = cobra.test.create_test_model("textbook")
-    model.objective = _BIOMASS_ID
+    from mewpy.io import read_model, Engines, Reader
 
-    envcond = {_GLC: (-10.0, 100000.0)}
+    metabolic_reader = Reader(Engines.MetabolicSBML, cbm_model_f)
+    regulatory_reader = Reader(Engines.RegulatoryCSV,
+                               reg_model_f,
+                               sep=',',
+                               id_col=1,
+                               rule_col=2,
+                               aliases_cols=[0],
+                               header=0)
 
-    simulation = Simulation(model, envcond=envcond)
+    model = read_model(metabolic_reader, regulatory_reader)
+    model.objective = {_BIOMASS_ID: 1}
 
-    rfba = RFBAModel.from_tabular_format(reg_model_f, model, simulation,
-                                         sep=',', id_col=1, rule_col=2, aliases_cols=[0], header=0)
-    rfba.update_aliases_from_tabular_format_file(aliases_f, id_col=1, aliases_cols=[0])
+    model.get(_GLC).bounds = (-10.0, 100000.0)
 
-    initial_state = {var: 1 for var in rfba.targets}
-    initial_state.update({_BIOMASS_ID: 0.1})
-    rfba.initial_state = initial_state
+    for gene in model.yield_genes():
+        gene.coefficient.coefficients = (1, )
+
+    model.get(_BIOMASS_ID).lower_bound = 0.1
 
     _PRODUCT_ID = _SUC
 
     evaluator_1 = BPCY(_BIOMASS_ID, _PRODUCT_ID, method=SimulationMethod.pFBA)
     evaluator_2 = WYIELD(_BIOMASS_ID, _PRODUCT_ID)
 
-    problem = OptOrfProblem(model, [evaluator_1, evaluator_2], rfba, candidate_max_size=6)
+    problem = OptORFProblem(model, [evaluator_1, evaluator_2], candidate_max_size=6)
 
-    print(len(problem.target_list))
-
-    ea = EA(problem, max_generations=100, mp=True)
+    ea = EA(problem, max_generations=10, mp=False)
     final_pop = ea.run()
 
-    import mewpy.utils.utilities as utl
+    from mewpy.util.io import population_to_csv
 
     filename = "OPTORF{}_KO_{}.csv".format(_PRODUCT_ID, "ec")
-    utl.population_to_csv(problem, final_pop, filename, simplify=False)
+    population_to_csv(problem, final_pop, filename, simplify=False)
 
 
 if __name__ == '__main__':
     optorf_ec()
+    optorf_imc()

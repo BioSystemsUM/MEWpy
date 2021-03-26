@@ -340,6 +340,17 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
         self._name = value
 
     # -----------------------------------------------------------------------------
+    # Serialization
+    # -----------------------------------------------------------------------------
+    def __getstate__(self):
+        attributes = self.to_dict(variables=False)
+        return attributes
+
+    def __setstate__(self, state):
+        new_variable = Model.from_dict(state)
+        self.__dict__ = new_variable.__dict__.copy()
+
+    # -----------------------------------------------------------------------------
     # Operations/Manipulations
     # -----------------------------------------------------------------------------
 

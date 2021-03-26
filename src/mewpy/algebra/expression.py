@@ -61,6 +61,10 @@ class Expression:
     def symbols(self):
         return {symbol.name: symbol for symbol in self.symbolic.atoms(symbols_only=True)}
 
+    @property
+    def is_none(self):
+        return self.symbolic.is_none
+
     def __repr__(self):
 
         return repr(self.symbolic)
@@ -124,15 +128,6 @@ class Expression:
                 return coefficient
 
             return res
-
-    def __getattr__(self, item):
-
-        try:
-            return getattr(self.symbolic, item)
-
-        except AttributeError:
-
-            raise AttributeError
 
     def truth_table(self,
                     values: Dict[str, Union[float, int]] = None,

@@ -371,20 +371,13 @@ class Serializer:
 
         # Filtering attributes that must be used by the update method. Child variables associated with this variable
         # are also collected for further building
-        # noinspection PyProtectedMember
         for attr_name, (serialize_name, deserialize_name) in variable.attributes.items():
 
-            if deserialize_name is None:
-                continue
+            attribute = obj.get(serialize_name)
 
-            # some attributes can be set to None, so using _skip_ flag
-            attribute = obj.get(serialize_name, obj.get(attr_name, '_skip_attr_'))
+            if deserialize_name is not None:
 
-            # there can be some garbage in the dict
-            if attribute == '_skip_attr_':
-                continue
-
-            variable_attributes[deserialize_name] = attribute
+                variable_attributes[deserialize_name] = attribute
 
             # Identifying all types for the child variables. If it is not a variable container/attribute,
             # empty lists are returned
@@ -451,11 +444,7 @@ class Serializer:
                 continue
 
             # some attributes can be set to None, so using _skip_ flag
-            attribute = obj.get(serialize_name, obj.get(attr_name, '_skip_attr_'))
-
-            # there can be some garbage in the dict
-            if attribute == '_skip_attr_':
-                continue
+            attribute = obj.get(serialize_name)
 
             # Identifying if it is a container. If so, all variables will be build. Otherwise, the attribute is set
             # to the model attributes
@@ -497,12 +486,7 @@ class Serializer:
                 if deserialize_name is None:
                     continue
 
-                attribute = variable_dict_attributes.get(serialize_name,
-                                                         variable_dict_attributes.get(attr_name, '_skip_attr_'))
-
-                # there can be some garbage in the variable dict
-                if attribute == '_skip_attr_':
-                    continue
+                attribute = variable_dict_attributes.get(serialize_name)
 
                 attribute = cls._deserialize_attribute(name=attr_name, attribute=attribute, variables=variables)
 
