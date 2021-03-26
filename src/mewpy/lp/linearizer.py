@@ -703,11 +703,11 @@ class GPRLinearizer(LogicLinearizer):
 
     def notification(self, notification: Notification):
 
-        if notification.content == 'gprs' and notification.action == 'add':
+        if notification.content_type == 'gprs' and notification.action == 'add':
 
             return self.add_gprs(notification.content)
 
-        elif notification.content == 'gprs' and notification.action == 'remove':
+        elif notification.content_type == 'gprs' and notification.action == 'remove':
 
             return self.remove_gprs(notification.content)
 
@@ -803,11 +803,11 @@ class InteractionLinearizer(LogicLinearizer):
 
     def notification(self, notification: Notification):
 
-        if notification.content == 'interactions' and notification.action == 'add':
+        if notification.content_type == 'interactions' and notification.action == 'add':
 
             return self.add_interactions(notification.content)
 
-        elif notification.content == 'interactions' and notification.action == 'remove':
+        elif notification.content_type == 'interactions' and notification.action == 'remove':
 
             return self.remove_interactions(notification.content)
 

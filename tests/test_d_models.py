@@ -3,6 +3,8 @@ import unittest
 MODELS_PATH = 'tests/data/'
 EC_CORE_MODEL = MODELS_PATH + 'ecoli_core_model.xml'
 EC_CORE_REG_MODEL = MODELS_PATH + 'e_coli_core_trn.csv'
+SAMPLE_MODEL = MODELS_PATH + 'SampleNet.xml'
+SAMPLE_REG_MODEL = MODELS_PATH + 'SampleRegNet.csv'
 
 
 class TestMewModel(unittest.TestCase):
@@ -396,14 +398,584 @@ class TestMewModel(unittest.TestCase):
         sol = isingle_regulator_deletion(model, method='srfba', regulators=list(model.regulators.keys())[0:10])
         self.assertGreater(len(sol), 0)
 
-    def test_workflow(self):
+    def test_simulation(self):
         """
-        Tests model workflow
+        Tests model simulation
         """
 
-        # TODO: missing
+        from mewpy.io import Reader, Engines, read_model
 
-        pass
+        metabolic_reader = Reader(Engines.MetabolicSBML, SAMPLE_MODEL)
+        regulatory_reader = Reader(Engines.RegulatoryCSV,
+                                   SAMPLE_REG_MODEL,
+                                   sep=',',
+                                   id_col=0,
+                                   rule_col=1)
+
+        model = read_model(regulatory_reader, metabolic_reader)
+
+        # pH (ph > 5) controls g20, which belongs to the r11 gpr
+        model.get('pH').coefficient.coefficients = (0, 14)
+
+        self.assertEqual(model.id, 'COBRAModel')
+        self.assertEqual(model.name, 'Model Exported from COBRA Toolbox')
+
+        self.assertEqual(len(model.types), 2)
+        self.assertEqual(len(model.simulators), 0)
+        self.assertEqual(model.history.history.shape, (1, 4))
+        self.assertEqual(len(model.contexts), 0)
+
+        self.assertEqual(len(model.containers), 10)
+
+        self.assertEqual(len(model.interactions), 36)
+        self.assertEqual(len(model.targets), 36)
+        self.assertEqual(len(model.regulators), 19)
+        self.assertEqual(len(model.environmental_stimuli), 5)
+
+        self.assertEqual(model.objective, {model.get('r11'): 1})
+        self.assertEqual(len(model.reactions), 17)
+        self.assertEqual(len(model.metabolites), 14)
+        self.assertEqual(len(model.genes), 22)
+        self.assertEqual(len(model.sinks), 0)
+        self.assertEqual(len(model.exchanges), 2)
+        self.assertEqual(len(model.demands), 0)
+
+        self.assertEqual(len(model.compartments), 1)
+        self.assertEqual(model.external_compartment, 'c')
+
+        # fba
+        from mewpy.analysis import FBA
+        fba = FBA(model)
+        sol = fba.optimize()
+        self.assertGreater(sol.x.get('r11'), 0)
+        self.assertEqual(len(model.simulators), 0)
+
+        # pfba
+        from mewpy.analysis import pFBA
+        pfba = pFBA(model)
+        sol = pfba.optimize()
+        self.assertGreater(sol.x.get('r11'), 0)
+        self.assertEqual(len(model.simulators), 0)
+
+        # milpFBA
+        from mewpy.analysis import milpFBA
+        milpfba = milpFBA(model)
+        sol = milpfba.optimize()
+        self.assertGreater(sol.x.get('r11'), 0)
+        self.assertEqual(len(model.simulators), 0)
+
+        # milpBool
+        from mewpy.analysis import milpBool
+        milpbool = milpBool(model)
+        sol = milpbool.optimize()
+        self.assertGreater(sol.x.get('pH'), 1)
+        self.assertEqual(len(model.simulators), 0)
+
+        # SimBool
+        from mewpy.analysis import SimBool
+        model.get('pH').coefficient.coefficients = (10, 14)
+        simbool = SimBool(model)
+        sol = simbool.optimize()
+        self.assertGreater(sol.x.get('g20'), 0)
+        self.assertEqual(len(model.simulators), 0)
+        model.get('pH').coefficient.coefficients = (0, 14)
+
+        # milpFBA
+        from mewpy.analysis import milpFBA
+        milpfba = milpFBA(model)
+        sol = milpfba.optimize()
+        self.assertGreater(sol.x.get('r11'), 0)
+        self.assertEqual(len(model.simulators), 0)
+
+        # RFBA
+        from mewpy.analysis import RFBA
+        initial_state = {
+            'pH': 7,
+            'g21': 1,
+            'g22': 0,
+            'g23': 1,
+            'g24': 1,
+            'g25': 1,
+            'g26': 1,
+            'g27': 1,
+            'g28': 1,
+            'g29': 1,
+            'g30': 0,
+            'g31': 0,
+            'g32': 0,
+            'g33': 1,
+            'g36': 1,
+            'r3': 100,
+            'r15': 0,
+            'r6': 100}
+
+        rfba = RFBA(model)
+        sol = rfba.optimize(initial_state=initial_state)
+        self.assertGreater(sol.x.get('r11'), 0)
+        self.assertEqual(len(model.simulators), 0)
+
+        # SRFBA
+        from mewpy.analysis import SRFBA
+        srfba = SRFBA(model)
+        sol = srfba.optimize()
+        self.assertGreater(sol.x.get('r11'), 0)
+        self.assertEqual(len(model.simulators), 0)
+
+        # multiple simulators attached
+        fba = FBA(model, attach=True)
+        pfba = pFBA(model, attach=True)
+        srfba = SRFBA(model, attach=True)
+        simulators = [fba, pfba, srfba]
+
+        model.get('r16').ko()
+
+        for simulator in simulators:
+            simulator.update()
+
+        fba_sol = fba.optimize()
+        pfba_sol = pfba.optimize()
+        srfba_sol = srfba.optimize()
+
+        # if r16 is knocked-out, only r8 can have flux, and vice-versa
+        self.assertGreater(fba_sol.x.get('r8'), 333)
+        self.assertGreater(pfba_sol.x.get('r8'), 333)
+        self.assertGreater(srfba_sol.x.get('r8'), 333)
+
+    def test_bounds_coefficients(self):
+        """
+        Tests model bounds and coefficients workflow
+        """
+
+        from mewpy.io import Reader, Engines, read_model
+
+        metabolic_reader = Reader(Engines.MetabolicSBML, SAMPLE_MODEL)
+        regulatory_reader = Reader(Engines.RegulatoryCSV,
+                                   SAMPLE_REG_MODEL,
+                                   sep=',',
+                                   id_col=0,
+                                   rule_col=1)
+
+        model = read_model(regulatory_reader, metabolic_reader)
+
+        # pH (ph > 5) controls g20, which belongs to the r11 gpr
+        model.get('pH').coefficient.coefficients = (0, 14)
+
+        # multiple simulators attached
+        from mewpy.analysis import FBA, pFBA, SRFBA
+        fba = FBA(model, attach=True)
+        pfba = pFBA(model, attach=True)
+        srfba = SRFBA(model, attach=True)
+        simulators = [fba, pfba, srfba]
+
+        old_lb, old_ub = tuple(model.reactions.get('r16').bounds)
+        model.get('r16').ko()
+        self.assertEqual(model.get('r16').bounds, (0, 0))
+
+        for simulator in simulators:
+            simulator.update()
+
+        fba_sol = fba.optimize()
+        pfba_sol = pfba.optimize()
+        srfba_sol = srfba.optimize()
+
+        # if r16 is knocked-out, only r8 can have flux, and vice-versa
+        self.assertGreater(fba_sol.x.get('r8'), 333)
+        self.assertGreater(pfba_sol.x.get('r8'), 333)
+        self.assertGreater(srfba_sol.x.get('r8'), 333)
+
+        # revert bound change
+        model.undo()
+        self.assertEqual(model.get('r16').bounds, (old_lb, old_ub))
+
+        # using model context so all changes made to the model are reverted upon exiting the context
+        with model:
+            min_coef, max_coef = model.get('g14').coefficient.bounds
+            lb, ub = model.get('g14').reactions.get('r8').bounds
+
+            # a gene ko does not changes the bounds of the associated reactions
+            model.get('g14').ko()
+
+            self.assertEqual(model.get('g14').coefficient.bounds, (0, 0))
+            self.assertEqual(model.get('r8').bounds, (lb, ub))
+
+            for simulator in simulators:
+                simulator.update()
+
+            fba_sol = fba.optimize()
+            pfba_sol = pfba.optimize()
+            srfba_sol = srfba.optimize()
+
+            # But the analysis methods can retrieve such change
+            self.assertLess(fba_sol.x.get('r8'), 333)
+            self.assertGreater(fba_sol.x.get('r16'), 333)
+
+            self.assertLess(pfba_sol.x.get('r8'), 333)
+            self.assertGreater(pfba_sol.x.get('r16'), 333)
+
+            self.assertLess(srfba_sol.x.get('r8'), 333)
+            self.assertGreater(srfba_sol.x.get('r16'), 333)
+            # the gene is a variable of the srfba formulation (and also from milpFBA)
+            self.assertEqual(srfba_sol.x.get('g14'), 0)
+
+            # we can have as many contexts as we want
+            with model:
+                model.get('r16').ko()
+
+                for simulator in simulators:
+                    simulator.update()
+
+                fba_sol = fba.optimize()
+                pfba_sol = pfba.optimize()
+                srfba_sol = srfba.optimize()
+
+                # we had knocked-out all reactions that can produce I, which is reactant of r11
+                self.assertLess(fba_sol.x.get('r11'), 333)
+                self.assertLess(pfba_sol.x.get('r11'), 333)
+                self.assertLess(srfba_sol.x.get('r11'), 333)
+
+            # exiting the second context
+            self.assertEqual(model.get('r16').bounds, (old_lb, old_ub))
+
+            # we can use undo and redo within a context. However, this only undoes or redoes changes made to the
+            # model within the given context.
+            # In this case, we had revert model.get('g14').ko()
+            model.undo()
+            self.assertEqual(model.get('g14').coefficient.bounds, (min_coef, max_coef))
+
+            # using the regulatory network
+            # This affects the target g34 which is also the metabolic gene for r16
+            model.get('g35').ko()
+            # This affects the target g14 which is also the metabolic gene for r8. However, the regulatory
+            # interaction for the g14 target is the following: not g31. So, we are activating the g14 and
+            # respectively the reaction r8
+            model.get('g31').ko()
+
+            for simulator in simulators:
+                simulator.update()
+
+            fba_sol = fba.optimize()
+            pfba_sol = pfba.optimize()
+            srfba_sol = srfba.optimize()
+
+            # fba is not affected by the regulatory share,
+            # so that we cannot test whether there is flux through r8 or r16
+            self.assertEqual(srfba_sol.x.get('g14'), 1)
+            self.assertEqual(srfba_sol.x.get('g31'), 0)
+            self.assertEqual(srfba_sol.x.get('g34'), 0)
+            self.assertEqual(srfba_sol.x.get('g35'), 0)
+            self.assertGreater(srfba_sol.x.get('r8'), 333)
+            self.assertLess(srfba_sol.x.get('r16'), 333)
+
+        # exiting the first context
+        # redo the knock-out to the r16. All changes made to the model within a context are not recorded in the
+        # model.history. Once again, these changes are also reverted upon exiting the context
+        model.redo()
+
+        for simulator in simulators:
+            simulator.update()
+
+        fba_sol = fba.optimize()
+        pfba_sol = pfba.optimize()
+        srfba_sol = srfba.optimize()
+
+        # if r16 is knocked-out, only r8 can have flux, and vice-versa
+        self.assertGreater(fba_sol.x.get('r8'), 333)
+        self.assertGreater(pfba_sol.x.get('r8'), 333)
+        self.assertGreater(srfba_sol.x.get('r8'), 333)
+
+    def test_manipulation(self):
+        """
+        Tests model manipulation workflow
+        """
+
+        from mewpy.io import Reader, Engines, read_model
+
+        metabolic_reader = Reader(Engines.MetabolicSBML, SAMPLE_MODEL)
+        regulatory_reader = Reader(Engines.RegulatoryCSV,
+                                   SAMPLE_REG_MODEL,
+                                   sep=',',
+                                   id_col=0,
+                                   rule_col=1)
+
+        model = read_model(regulatory_reader, metabolic_reader)
+
+        # pH (ph > 5) controls g20, which belongs to the r11 gpr
+        model.get('pH').coefficient.coefficients = (0, 14)
+
+        # for rfba
+        initial_state = {
+            'pH': 7,
+            'g21': 1,
+            'g22': 0,
+            'g23': 1,
+            'g24': 1,
+            'g25': 1,
+            'g26': 1,
+            'g27': 1,
+            'g28': 1,
+            'g29': 1,
+            'g30': 0,
+            'g31': 0,
+            'g32': 0,
+            'g33': 1,
+            'g36': 1,
+            'r3': 100,
+            'r15': 0,
+            'r6': 100}
+
+        # multiple simulators attached
+        from mewpy.analysis import FBA, pFBA, RFBA, SRFBA
+        fba = FBA(model, attach=True)
+        pfba = pFBA(model, attach=True)
+        rfba = RFBA(model, attach=True)
+        srfba = SRFBA(model, attach=True)
+        simulators = [fba, pfba, rfba, srfba]
+
+        # adding new reactions, metabolites, genes, interactions, targets and regulators
+        # g37: g39 and not g40
+        # g38: g39 and not g40
+        # r17: n <-> 2o | g37 or g38
+        # r18: n <-
+        # r19: o ->
+        from mewpy.variables import Variable, Regulator, Interaction, Metabolite, Reaction
+        g39 = Regulator(identifier='g39', coefficients=(1, 1))
+        g40 = Regulator(identifier='g40', coefficients=(0, 0))
+
+        # the targets g37 and g38 will be also metabolic genes, so that regulators g39 and g40 will control the flux
+        # expression of r17
+        g37 = Variable.from_types(types=('target', 'gene'), identifier='g37')
+        g38 = Variable.from_types(types=('target', 'gene'), identifier='g38')
+
+        from mewpy.algebra import Expression, parse_expression
+        i_g37_expression = Expression(parse_expression('g39 and not g40'), {'g39': g39, 'g40': g40})
+        i_g38_expression = Expression(parse_expression('g39 and not g40'), {'g39': g39, 'g40': g40})
+
+        # it is always a good practice to build the expression of a given interaction first, and then use it in the
+        # Interaction constructor. Otherwise, interaction has alternative constructors (from_expression or from_string)
+        i_g37 = Interaction(identifier='Interaction_g37',
+                            regulatory_events={1.0: i_g37_expression},
+                            target=g37)
+
+        i_g38 = Interaction(identifier='Interaction_g38',
+                            regulatory_events={1.0: i_g38_expression},
+                            target=g38)
+
+        n = Metabolite(identifier='N',
+                       charge=0,
+                       compartment='c',
+                       formula='C12H24O6')
+
+        o = Metabolite(identifier='O',
+                       charge=2,
+                       compartment='c',
+                       formula='C12H24O12')
+
+        r17_gpr = Expression(parse_expression('g37 or g38'), {'g37': g37, 'g38': g38})
+
+        # it is always a good practice to build the gpr of a given reaction first, and then use it in the Reaction
+        # constructor. Otherwise, reaction has alternative constructors (from_gpr_expression or from_gpr_string)
+        r17 = Reaction(identifier='r17',
+                       bounds=(-1000, 1000),
+                       gpr=r17_gpr,
+                       stoichiometry={n: -1, o: 2})
+
+        # exchanges
+        r18 = Reaction(identifier='r18',
+                       bounds=(-1000, 0),
+                       stoichiometry={n: -1})
+
+        r19 = Reaction(identifier='r19',
+                       bounds=(0, 1000),
+                       stoichiometry={o: -1})
+
+        # note that, although the metabolic genes of r17 are linked to the interactions i_g37 and i_g38, we still had
+        # to add both interactions and reactions to the model, so that the model comprehends the regulatory and
+        # metabolic phenomena. Models are always modular and the main containers static, so that it is possible to
+        # work with either the metabolic or regulatory share, even if the variables are linked
+        model.add((i_g37, i_g38, r17, r18, r19))
+
+        self.assertEqual(len(model.interactions), 38)
+        self.assertEqual(len(model.targets), 38)
+        self.assertEqual(len(model.regulators), 21)
+        self.assertEqual(len(model.environmental_stimuli), 7)
+
+        self.assertEqual(model.objective, {model.get('r11'): 1})
+        self.assertEqual(len(model.reactions), 20)
+        self.assertEqual(len(model.metabolites), 16)
+        self.assertEqual(len(model.genes), 24)
+        self.assertEqual(len(model.exchanges), 4)
+
+        model.get('r16').ko()
+
+        # updating for the add interactions and reactions
+        for simulator in simulators:
+            simulator.update()
+
+        fba_sol = fba.optimize()
+        pfba_sol = pfba.optimize()
+        rfba_sol = rfba.optimize(initial_state=initial_state)
+        srfba_sol = srfba.optimize()
+
+        # if r16 is knocked-out, only r8 can have flux, and vice-versa.
+        # r17, r18 and r19 do not affect the rest of the network
+        self.assertGreater(fba_sol.x.get('r8'), 333)
+        self.assertGreater(pfba_sol.x.get('r8'), 333)
+        self.assertGreater(rfba_sol.x.get('r8'), 333)
+        self.assertGreater(srfba_sol.x.get('r8'), 333)
+
+        model.objective = {'r17': 1}
+        # otherwise, the remaining network can have flux or not
+        model.reactions.get('r0').bounds = (0, 0)
+
+        # updating for the add interactions and reactions
+        for simulator in simulators:
+            simulator.update()
+
+        fba_sol = fba.optimize()
+        pfba_sol = pfba.optimize()
+        rfba_sol = rfba.optimize(initial_state=initial_state)
+        srfba_sol = srfba.optimize()
+
+        # different objective
+        self.assertLess(fba_sol.x.get('r8'), 333)
+        self.assertLess(pfba_sol.x.get('r8'), 333)
+        self.assertLess(rfba_sol.x.get('r8'), 333)
+        self.assertLess(srfba_sol.x.get('r8'), 333)
+
+        self.assertGreater(fba_sol.x.get('r17'), 450)
+        self.assertGreater(pfba_sol.x.get('r17'), 450)
+        self.assertGreater(rfba_sol.x.get('r17'), 450)
+        self.assertGreater(srfba_sol.x.get('r17'), 450)
+
+        # resetting the model to the first state. This involves removing the interactions and reactions added earlier
+        model.reset()
+
+        # This was also reset
+        model.get('pH').coefficient.coefficients = (0, 14)
+        model.get('r16').ko()
+
+        # updating for the add interactions and reactions
+        for simulator in simulators:
+            simulator.update()
+
+        fba_sol = fba.optimize()
+        pfba_sol = pfba.optimize()
+        rfba_sol = rfba.optimize(initial_state=initial_state)
+        srfba_sol = srfba.optimize()
+
+        self.assertGreater(fba_sol.x.get('r8'), 333)
+        self.assertGreater(pfba_sol.x.get('r8'), 333)
+        self.assertGreater(rfba_sol.x.get('r8'), 333)
+        self.assertGreater(srfba_sol.x.get('r8'), 333)
+
+        # adding a blocked by-product
+        n = Metabolite(identifier='N',
+                       charge=0,
+                       compartment='c',
+                       formula='C12H24O6')
+
+        model.reactions.get('r8').add_metabolites(stoichiometry={n: 1})
+
+        for simulator in simulators:
+            simulator.update()
+
+        fba_sol = fba.optimize()
+        pfba_sol = pfba.optimize()
+        rfba_sol = rfba.optimize(initial_state=initial_state)
+        srfba_sol = srfba.optimize()
+
+        self.assertLess(fba_sol.x.get('r11'), 1)
+        self.assertLess(pfba_sol.x.get('r11'), 1)
+        self.assertLess(rfba_sol.x.get('r11'), 1)
+        self.assertLess(srfba_sol.x.get('r11'), 1)
+
+        model.undo()
+        for simulator in simulators:
+            simulator.update()
+
+        fba_sol = fba.optimize()
+        pfba_sol = pfba.optimize()
+        rfba_sol = rfba.optimize(initial_state=initial_state)
+        srfba_sol = srfba.optimize()
+
+        self.assertGreater(fba_sol.x.get('r11'), 1)
+        self.assertGreater(pfba_sol.x.get('r11'), 1)
+        self.assertGreater(rfba_sol.x.get('r11'), 1)
+        self.assertGreater(srfba_sol.x.get('r11'), 1)
+
+        # adding a repressor to the objective reaction
+        # r11 gpr is g18 & g19 & g20
+        # g18 and g19 are equally regulated by g33
+        reg_g33 = model.get('g33')
+        reg_g33.coefficient.coefficients = (1,)
+
+        from mewpy.algebra import Not, Symbol, Expression
+        symbolic = Not(variables=[Symbol(value=reg_g33.id)])
+        variables = {'g33': reg_g33}
+        regulatory_event = Expression(symbolic=symbolic, variables=variables)
+
+        i_g18 = model.get('g18').interaction
+        i_g18_reg_event = i_g18.regulatory_events[1]
+        # this will replace the regulatory event that determines a target coefficient of 1
+        i_g18.add_regulatory_event(coefficient=1, expression=regulatory_event)
+
+        for simulator in simulators:
+            simulator.update()
+
+        fba_sol = fba.optimize()
+        pfba_sol = pfba.optimize()
+        rfba_sol = rfba.optimize(initial_state=initial_state)
+        srfba_sol = srfba.optimize()
+
+        self.assertGreater(fba_sol.x.get('r11'), 1)
+        self.assertGreater(pfba_sol.x.get('r11'), 1)
+
+        # only analysis methods that consider the regulatory network are affected
+        self.assertLess(rfba_sol.x.get('r11'), 1)
+        self.assertLess(srfba_sol.x.get('r11'), 1)
+
+        # this will replace the regulatory event that determines a target coefficient of 1
+        i_g18.add_regulatory_event(coefficient=1, expression=i_g18_reg_event)
+        for simulator in simulators:
+            simulator.update()
+
+        fba_sol = fba.optimize()
+        pfba_sol = pfba.optimize()
+        rfba_sol = rfba.optimize(initial_state=initial_state)
+        srfba_sol = srfba.optimize()
+
+        self.assertGreater(fba_sol.x.get('r11'), 1)
+        self.assertGreater(pfba_sol.x.get('r11'), 1)
+        self.assertGreater(rfba_sol.x.get('r11'), 1)
+        self.assertGreater(srfba_sol.x.get('r11'), 1)
+
+    def test_serialization(self):
+        """
+        Tests model serialization workflow
+        """
+
+        from mewpy.io import Reader, Engines, read_model
+
+        metabolic_reader = Reader(Engines.MetabolicSBML, SAMPLE_MODEL)
+        regulatory_reader = Reader(Engines.RegulatoryCSV,
+                                   SAMPLE_REG_MODEL,
+                                   sep=',',
+                                   id_col=0,
+                                   rule_col=1)
+
+        model = read_model(regulatory_reader, metabolic_reader)
+
+        res = model.to_dict(variables=False)
+        self.assertEqual(len(res), 10)
+
+        dict_model = model.from_dict(res)
+        self.assertEqual(len(model.reactions), len(dict_model.reactions))
+
+        shallow_copy_model = dict_model.copy()
+        deep_copy_model = dict_model.deepcopy()
+
+        self.assertIs(shallow_copy_model.get('r6'), dict_model.get('r6'))
+        self.assertIsNot(deep_copy_model.get('r6'), dict_model.get('r6'))
 
 
 if __name__ == '__main__':

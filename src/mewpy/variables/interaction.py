@@ -360,7 +360,7 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
                              model=self.model)
 
             if self.model:
-                if regulator not in self.model.regulators:
+                if regulator.id not in self.model.regulators:
                     to_add.append(regulator)
 
         self._regulatory_events[coefficient] = expression
