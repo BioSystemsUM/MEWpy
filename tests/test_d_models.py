@@ -366,17 +366,18 @@ class TestMewModel(unittest.TestCase):
 
         model = read_model(regulatory_reader, metabolic_reader)
 
-        _BIOMASS_ID = 'Biomass_Ecoli_core'
-        _O2 = 'EX_o2_e'
-        _GLC = 'EX_glc__D_e'
-        _FUM = 'EX_fum_e'
-
-        constraints = {_GLC: (-10.0, 100000.0), _O2: (-30, 100000.0), _FUM: (-10, 100000.0)}
-
-        for rxn, bds in constraints.items():
-            model.get(rxn).bounds = bds
+        _BIOMASS_ID = 'r11'
+        # _O2 = 'r0'
+        # _GLC = 'EX_glc__D_e'
+        # _FUM = 'EX_fum_e'
+        #
+        # constraints = {_GLC: (-10.0, 100000.0), _O2: (-30, 100000.0), _FUM: (-10, 100000.0)}
+        #
+        # for rxn, bds in constraints.items():
+        #     model.get(rxn).bounds = bds
 
         model.objective = {_BIOMASS_ID: 1}
+        model.get('pH').coefficient.coefficients = (0, 14)
 
         from mewpy.analysis import SRFBA
         simulator = SRFBA(model)
