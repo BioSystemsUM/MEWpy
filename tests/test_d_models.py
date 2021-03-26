@@ -354,7 +354,17 @@ class TestMewModel(unittest.TestCase):
         self.assertGreater(len(reg_events), 0)
 
         # integrated analysis
-        model = read_model(self.regulatory_reader, self.metabolic_reader)
+        # model = read_model(self.regulatory_reader, self.metabolic_reader)
+        # changing to sample because of CPLEX community edition
+        from mewpy.io import Reader, Engines
+        metabolic_reader = Reader(Engines.MetabolicSBML, SAMPLE_MODEL)
+        regulatory_reader = Reader(Engines.RegulatoryCSV,
+                                   SAMPLE_REG_MODEL,
+                                   sep=',',
+                                   id_col=0,
+                                   rule_col=1)
+
+        model = read_model(regulatory_reader, metabolic_reader)
 
         _BIOMASS_ID = 'Biomass_Ecoli_core'
         _O2 = 'EX_o2_e'
