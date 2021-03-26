@@ -350,6 +350,8 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
         new_variable = Model.from_dict(state)
         self.__dict__ = new_variable.__dict__.copy()
 
+    # FIXME: make sure variables point to the same model?
+
     # -----------------------------------------------------------------------------
     # Operations/Manipulations
     # -----------------------------------------------------------------------------

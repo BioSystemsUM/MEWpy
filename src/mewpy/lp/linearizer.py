@@ -60,16 +60,15 @@ class MetabolicLinearizer(LinearProblem):
 
         for reaction in reactions:
 
-            if reaction.model is self.model:
-                lb, ub = reaction.bounds
+            lb, ub = reaction.bounds
 
-                var = VariableContainer(name=reaction.id,
-                                        sub_variables=[reaction.id],
-                                        lbs=[float(lb)],
-                                        ubs=[float(ub)],
-                                        variables_type=[VarType.CONTINUOUS])
+            var = VariableContainer(name=reaction.id,
+                                    sub_variables=[reaction.id],
+                                    lbs=[float(lb)],
+                                    ubs=[float(ub)],
+                                    variables_type=[VarType.CONTINUOUS])
 
-                to_add.append(var)
+            to_add.append(var)
 
         self.add(to_add)
 
@@ -87,21 +86,19 @@ class MetabolicLinearizer(LinearProblem):
 
         for metabolite in metabolites:
 
-            if metabolite.model is self.model:
+            coef = {}
 
-                coef = {}
+            for rxn in metabolite.yield_reactions():
 
-                for rxn in metabolite.yield_reactions():
+                if rxn.model is self.model:
+                    coef[rxn.id] = float(rxn.stoichiometry[metabolite])
 
-                    if rxn.model is self.model:
-                        coef[rxn.id] = float(rxn.stoichiometry[metabolite])
+            cnt = ConstraintContainer(name=metabolite.id,
+                                      coefs=[coef],
+                                      lbs=[0.0],
+                                      ubs=[0.0])
 
-                cnt = ConstraintContainer(name=metabolite.id,
-                                          coefs=[coef],
-                                          lbs=[0.0],
-                                          ubs=[0.0])
-
-                constraints.append(cnt)
+            constraints.append(cnt)
 
         self.add(constraints)
 

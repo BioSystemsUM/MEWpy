@@ -98,7 +98,7 @@ class ROUProblem(AbstractOUProblem):
         Suposes that reverseble reactions have been treated and bounded with positive flux values
         """
         constraints = dict()
-        print(type(candidate), candidate)
+        # print(type(candidate), candidate)
         for rxn, lv in candidate.items():
             rev_rxn = self.simulator.reverse_reaction(rxn)
             # skips if the reverse reaction was already processed
