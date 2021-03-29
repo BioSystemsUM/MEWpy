@@ -90,8 +90,7 @@ class MetabolicLinearizer(LinearProblem):
 
             for rxn in metabolite.yield_reactions():
 
-                if rxn.model is self.model:
-                    coef[rxn.id] = float(rxn.stoichiometry[metabolite])
+                coef[rxn.id] = float(rxn.stoichiometry[metabolite])
 
             cnt = ConstraintContainer(name=metabolite.id,
                                       coefs=[coef],

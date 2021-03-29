@@ -669,6 +669,14 @@ class Simulation(MewModelContainer, Simulator):
         environmental conditions and further constraints
         """
 
+        if not objective:
+
+            objective = {}
+
+            if self.model.is_metabolic():
+
+                objective = {var.id: val for var, val in self.model.objective.items()}
+
         if not constraints:
             constraints = {}
 
@@ -678,7 +686,7 @@ class Simulation(MewModelContainer, Simulator):
                                              model=self.model,
                                              objective=objective,
                                              minimize=not maximize,
-                                             constraints=constraints)
+                                             constraints=simulation_constraints)
 
         status = self.__status_mapping[solution.status]
 
