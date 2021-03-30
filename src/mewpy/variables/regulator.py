@@ -1,7 +1,7 @@
 from typing import Any, Set, Union, Dict, TYPE_CHECKING, Generator, Tuple, List
 
 from mewpy.util.utilities import generator
-from mewpy.util.serilization import serialize
+from mewpy.util.serialization import serialize
 from .coefficient import Coefficient
 from .variable import Variable
 
@@ -67,7 +67,7 @@ class Regulator(Variable, variable_type='regulator', register=True, constructor=
     # Static attributes
     # -----------------------------------------------------------------------------
 
-    @serialize('coefficient', 'coefficients')
+    @serialize('coefficient', 'coefficients', '_coefficient')
     @property
     def coefficient(self) -> Coefficient:
 
@@ -85,7 +85,7 @@ class Regulator(Variable, variable_type='regulator', register=True, constructor=
 
         return self._coefficient
 
-    @serialize('interactions', 'interactions')
+    @serialize('interactions', 'interactions', '_interactions')
     @property
     def interactions(self) -> Dict[str, 'Interaction']:
         return self._interactions.copy()
@@ -106,7 +106,6 @@ class Regulator(Variable, variable_type='regulator', register=True, constructor=
     # Dynamic attributes
     # -----------------------------------------------------------------------------
 
-    @serialize('targets', None)
     @property
     def targets(self) -> Dict[str, 'Target']:
 

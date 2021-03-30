@@ -1,7 +1,7 @@
 from typing import Any, Dict, TYPE_CHECKING, Set, Union, List, Tuple, Generator
 
 from mewpy.util.utilities import generator
-from mewpy.util.serilization import serialize
+from mewpy.util.serialization import serialize
 from .coefficient import Coefficient
 from .variable import Variable
 
@@ -67,7 +67,7 @@ class Gene(Variable, variable_type='gene', register=True, constructor=True, chec
     # Static attributes
     # -----------------------------------------------------------------------------
 
-    @serialize('coefficient', 'coefficients')
+    @serialize('coefficient', 'coefficients', '_coefficient')
     @property
     def coefficient(self) -> Coefficient:
 
@@ -86,7 +86,7 @@ class Gene(Variable, variable_type='gene', register=True, constructor=True, chec
 
         return self._coefficient
 
-    @serialize('reactions', 'reactions')
+    @serialize('reactions', 'reactions', '_reactions')
     @property
     def reactions(self) -> Dict[str, 'Reaction']:
         return self._reactions.copy()

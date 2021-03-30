@@ -3,7 +3,7 @@ from typing import Any, Dict, Union, TYPE_CHECKING, Tuple, Generator, List
 from mewpy.algebra import Expression, parse_expression
 from mewpy.lp import Notification
 from mewpy.util.utilities import generator
-from mewpy.util.serilization import serialize
+from mewpy.util.serialization import serialize
 from mewpy.util.history import recorder
 from mewpy.util.constants import ModelConstants
 from mewpy.io.engines.engines_utils import expression_warning
@@ -102,16 +102,17 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     # Static attributes
     # -----------------------------------------------------------------------------
 
-    @serialize('stoichiometry', 'stoichiometry')
+    @serialize('stoichiometry', 'stoichiometry', '_stoichiometry')
     @property
     def stoichiometry(self) -> Dict['Metabolite', Union[int, float]]:
         return self._stoichiometry.copy()
 
+    @serialize('coefficient', 'bounds', '_bounds')
     @property
     def coefficient(self) -> Coefficient:
         return self._bounds
 
-    @serialize('gpr', 'gpr')
+    @serialize('gpr', 'gpr', '_gpr')
     @property
     def gpr(self) -> Expression:
         return self._gpr
@@ -137,7 +138,6 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     # Dynamic attributes
     # -----------------------------------------------------------------------------
 
-    @serialize('metabolites', None)
     @property
     def metabolites(self) -> Dict[str, 'Metabolite']:
         return {met.id: met for met in self._stoichiometry}
@@ -152,7 +152,6 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         return {met.id: met for met, st in self._stoichiometry.items()
                 if st < 0.0}
 
-    @serialize('compartments', None)
     @property
     def compartments(self) -> set:
 
@@ -160,7 +159,6 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
                 for met in self.yield_metabolites()
                 if met.compartment is not None}
 
-    @serialize('bounds', 'bounds')
     @property
     def bounds(self) -> Tuple[Union[int, float], Union[int, float]]:
         return self.coefficient.bounds
@@ -173,12 +171,10 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     def upper_bound(self) -> Union[int, float]:
         return self.coefficient.upper_bound
 
-    @serialize('reversibility', None)
     @property
     def reversibility(self) -> bool:
         return self.lower_bound < - ModelConstants.TOLERANCE and self.upper_bound > ModelConstants.TOLERANCE
 
-    @serialize('equation', None)
     @property
     def equation(self) -> str:
 
@@ -204,7 +200,6 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         else:
             return equation[:-1]
 
-    @serialize('genes', None)
     @property
     def genes(self) -> Dict[str, 'Gene']:
 
@@ -214,7 +209,6 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     def gene_protein_reaction_rule(self) -> str:
         return self.gpr.to_string()
 
-    @serialize('boundary', None)
     @property
     def boundary(self) -> bool:
         return not (self.reactants and self.products)

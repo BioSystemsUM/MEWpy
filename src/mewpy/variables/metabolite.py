@@ -2,7 +2,7 @@ from re import findall
 from typing import Any, Dict, Generator, Union, TYPE_CHECKING
 
 from mewpy.util.utilities import generator, chemical_formula_re
-from mewpy.util.serilization import serialize
+from mewpy.util.serialization import serialize
 from mewpy.util.history import recorder
 from mewpy.util.constants import atomic_weights
 from .variable import Variable
@@ -82,7 +82,7 @@ class Metabolite(Variable, variable_type='metabolite', register=True, constructo
     # Static attributes
     # -----------------------------------------------------------------------------
 
-    @serialize('charge', 'charge')
+    @serialize('charge', 'charge', '_charge')
     @property
     def charge(self) -> int:
 
@@ -91,17 +91,17 @@ class Metabolite(Variable, variable_type='metabolite', register=True, constructo
 
         return self._charge
 
-    @serialize('compartment', 'compartment')
+    @serialize('compartment', 'compartment', '_compartment')
     @property
     def compartment(self) -> str:
         return self._compartment
 
-    @serialize('formula', 'formula')
+    @serialize('formula', 'formula', '_formula')
     @property
     def formula(self) -> str:
         return self._formula
 
-    @serialize('reactions', 'reactions')
+    @serialize('reactions', 'reactions', '_reactions')
     @property
     def reactions(self) -> Dict[str, 'Reaction']:
         return self._reactions.copy()

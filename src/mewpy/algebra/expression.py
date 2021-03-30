@@ -34,21 +34,25 @@ class Expression:
         if variables is None:
             variables = {}
 
-        self.symbolic: Symbolic = symbolic
-        self._variables: Dict[str, Union['Gene', 'Metabolite', 'Reaction', 'Regulator']] = {}
+        self._symbolic: Symbolic = symbolic
+        self._variables: Dict[str, Union['Gene', 'Metabolite', 'Reaction', 'Regulator']] = variables
 
-        self.variables = variables
+        self.check_association()
 
     def check_association(self):
 
         for symbol in self.symbols.values():
 
-            if symbol.name not in self.variables:
+            if symbol.name not in self._variables:
                 raise ValueError('Expression set with incorrect variables or symbolic expression')
 
     @property
-    def variables(self):
-        return self._variables
+    def symbolic(self) -> Symbolic:
+        return self._symbolic
+
+    @property
+    def variables(self) -> Dict[str, Union['Gene', 'Metabolite', 'Reaction', 'Regulator']]:
+        return self._variables.copy()
 
     @variables.setter
     def variables(self, value):
@@ -66,7 +70,6 @@ class Expression:
         return self.symbolic.is_none
 
     def __repr__(self):
-
         return repr(self.symbolic)
 
     def __str__(self):
@@ -152,7 +155,7 @@ class Expression:
         else:
             if active_states:
                 values = {key: variable.coefficient.active_coefficient
-                          for key, variable in self.variables.items()}
+                          for key, variable in self._variables.items()}
 
                 values['result'] = self.evaluate(values=values,
                                                  coefficient=coefficient,
@@ -165,7 +168,7 @@ class Expression:
             else:
 
                 variables = list(self.variables.keys())
-                coefficients = [variable.coefficient.coefficients for variable in self.variables.values()]
+                coefficients = [variable.coefficient.coefficients for variable in self._variables.values()]
 
                 for combined_coefficients in product(*coefficients):
                     values = dict(list(zip(variables, combined_coefficients)))

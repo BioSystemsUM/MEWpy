@@ -1,7 +1,7 @@
 from typing import Any, Union, Type, TYPE_CHECKING, List, Set, Dict
 
 from mewpy.util.history import HistoryManager, recorder
-from mewpy.util.serilization import serialize, Serializer
+from mewpy.util.serialization import serialize, Serializer
 from mewpy.lp import Notification
 
 # Preventing circular dependencies that only happen due to type checking
@@ -26,6 +26,17 @@ class MetaModel(type):
 
             return cls
 
+        # Dynamic typing being used. In this case, a proper name and model type must be provided
+        dynamic = kwargs.get('dynamic', False)
+        if dynamic:
+
+            names = [base.model_type for base in bases]
+
+            name = ''.join([name.title() for name in names])
+            name += 'Model'
+
+            kwargs['model_type'] = '-'.join(names)
+
         # The model type is always added to the subclasses. If it is not given upon subclass creation,
         # the subclass name is to be used
         model_type = kwargs.get('model_type', name.lower())
@@ -44,7 +55,7 @@ class MetaModel(type):
 
             attrs['_containers_registry']['model'] = containers
 
-            # Skip further building of the Variable factory
+            # Skip further building of the Model factory
             return
 
         # Dynamic typing being used. In this case, all children have already been constructed, so everything can be
@@ -105,8 +116,9 @@ class MetaModel(type):
 
             if hasattr(method, 'fget'):
 
-                if hasattr(method.fget, 'serialize') and hasattr(method.fget, 'deserialize'):
-                    containers[name] = (method.fget.serialize, method.fget.deserialize)
+                if hasattr(method.fget, 'serialize') and hasattr(method.fget, 'deserialize') and hasattr(method.fget,
+                                                                                                         'pickle'):
+                    containers[name] = (method.fget.serialize, method.fget.deserialize, method.fget.pickle)
 
         return containers
 
@@ -162,12 +174,12 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
 
         class_containers = self.get_containers_registry()
 
-        containers = class_containers['model']
+        containers = class_containers['model'].copy()
 
         for model_type in self.types:
 
-            for name, (serialize_name, deserialize_name) in class_containers[model_type].items():
-                containers[name] = (serialize_name, deserialize_name)
+            for name, (serialize_name, deserialize_name, pickle_name) in class_containers[model_type].items():
+                containers[name] = (serialize_name, deserialize_name, pickle_name)
 
         return containers
 
@@ -303,7 +315,7 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
     # Variable type manager
     # -----------------------------------------------------------------------------
 
-    @serialize('types', None)
+    @serialize('types', None, None)
     @property
     def types(self) -> Set[str]:
         return set()
@@ -312,12 +324,12 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
     # Static attributes
     # -----------------------------------------------------------------------------
 
-    @serialize('id', None)
+    @serialize('id', None, '_id')
     @property
     def id(self) -> Any:
         return self._id
 
-    @serialize('name', 'name')
+    @serialize('name', 'name', '_name')
     @property
     def name(self) -> str:
         return self._name
@@ -340,41 +352,8 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
         self._name = value
 
     # -----------------------------------------------------------------------------
-    # Serialization
-    # -----------------------------------------------------------------------------
-    def __getstate__(self):
-        attributes = self.to_dict(variables=False)
-        return attributes
-
-    def __setstate__(self, state):
-        new_variable = Model.from_dict(state)
-        self.__dict__ = new_variable.__dict__.copy()
-
-    # FIXME: make sure variables point to the same model?
-
-    # -----------------------------------------------------------------------------
     # Operations/Manipulations
     # -----------------------------------------------------------------------------
-
-    def __copy__(self) -> Union['Model', 'MetabolicModel', 'RegulatoryModel']:
-
-        obj_dict = self.to_dict(variables=False)
-
-        return self.from_dict(obj_dict)
-
-    def copy(self) -> Union['Model', 'MetabolicModel', 'RegulatoryModel']:
-
-        return self.__copy__()
-
-    def __deepcopy__(self) -> Union['Model', 'MetabolicModel', 'RegulatoryModel']:
-
-        obj_dict = self.to_dict(variables=True)
-
-        return self.from_dict(obj_dict)
-
-    def deepcopy(self) -> Union['Model', 'MetabolicModel', 'RegulatoryModel']:
-
-        return self.__deepcopy__()
 
     def get(self, identifier: Any, default=None) -> Union['Gene',
                                                           'Interaction',

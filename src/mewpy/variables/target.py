@@ -1,7 +1,7 @@
 from typing import Any, TYPE_CHECKING, Set, Union, Dict, Generator, Tuple, List
 
 from mewpy.util.utilities import generator
-from mewpy.util.serilization import serialize
+from mewpy.util.serialization import serialize
 from mewpy.util.history import recorder
 from .coefficient import Coefficient
 from .variable import Variable
@@ -81,7 +81,7 @@ class Target(Variable, variable_type='target', register=True, constructor=True, 
     # Static attributes
     # -----------------------------------------------------------------------------
 
-    @serialize('coefficient', 'coefficients')
+    @serialize('coefficient', 'coefficients', '_coefficient')
     @property
     def coefficient(self) -> Coefficient:
 
@@ -99,7 +99,7 @@ class Target(Variable, variable_type='target', register=True, constructor=True, 
 
         return self._coefficient
 
-    @serialize('interaction', 'interaction')
+    @serialize('interaction', 'interaction', '_interaction')
     @property
     def interaction(self) -> 'Interaction':
         return self._interaction

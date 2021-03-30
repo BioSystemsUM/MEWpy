@@ -1,8 +1,7 @@
-import copy
 from typing import Any, Union, Type, TYPE_CHECKING, List, Set, Tuple, Dict
 
 from mewpy.util.history import HistoryManager, recorder
-from mewpy.util.serilization import serialize, Serializer
+from mewpy.util.serialization import serialize, Serializer
 
 # Preventing circular dependencies that only happen due to type checking
 if TYPE_CHECKING:
@@ -31,6 +30,16 @@ class MetaVariable(type):
             MetaVariable.factories[name] = cls
 
             return cls
+
+        # Dynamic typing being used. In this case, a proper name and model type must be provided
+        dynamic = kwargs.get('dynamic', False)
+        if dynamic:
+            names = [base.model_type for base in bases]
+
+            name = ''.join([name.title() for name in names])
+            name += 'Variable'
+
+            kwargs['variable_type'] = '-'.join(names)
 
         # The variable type is always added to the subclasses. If it is not given upon subclass creation,
         # the subclass name is to be used
@@ -111,8 +120,10 @@ class MetaVariable(type):
 
             if hasattr(method, 'fget'):
 
-                if hasattr(method.fget, 'serialize') and hasattr(method.fget, 'deserialize'):
-                    attributes[name] = (method.fget.serialize, method.fget.deserialize)
+                if hasattr(method.fget, 'serialize') and hasattr(method.fget, 'deserialize') and hasattr(method.fget,
+                                                                                                         'pickle'):
+
+                    attributes[name] = (method.fget.serialize, method.fget.deserialize, method.fget.pickle)
 
         return attributes
 
@@ -138,11 +149,11 @@ class Variable(Serializer, metaclass=MetaVariable, factory=True):
 
     @staticmethod
     def get_registry():
-        return copy.deepcopy(Variable._registry)
+        return Variable._registry.copy()
 
     @staticmethod
     def get_attributes_registry():
-        return copy.deepcopy(Variable._attributes_registry)
+        return Variable._attributes_registry.copy()
 
     @staticmethod
     def register_type(variable_type, child):
@@ -167,12 +178,12 @@ class Variable(Serializer, metaclass=MetaVariable, factory=True):
 
         class_attributes = self.get_attributes_registry()
 
-        attributes = class_attributes['variable']
+        attributes = class_attributes['variable'].copy()
 
         for variable_type in self.types:
 
-            for name, (serialize_name, deserialize_name) in class_attributes[variable_type].items():
-                attributes[name] = (serialize_name, deserialize_name)
+            for name, (serialize_name, deserialize_name, pickle_name) in class_attributes[variable_type].items():
+                attributes[name] = (serialize_name, deserialize_name, pickle_name)
 
         return attributes
 
@@ -327,17 +338,17 @@ class Variable(Serializer, metaclass=MetaVariable, factory=True):
     # Static attributes
     # -----------------------------------------------------------------------------
 
-    @serialize('id', None)
+    @serialize('id', None, '_id')
     @property
     def id(self) -> Any:
         return self._id
 
-    @serialize('name', 'name')
+    @serialize('name', 'name', '_name')
     @property
     def name(self) -> str:
         return self._name
 
-    @serialize('aliases', 'aliases')
+    @serialize('aliases', 'aliases', '_aliases')
     @property
     def aliases(self) -> Set[str]:
         return self._aliases
@@ -436,39 +447,8 @@ class Variable(Serializer, metaclass=MetaVariable, factory=True):
         context.reset()
 
     # -----------------------------------------------------------------------------
-    # Serialization
-    # -----------------------------------------------------------------------------
-    def __getstate__(self):
-        attributes = self.to_dict()
-        return attributes
-
-    def __setstate__(self, state):
-        new_variable = Variable.from_dict(state)
-        self.__dict__ = new_variable.__dict__.copy()
-
-    # -----------------------------------------------------------------------------
     # Operations/Manipulations
     # -----------------------------------------------------------------------------
-
-    def __copy__(self) -> Union['Gene', 'Interaction', 'Metabolite', 'Reaction', 'Regulator', 'Target']:
-
-        obj_dict = self.to_dict(variables=False)
-
-        return self.from_dict(obj_dict)
-
-    def copy(self) -> Union['Gene', 'Interaction', 'Metabolite', 'Reaction', 'Regulator', 'Target']:
-
-        return self.__copy__()
-
-    def __deepcopy__(self) -> Union['Gene', 'Interaction', 'Metabolite', 'Reaction', 'Regulator', 'Target']:
-
-        obj_dict = self.to_dict(variables=True)
-
-        return self.from_dict(obj_dict)
-
-    def deepcopy(self) -> Union['Gene', 'Interaction', 'Metabolite', 'Reaction', 'Regulator', 'Target']:
-
-        return self.__deepcopy__()
 
     def update(self,
                name: str = None,

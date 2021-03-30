@@ -13,7 +13,7 @@ except ImportError:
 from mewpy.algebra import Expression, parse_expression
 from mewpy.lp import Notification
 from mewpy.util.utilities import generator
-from mewpy.util.serilization import serialize
+from mewpy.util.serialization import serialize
 from mewpy.util.history import recorder
 from mewpy.io.engines.engines_utils import expression_warning
 from .variable import Variable, variables_from_symbolic
@@ -114,12 +114,12 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
     # Static attributes
     # -----------------------------------------------------------------------------
 
-    @serialize('regulatory_events', 'regulatory_events')
+    @serialize('regulatory_events', 'regulatory_events', '_regulatory_events')
     @property
     def regulatory_events(self) -> Dict[Union[float, int], Expression]:
         return self._regulatory_events.copy()
 
-    @serialize('target', 'target')
+    @serialize('target', 'target', '_target')
     @property
     def target(self) -> 'Target':
         return self._target
@@ -150,7 +150,6 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
     # Dynamic attributes
     # -----------------------------------------------------------------------------
 
-    @serialize('regulators', None)
     @property
     def regulators(self) -> Dict[str, 'Regulator']:
 

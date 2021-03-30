@@ -3,7 +3,7 @@ from typing import Any, TYPE_CHECKING, Union, Generator, Dict, List, Tuple, Set
 from mewpy.model.model import Model
 from mewpy.lp import Notification
 from mewpy.util.history import recorder
-from mewpy.util.serilization import serialize
+from mewpy.util.serialization import serialize
 from mewpy.util.utilities import iterable, generator
 
 if TYPE_CHECKING:
@@ -71,20 +71,20 @@ class RegulatoryModel(Model, model_type='regulatory', register=True, constructor
     # Static attributes
     # -----------------------------------------------------------------------------
 
-    @serialize('interactions', 'interactions')
+    @serialize('interactions', 'interactions', '_interactions')
     @property
     def interactions(self) -> Dict[str, 'Interaction']:
-        return self._interactions
+        return self._interactions.copy()
 
-    @serialize('regulators', 'regulators')
+    @serialize('regulators', 'regulators', '_regulators')
     @property
     def regulators(self) -> Dict[str, 'Regulator']:
-        return self._regulators
+        return self._regulators.copy()
 
-    @serialize('targets', 'targets')
+    @serialize('targets', 'targets', '_targets')
     @property
     def targets(self) -> Dict[str, 'Target']:
-        return self._targets
+        return self._targets.copy()
 
     @property
     def compartments(self) -> Dict[str, str]:

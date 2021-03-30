@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any, Union, Generator, Dict, List, Tuple, Set
 from mewpy.model.model import Model
 from mewpy.lp import Notification
 from mewpy.util.history import recorder
-from mewpy.util.serilization import serialize
+from mewpy.util.serialization import serialize
 from mewpy.util.utilities import iterable, generator
 
 if TYPE_CHECKING:
@@ -79,22 +79,22 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
     # Static attributes
     # -----------------------------------------------------------------------------
 
-    @serialize('genes', 'genes')
+    @serialize('genes', 'genes', '_genes')
     @property
     def genes(self) -> Dict[str, 'Gene']:
         return self._genes.copy()
 
-    @serialize('metabolites', 'metabolites')
+    @serialize('metabolites', 'metabolites', '_metabolites')
     @property
     def metabolites(self) -> Dict[str, 'Metabolite']:
         return self._metabolites.copy()
 
-    @serialize('objective', 'objective')
+    @serialize('objective', 'objective', '_objective')
     @property
     def objective(self) -> Dict['Reaction', Union[float, int]]:
         return self._objective.copy()
 
-    @serialize('reactions', 'reactions')
+    @serialize('reactions', 'reactions', '_reactions')
     @property
     def reactions(self) -> Dict[str, 'Reaction']:
         return self._reactions.copy()
