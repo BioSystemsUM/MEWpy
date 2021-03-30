@@ -12,7 +12,7 @@ from .observers import PrintObjectivesStatObserver, VisualizerObserver
 from .problem import JMetalKOProblem, JMetalOUProblem
 from ..ea import AbstractEA, Solution
 from ...util.constants import EAConstants
-from ...util.process import get_evaluator
+from ...util.process import get_evaluator, cpu_count
 from .settings import get_population_size
 
 # SOEA alternatives
@@ -128,7 +128,7 @@ class EA(AbstractEA):
         }
 
         if self.mp:
-            args['population_evaluator'] = get_evaluator(self.ea_problem)
+            args['population_evaluator'] = get_evaluator(self.ea_problem, n_mp=cpu_count())
 
         print(f"Running {self.algorithm_name}")
         if self.algorithm_name == 'NSGAIII':
