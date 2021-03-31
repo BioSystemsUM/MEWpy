@@ -23,7 +23,7 @@ LOGGER = logging.getLogger(__name__)
 
 solver_map = {'gurobi': 'gurobi', 'cplex': 'cplex', 'glpk': 'optlang'}
 
-
+# TODO: missing proteins and set objective implementations
 class CBModelContainer(ModelContainer):
     """ A basic container for REFRAMED models.
 
@@ -110,6 +110,7 @@ class Simulation(CBModelContainer, Simulator):
 
     """
 
+    # TODO: the parent init call is missing ... super() can resolve the mro of the simulation diamond inheritance
     def __init__(self, model: CBModel, objective=None, envcond=None, constraints=None, solver=None, reference=None,
                  reset_solver=ModelConstants.RESET_SOLVER):
 
@@ -128,7 +129,6 @@ class Simulation(CBModelContainer, Simulator):
         self.solver = solver
         self._reset_solver = reset_solver
         self.reverse_sintax = [('_b', '_f')]
-        self._index_metabolites_reactions = None
         self._m_r_lookup = None
 
         self.__status_mapping = {
@@ -171,7 +171,6 @@ class Simulation(CBModelContainer, Simulator):
                 method=SimulationMethod.pFBA).fluxes
         return self._reference
 
-    @property
     def essential_reactions(self, min_growth=0.01):
         """Essential reactions are those when knocked out enable a biomass flux value above a minimal growth defined as
         a percentage of the wild type growth.
@@ -194,7 +193,6 @@ class Simulation(CBModelContainer, Simulator):
                     self._essential_reactions.append(rxn)
         return self._essential_reactions
 
-    @property
     def essential_genes(self, min_growth=0.01):
         """Essential genes are those when deleted enable a biomass flux value above a minimal growth defined as
         a percentage of the wild type growth.
@@ -210,7 +208,7 @@ class Simulation(CBModelContainer, Simulator):
         wt_growth = wt_solution.objective_value
         genes = self.model.genes
         for gene in genes:
-            active_genes = set(self.model.genes) - set([gene])
+            active_genes = set(self.model.genes) - {gene}
             active_reactions = self.evaluate_gprs(active_genes)
             inactive_reactions = set(
                 self.model.reactions) - set(active_reactions)
@@ -261,30 +259,6 @@ class Simulation(CBModelContainer, Simulator):
             r_id (str): The reaction identifier.
         """
         self.model.remove_reaction(r_id)
-
-    def get_metabolite_reactions(self, metabolite):
-        """List all reactions that have the metabolite as reactant or product.
-
-        Args:
-            metabolite (str): The metabolite identifier.
-
-        Returns:
-            list: List of reactions
-        """
-        if not self._index_metabolites_reactions:
-            self.__index_metabolites_reactions__()
-        return self._index_metabolites_reactions[metabolite]
-
-    def get_metabolite_compartment(self, metabolite):
-        """Returns the compartment of a metabolite.
-
-        Args:
-            metabolite (str): The metabolite identifier.
-
-        Returns:
-            str: The compartment identifier.
-        """
-        return self.model.metabolites[metabolite].compartment
 
     def get_uptake_reactions(self):
         """
@@ -381,66 +355,6 @@ class Simulation(CBModelContainer, Simulator):
             self._gene_to_reaction = gr
         return self._gene_to_reaction
 
-    def get_reactions_for_genes(self, genes):
-        """
-        Returns the list of reactions catalysed by a list of genes
-
-        :param list genes: A list of gene IDs.
-        :returns: A list of reaction identifiers.
-
-        """
-        if not self._gene_to_reaction:
-            self.gene_reactions()
-        reactions = []
-        for gene in genes:
-            reactions.extend(self._gene_to_reaction[gene])
-        return reactions
-
-    def get_reaction_metabolites(self, reaction):
-        '''
-        Returns all metabolites of a given reaction
-
-        :param reaction: reaction (str)
-        :return: metabolites (dict)
-
-        '''
-        return self.model.reactions[reaction].stoichiometry
-
-    def is_reactant(self, reaction, metabolite):
-        '''
-        Returns if a metabolite is reactant into a given reaction
-
-        :param reaction: reaction (str)
-        :param metabolite: metabolite (str)
-        :return: bool
-        '''
-        if metabolite not in self.model.reactions[reaction].stoichiometry:
-            raise KeyError("{} not in {}".format(metabolite, reaction))
-        return self.model.reactions[reaction].stoichiometry[metabolite] < 0.0
-
-    def is_product(self, reaction, metabolite):
-        '''
-        Returns if a metabolite is product into a given reaction.
-
-        :param reaction: reaction (str)
-        :param metabolite: metabolite (str)
-        :return: bool
-        '''
-        if metabolite not in self.model.reactions[reaction].stoichiometry:
-            raise KeyError("{} not in {}".format(metabolite, reaction))
-        return self.model.reactions[reaction].stoichiometry[metabolite] > 0.0
-
-    def __index_metabolites_reactions__(self):
-        self._index_metabolites_reactions = {}
-        for reaction in self.reactions:
-            metabolites = self.get_reaction_metabolites(reaction)
-            for metabolite in metabolites:
-                if metabolite in self._index_metabolites_reactions:
-                    self._index_metabolites_reactions[metabolite].append(
-                        reaction)
-                else:
-                    self._index_metabolites_reactions[metabolite] = [reaction]
-
     def metabolite_reaction_lookup(self, force_recalculate=False):
         """ Return the network topology as a nested map from metabolite to reaction to coefficient.
         :return: a dictionary lookup table
@@ -455,17 +369,9 @@ class Simulation(CBModelContainer, Simulator):
 
         return self._m_r_lookup
 
-
-    def get_objective(self):
-        return list(self.objective.keys())
-
-    def get_S(self):
-        """
-        Returns the S matrix as a numpy array
-        :return: S matrix, np.array
-        """
-
-        return np.array(self.model.stoichiometric_matrix())
+    # TODO: this is repeated
+    def set_objective(self, reaction):
+        self.model.set_objective({reaction: 1})
 
     def get_reaction_bounds(self, reaction):
         """
@@ -482,16 +388,6 @@ class Simulation(CBModelContainer, Simulator):
             lb, ub = self.model.reactions[reaction].lb, self.model.reactions[reaction].ub
 
         return lb if lb > -np.inf else -999999, ub if ub < np.inf else 999999
-
-    def get_bounds(self):
-        """
-        Returns the whole set of lower and upper bounds as numpy arrays
-
-        :return: lb(s), ub(s), tuple of lists
-
-        """
-        lbs, ubs = list(zip(*[self.get_reaction_bounds(reaction) for reaction in self.model.reactions]))
-        return list(lbs), list(ubs)
 
     def find_bounds(self):
         """
@@ -518,27 +414,6 @@ class Simulation(CBModelContainer, Simulator):
             for rxn in self.model.reactions
             if rxn.lb <= lower_bound and rxn.ub >= upper_bound
         ]
-
-    def get_boundary_reaction(self, metabolite):
-        """
-        Finds the boundary reaction associated with an extracellular metabolite.
-        If none is found, None is returned
-
-        :param metabolite: str, metabolite ID
-
-        :returns: reaction, str or  None
-        """
-
-        # reaction.reaction_type.value == 'exchange'
-        # len(reaction.stoichiometry) == 1
-
-        for reaction in self.get_metabolite_reactions(metabolite):
-
-            if reaction in self.medium or self.model.reactions[reaction].reaction_type.value == 'exchange' \
-                    or len(self.model.reactions[reaction].stoichiometry) == 1:
-                return reaction
-
-        return None
 
     # Simulate
     def simulate(self, objective=None, method=SimulationMethod.FBA,
@@ -588,6 +463,10 @@ class Simulation(CBModelContainer, Simulator):
                             x * scalefactor for x in constraint)
                     else:
                         raise ValueError("Could not scale the model")
+
+        # TODO: I have implemented a single dispatch for this, so we can avoid coding long if else chains.
+        #  If it is too "obscure", a dictionary can be used, or a function like get_simulation_method.
+        #  Either way, I believe it would be maintainable to have a hidden method for each simulation method
 
         # TODO: simplifly ...
         if method in [SimulationMethod.lMOMA, SimulationMethod.MOMA, SimulationMethod.ROOM] and reference is None:

@@ -33,7 +33,7 @@ class GKOProblem(AbstractKOProblem):
     def _build_target_list(self):
 
         genes = set(self.simulator.genes)
-        essential = set(self.simulator.essential_genes)
+        essential = set(self.simulator.essential_genes())
         transport = set(self.simulator.get_transport_genes())
         target = genes - essential - transport
         if self.non_target:

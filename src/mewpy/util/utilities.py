@@ -1,6 +1,8 @@
 import functools
+import re
 import types
 import time
+from collections import Iterable
 
 
 class TimerError(Exception):
@@ -54,3 +56,67 @@ def copy_func(f):
     g = functools.update_wrapper(g, f)
     g.__kwdefaults__ = f.__kwdefaults__
     return g
+
+
+class Dispatcher:
+
+    def __init__(self):
+
+        """
+        Dispatcher for the simulate method of the Simulation interface
+        It allows a simplification of the if else chain of methods provided as input to the simulate method
+
+        based on https://stackoverflow.com/questions/36836161/singledispatch-based-on-value-instead-of-type
+        (Ilja Everilä)
+
+        """
+
+        # weak ref key for the garbage collector
+        self.registry = {}
+
+    def __get__(self, instance, owner):
+
+        if instance is None:
+            return self
+
+        return self.dispatch(instance, owner)
+
+    def dispatch(self, instance, owner):
+
+        def wrapper(state, *args, **kwargs):
+
+            method = self.registry.get(state).__get__(instance, owner)
+
+            return method(*args, **kwargs)
+
+        return wrapper
+
+    def register(self, state):
+
+        def wrapper(method):
+
+            self.registry[state] = method
+
+            return method
+
+        return wrapper
+
+
+def iterable(obj, is_string=False):
+    if isinstance(obj, Iterable):
+
+        if is_string and isinstance(obj, str):
+            return (obj,)
+
+        return obj
+
+    return (obj,)
+
+
+def generator(container):
+    return (value for value in container.values())
+
+
+# Taken from the talented team responsible for developing cobrapy!!!!
+chemical_formula_re = re.compile('([A-Z][a-z]?)([0-9.]+[0-9.]?|(?=[A-Z])?)')
+

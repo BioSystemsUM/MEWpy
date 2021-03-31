@@ -1,0 +1,36 @@
+g1,g21
+g2,not g22
+g3,g23
+g4,g24 or g25
+g5,g26
+g6,not r15 > 0
+g7,not r15 > 0
+g8,not r15 > 0
+g9,r3 > 0
+g10,(g27 and (g28 or g29)) and (not g30)
+g11,(g27 and (g28 or g29)) and (not g30)
+g12,(g27 and (g28 or g29)) and (not g30)
+g13,not r6 > 0
+g14,not g31
+g15,r6 > 0
+g16,g32
+g17,g32
+g18,g33
+g19,g33
+g20,pH > 5
+g21,
+g22,
+g23,
+g24,
+g25,
+g26,
+g27,
+g28,
+g29,
+g30,
+g31,
+g32,
+g33,
+g34,g35
+g35,not r8 > 0
+g36,
