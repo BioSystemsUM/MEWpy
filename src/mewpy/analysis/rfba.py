@@ -50,8 +50,8 @@ class RFBA(MetabolicLinearizer):
             self.clean()
 
         if self.model.is_metabolic():
-            self.add_reactions(self.model.yield_reactions())
-            self.add_metabolites(self.model.yield_metabolites())
+            self.metabolite_reaction_lookup(reactions=self.model.yield_reactions(),
+                                            metabolites=self.model.yield_metabolites())
 
             self._regulatory_reactions = [rxn.id
                                           for rxn in self.model.yield_reactions()

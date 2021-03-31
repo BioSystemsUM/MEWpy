@@ -348,8 +348,6 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
             types = [set(types) for var in variables]
 
         reactions = []
-        metabolites = []
-        metabolites_lp = set()
         new_variables = []
         new_types = []
 
@@ -361,15 +359,12 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
 
             elif 'metabolite' in var_types:
                 self._add_metabolite(var)
-                metabolites.append(var)
                 var_types.remove('metabolite')
 
             elif 'reaction' in var_types:
                 self._add_reaction(var, comprehensive=comprehensive)
                 reactions.append(var)
                 var_types.remove('reaction')
-
-                metabolites_lp.update({metabolite for metabolite in var.yield_metabolites()})
 
             if var_types:
                 new_types.append(var_types)
@@ -383,22 +378,8 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
 
             self.notify(notification)
 
-            notification = Notification(content=metabolites_lp,
-                                        content_type='metabolites',
-                                        action='add')
-
-            self.notify(notification)
-
             notification = Notification(content=reactions,
                                         content_type='gprs',
-                                        action='add')
-
-            self.notify(notification)
-
-        if metabolites:
-
-            notification = Notification(content=metabolites,
-                                        content_type='metabolites',
                                         action='add')
 
             self.notify(notification)
@@ -438,7 +419,6 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
 
         reactions = []
         metabolites = []
-        metabolites_lp = set()
         new_variables = []
         new_types = []
 
@@ -458,8 +438,6 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
                 self._remove_reaction(var)
                 var_types.remove('reaction')
 
-                metabolites_lp.update({metabolite for metabolite in var.yield_metabolites()})
-
             if var_types:
                 new_types.append(var_types)
                 new_variables.append(var)
@@ -469,12 +447,6 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
             notification = Notification(content=reactions,
                                         content_type='reactions',
                                         action='remove')
-
-            self.notify(notification)
-
-            notification = Notification(content=metabolites_lp,
-                                        content_type='metabolites',
-                                        action='add')
 
             self.notify(notification)
 
@@ -489,10 +461,15 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
 
                 notification = Notification(content=orphan_mets,
                                             content_type='metabolites',
-                                            action='add')
+                                            action='remove')
 
                 self.notify(notification)
 
+        # metabolites take precedence since linear coefficients are added to linear problems
+        # by the reactions stoichiometry dictionary.
+        # So, if metabolites are being removed as a result of removing reactions and its metabolites
+        # all together from the model, the linear coefficients obtained from the reactions should be the last thing to
+        # persist in the lp.
         if metabolites:
             notification = Notification(content=metabolites,
                                         content_type='metabolites',

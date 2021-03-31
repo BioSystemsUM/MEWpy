@@ -31,10 +31,10 @@ class MetaVariable(type):
 
             return cls
 
-        # Dynamic typing being used. In this case, a proper name and model type must be provided
+        # Dynamic typing being used. In this case, a proper name and variable type must be provided
         dynamic = kwargs.get('dynamic', False)
         if dynamic:
-            names = [base.model_type for base in bases]
+            names = [base.variable_type for base in bases]
 
             name = ''.join([name.title() for name in names])
             name += 'Variable'
@@ -122,7 +122,6 @@ class MetaVariable(type):
 
                 if hasattr(method.fget, 'serialize') and hasattr(method.fget, 'deserialize') and hasattr(method.fget,
                                                                                                          'pickle'):
-
                     attributes[name] = (method.fget.serialize, method.fget.deserialize, method.fget.pickle)
 
         return attributes
@@ -130,7 +129,6 @@ class MetaVariable(type):
 
 # TODO: methods stubs
 class Variable(Serializer, metaclass=MetaVariable, factory=True):
-
     # -----------------------------------------------------------------------------
     # Factory management
     # -----------------------------------------------------------------------------
@@ -203,7 +201,9 @@ class Variable(Serializer, metaclass=MetaVariable, factory=True):
         if not args:
             args = ()
 
-        types = tuple([cls.get_registry()[name] for name in args])
+        registry = cls.get_registry()
+
+        types = tuple([registry[name] for name in args])
 
         if len(types) == 1:
             return types[0]
@@ -604,3 +604,7 @@ def variables_from_symbolic(symbolic: 'Symbolic',
         variables[variable.id] = variable
 
     return variables
+
+
+def build_variable(types, kwargs):
+    return Variable.from_types(types, **kwargs)

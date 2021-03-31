@@ -211,7 +211,9 @@ class Serializer:
 
                     else:
 
-                        children[var_id] = Variable.from_types(variable['types'], identifier=variable['id'])
+                        children[var_id] = Variable.from_types(variable['types'],
+                                                               identifier=variable['id'],
+                                                               model=model)
 
         return children
 
@@ -434,6 +436,23 @@ class Serializer:
             return children[obj]
 
     # -----------------------------------------------------------------------------
+    # reduce for pickle serialization
+    # -----------------------------------------------------------------------------
+    def __reduce__(self: Union['Serializer', 'Model', 'Variable']):
+
+        # for further detail: https://docs.python.org/3/library/pickle.html#object.__reduce__
+
+        from mewpy.model import Model, build_model
+        from mewpy.variables import Variable, build_variable
+
+        if isinstance(self, Model):
+            return build_model, (tuple(self.types), {'identifier': self.id}), self._dict_to_pickle()
+
+        if isinstance(self, Variable):
+            return build_variable, (tuple(self.types), {'identifier': self.id}), self._dict_to_pickle()
+
+        return super(Serializer, self).__reduce__()
+    # -----------------------------------------------------------------------------
     # State for pickle serialization
     # -----------------------------------------------------------------------------
 
@@ -532,7 +551,6 @@ class Serializer:
         return model
 
     # FIXME: make sure variables point to the correct model
-
     def to_dict(self: Union['Serializer', 'Variable', 'Model'],
                 serialization_format: str = 'json',
                 variables: bool = False) -> Dict[str, Union[dict,

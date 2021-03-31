@@ -1,7 +1,7 @@
 import unittest
 
 MODELS_PATH = 'tests/data/'
-EC_CORE_MODEL = MODELS_PATH + 'ecoli_core_model.xml'
+EC_CORE_MODEL = MODELS_PATH + 'e_coli_core.xml'
 EC_CORE_REG_MODEL = MODELS_PATH + 'e_coli_core_trn.csv'
 SAMPLE_MODEL = MODELS_PATH + 'SampleNet.xml'
 SAMPLE_REG_MODEL = MODELS_PATH + 'SampleRegNet.csv'
@@ -247,15 +247,15 @@ class TestMewModel(unittest.TestCase):
         self.assertEqual(len(model.genes), 137)
 
         # from json
-        model_reader = Reader(Engines.JSON, MODELS_PATH + 'iMC1010.json')
+        model_reader = Reader(Engines.JSON, MODELS_PATH + 'e_coli_core.json')
 
         model = read_model(model_reader)
-        self.assertEqual(len(model.interactions), 1010)
-        self.assertEqual(len(model.targets), 1010)
-        self.assertEqual(len(model.regulators), 232)
-        self.assertEqual(len(model.reactions), 1083)
-        self.assertEqual(len(model.metabolites), 768)
-        self.assertEqual(len(model.genes), 904)
+        self.assertEqual(len(model.interactions), 159)
+        self.assertEqual(len(model.targets), 159)
+        self.assertEqual(len(model.regulators), 45)
+        self.assertEqual(len(model.reactions), 95)
+        self.assertEqual(len(model.metabolites), 72)
+        self.assertEqual(len(model.genes), 137)
 
     def test_write(self):
         """
@@ -865,7 +865,6 @@ class TestMewModel(unittest.TestCase):
         model.get('pH').coefficient.coefficients = (0, 14)
         model.get('r16').ko()
 
-        # updating for the add interactions and reactions
         for simulator in simulators:
             simulator.update()
 

@@ -1,4 +1,4 @@
-from .variable import Variable
+from .variable import Variable, build_variable
 from .gene import Gene
 from .interaction import Interaction
 from .metabolite import Metabolite

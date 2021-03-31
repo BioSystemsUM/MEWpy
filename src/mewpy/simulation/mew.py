@@ -259,7 +259,7 @@ class Simulation(MewModelContainer, Simulator):
             self._reference = self.simulate(method=SimulationMethod.pFBA).fluxes
         return self._reference
 
-    def essential_reactions(self) -> List[str]:
+    def essential_reactions(self, min_growth=0.01) -> List[str]:
 
         """
         The set of knocked out reactions that impair a minimal growth rate predicted by the model with fba.
@@ -288,13 +288,13 @@ class Simulation(MewModelContainer, Simulator):
 
             if res:
 
-                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * 0.01) \
+                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \
                         or res.status == SStatus.INFEASIBLE:
                     self._essential_reactions.append(rxn)
 
         return self._essential_reactions
 
-    def essential_genes(self) -> List[str]:
+    def essential_genes(self, min_growth=0.01) -> List[str]:
 
         """
         The set of knocked out genes that impair a minimal growth rate predicted by the model with fba.
@@ -338,7 +338,7 @@ class Simulation(MewModelContainer, Simulator):
 
             if res:
 
-                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * 0.01) \
+                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \
                         or res.status == SStatus.INFEASIBLE:
                     self._essential_genes.append(gene)
 

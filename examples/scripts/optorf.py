@@ -86,7 +86,7 @@ def optorf_imc():
 
     problem = OptORFProblem(model, [evaluator_1, evaluator_2], candidate_max_size=6)
 
-    ea = EA(problem, max_generations=10, mp=False)
+    ea = EA(problem, max_generations=10, mp=True)
     final_pop = ea.run()
 
     from mewpy.util.io import population_to_csv
@@ -98,7 +98,7 @@ def optorf_imc():
 def optorf_ec():
 
     DIR = os.path.dirname(os.path.realpath(__file__))
-    cbm_model_f = os.path.join(DIR, "../models/regulation/ecoli_core_model.xml")
+    cbm_model_f = os.path.join(DIR, "../models/regulation/e_coli_core.xml")
     reg_model_f = os.path.join(DIR, '../models/regulation/e_coli_core_trn.csv')
 
     _BIOMASS_ID = 'Biomass_Ecoli_core'
@@ -138,7 +138,7 @@ def optorf_ec():
 
     problem = OptORFProblem(model, [evaluator_1, evaluator_2], candidate_max_size=6)
 
-    ea = EA(problem, max_generations=100, mp=False)
+    ea = EA(problem, max_generations=10, mp=True)
     final_pop = ea.run()
 
     from mewpy.util.io import population_to_csv

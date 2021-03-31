@@ -45,8 +45,8 @@ class FBA(MetabolicLinearizer):
             self.clean()
 
         if self.model.is_metabolic():
-            self.add_reactions(self.model.yield_reactions())
-            self.add_metabolites(self.model.yield_metabolites())
+            self.metabolite_reaction_lookup(reactions=self.model.yield_reactions(),
+                                            metabolites=self.model.yield_metabolites())
 
             self.constraints_from_gprs(inplace=True)
 
@@ -243,8 +243,8 @@ class milpFBA(MetabolicLinearizer, GPRLinearizer):
             self.clean()
 
         if self.model.is_metabolic():
-            self.add_reactions(self.model.yield_reactions())
-            self.add_metabolites(self.model.yield_metabolites())
+            self.metabolite_reaction_lookup(reactions=self.model.yield_reactions(),
+                                            metabolites=self.model.yield_metabolites())
 
             self.add_gprs(self.model.yield_reactions())
 

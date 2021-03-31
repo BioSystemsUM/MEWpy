@@ -9,7 +9,7 @@ OPTRAM_GENES = MODELS_PATH + 'mgene.csv'
 OPTRAM_TFS = MODELS_PATH + 'TFnames.csv'
 OPTRAM_REGNET = MODELS_PATH + 'regnet.csv'
 
-EC_CORE_MODEL2 = MODELS_PATH + 'ecoli_core_model.xml'
+EC_CORE_MODEL2 = MODELS_PATH + 'e_coli_core.xml'
 EC_CORE_REG_MODEL = MODELS_PATH + 'e_coli_core_trn.csv'
 
 MIN_GROWTH = 0.1
@@ -47,6 +47,7 @@ class TestRKOP(unittest.TestCase):
         import random
         ispass = False
         tries = 0
+        constraints = []
         while not ispass and tries < MAX_TRIES:
             tries += 1
             candidate = self.problem.generator(random, None)

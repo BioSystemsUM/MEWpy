@@ -29,7 +29,6 @@ class MetaModel(type):
         # Dynamic typing being used. In this case, a proper name and model type must be provided
         dynamic = kwargs.get('dynamic', False)
         if dynamic:
-
             names = [base.model_type for base in bases]
 
             name = ''.join([name.title() for name in names])
@@ -125,7 +124,6 @@ class MetaModel(type):
 
 # TODO: methods stubs and type hinting
 class Model(Serializer, metaclass=MetaModel, factory=True):
-
     # -----------------------------------------------------------------------------
     # Factory management
     # -----------------------------------------------------------------------------
@@ -569,3 +567,7 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
                     orphans.add(variable_2)
 
         return orphans
+
+
+def build_model(types, kwargs):
+    return Model.from_types(types, **kwargs)

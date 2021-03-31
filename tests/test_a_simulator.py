@@ -2,7 +2,7 @@ import unittest
 
 MODELS_PATH = 'tests/data/'
 EC_CORE_MODEL = MODELS_PATH + 'e_coli_core.xml.gz'
-EC_CORE_MODEL2 = MODELS_PATH + 'ecoli_core_model.xml'
+EC_CORE_MODEL2 = MODELS_PATH + 'e_coli_core.xml'
 MIN_GROWTH = 0.1
 
 
@@ -24,13 +24,13 @@ class TestReframedSimul(unittest.TestCase):
     def test_essential_reactions(self):
         """Tests essential reactions
         """
-        essential = self.simul.essential_reactions
+        essential = self.simul.essential_reactions()
         self.assertGreater(len(essential), 0)
 
     def test_essential_genes(self):
         """Tests essential genes
         """
-        essential = self.simul.essential_genes
+        essential = self.simul.essential_genes()
         self.assertGreater(len(essential), 0)
 
     def test_uptake_reactions(self):
@@ -183,6 +183,7 @@ class TestMew(TestReframedSimul):
         solver = solver_instance(self.simul)
         solver.solve()
 
+
 class TestGeckoLoad(unittest.TestCase):
     """Tests GECKO simulator
     """
@@ -210,8 +211,8 @@ class TestGeckoSimul(unittest.TestCase):
         """
         Can not run on community CPLEX
         """
-        #essential = self.simul.essential_proteins()
-        #self.assertGreater(len(essential), 0)
+        # essential = self.simul.essential_proteins()
+        # self.assertGreater(len(essential), 0)
         pass
 
 

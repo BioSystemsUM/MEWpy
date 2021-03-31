@@ -77,11 +77,11 @@ class JSON(Engine):
              model: Union['Model', 'MetabolicModel', 'RegulatoryModel'] = None,
              variables=None):
 
-        return Model.from_dict(self.dto.model)
+        return Model.from_dict(self.dto.model, variables=True)
 
     def write(self):
 
-        dict_model = self.model.to_dict()
+        dict_model = self.model.to_dict(variables=True)
 
         if hasattr(self.io, 'close'):
 

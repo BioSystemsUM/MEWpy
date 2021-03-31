@@ -32,7 +32,7 @@ class RKOProblem(AbstractKOProblem):
         Removes drains, transport and essential reactions
         """
         reactions = set(self.simulator.reactions)
-        essential = set(self.simulator.essential_reactions)
+        essential = set(self.simulator.essential_reactions())
         drains = set(self.simulator.get_drains())
         transport = set(self.simulator.get_transport_reactions())
         target = reactions - essential - drains - transport

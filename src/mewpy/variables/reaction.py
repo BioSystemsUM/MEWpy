@@ -434,6 +434,12 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
             # constraints for each metabolite and replace it in the LP
             self.model.add(to_add, 'metabolite', comprehensive=False, history=False)
 
+            notification = Notification(content=(self, ),
+                                        content_type='reactions',
+                                        action='add')
+
+            self.model.notify(notification)
+
         if history:
             self.history.queue_command(undo_func=self.remove_metabolites,
                                        undo_kwargs={'metabolites': list(stoichiometry.keys()),
@@ -452,7 +458,6 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
             metabolites = list(metabolites.values())
 
         orphan_mets = []
-        removed_mets = []
         old_stoichiometry = {}
 
         for metabolite in metabolites:
@@ -468,8 +473,6 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
 
             del self._stoichiometry[metabolite]
 
-            removed_mets.append(metabolite)
-
         if self.model:
 
             # the add interface will add all metabolites to the simulators. The simulators will retrieve the new
@@ -478,8 +481,8 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
             if orphan_mets and remove_orphans_from_model:
                 self.model.remove(orphan_mets, 'metabolite', remove_orphans=False, history=False)
 
-            notification = Notification(content=removed_mets,
-                                        content_type='metabolites',
+            notification = Notification(content=(self, ),
+                                        content_type='reactions',
                                         action='add')
 
             self.model.notify(notification)

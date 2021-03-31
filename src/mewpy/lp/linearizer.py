@@ -15,7 +15,6 @@ if TYPE_CHECKING:
     from mewpy.algebra import Symbolic
     from mewpy.variables import Reaction, Metabolite
 
-
 MEWPY_LB = ModelConstants.REACTION_LOWER_BOUND
 MEWPY_UB = ModelConstants.REACTION_UPPER_BOUND
 MEWPY_TOL = ModelConstants.TOLERANCE
@@ -52,12 +51,18 @@ class MetabolicLinearizer(LinearProblem):
         else:
             return super(MetabolicLinearizer, self).notification(notification)
 
-    def add_reactions(self, reactions: List['Reaction']):
+    def metabolite_reaction_lookup(self, reactions: List['Reaction'], metabolites: List['Metabolite']):
 
         reactions: List['Reaction'] = iterable(reactions)
+        metabolites: List['Metabolite'] = iterable(metabolites)
 
-        to_add = []
+        constraints = {metabolite.id: ConstraintContainer(name=metabolite.id,
+                                                          coefs=[{}],
+                                                          lbs=[0.0],
+                                                          ubs=[0.0])
+                       for metabolite in metabolites}
 
+        variables = []
         for reaction in reactions:
 
             lb, ub = reaction.bounds
@@ -68,44 +73,88 @@ class MetabolicLinearizer(LinearProblem):
                                     ubs=[float(ub)],
                                     variables_type=[VarType.CONTINUOUS])
 
-            to_add.append(var)
+            variables.append(var)
 
-        self.add(to_add)
+            for metabolite, coef in reaction.stoichiometry.items():
+                metabolite_cnt = constraints[metabolite.id]
+                metabolite_cnt.coefs[0][reaction.id] = coef
+
+        self.add(variables)
+        self.add(constraints.values())
+
+    def add_reactions(self, reactions: List['Reaction']):
+
+        reactions: List['Reaction'] = iterable(reactions)
+
+        variables = []
+        constraints = []
+        for reaction in reactions:
+
+            lb, ub = reaction.bounds
+
+            var = VariableContainer(name=reaction.id,
+                                    sub_variables=[reaction.id],
+                                    lbs=[float(lb)],
+                                    ubs=[float(ub)],
+                                    variables_type=[VarType.CONTINUOUS])
+
+            variables.append(var)
+
+            for metabolite, coef in reaction.stoichiometry.items():
+                constraint = self._constraints.get(metabolite.id, ConstraintContainer(name=metabolite.id,
+                                                                                      coefs=[{}],
+                                                                                      lbs=[0.0],
+                                                                                      ubs=[0.0]))
+
+                constraint.coefs[0][reaction.id] = coef
+                constraints.append(constraint)
+
+        self.add(variables)
+        self.add(constraints)
 
     def remove_reactions(self, reactions: List['Reaction']):
 
-        reactions = iterable(reactions)
+        reactions: List['Reaction'] = iterable(reactions)
 
-        self.remove([self._variables.get(rxn.id) for rxn in reactions])
+        variables = []
+        constraints = []
+        for reaction in reactions:
+
+            if reaction.id in self._variables:
+                variables.append(self._variables[reaction.id])
+
+            for metabolite in reaction.metabolites:
+
+                if metabolite in self._constraints:
+
+                    constraint = self._constraints[metabolite]
+
+                    if reaction.id in constraint.coefs[0]:
+                        del constraint.coefs[0][reaction.id]
+
+                    constraints.append(constraint)
+
+        self.remove(variables)
+        self.remove(constraints)
 
     def add_metabolites(self, metabolites: List['Metabolite']):
 
         metabolites: List['Metabolite'] = iterable(metabolites)
 
-        constraints = []
-
-        for metabolite in metabolites:
-
-            coef = {}
-
-            for rxn in metabolite.yield_reactions():
-
-                coef[rxn.id] = float(rxn.stoichiometry[metabolite])
-
-            cnt = ConstraintContainer(name=metabolite.id,
-                                      coefs=[coef],
-                                      lbs=[0.0],
-                                      ubs=[0.0])
-
-            constraints.append(cnt)
+        constraints = [ConstraintContainer(name=metabolite.id,
+                                           coefs=[{}],
+                                           lbs=[0.0],
+                                           ubs=[0.0])
+                       for metabolite in metabolites]
 
         self.add(constraints)
 
     def remove_metabolites(self, metabolites: List['Metabolite']):
 
-        metabolites = iterable(metabolites)
+        metabolites: List['Metabolite'] = iterable(metabolites)
 
-        self.remove([self._constraints.get(met.id) for met in metabolites])
+        self.remove([self._constraints[metabolite.id] for metabolite in metabolites
+                     if metabolite.id in self._constraints])
 
 
 class LogicLinearizer(LinearProblem):

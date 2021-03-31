@@ -98,7 +98,9 @@ map_model_simulator = {
     'mewpy.model.smoment.SMomentModel': ('mewpy.simulation.reframed', 'GeckoSimulation'),
     'mewpy.model.model.Model': ('mewpy.simulation.mew', 'Simulation'),
     'mewpy.model.metabolic.MetabolicModel': ('mewpy.simulation.mew', 'Simulation'),
-    'mewpy.model.regulatory.RegulatoryModel': ('mewpy.simulation.mew', 'Simulation')
+    'mewpy.model.regulatory.RegulatoryModel': ('mewpy.simulation.mew', 'Simulation'),
+    'mewpy.model.model.MetabolicRegulatoryModel': ('mewpy.simulation.mew', 'Simulation'),
+    'mewpy.model.model.RegulatoryMetabolicModel': ('mewpy.simulation.mew', 'Simulation'),
 }
 
 
