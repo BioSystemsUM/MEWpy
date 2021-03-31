@@ -8,7 +8,7 @@ from .observers import results_observer, VisualizerObserver
 from .terminator import generation_termination
 from ..ea import AbstractEA, Solution
 from ...util.constants import EAConstants
-from ...util.process import get_evaluator
+from ...util.process import get_evaluator, cpu_count
 
 SOEA = {
     'GA': inspyred.ec.EvolutionaryComputation,
@@ -63,7 +63,7 @@ class EA(AbstractEA):
         prng.seed(time())
 
         if self.mp:
-            self.evaluator = get_evaluator(self.ea_problem)
+            self.evaluator = get_evaluator(self.ea_problem, n_mp=cpu_count())
         else:
             self.evaluator = self.ea_problem.evaluator
 
@@ -98,7 +98,7 @@ class EA(AbstractEA):
         prng.seed(time())
 
         if self.mp:
-            self.evaluator = get_evaluator(self.ea_problem)
+            self.evaluator = get_evaluator(self.ea_problem, n_mp=cpu_count())
         else:
             self.evaluator = self.ea_problem.evaluator
 

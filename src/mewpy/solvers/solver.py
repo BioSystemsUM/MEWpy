@@ -55,6 +55,16 @@ class Solver(object):
             update (bool): update problem immediately (default: True)
         """
 
+    def set_variable_bounds(self, var_id, lb, ub):
+        """Modify a variable bounds
+
+        Args:
+            var_id (str): [description]
+            lb (float): lower bound
+            ub (float): upper bound
+        """
+        pass
+
     def add_constraint(self, constr_id, lhs, sense='=', rhs=0, update=True):
         """ Add a constraint to the current problem.
 

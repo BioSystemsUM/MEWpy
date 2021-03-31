@@ -60,6 +60,20 @@ class OptLangSolver(Solver):
         if update:
             self.problem.update()
 
+    def set_variable_bounds(self, var_id, lb, ub):
+        """Modify a variable bounds
+
+        Args:
+            var_id (str): [description]
+            lb (float): lower bound
+            ub (float): upper bound
+        """
+        var = self.problem.variables[var_id]
+        if lb:
+            var.lb = lb
+        if ub:
+            var.ub = ub
+
     def add_constraint(self, constr_id, lhs, sense='=', rhs=0, update=True):
         """ Add a constraint to the current problem.
 

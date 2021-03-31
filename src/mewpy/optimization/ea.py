@@ -85,7 +85,7 @@ class Solution(SolutionInterface):
         return new_solution
 
     def __hash__(self):
-        return hash(str(self.values))
+        return hash(str(set(self.values)))
 
     def toDict(self):
         d = {'values': self.values,
@@ -143,19 +143,19 @@ class AbstractEA(ABC):
         print("Exiting")
         sys.exit(0)
 
-    @abstractmethod
+    @ abstractmethod
     def _convertPopulation(self, population):
         raise NotImplementedError
 
-    @abstractmethod
+    @ abstractmethod
     def _run_so(self):
         raise NotImplementedError
 
-    @abstractmethod
+    @ abstractmethod
     def _run_mo(self):
         raise NotImplementedError
 
-    @abstractmethod
+    @ abstractmethod
     def _get_current_population(self):
         raise NotImplementedError
 

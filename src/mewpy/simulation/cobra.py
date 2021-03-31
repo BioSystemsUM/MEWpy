@@ -301,7 +301,7 @@ class Simulation(CobraModelContainer, Simulator):
 
         if not self._m_r_lookup or force_recalculate:
             self._m_r_lookup = OrderedDict([(m_id, OrderedDict()) for m_id in self.metabolites])
-            for i, reaction in enumerate(self.model.reactions):
+            for _, reaction in enumerate(self.model.reactions):
                 for m, coeff in reaction.metabolites.items():
                     self._m_r_lookup[m.id][reaction.id] = coeff
 

@@ -105,6 +105,19 @@ class CplexSolver(Solver):
         self._cached_upper_bounds.update(dict(zip(var_ids, ubs)))
         self._cached_lin_obj.update({var_id: 0.0 for var_id in var_ids})
 
+    def set_variable_bounds(self, var_id, lb, ub):
+        """Modify a variable bounds
+
+        Args:
+            var_id (str): [description]
+            lb (float): lower bound
+            ub (float): upper bound
+        """
+        if lb:
+            self.problem.variables.set_lower_bounds(var_id, lb)
+        if ub:
+            self.problem.variables.set_upper_bounds(var_id, ub)
+
     def add_constraint(self, constr_id, lhs, sense='=', rhs=0, update=True):
         """ Add a constraint to the current problem.
 
