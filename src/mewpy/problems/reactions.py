@@ -32,7 +32,7 @@ class RKOProblem(AbstractKOProblem):
         Removes drains, transport and essential reactions
         """
         reactions = set(self.simulator.reactions)
-        essential = set(self.simulator.essential_reactions)
+        essential = set(self.simulator.essential_reactions())
         drains = set(self.simulator.get_drains())
         transport = set(self.simulator.get_transport_reactions())
         target = reactions - essential - drains - transport
@@ -98,7 +98,7 @@ class ROUProblem(AbstractOUProblem):
         Suposes that reverseble reactions have been treated and bounded with positive flux values
         """
         constraints = dict()
-        print(type(candidate), candidate)
+        # print(type(candidate), candidate)
         for rxn, lv in candidate.items():
             rev_rxn = self.simulator.reverse_reaction(rxn)
             # skips if the reverse reaction was already processed

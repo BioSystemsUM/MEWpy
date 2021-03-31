@@ -150,7 +150,6 @@ class Simulation(CobraModelContainer, Simulator):
                 method=SimulationMethod.pFBA).fluxes
         return self._reference
 
-    @property
     def essential_reactions(self, min_growth=0.01):
         """Essential reactions are those when knocked out enable a biomass flux value above a minimal growth defined as
         a percentage of the wild type growth.
@@ -173,7 +172,6 @@ class Simulation(CobraModelContainer, Simulator):
                     self._essential_reactions.append(rxn)
         return self._essential_reactions
 
-    @property
     def essential_genes(self, min_growth=0.01):
         """Essential genes are those when deleted enable a biomass flux value above a minimal growth defined as a
         percentage of the wild type growth.
@@ -189,7 +187,7 @@ class Simulation(CobraModelContainer, Simulator):
         wt_growth = wt_solution.objective_value
         genes = self.genes
         for gene in genes:
-            active_genes = set(self.genes) - set([gene])
+            active_genes = set(self.genes) - {gene}
             active_reactions = self.evaluate_gprs(active_genes)
             inactive_reactions = set(self.reactions) - set(active_reactions)
             gr_constraints = {rxn: 0 for rxn in inactive_reactions}
@@ -296,55 +294,6 @@ class Simulation(CobraModelContainer, Simulator):
             self._gene_to_reaction = gr
         return self._gene_to_reaction
 
-    def get_reactions_for_genes(self, genes):
-        """
-        Returns the list of reactions catalysed by a list of genes
-
-        :param list genes: A list of gene IDs.
-        :returns: A list of reaction identifiers.
-
-        """
-        if not self._gene_to_reaction:
-            self.gene_reactions()
-        reactions = []
-        for gene in genes:
-            if gene in self._gene_to_reaction.keys():
-                reactions.extend(self._gene_to_reaction[gene])
-        return reactions
-
-    def get_reaction_metabolites(self, reaction):
-        '''
-        Returns all metabolites of a given reaction.
-
-        :param reaction: reaction (str)
-        :return: metabolites (dict)
-
-        '''
-        return self.model.reactions.get_by_id(reaction).metabolites
-
-    def is_reactant(self, reaction, metabolite):
-        '''
-        Returns if a metabolite is reactant into a given reaction.
-
-        :param reaction: reaction (str)
-        :param metabolite: metabolite (str)
-        :return: bool
-
-        '''
-
-        return self.model.metabolites.get_by_id(metabolite) in self.model.reactions.get_by_id(reaction).reactants
-
-    def is_product(self, reaction, metabolite):
-        '''
-        Returns if a metabolite is product into a given reaction.
-
-        :param reaction: reaction (str)
-        :param metabolite: metabolite (str)
-        :return: bool
-
-        '''
-        return self.model.metabolites.get_by_id(metabolite) in self.model.reactions.get_by_id(reaction).products
-
     def metabolite_reaction_lookup(self, force_recalculate=False):
         """ Return the network topology as a nested map from metabolite to reaction to coefficient.
         :return: a dictionary lookup table
@@ -357,30 +306,6 @@ class Simulation(CobraModelContainer, Simulator):
                     self._m_r_lookup[m.id][reaction.id] = coeff
 
         return self._m_r_lookup
-
-    def get_metabolite_reactions(self, metabolite):
-
-        return [reaction.id for reaction in self.model.metabolites.get_by_id(metabolite).reactions]
-
-    def get_S(self):
-        """
-        Returns the S matrix as a numpy array
-
-        :returns:
-
-        S matrix, np.array
-
-        """
-        S = np.zeros((len(self.metabolites), len(self.reactions)))
-
-        # usually there are more reactions than metabolites, but is far more easy to build S from reactions
-        m_ids = {metabolite: i for i, metabolite in enumerate(self.model.metabolites)}
-
-        for i, reaction in enumerate(self.model.reactions):
-            for metabolite, coef in reaction.metabolites.items():
-                S[m_ids[metabolite], i] = coef
-
-        return S
 
     def get_reaction_bounds(self, reaction):
         """
@@ -399,37 +324,6 @@ class Simulation(CobraModelContainer, Simulator):
             lb, ub = self.model.reactions.get_by_id(reaction).bounds
 
         return lb if lb > -np.inf else -999999, ub if ub < np.inf else 999999
-
-    def get_bounds(self):
-        """
-        Returns the whole set of lower and upper bounds as numpy arrays
-
-        :returns: lb(s), ub(s), tuple of lists
-
-        """
-
-        lbs, ubs = list(zip(*[self.get_reaction_bounds(reaction) for reaction in self.reactions]))
-
-        return list(lbs), list(ubs)
-
-    def get_boundary_reaction(self, metabolite):
-        """
-        Finds the boundary reaction associated with an extracellular metabolite.
-        If none is found, None is returned
-
-        :param metabolite: str, metabolite ID
-        :returns: reaction, str or None
-
-        """
-
-        for reaction in self.model.metabolites.get_by_id(metabolite).reactions:
-
-            if reaction.id in self.model.exchanges \
-                    or reaction.id in self.medium \
-                    or reaction.boundary \
-                    or (len(reaction.products) == 0):
-                return reaction.id
-        return None
 
     def find_bounds(self):
         """
@@ -456,13 +350,6 @@ class Simulation(CobraModelContainer, Simulator):
             for rxn in self.model.reactions
             if rxn.lower_bound <= lower_bound and rxn.upper_bound >= upper_bound
         ]
-
-    def get_objective(self):
-        """
-        :returns: The model objective.
-        """
-        from cobra.util.solver import linear_reaction_coefficients
-        return list(map(lambda x: x.id, linear_reaction_coefficients(self.model).keys()))
 
     # The simulator
     def simulate(self, objective=None, method=SimulationMethod.FBA, maximize=True,

@@ -63,6 +63,20 @@ def load_gecko():
     simul.summary()
 
 
+def load_mew():
+    """
+    Loads a mew model
+    """
+    DIR = os.path.dirname(os.path.realpath(__file__))
+    PATH = os.path.join(DIR, '../models/optram/')
+    DATA_FILE = os.path.join(PATH, "yeast_7.6-optram.xml")
+
+    from mewpy.io import read_sbml
+    model = read_sbml(DATA_FILE, metabolic=True, regulatory=False)
+    simul = get_simulator(model)
+    simul.summary()
+
+
 if __name__ == "__main__":
     load_cobra()
     load_gecko()
