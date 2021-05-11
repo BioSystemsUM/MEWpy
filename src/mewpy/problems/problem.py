@@ -107,7 +107,10 @@ class AbstractProblem(ABC):
         for f in self.fevaluation:
             methods.extend(f.required_simulations())
         self.methods = list(set(methods))
-
+        # problem specific EA operators
+        self.operators = None
+        self.operators_param = None
+        
     @abstractmethod
     def generator(self, random, args):
         """The generator function for the problem."""

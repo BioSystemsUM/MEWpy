@@ -128,19 +128,20 @@ class AbstractEA(ABC):
         return self.final_population
 
     def __signalHandler(self, signum, frame):
-        print("Dumping current population.")
-        try:
-            pop = self._get_current_population()
-            data = [s.toDict() for s in pop]
-            import json
-            from datetime import datetime
-            now = datetime.now()
-            dt_string = now.strftime("%d%m%Y-%H%M%S")
-            with open(f'mewpy-dump-{dt_string}.json', 'w') as outfile:
-                json.dump(data, outfile)
-        except Exception:
-            print("Unable to dump population.")
-        print("Exiting")
+        if EAConstants.KILL_DUMP:
+            print("Dumping current population.")
+            try:
+                pop = self._get_current_population()
+                data = [s.toDict() for s in pop]
+                import json
+                from datetime import datetime
+                now = datetime.now()
+                dt_string = now.strftime("%d%m%Y-%H%M%S")
+                with open(f'mewpy-dump-{dt_string}.json', 'w') as outfile:
+                    json.dump(data, outfile)
+            except Exception:
+                print("Unable to dump population.")
+            print("Exiting")
         sys.exit(0)
 
     @ abstractmethod

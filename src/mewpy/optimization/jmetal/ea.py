@@ -5,15 +5,14 @@ from jmetal.algorithm.singleobjective import GeneticAlgorithm, SimulatedAnnealin
 from jmetal.operator import BinaryTournamentSelection
 from jmetal.util.termination_criterion import StoppingByEvaluations
 
-from .operators import (ShrinkMutation, GrowMutationKO, GrowMutationOU, UniformCrossoverKO,
-                        UniformCrossoverOU, SingleMutationKO, SingleMutationOU, SingleMutationOULevel,
-                        MutationContainer)
+from .operators import build_operators
 from .observers import PrintObjectivesStatObserver, VisualizerObserver
 from .problem import JMetalKOProblem, JMetalOUProblem
 from ..ea import AbstractEA, Solution
 from ...util.constants import EAConstants
 from ...util.process import get_evaluator, cpu_count
 from .settings import get_population_size
+from ...problems import Strategy
 
 # SOEA alternatives
 soea_map = {
@@ -45,29 +44,14 @@ class EA(AbstractEA):
 
         self.algorithm_name = algorithm
 
-        from mewpy.problems import Strategy
-
-        mutators = []
-
         if self.problem.strategy == Strategy.KO:
-            self.crossover = UniformCrossoverKO(0.8, self.problem.candidate_max_size)
             self.ea_problem = JMetalKOProblem(self.problem, self.initial_population)
-            mutators.append(GrowMutationKO(
-                1.0, max_size=self.problem.candidate_max_size))
-            mutators.append(ShrinkMutation(
-                1.0, min_size=self.problem.candidate_min_size))
-            mutators.append(SingleMutationKO(1.0))
         else:
-            self.crossover = UniformCrossoverOU(0.5, self.problem.candidate_max_size)
             self.ea_problem = JMetalOUProblem(self.problem, self.initial_population)
-            mutators.append(GrowMutationOU(
-                1.0, max_size=self.problem.candidate_max_size))
-            mutators.append(ShrinkMutation(
-                1.0, min_size=self.problem.candidate_min_size))
-            mutators.append(SingleMutationOU(1.0))
-            mutators.append(SingleMutationOULevel(1.0))
 
-        self.mutation = MutationContainer(0.3, mutators=mutators)
+        crossovers, mutations = build_operators(self.problem)
+        self.crossover = crossovers
+        self.mutation = mutations
         self.population_size = kwargs.get('population_size', get_population_size())
         self.max_evaluations = self.max_generations * self.population_size
 

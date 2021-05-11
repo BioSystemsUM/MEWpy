@@ -10,6 +10,7 @@ from jmetal.core.solution import Solution
 
 from .problem import KOSolution, OUSolution
 from ...util.constants import EAConstants
+from ...problems import Strategy
 
 
 class ShrinkMutation(Mutation[Solution]):
@@ -327,3 +328,47 @@ class SingleMutationOULevel(Mutation[OUSolution]):
 
     def get_name(self):
         return 'Single Mutation KO'
+
+
+REP_INT = {
+    "SHRINK": ShrinkMutation,
+    "GROWKO": GrowMutationKO,
+    "GROWOU": GrowMutationOU,
+    "UCROSSKO": UniformCrossoverKO,
+    "UCROSSOU": UniformCrossoverOU,
+    "SMUTKO": SingleMutationKO,
+    "SMUTOU": SingleMutationOU,
+    "SMLEVEL": SingleMutationOULevel
+}
+
+
+def build_operators(problem):
+    if problem.strategy == Strategy.KO:
+        return build_ko_operators(problem)
+    elif problem.strategy == Strategy.OU:
+        return build_ou_operators(problem)
+
+
+def build_ko_operators(problem):
+    crossover = UniformCrossoverKO(0.8, problem.candidate_max_size)
+    mutators = []
+    mutators.append(GrowMutationKO(
+        1.0, max_size=problem.candidate_max_size))
+    mutators.append(ShrinkMutation(
+        1.0, min_size=problem.candidate_min_size))
+    mutators.append(SingleMutationKO(1.0))
+    mutations = MutationContainer(0.3, mutators=mutators)
+    return crossover, mutations
+
+
+def build_ou_operators(problem):
+    crossover = UniformCrossoverOU(0.5, problem.candidate_max_size)
+    mutators = []
+    mutators.append(GrowMutationOU(
+        1.0, max_size=problem.candidate_max_size))
+    mutators.append(ShrinkMutation(
+        1.0, min_size=problem.candidate_min_size))
+    mutators.append(SingleMutationOU(1.0))
+    mutators.append(SingleMutationOULevel(1.0))
+    mutations = MutationContainer(0.3, mutators=mutators)
+    return crossover, mutations

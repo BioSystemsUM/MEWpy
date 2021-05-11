@@ -317,3 +317,15 @@ def single_mutation_OU_level(random, candidate, args):
     mutantL[index] = (idx, lv)
     mutant = set(mutantL)
     return mutant
+
+
+OPERATORS = {
+    "SHRINK": shrink_mutation,
+    "GROWKO": grow_mutation_KO,
+    "GROWOU": grow_mutation_OU,
+    "UCROSSKO": uniform_crossover_KO,
+    "UCROSSOU": uniform_crossover_OU,
+    "SMUTKO": single_mutation_KO,
+    "SMUTOU": single_mutation_OU,
+    "SMLEVEL": single_mutation_OU_level
+}
