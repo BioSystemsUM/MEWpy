@@ -6,7 +6,7 @@ files = ["model/data/*"]
 with open('README.rst') as readme_file:
     readme = readme_file.read()
 
-requirements = ['optlang<1.4.6', 'numpy', 'python-libsbml', 'inspyred', 'jmetalpy',
+requirements = ['optlang', 'numpy', 'python-libsbml', 'inspyred', 'jmetalpy',
                 'reframed', 'cobra', 'cobamp', 'networkx', 'matplotlib<3.3']
 
 setup_requirements = requirements + ['pytest-runner']

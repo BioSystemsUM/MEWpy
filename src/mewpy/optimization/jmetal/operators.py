@@ -330,6 +330,59 @@ class SingleMutationOULevel(Mutation[OUSolution]):
         return 'Single Mutation KO'
 
 
+class GaussianMutation(Mutation[Solution]):
+    """
+     A Gaussian mutator
+    """
+
+    def __init__(self, probability: float = 0.1,
+                 gaussian_mutation_rate: float = 0.1,
+                 gaussian_mean: float = 0.0,
+                 gaussian_std: float = 1.0):
+        super(GaussianMutation, self).__init__(probability=probability)
+        self.gaussian_mutation_rate = gaussian_mutation_rate
+        self.gaussian_mean = gaussian_mean
+        self.gaussian_std = gaussian_std
+
+    def execute(self, solution: Solution) -> Solution:
+        if random.random() <= self.probability:
+            mutant = copy.copy(solution.variables)
+            for i, m in enumerate(mutant):
+                if random.random() < self.gaussian_mutation_rate:
+                    v = m + random.gauss(self.gaussian_mean, self.gaussian_std)
+                    while v < solution.lower_bound[i] or v > solution.upper_bound[i]:
+                        v = m + random.gauss(self.gaussian_mean, self.gaussian_std)
+                    solution.variables[i] = v
+        return solution
+
+    def get_name(self):
+        return 'Gaussian Mutator'
+
+
+class SingleRealMutation(Mutation[Solution]):
+    """
+    Mutates a single element
+    """
+
+    def __init__(self, probability: float = 0.1):
+        super(SingleMutation, self).__init__(probability=probability)
+
+    def execute(self, solution: Solution) -> Solution:
+        if random.random() <= self.probability:
+            index = random.randint(0, solution.number_of_variables - 1)
+            solution.variables[index] = solution.lower_bound[index] + \
+                (solution.upper_bound[index] - solution.lower_bound[index]) * random.random()
+        return solution
+
+    def get_name(self):
+        return 'Single Real Mutation'
+
+
+
+
+
+
+
 REP_INT = {
     "SHRINK": ShrinkMutation,
     "GROWKO": GrowMutationKO,

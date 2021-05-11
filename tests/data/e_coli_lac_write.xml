@@ -7,16 +7,16 @@
     </listOfCompartments>
     <qual:listOfQualitativeSpecies>
       <qual:qualitativeSpecies qual:id="G_b0008" qual:compartment="c" qual:constant="false" qual:name="talB" qual:initialLevel="1" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="FruR" qual:compartment="c" qual:constant="false" qual:name="FruR" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="PdhR" qual:compartment="c" qual:constant="false" qual:name="PdhR" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="FruR" qual:compartment="c" qual:constant="false" qual:name="FruR" qual:initialLevel="1" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="PdhR" qual:compartment="c" qual:constant="false" qual:name="PdhR" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="aceE" qual:compartment="c" qual:constant="false" qual:name="aceE" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="aceF" qual:compartment="c" qual:constant="false" qual:name="aceF" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0116" qual:compartment="c" qual:constant="false" qual:name="lpd" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0118" qual:compartment="c" qual:constant="false" qual:name="acnB" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0351" qual:compartment="c" qual:constant="false" qual:name="mhpF" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0356" qual:compartment="c" qual:constant="false" qual:name="frmA" qual:initialLevel="1" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="PhoB" qual:compartment="c" qual:constant="false" qual:name="PhoB" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="PhoR" qual:compartment="c" qual:constant="false" qual:name="PhoR" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="PhoB" qual:compartment="c" qual:constant="false" qual:name="PhoB" qual:initialLevel="1" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="PhoR" qual:compartment="c" qual:constant="false" qual:name="PhoR" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0451" qual:compartment="c" qual:constant="false" qual:name="amtB" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0474" qual:compartment="c" qual:constant="false" qual:name="adk" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0485" qual:compartment="c" qual:constant="false" qual:name="glsA" qual:initialLevel="1" qual:maxLevel="1"/>
@@ -44,16 +44,16 @@
       <qual:qualitativeSpecies qual:id="G_b0979" qual:compartment="c" qual:constant="false" qual:name="cbdB" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="ptsG" qual:compartment="c" qual:constant="false" qual:name="ptsG" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="b1137" qual:compartment="c" qual:constant="false" qual:name="b1137" qual:initialLevel="1" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="FadR" qual:compartment="c" qual:constant="false" qual:name="FadR" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="FadR" qual:compartment="c" qual:constant="false" qual:name="FadR" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="adhE" qual:compartment="c" qual:constant="false" qual:name="adhE" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1276" qual:compartment="c" qual:constant="false" qual:name="acnA" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1297" qual:compartment="c" qual:constant="false" qual:name="puuA" qual:initialLevel="1" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="Fnr" qual:compartment="c" qual:constant="false" qual:name="Fnr" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="Fnr" qual:compartment="c" qual:constant="false" qual:name="Fnr" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1380" qual:compartment="c" qual:constant="false" qual:name="ldhA" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1478" qual:compartment="c" qual:constant="false" qual:name="adhP" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1479" qual:compartment="c" qual:constant="false" qual:name="maeA" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="yneH" qual:compartment="c" qual:constant="false" qual:name="yneH" qual:initialLevel="1" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="Mlc" qual:compartment="c" qual:constant="false" qual:name="Mlc" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="Mlc" qual:compartment="c" qual:constant="false" qual:name="Mlc" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1602" qual:compartment="c" qual:constant="false" qual:name="pntB" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1603" qual:compartment="c" qual:constant="false" qual:name="pntA" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="fumC" qual:compartment="c" qual:constant="false" qual:name="fumC" qual:initialLevel="1" qual:maxLevel="1"/>
@@ -72,7 +72,7 @@
       <qual:qualitativeSpecies qual:id="G_b1849" qual:compartment="c" qual:constant="false" qual:name="purT" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1852" qual:compartment="c" qual:constant="false" qual:name="zwf" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1854" qual:compartment="c" qual:constant="false" qual:name="pykA" qual:initialLevel="1" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="Nac" qual:compartment="c" qual:constant="false" qual:name="Nac" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="Nac" qual:compartment="c" qual:constant="false" qual:name="Nac" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b2029" qual:compartment="c" qual:constant="false" qual:name="gnd" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b2097" qual:compartment="c" qual:constant="false" qual:name="fbaB" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b2133" qual:compartment="c" qual:constant="false" qual:name="dld" qual:initialLevel="1" qual:maxLevel="1"/>
@@ -108,15 +108,15 @@
       <qual:qualitativeSpecies qual:id="G_b2935" qual:compartment="c" qual:constant="false" qual:name="tktA" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="glcA" qual:compartment="c" qual:constant="false" qual:name="glcA" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="glcB" qual:compartment="c" qual:constant="false" qual:name="glcB" qual:initialLevel="1" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="GlcC" qual:compartment="c" qual:constant="false" qual:name="GlcC" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="GlcC" qual:compartment="c" qual:constant="false" qual:name="GlcC" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="pitB" qual:compartment="c" qual:constant="false" qual:name="pitB" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="tdcE" qual:compartment="c" qual:constant="false" qual:name="tdcE" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="tdcD" qual:compartment="c" qual:constant="false" qual:name="tdcD" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="gltB" qual:compartment="c" qual:constant="false" qual:name="gltB" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="gltD" qual:compartment="c" qual:constant="false" qual:name="gltD" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="mdh" qual:compartment="c" qual:constant="false" qual:name="mdh" qual:initialLevel="1" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="Fis" qual:compartment="c" qual:constant="false" qual:name="Fis" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="Crp" qual:compartment="c" qual:constant="false" qual:name="Crp" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="Fis" qual:compartment="c" qual:constant="false" qual:name="Fis" qual:initialLevel="1" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="Crp" qual:compartment="c" qual:constant="false" qual:name="Crp" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b3386" qual:compartment="c" qual:constant="false" qual:name="rpe" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b3403" qual:compartment="c" qual:constant="false" qual:name="pck" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b3493" qual:compartment="c" qual:constant="false" qual:name="pitA" qual:initialLevel="1" qual:maxLevel="1"/>
@@ -132,7 +132,7 @@
       <qual:qualitativeSpecies qual:id="G_b3737" qual:compartment="c" qual:constant="false" qual:name="atpE" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b3738" qual:compartment="c" qual:constant="false" qual:name="atpB" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b3739" qual:compartment="c" qual:constant="false" qual:name="atpI" qual:initialLevel="1" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="GlnG" qual:compartment="c" qual:constant="false" qual:name="GlnG" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="GlnG" qual:compartment="c" qual:constant="false" qual:name="GlnG" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="glnA" qual:compartment="c" qual:constant="false" qual:name="glnA" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b3916" qual:compartment="c" qual:constant="false" qual:name="pfkA" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b3919" qual:compartment="c" qual:constant="false" qual:name="tpiA" qual:initialLevel="1" qual:maxLevel="1"/>
@@ -143,13 +143,13 @@
       <qual:qualitativeSpecies qual:id="G_b3962" qual:compartment="c" qual:constant="false" qual:name="sthA" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="aceB" qual:compartment="c" qual:constant="false" qual:name="aceB" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="aceA" qual:compartment="c" qual:constant="false" qual:name="aceA" qual:initialLevel="1" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="IclR" qual:compartment="c" qual:constant="false" qual:name="IclR" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="IclR" qual:compartment="c" qual:constant="false" qual:name="IclR" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b4025" qual:compartment="c" qual:constant="false" qual:name="pgi" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b4077" qual:compartment="c" qual:constant="false" qual:name="gltP" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b4090" qual:compartment="c" qual:constant="false" qual:name="rpiB" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="fumB" qual:compartment="c" qual:constant="false" qual:name="fumB" qual:initialLevel="1" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="DcuR" qual:compartment="c" qual:constant="false" qual:name="DcuR" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="DcuS" qual:compartment="c" qual:constant="false" qual:name="DcuS" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="DcuR" qual:compartment="c" qual:constant="false" qual:name="DcuR" qual:initialLevel="1" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="DcuS" qual:compartment="c" qual:constant="false" qual:name="DcuS" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="frdD" qual:compartment="c" qual:constant="false" qual:name="frdD" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="frdC" qual:compartment="c" qual:constant="false" qual:name="frdC" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="frdB" qual:compartment="c" qual:constant="false" qual:name="frdB" qual:initialLevel="1" qual:maxLevel="1"/>
@@ -157,14 +157,14 @@
       <qual:qualitativeSpecies qual:id="G_b4232" qual:compartment="c" qual:constant="false" qual:name="fbp" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b4301" qual:compartment="c" qual:constant="false" qual:name="sgcE" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b4395" qual:compartment="c" qual:constant="false" qual:name="ytjC" qual:initialLevel="1" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="ArcA" qual:compartment="c" qual:constant="false" qual:name="ArcA" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="ArcA" qual:compartment="c" qual:constant="false" qual:name="ArcA" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_s0001" qual:compartment="c" qual:constant="false" qual:name="G_s0001" qual:initialLevel="1" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="CRPnoGLC" qual:compartment="c" qual:constant="false" qual:name="CRPnoGLC" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="CRPnoGLM" qual:compartment="c" qual:constant="false" qual:name="CRPnoGLM" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="NRI_hi" qual:compartment="c" qual:constant="false" qual:name="NRI_hi" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="NRI_low" qual:compartment="c" qual:constant="false" qual:name="NRI_low" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="surplusFDP" qual:compartment="c" qual:constant="false" qual:name="surplusFDP" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="surplusPYR" qual:compartment="c" qual:constant="false" qual:name="surplusPYR" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="CRPnoGLC" qual:compartment="c" qual:constant="false" qual:name="CRPnoGLC" qual:initialLevel="1" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="CRPnoGLM" qual:compartment="c" qual:constant="false" qual:name="CRPnoGLM" qual:initialLevel="1" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="NRI_hi" qual:compartment="c" qual:constant="false" qual:name="NRI_hi" qual:initialLevel="1" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="NRI_low" qual:compartment="c" qual:constant="false" qual:name="NRI_low" qual:initialLevel="1" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="surplusFDP" qual:compartment="c" qual:constant="false" qual:name="surplusFDP" qual:initialLevel="1" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="surplusPYR" qual:compartment="c" qual:constant="false" qual:name="surplusPYR" qual:initialLevel="1" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="M_pi_e" qual:compartment="e" qual:constant="false" qual:name="Phosphate" qual:initialLevel="-1000" qual:maxLevel="1000"/>
       <qual:qualitativeSpecies qual:id="M_glc__D_e" qual:compartment="e" qual:constant="false" qual:name="D-Glucose" qual:initialLevel="-10" qual:maxLevel="1000"/>
       <qual:qualitativeSpecies qual:id="M_ac_e" qual:compartment="e" qual:constant="false" qual:name="Acetate" qual:initialLevel="0" qual:maxLevel="1000"/>
