@@ -378,11 +378,6 @@ class SingleRealMutation(Mutation[Solution]):
         return 'Single Real Mutation'
 
 
-
-
-
-
-
 REP_INT = {
     "SHRINK": ShrinkMutation,
     "GROWKO": GrowMutationKO,
@@ -393,13 +388,6 @@ REP_INT = {
     "SMUTOU": SingleMutationOU,
     "SMLEVEL": SingleMutationOULevel
 }
-
-
-def build_operators(problem):
-    if problem.strategy == Strategy.KO:
-        return build_ko_operators(problem)
-    elif problem.strategy == Strategy.OU:
-        return build_ou_operators(problem)
 
 
 def build_ko_operators(problem):

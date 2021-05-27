@@ -5,7 +5,6 @@ from jmetal.algorithm.singleobjective import GeneticAlgorithm, SimulatedAnnealin
 from jmetal.operator import BinaryTournamentSelection
 from jmetal.util.termination_criterion import StoppingByEvaluations
 
-from .operators import build_operators
 from .observers import PrintObjectivesStatObserver, VisualizerObserver
 from .problem import JMetalKOProblem, JMetalOUProblem
 from ..ea import AbstractEA, Solution
@@ -48,10 +47,7 @@ class EA(AbstractEA):
             self.ea_problem = JMetalKOProblem(self.problem, self.initial_population)
         else:
             self.ea_problem = JMetalOUProblem(self.problem, self.initial_population)
-
-        crossovers, mutations = build_operators(self.problem)
-        self.crossover = crossovers
-        self.mutation = mutations
+        self.crossover, self.mutation = self.ea_problem.build_operators()
         self.population_size = kwargs.get('population_size', get_population_size())
         self.max_evaluations = self.max_generations * self.population_size
 
