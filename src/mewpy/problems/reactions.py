@@ -1,6 +1,6 @@
 import warnings
 from collections import OrderedDict
-
+import numpy as np
 from .problem import AbstractKOProblem, AbstractOUProblem
 
 
@@ -97,7 +97,9 @@ class ROUProblem(AbstractOUProblem):
 
 class MediumProblem(AbstractOUProblem):
     """
-    Reaction Over/Under Expression Optimization Problem
+    Medium Optimization Problem. Try to find an optimized uptake configuration. 
+    By default all uptake reactions are considered. Uptake reactions not included on 
+    a solution candidate are KO.
 
     :param model: The constraint metabolic model.
     :param list fevaluation: A list of callable EvaluationFunctions.
@@ -112,13 +114,16 @@ class MediumProblem(AbstractOUProblem):
     :param list non_target: List of non target reactions. Not considered if a target list is provided.
     :param float scalefactor: A scaling factor to be used in the LP formulation.
     :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
-    :param list levels: Over/under expression levels (Default EAConstants.LEVELS)
+    :param list levels: Over/under expression levels (Default [0,0.1,0.2,...,9.9,10.0])
 
     """
 
     def __init__(self, model, fevaluation=None, **kwargs):
         super(ROUProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
+        self.levels = kwargs.get('levels',np.linspace(0,10,101))
+        self.candidate_max_size = kwargs.get(
+            'candidate_max_size', len(self.target))
 
     def _build_target_list(self):
         target = set(self.simulator.get_uptake_reactions())
