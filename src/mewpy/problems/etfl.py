@@ -1,5 +1,6 @@
 import logging
 import warnings
+import itertools
 
 from .problem import AbstractKOProblem, AbstractOUProblem
 from ..util.parsing import GeneEvaluator, build_tree, Boolean
@@ -14,6 +15,11 @@ def gene_has_associated_enzyme(model, gene):
         except:
             return None
     return None
+
+
+def associated_enzyme(model, gene):
+    return [x for x in model.enzymes if gene in x.composition]
+
 
 
 class ETFLGKOProblem(AbstractKOProblem):
@@ -38,9 +44,26 @@ class ETFLGKOProblem(AbstractKOProblem):
     def __init__(self, model, fevaluation=None, **kwargs):
         super(ETFLGKOProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
+        self.gene_reaction_mapping()
 
+    def gene_reaction_mapping(self):
+        enzyme_reaction = {}
+        for rx in self.model.reactions:
+            if hasattr(rx, 'enzymes') and rx.enzymes:
+                for e in rx.enzymes:
+                    enzyme_reaction.setdefault(e.id, []).append(rx.id)
+        gene_reaction = {}
+        self.has_enzyme = []
+        for g in self.simulator.genes:
+            gene_reaction[g] = []
+            ee = associated_enzyme(self.model, g)
+            if ee:
+                self.has_enzyme.append(g)
+            for e in ee:
+                gene_reaction[g].extend(enzyme_reaction[e.id])
+        self.gene_reaction = gene_reaction
+        
     def _build_target_list(self):
-
         genes = set(self.simulator.genes)
         essential = set(self.simulator.essential_genes())
         transport = set(self.simulator.get_transport_genes())
@@ -48,14 +71,6 @@ class ETFLGKOProblem(AbstractKOProblem):
         if self.non_target:
             target = target - set(self.non_target)
         target = list(target)
-        try:
-            from ..util.constants import EAConstants
-            if EAConstants.PROB_TARGET and self.product:
-                from ..util.graph import probabilistic_gene_targets
-                target = probabilistic_gene_targets(self.model, self.product, target)
-        except Exception as e:
-            warnings.warn(str(e))
-
         self._trg_list = target
 
     def solution_to_constraints(self, candidate):
@@ -63,17 +78,36 @@ class ETFLGKOProblem(AbstractKOProblem):
         Converts a candidate, dict of genes:0 into a dictionary of constraints.
         """
         genes = list(candidate.keys())
-        trans = [gene_has_associated_enzyme(self.model, g) for g in genes]
-        # USE TRANSLATION REACTION
-        if all(trans):
-            gr_constraints = {rxn: 0 for rxn in trans}
-        # USE GPR
-        else:
-            active_genes = set(self.simulator.genes) - set(genes)
-            active_reactions = self.simulator.evaluate_gprs(active_genes)
-            inactive_reactions = set(
-                self.simulator.reactions) - set(active_reactions)
-            gr_constraints = {rxn: 0 for rxn in inactive_reactions}
+        gr_constraints = dict()
+        no_tans = []
+        # Translation
+        for g in genes:
+            if g in self.has_enzyme:
+                try:
+                   rx = self.model._get_translation_name(g)
+                   gr_constraints[rx] = 0
+                except:
+                   no_trans.append(g)
+        # GPR based reaction KO
+        active_genes = set(self.simulator.genes) - set(genes)
+        active_reactions = self.simulator.evaluate_gprs(active_genes)
+        catalyzed_reactions = set(itertools.chain.from_iterable(
+            [self.gene_reaction[g] for g in genes if g not in no_trans]))
+        inactive_reactions = set(self.simulator.reactions) - set(active_reactions) - catalyzed_reactions
+        gr_constraints = {rxn: 0 for rxn in inactive_reactions}
+
+        # trans = [gene_has_associated_enzyme(self.model, g) for g in genes]
+        # # USE TRANSLATION REACTION
+        # if all(trans):
+        #     gr_constraints = {rxn: 0 for rxn in trans}
+        # # USE GPR
+        # else:
+        #     active_genes = set(self.simulator.genes) - set(genes)
+        #     active_reactions = self.simulator.evaluate_gprs(active_genes)
+        #     inactive_reactions = set(
+        #         self.simulator.reactions) - set(active_reactions)
+        #     gr_constraints = {rxn: 0 for rxn in inactive_reactions}
+
         return gr_constraints
 
 
@@ -106,6 +140,24 @@ class ETFLGOUProblem(AbstractOUProblem):
         # operators to replace 'and'/'or'. By default min/max
         self._temp_op = kwargs.get('operators', None)
         self._operators = None
+        self.gene_reaction_mapping()
+
+    def gene_reaction_mapping(self):
+        enzyme_reaction = {}
+        for rx in self.model.reactions:
+            if hasattr(rx, 'enzymes') and rx.enzymes:
+                for e in rx.enzymes:
+                    enzyme_reaction.setdefault(e.id, []).append(rx.id)
+        gene_reaction = {}
+        self.has_enzyme = []
+        for g in self.simulator.genes:
+            gene_reaction[g] = []
+            ee = associated_enzyme(self.model, g)
+            if ee:
+                self.has_enzyme.append(g)
+            for e in ee:
+                gene_reaction[g].extend(enzyme_reaction[e.id])
+        self.gene_reaction = gene_reaction
 
     def _build_target_list(self):
 
@@ -115,14 +167,6 @@ class ETFLGOUProblem(AbstractOUProblem):
         if self.non_target:
             target = target - set(self.non_target)
         target = list(target)
-        try:
-            from ..util.constants import EAConstants
-            if EAConstants.PROB_TARGET and self.product:
-                from ..util.graph import probabilistic_gene_targets
-                target = probabilistic_gene_targets(self.model, self.product, target)
-        except Exception as e:
-            warnings.warn(str(e))
-
         self._trg_list = target
 
     def __op(self):
@@ -150,23 +194,25 @@ class ETFLGOUProblem(AbstractOUProblem):
         Decodes a candidate, a dict of genes:lv into a dictionary of reaction constraints
         """
         gr_constraints = dict()
-        genes = candidate
-
-        # USE TRANSLATION REACTION
-        trans = [gene_has_associated_enzyme(self.model, g) for g in genes.keys()]
-        if all(trans):
-            for gene_id, lv in candidate.items():
-                rxn_id = self.model._get_translation_name(gene_id)
-                gr_constraints.update(
-                    self.reaction_constraints(rxn_id, lv))
-        # USE GPR
-        else:
-            # operators check
-            self.__op()
-            # evaluate gpr
-            evaluator = GeneEvaluator(
-                genes, self._operators[0], self._operators[1])
-            for rxn_id in self.simulator.reactions:
+        no_trans = []
+        # translation reactions
+        for gene_id, lv in candidate.items():
+            if gene_id in self.has_enzyme:
+                try:
+                   rx = self.model._get_translation_name(gene_id)
+                   gr_constraints.update(
+                       self.reaction_constraints(rx, lv))
+                except Exception as ex:
+                    no_trans.append(gene_id)
+        catalyzed_reactions = set(itertools.chain.from_iterable(
+            [self.gene_reaction[g] for g in candidate if g not in no_trans]))
+        # GPR based reaction
+        self.__op()
+        # evaluate gpr
+        evaluator = GeneEvaluator(
+            candidate, self._operators[0], self._operators[1])
+        for rxn_id in self.simulator.reactions:
+            if rxn_id not in catalyzed_reactions:
                 gpr = self.simulator.get_gpr(rxn_id)
                 if gpr:
                     tree = build_tree(gpr, Boolean)
@@ -174,7 +220,7 @@ class ETFLGOUProblem(AbstractOUProblem):
                     # if a gene as no level associated its factor is 1 (see GeneEvaluator)
                     lv = tree.evaluate(evaluator.f_operand, evaluator.f_operator)
                     # debugging
-                    logger.debug(f"{gpr}\n{genes}\nlevel:{lv}\n")
+                    #logger.debug(f"{gpr}\n{genes}\nlevel:{lv}\n")
 
                     # adds the reaction constraint
                     rev_rxn = self.simulator.reverse_reaction(rxn_id)
@@ -186,5 +232,40 @@ class ETFLGOUProblem(AbstractOUProblem):
                     else:
                         gr_constraints.update(
                             self.reaction_constraints(rxn_id, lv))
+        
+        # # USE TRANSLATION REACTION
+        # trans = [gene_has_associated_enzyme(self.model, g) for g in genes.keys()]
+        # if all(trans):
+        #     for gene_id, lv in candidate.items():
+        #         rxn_id = self.model._get_translation_name(gene_id)
+        #         gr_constraints.update(
+        #             self.reaction_constraints(rxn_id, lv))
+        # # USE GPR
+        # else:
+        #     # operators check
+        #     self.__op()
+        #     # evaluate gpr
+        #     evaluator = GeneEvaluator(
+        #         genes, self._operators[0], self._operators[1])
+        #     for rxn_id in self.simulator.reactions:
+        #         gpr = self.simulator.get_gpr(rxn_id)
+        #         if gpr:
+        #             tree = build_tree(gpr, Boolean)
+        #             # apply the operators to obtain a level for the reaction
+        #             # if a gene as no level associated its factor is 1 (see GeneEvaluator)
+        #             lv = tree.evaluate(evaluator.f_operand, evaluator.f_operator)
+        #             # debugging
+        #             logger.debug(f"{gpr}\n{genes}\nlevel:{lv}\n")
 
+        #             # adds the reaction constraint
+        #             rev_rxn = self.simulator.reverse_reaction(rxn_id)
+        #             # skips if the reverse reaction was already processed
+        #             if rev_rxn and rev_rxn in gr_constraints.keys():
+        #                 continue
+        #             elif lv < 0:
+        #                 raise ValueError("All UO levels should be positive")
+        #             else:
+        #                 gr_constraints.update(
+        #                     self.reaction_constraints(rxn_id, lv))
+        print(gr_constraints)
         return gr_constraints

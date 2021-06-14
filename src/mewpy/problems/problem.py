@@ -468,6 +468,9 @@ class AbstractOUProblem(AbstractProblem):
         :returns: A tupple, flux bounds for the reaction.
 
         """
+        #TODO: another way to process null flux on the WT
+        if wt == 0:
+            wt = 1
         if level > 1:
             if wt >= 0:
                 return (level * wt, ModelConstants.REACTION_UPPER_BOUND)
