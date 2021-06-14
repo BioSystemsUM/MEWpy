@@ -18,6 +18,7 @@ from .simulation import Simulator, SimulationResult, ModelContainer
 from ..model.gecko import GeckoModel
 from ..util.constants import ModelConstants
 from ..util.parsing import evaluate_expression_tree
+from ..util.utilities import elements
 
 LOGGER = logging.getLogger(__name__)
 
@@ -70,6 +71,14 @@ class CBModelContainer(ModelContainer):
 
     def get_drains(self):
         return self.model.get_exchange_reactions()
+
+    def get_substrates(self, rxn_id):
+        reaction = self.model.reactions[rxn]
+        return {m_id: coeff for m_id, coeff in reaction.stoichiometry.items() if coeff < 0}
+
+    def get_products(self, rxn_id):
+        reaction = self.model.reactions[rxn]
+        return {m_id: coeff for m_id, coeff in reaction.stoichiometry.items() if coeff > 0}
 
     @property
     def medium(self):
@@ -368,6 +377,11 @@ class Simulation(CBModelContainer, Simulator):
                     self._m_r_lookup[m_id][r_id] = coeff
 
         return self._m_r_lookup
+
+    def metabolite_elements(self, metabolite_id):
+        formula = self.model.metabolites[metabolite_id].metadata['FORMULA']
+        return elements(formula)
+
 
     # TODO: this is repeated
     def set_objective(self, reaction):

@@ -135,7 +135,7 @@ class MediumProblem(AbstractOUProblem):
     def solution_to_constraints(self, candidate):
         """
         Decodes a candidate, a dict {idx:lv} into a dictionary of constraints
-        Suposes that reverseble reactions have been treated and bounded with positive flux values
+        Suposes that reversible reactions have been treated and bounded with positive flux values
         """
         constraints = dict()
         from mewpy.util.constants import ModelConstants
