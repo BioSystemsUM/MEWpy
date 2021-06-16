@@ -37,14 +37,14 @@ class ETFLGKOProblem(AbstractKOProblem):
     :param list target: List of modification target genes.
     :param list non_target: List of non target genes. Not considered if a target list is provided.
     :param float scalefactor: A scaling factor to be used in the LP formulation.
-    :param boolean only-gpr: Only uses GPRs and do not alter pseudo translation reactions bounds (Default False).
+    :param boolean only_gpr: Only uses GPRs and do not alter pseudo translation reactions bounds (Default False).
 
     """
 
     def __init__(self, model, fevaluation=None, **kwargs):
         super(ETFLGKOProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
-        self._only_gpr = kwargs.get('only-gpr', False)
+        self._only_gpr = kwargs.get('only_gpr', False)
         self.gene_reaction_mapping()
 
     def gene_reaction_mapping(self):
@@ -142,7 +142,7 @@ class ETFLGOUProblem(AbstractOUProblem):
     :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
     :param tuple operators: (and, or) operations. Default (MIN, MAX).
     :param list levels: Over/under expression levels (Default EAConstants.LEVELS).
-    :param boolean only-gpr: Only uses GPRs and do not alter pseudo translation reactions bounds (Default False).
+    :param boolean only_gpr: Only uses GPRs and do not alter pseudo translation reactions bounds (Default False).
 
     Note:  Operators that can not be pickled may be defined by a string e.g. 'lambda x,y: (x+y)/2'.
 
@@ -154,7 +154,7 @@ class ETFLGOUProblem(AbstractOUProblem):
         # operators to replace 'and'/'or'. By default min/max
         self._temp_op = kwargs.get('operators', None)
         self._operators = None
-        self._only_gpr = kwargs.get('only-gpr', False)
+        self._only_gpr = kwargs.get('only_gpr', False)
         self.gene_reaction_mapping()
 
     def gene_reaction_mapping(self):
