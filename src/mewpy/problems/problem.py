@@ -466,18 +466,17 @@ class AbstractOUProblem(AbstractProblem):
         :param float level: The expression level for the reaction.
         :param float wt: The reference reaction flux.
         :returns: A tupple, flux bounds for the reaction.
-
         """
-        #TODO: another way to process null flux on the WT
-        if wt == 0:
-            wt = 1
         if level > 1:
-            if wt >= 0:
+            if wt > 0:
                 return (level * wt, ModelConstants.REACTION_UPPER_BOUND)
-            else:
+            elif wt < 0:
                 return (-1 * ModelConstants.REACTION_UPPER_BOUND, level * wt)
         else:
-            return (0, level * wt) if wt >= 0 else (level * wt, 0)
+            if wt > 0:
+                return (0, level * wt)
+            elif wt < 0:
+                return (level * wt, 0)
 
     def reaction_constraints(self, rxn, lv):
         """
@@ -495,7 +494,7 @@ class AbstractOUProblem(AbstractProblem):
         if lv == 0:
             # KO constraint
             constraints[rxn] = (0, 0)
-        elif lv == 1:
+        elif lv == 1 or fluxe_wt == 0:
             # No contraint is applyed
             pass
         elif rev_rxn is None or rev_rxn == rxn:
