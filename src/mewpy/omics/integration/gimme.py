@@ -1,9 +1,9 @@
+from math import inf
+
 from ...solvers import solver_instance
 from ...simulation import get_simulator
 from ...simulation.simulation import Simulator
-from math import inf
-
-from ..omics import Preprocessing
+from .. import Preprocessing
 
 
 def GIMME(model, expr, biomass=None, condition=0, cutoff=0.25, growth_frac=0.9,

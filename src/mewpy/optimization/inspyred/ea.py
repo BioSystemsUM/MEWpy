@@ -9,7 +9,6 @@ from .terminator import generation_termination
 from ..ea import AbstractEA, Solution
 from ...util.constants import EAConstants
 from ...util.process import get_evaluator, cpu_count
-from ...problems import Strategy
 from .operators import OPERATORS
 SOEA = {
     'GA': inspyred.ec.EvolutionaryComputation,
@@ -38,9 +37,9 @@ class EA(AbstractEA):
         # operators
         if self.problem.operators:
             self.variators = [OPERATORS[x] for x in self.problem.operators.keys()]
-        elif self.problem.strategy == Strategy.OU:
+        elif self.problem.strategy == 'OU':
             self.variators = OU['variators']
-        elif self.problem.strategy == Strategy.KO:
+        elif self.problem.strategy == 'KO':
             self.variators = KO['variators']
         else:
             raise ValueError("Unknow strategy")

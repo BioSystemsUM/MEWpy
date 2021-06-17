@@ -11,7 +11,6 @@ from ..ea import AbstractEA, Solution
 from ...util.constants import EAConstants
 from ...util.process import get_evaluator, cpu_count
 from .settings import get_population_size
-from ...problems import Strategy
 
 # SOEA alternatives
 soea_map = {
@@ -43,7 +42,7 @@ class EA(AbstractEA):
 
         self.algorithm_name = algorithm
 
-        if self.problem.strategy == Strategy.KO:
+        if self.problem.strategy == 'KO':
             self.ea_problem = JMetalKOProblem(self.problem, self.initial_population)
         else:
             self.ea_problem = JMetalOUProblem(self.problem, self.initial_population)

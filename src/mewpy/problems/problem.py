@@ -1,21 +1,33 @@
 import copy
 import warnings
 from abc import ABC, abstractmethod
-from enum import IntEnum
-
+from enum import Enum
 import numpy as np
-
 from ..optimization.ea import Solution
 from ..simulation import get_simulator
 from ..util.constants import EAConstants, ModelConstants
 
 
-class Strategy(IntEnum):
-    """
-    The available optimization strategies
-    """
-    KO = 1
-    OU = 2
+class Strategy(Enum):
+    KO = 'KO'
+    OU = 'OU'
+
+    def __eq__(self, other):
+        """Overrides equal to enable string name comparison.
+        Allows to seamlessly use:
+            SimulationMethod.FBA = SimulationMethod.FBA
+            SimulationMethod.FBA = 'FBA'
+        without requiring an additional level of comparison (SimulationMethod.FBA.name = 'FBA')
+        """
+        if isinstance(other, Strategy):
+            return super().__eq__(other)
+        elif isinstance(other, str):
+            return self.name == other
+        else:
+            return False
+
+    def __hash__(self):
+        return hash(self.name)
 
 
 class KOBounder(object):

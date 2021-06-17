@@ -10,7 +10,6 @@ from jmetal.core.solution import Solution
 
 from .problem import KOSolution, OUSolution
 from ...util.constants import EAConstants
-from ...problems import Strategy
 
 
 class ShrinkMutation(Mutation[Solution]):

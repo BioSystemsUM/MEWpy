@@ -1,6 +1,6 @@
 from ...simulation import get_simulator
 from ...simulation.simulation import Simulator
-from ..omics import Preprocessing
+from .. import Preprocessing
 
 
 def eFlux(model, expr, condition=0, scale_rxn=None, scale_value=1,
