@@ -547,3 +547,50 @@ class ModificationType(PhenotypeEvaluationFunction, KineticEvaluationFunction):
 
     def method_str(self):
         return "ModificationType"
+
+
+class MolecularWeight(PhenotypeEvaluationFunction):
+    """Minimizes the molecular weight of the sum of product of a set of reactions (g/gDW/h).
+    """
+
+    def __init__(self, reactions, maximize=False, **kwargs):
+        super(ModificationType, self).__init__(maximize=maximize, worst_fitness=np.inf)
+        self.reactions = reactions
+        self.method = kwargs.get('method', SimulationMethod.pFBA)
+        # sum of molar masses of product compounds for the reactions
+        self.mw = None
+
+    def compute_rxnmw(self, model):
+        from ..util.constants import atomic_weights
+        simulator = get_simulator(model)
+        for rx in self.reactions:
+            p = simulator.get_products(rx)
+            rmw = 0
+            for m, v in p.items():
+                elem = simulator.metabolite_elements(m)
+                rmw += v * sum([atomic_weights[e]*n for e, n in elem.item()])
+            self.mw[rx] = rwm
+
+    def get_fitness(self, simul_results, candidate, **kwargs):
+        sim = simul_results[self.method] if self.method in simul_results.keys(
+        ) else None
+        if not sim or sim.status not in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
+            return self.no_solution
+        if not self.mw:
+            self.compute_rmw(sim.model)
+        fitness = 0
+        for rx in self.reactions:
+            fitness += self.mw[rx] * sim.fluxes[rx]
+        return fitness * 0.001
+
+    def required_simulations(self):
+        """
+        If the evaluation function requires a pre-simulation to compute fitness values
+        """
+        return [self.method]
+
+    def short_str(self):
+        return "Molecular Weight"
+
+    def method_str(self):
+        return "MW"

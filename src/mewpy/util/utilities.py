@@ -120,3 +120,12 @@ def generator(container):
 # Taken from the talented team responsible for developing cobrapy!!!!
 chemical_formula_re = re.compile('([A-Z][a-z]?)([0-9.]+[0-9.]?|(?=[A-Z])?)')
 
+
+def elements(formula):
+    all_elements = findall(chemical_formula_re, formula)
+    atoms = {}
+    for atom, count in all_elements:
+        if not count:
+            count = '1'
+        atoms[atom] = atoms.get(atom, 0) + int(count)
+    return atoms

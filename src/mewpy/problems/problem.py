@@ -1,21 +1,33 @@
 import copy
 import warnings
 from abc import ABC, abstractmethod
-from enum import IntEnum
-
+from enum import Enum
 import numpy as np
-
 from ..optimization.ea import Solution
 from ..simulation import get_simulator
 from ..util.constants import EAConstants, ModelConstants
 
 
-class Strategy(IntEnum):
-    """
-    The available optimization strategies
-    """
-    KO = 1
-    OU = 2
+class Strategy(Enum):
+    KO = 'KO'
+    OU = 'OU'
+
+    def __eq__(self, other):
+        """Overrides equal to enable string name comparison.
+        Allows to seamlessly use:
+            SimulationMethod.FBA = SimulationMethod.FBA
+            SimulationMethod.FBA = 'FBA'
+        without requiring an additional level of comparison (SimulationMethod.FBA.name = 'FBA')
+        """
+        if isinstance(other, Strategy):
+            return super().__eq__(other)
+        elif isinstance(other, str):
+            return self.name == other
+        else:
+            return False
+
+    def __hash__(self):
+        return hash(self.name)
 
 
 class KOBounder(object):
@@ -107,6 +119,9 @@ class AbstractProblem(ABC):
         for f in self.fevaluation:
             methods.extend(f.required_simulations())
         self.methods = list(set(methods))
+        # problem specific EA operators
+        self.operators = None
+        self.operators_param = None
 
     @abstractmethod
     def generator(self, random, args):
@@ -463,15 +478,17 @@ class AbstractOUProblem(AbstractProblem):
         :param float level: The expression level for the reaction.
         :param float wt: The reference reaction flux.
         :returns: A tupple, flux bounds for the reaction.
-
         """
         if level > 1:
-            if wt >= 0:
+            if wt > 0:
                 return (level * wt, ModelConstants.REACTION_UPPER_BOUND)
-            else:
+            elif wt < 0:
                 return (-1 * ModelConstants.REACTION_UPPER_BOUND, level * wt)
         else:
-            return (0, level * wt) if wt >= 0 else (level * wt, 0)
+            if wt > 0:
+                return (0, level * wt)
+            elif wt < 0:
+                return (level * wt, 0)
 
     def reaction_constraints(self, rxn, lv):
         """
@@ -489,7 +506,7 @@ class AbstractOUProblem(AbstractProblem):
         if lv == 0:
             # KO constraint
             constraints[rxn] = (0, 0)
-        elif lv == 1:
+        elif lv == 1 or fluxe_wt == 0:
             # No contraint is applyed
             pass
         elif rev_rxn is None or rev_rxn == rxn:

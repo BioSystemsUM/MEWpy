@@ -8,6 +8,7 @@ from jmetal.core.solution import Solution
 from ..ea import SolutionInterface, dominance_test
 from ...util.process import Evaluable
 
+
 # define EA representation for OU
 IntTupple = Tuple[int]
 
@@ -214,6 +215,10 @@ class JMetalKOProblem(Problem[KOSolution], Evaluable):
     def get_name(self) -> str:
         return self.problem.get_name()
 
+    def build_operators(self):
+        from .operators import build_ko_operators
+        return build_ko_operators(self.problem)
+
 
 class JMetalOUProblem(Problem[OUSolution], Evaluable):
 
@@ -283,3 +288,7 @@ class JMetalOUProblem(Problem[OUSolution], Evaluable):
 
     def get_name(self) -> str:
         return self.problem.get_name()
+
+    def build_operators(self):
+        from .operators import build_ou_operators
+        return build_ou_operators(self.problem)

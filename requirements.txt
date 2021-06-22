@@ -1,5 +1,5 @@
 numpy
-optlang<1.4.6
+optlang
 python-libsbml
 reframed
 cobra
@@ -7,5 +7,5 @@ inspyred
 jmetalpy
 cobamp
 networkx
-matplotlib<3.3
+matplotlib
 

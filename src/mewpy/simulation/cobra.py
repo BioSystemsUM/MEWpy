@@ -65,6 +65,16 @@ class CobraModelContainer(ModelContainer):
         else:
             return None
 
+    def get_substrates(self, rxn_id):
+        reaction = self.model.reactions.get_by_id(rxn_id)
+        return {k.id: v for k, v in iteritems(reaction.metabolites) if v < 0}
+
+    def get_products(self, rxn_id):
+        reaction = self.model.reactions.get_by_id(rxn_id)
+        return {k.id: v for k, v in iteritems(reaction.metabolites) if v > 0}
+
+
+
     def get_drains(self):
         rxns = [r.id for r in self.model.exchanges]
         return rxns
@@ -307,6 +317,10 @@ class Simulation(CobraModelContainer, Simulator):
 
         return self._m_r_lookup
 
+    def metabolite_elements(self, metabolite_id):
+        return self.model.metabolites.get_by_id(metabolite_id).elements()
+
+
     def get_reaction_bounds(self, reaction):
         """
         Returns the bounds for a given reaction.
@@ -322,7 +336,6 @@ class Simulation(CobraModelContainer, Simulator):
             lb, ub = self.environmental_conditions[reaction]
         else:
             lb, ub = self.model.reactions.get_by_id(reaction).bounds
-
         return lb if lb > -np.inf else -999999, ub if ub < np.inf else 999999
 
     def find_bounds(self):
@@ -540,7 +553,6 @@ class GeckoSimulation(Simulation):
 
         :param reaction_id: A reaction identifier.
         :returns: The reverse reaction identifier if exists or None.
-
         """
         f, d = zip(*self.protein_rev_reactions.values())
         if reaction_id in f:

@@ -6,7 +6,7 @@ files = ["model/data/*"]
 with open('README.rst') as readme_file:
     readme = readme_file.read()
 
-requirements = ['optlang<1.4.6', 'numpy', 'python-libsbml', 'inspyred', 'jmetalpy',
+requirements = ['optlang', 'numpy', 'python-libsbml', 'inspyred', 'jmetalpy',
                 'reframed', 'cobra', 'cobamp', 'networkx', 'matplotlib<3.3']
 
 setup_requirements = requirements + ['pytest-runner']
@@ -15,7 +15,7 @@ install_requirements = requirements
 
 setup(
     name='mewpy',
-    version='0.1.7',
+    version='0.1.8',
     python_requires='>=3.6',
     package_dir={'': 'src'},
     packages=find_packages('src'),

@@ -8,23 +8,21 @@ def check_engines():
     try:
         from .inspyred.ea import EA as InspyredEA
         engines['inspyred'] = InspyredEA
-    except ImportError:
+    except ImportError as e:
         print("inspyred not available")
+        print(e)
 
     try:
         from .jmetal.ea import EA as JMetalEA
         engines['jmetal'] = JMetalEA
-    except ImportError:
+    except ImportError as e:
         print("jmetal not available")
+        print(e)
 
 
 algorithms = {'inspyred': ['SA', 'GA', 'NSGAII'],
               'jmetal': ['SA', 'GA', 'NSGAII', 'SPEA2', 'NSGAIII']
               }
-
-check_engines()
-default_engine = None
-preferred_EA = 'NSGAII'
 
 
 def get_default_engine():
@@ -147,3 +145,8 @@ def EA(problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIO
 
     return engine(problem, initial_population=initial_population, max_generations=max_generations, mp=mp,
                   visualizer=visualizer, algorithm=algorithm, **kwargs)
+
+
+check_engines()
+default_engine = None
+preferred_EA = 'NSGAII'

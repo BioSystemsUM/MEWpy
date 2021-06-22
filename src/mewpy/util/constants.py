@@ -34,6 +34,8 @@ class EAConstants:
     PROB_TARGET = True
     # DEBUG
     DEBUG = False
+    # Dump on interrupt
+    KILL_DUMP = False
 
 
 # calculated from https://github.com/HegemanLab/atomicWeightsDecimal (refer to this repository for credits)
