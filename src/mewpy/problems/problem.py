@@ -15,9 +15,8 @@ class Strategy(Enum):
     def __eq__(self, other):
         """Overrides equal to enable string name comparison.
         Allows to seamlessly use:
-            SimulationMethod.FBA = SimulationMethod.FBA
-            SimulationMethod.FBA = 'FBA'
-        without requiring an additional level of comparison (SimulationMethod.FBA.name = 'FBA')
+            Strategy.KO = Strategy.KO
+            Strategy.KO = 'KO'.
         """
         if isinstance(other, Strategy):
             return super().__eq__(other)
