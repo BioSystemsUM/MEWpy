@@ -66,6 +66,7 @@ class ETFLGKOProblem(AbstractKOProblem):
 
     def _build_target_list(self):
         genes = set(self.simulator.genes)
+        # GPR-based
         essential = set(self.simulator.essential_genes())
         transport = set(self.simulator.get_transport_genes())
         target = genes - essential - transport
@@ -289,6 +290,13 @@ class ETFLGOUProblem(AbstractOUProblem):
         return gr_constraints
 
     def solution_to_constraints(self, candidate):
+        """Converts a solution, dictionary of modifications, into model constraints.
+
+        :param candidate: The solution
+        :type candidate: dict
+        :return: Dictionary of constraints
+        :rtype: dict
+        """
         if self._only_gpr:
             return self._gpr_solution_to_constraints(candidate)
         else:

@@ -42,7 +42,9 @@ def build_escher(model=None, fluxes=None, fmt_func=None, **kwargs):
         raise RuntimeError("Escher is not installed.")
 
     js = None
-    if isinstance(model, str) and model in escher_maps():
+    if model is None:
+        map_name = 'e_coli_core.Core metabolism'
+    elif isinstance(model, str) and model in escher_maps():
         map_name = model
     else:
         try:

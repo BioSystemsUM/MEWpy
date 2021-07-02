@@ -73,11 +73,11 @@ class CBModelContainer(ModelContainer):
         return self.model.get_exchange_reactions()
 
     def get_substrates(self, rxn_id):
-        reaction = self.model.reactions[rxn]
+        reaction = self.model.reactions[rxn_id]
         return {m_id: coeff for m_id, coeff in reaction.stoichiometry.items() if coeff < 0}
 
     def get_products(self, rxn_id):
-        reaction = self.model.reactions[rxn]
+        reaction = self.model.reactions[rxn_id]
         return {m_id: coeff for m_id, coeff in reaction.stoichiometry.items() if coeff > 0}
 
     @property

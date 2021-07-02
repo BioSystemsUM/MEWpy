@@ -67,13 +67,11 @@ class CobraModelContainer(ModelContainer):
 
     def get_substrates(self, rxn_id):
         reaction = self.model.reactions.get_by_id(rxn_id)
-        return {k.id: v for k, v in iteritems(reaction.metabolites) if v < 0}
+        return {k.id: v for k, v in reaction.metabolites.items() if v < 0}
 
     def get_products(self, rxn_id):
         reaction = self.model.reactions.get_by_id(rxn_id)
-        return {k.id: v for k, v in iteritems(reaction.metabolites) if v > 0}
-
-
+        return {k.id: v for k, v in reaction.metabolites.items() if v > 0}
 
     def get_drains(self):
         rxns = [r.id for r in self.model.exchanges]
