@@ -274,12 +274,7 @@ class AbstractProblem(ABC):
 
         # test all simultaneous removal
         fit = self.evaluate_solution(simul_enc_values)
-        try:
-            diff = np.abs(np.array(fit) - np.array(fitness))
-        except ValueError as e:
-            print(fit)
-            print(fitness)
-            raise e
+        diff = np.abs(np.array(fit) - np.array(fitness))
         is_equal = False
         if isinstance(tolerance, float):
             is_equal = np.all(diff <= tolerance)
