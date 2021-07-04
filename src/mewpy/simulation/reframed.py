@@ -19,10 +19,12 @@ from ..model.gecko import GeckoModel
 from ..util.constants import ModelConstants
 from ..util.parsing import evaluate_expression_tree
 from ..util.utilities import elements
+from tqdm import tqdm
 
 LOGGER = logging.getLogger(__name__)
 
 solver_map = {'gurobi': 'gurobi', 'cplex': 'cplex', 'glpk': 'optlang'}
+
 
 # TODO: missing proteins and set objective implementations
 class CBModelContainer(ModelContainer):
@@ -194,7 +196,7 @@ class Simulation(CBModelContainer, Simulator):
         wt_growth = wt_solution.objective_value
         reactions = self.model.reactions.keys()
         self._essential_reactions = []
-        for rxn in reactions:
+        for rxn in tqdm(reactions):
             res = self.simulate(constraints={rxn: 0})
             if res:
                 if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \
@@ -216,7 +218,7 @@ class Simulation(CBModelContainer, Simulator):
         wt_solution = self.simulate()
         wt_growth = wt_solution.objective_value
         genes = self.model.genes
-        for gene in genes:
+        for gene in tqdm(genes):
             active_genes = set(self.model.genes) - {gene}
             active_reactions = self.evaluate_gprs(active_genes)
             inactive_reactions = set(
@@ -381,7 +383,6 @@ class Simulation(CBModelContainer, Simulator):
     def metabolite_elements(self, metabolite_id):
         formula = self.model.metabolites[metabolite_id].metadata['FORMULA']
         return elements(formula)
-
 
     # TODO: this is repeated
     def set_objective(self, reaction):
@@ -584,7 +585,7 @@ class GeckoSimulation(Simulation):
         wt_growth = wt_solution.objective_value
         self._essential_proteins = []
         proteins = self.model.proteins
-        for p in proteins:
+        for p in tqdm(proteins):
             rxn = "{}{}".format(self.protein_prefix, p)
             res = self.simulate(constraints={rxn: 0})
             if res:

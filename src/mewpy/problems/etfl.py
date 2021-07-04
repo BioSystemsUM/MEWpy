@@ -1,5 +1,4 @@
 import logging
-import warnings
 import itertools
 
 from .problem import AbstractKOProblem, AbstractOUProblem
@@ -8,11 +7,11 @@ from ..util.parsing import GeneEvaluator, build_tree, Boolean
 logger = logging.getLogger(__name__)
 
 
-def gene_has_associated_enzyme(model, gene):
-    if any([gene in x.composition for x in model.enzymes]):
+def gene_has_associated_enzyme(model, gene_id):
+    if any([gene_id in x.composition for x in model.enzymes]):
         try:
             return model._get_translation_name(gene_id)
-        except:
+        except Exception:
             return None
     return None
 
@@ -65,8 +64,10 @@ class ETFLGKOProblem(AbstractKOProblem):
         self.gene_reaction = gene_reaction
 
     def _build_target_list(self):
+        print("Building modification target list.")
         genes = set(self.simulator.genes)
         # GPR-based
+        print("Computing essential genes.")
         essential = set(self.simulator.essential_genes())
         transport = set(self.simulator.get_transport_genes())
         target = genes - essential - transport
@@ -81,14 +82,14 @@ class ETFLGKOProblem(AbstractKOProblem):
         """
         genes = list(candidate.keys())
         gr_constraints = dict()
-        no_tans = []
+        no_trans = []
         # Translation
         for g in genes:
             if g in self.has_enzyme:
                 try:
                     rx = self.model._get_translation_name(g)
                     gr_constraints[rx] = 0
-                except:
+                except Exception:
                     no_trans.append(g)
         # GPR based reaction KO
         active_genes = set(self.simulator.genes) - set(genes)
@@ -176,7 +177,7 @@ class ETFLGOUProblem(AbstractOUProblem):
         self.gene_reaction = gene_reaction
 
     def _build_target_list(self):
-
+        print("Building modification target list.")
         genes = set(self.simulator.genes)
         transport = set(self.simulator.get_transport_genes())
         target = genes - transport
@@ -257,7 +258,7 @@ class ETFLGOUProblem(AbstractOUProblem):
                     rx = self.model._get_translation_name(gene_id)
                     gr_constraints.update(
                         self.reaction_constraints(rx, lv))
-                except Exception as ex:
+                except Exception:
                     no_trans.append(gene_id)
         catalyzed_reactions = set(itertools.chain.from_iterable(
             [self.gene_reaction[g] for g in candidate if g not in no_trans]))

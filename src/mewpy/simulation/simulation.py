@@ -164,12 +164,6 @@ class SimulationResult(object):
         return (f"objective: {self.objective_value}\nStatus: "
                 f"{self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}")
 
-    @property
-    def dataframe(self):
-        import pandas as pd
-        df = pd.DataFrame(list(self.fluxes.items()), columns=['Reaction ID', 'Flux rate'])
-        return df
-
     def find(self, pattern=None, sort=False):
         values = [(key, value) for key, value in self.fluxes.items()]
         if pattern:
@@ -181,6 +175,10 @@ class SimulationResult(object):
         import pandas as pd
         df = pd.DataFrame(values, columns=['Reaction ID', 'Flux rate'])
         return df
+
+    @property
+    def dataframe(self):
+        return self.find()
 
     def get_net_conversion(self, biomassId=None):
         """Returns a string representation of the net conversion.

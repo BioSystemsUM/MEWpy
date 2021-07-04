@@ -43,8 +43,10 @@ class GeckoKOProblem(AbstractKOProblem):
         """
         If not provided, targets are all non essential proteins.
         """
+        print("Building modification target list.")
         proteins = set(self.simulator.proteins)
         # as draw_prot_XXXXXX
+        print("Computing essential proteins.")
         ess = self.simulator.essential_proteins(self.prot_prefix)
         # remove 'draw_prot_'
         n = len(self.prot_prefix)

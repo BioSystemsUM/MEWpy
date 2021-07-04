@@ -106,7 +106,7 @@ class AbstractEA(ABC):
         self.mp = mp
         self.final_population = None
 
-    def run(self):
+    def run(self, simplify=True):
         """ Runs the optimization for the defined problem.
         The number of objectives is defined to be the number of evaluation functions in fevalution.
         """
@@ -124,7 +124,12 @@ class AbstractEA(ABC):
         else:
             final_pop = self._run_mo()
 
-        self.final_population = self._convertPopulation(final_pop)
+        pop = filter_duplicates(self._convertPopulation(final_pop))
+        if simplify:
+            pop = self.problem.simplify_population(pop)
+        else:
+            self.final_population = pop
+
         return self.final_population
 
     def dataframe(self):
@@ -150,7 +155,7 @@ class AbstractEA(ABC):
         """
         if not self.final_population:
             raise Exception("No solutions")
-        from ..visualization.plot import StreamingPlot, Plot
+        from ..visualization.plot import StreamingPlot
         labels = [obj.short_str() for obj in self.problem.fevaluation]
         p = StreamingPlot(axis_labels=labels)
         p.plot(self.final_population)

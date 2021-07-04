@@ -1,6 +1,4 @@
 import logging
-import warnings
-
 from .problem import AbstractKOProblem, AbstractOUProblem
 from ..util.parsing import GeneEvaluator, build_tree, Boolean
 
@@ -31,8 +29,9 @@ class GKOProblem(AbstractKOProblem):
             model, fevaluation=fevaluation, **kwargs)
 
     def _build_target_list(self):
-
+        print("Building modification target list.")
         genes = set(self.simulator.genes)
+        print("Computing essential genes.")
         essential = set(self.simulator.essential_genes())
         transport = set(self.simulator.get_transport_genes())
         target = genes - essential - transport

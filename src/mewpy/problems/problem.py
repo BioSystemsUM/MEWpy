@@ -3,7 +3,7 @@ import warnings
 from abc import ABC, abstractmethod
 from enum import Enum
 import numpy as np
-from ..optimization.ea import Solution
+from ..optimization.ea import Solution, filter_duplicates
 from ..simulation import get_simulator
 from ..util.constants import EAConstants, ModelConstants
 
@@ -309,7 +309,7 @@ class AbstractProblem(ABC):
         for solution in population:
             res = self.simplify(solution)
             pop.extend(res)
-        return pop
+        return filter_duplicates(pop)
 
 
 class AbstractKOProblem(AbstractProblem):

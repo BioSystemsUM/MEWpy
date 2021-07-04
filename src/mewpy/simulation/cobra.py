@@ -13,6 +13,7 @@ from . import get_default_solver, SimulationMethod, SStatus
 from .simulation import Simulator, SimulationResult, ModelContainer
 from ..util.constants import ModelConstants
 from ..util.parsing import evaluate_expression_tree
+from tqdm import tqdm
 
 
 LOGGER = logging.getLogger(__name__)
@@ -172,7 +173,7 @@ class Simulation(CobraModelContainer, Simulator):
         wt_growth = wt_solution.objective_value
         reactions = self.reactions
         self._essential_reactions = []
-        for rxn in reactions:
+        for rxn in tqdm(reactions):
             res = self.simulate(constraints={rxn: 0})
             if res:
                 if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \
@@ -194,7 +195,7 @@ class Simulation(CobraModelContainer, Simulator):
         wt_solution = self.simulate()
         wt_growth = wt_solution.objective_value
         genes = self.genes
-        for gene in genes:
+        for gene in tqdm(genes):
             active_genes = set(self.genes) - {gene}
             active_reactions = self.evaluate_gprs(active_genes)
             inactive_reactions = set(self.reactions) - set(active_reactions)
@@ -317,7 +318,6 @@ class Simulation(CobraModelContainer, Simulator):
 
     def metabolite_elements(self, metabolite_id):
         return self.model.metabolites.get_by_id(metabolite_id).elements()
-
 
     def get_reaction_bounds(self, reaction):
         """
@@ -524,7 +524,7 @@ class GeckoSimulation(Simulation):
         wt_growth = wt_solution.objective_value
         self._essential_proteins = []
         proteins = self.model.proteins
-        for p in proteins:
+        for p in tqdm(proteins):
             rxn = "{}{}".format(self.protein_prefix, p)
             res = self.simulate(constraints={rxn: 0})
             if res:
