@@ -206,7 +206,6 @@ class AbstractProblem(ABC):
         :param decode: If the solution needs to be decoded.
         :returns: A list of fitness.
         """
-        p = []
         decoded = {}
         # decoded constraints
         if decode:
@@ -218,15 +217,17 @@ class AbstractProblem(ABC):
         # pre simulation
         simulation_results = dict()
         try:
+            p = []
             for method in self.methods:
                 simulation_result = self.simulator.simulate(
                     constraints=constraints, method=method, scalefactor=self.scalefactor)
                 simulation_results[method] = simulation_result
             # apply the evaluation function(s)
             for f in self.fevaluation:
-                p.append(f(simulation_results, decoded,
-                           scalefactor=self.scalefactor))
+                v = f(simulation_results, decoded, scalefactor=self.scalefactor)
+                p.append(v)
         except Exception as e:
+            p = []
             for f in self.fevaluation:
                 p.append(f.worst_fitness)
             if EAConstants.DEBUG:
@@ -273,7 +274,12 @@ class AbstractProblem(ABC):
 
         # test all simultaneous removal
         fit = self.evaluate_solution(simul_enc_values)
-        diff = np.abs(np.array(fit) - np.array(fitness))
+        try:
+            diff = np.abs(np.array(fit) - np.array(fitness))
+        except ValueError as e:
+            print(fit)
+            print(fitness)
+            raise e
         is_equal = False
         if isinstance(tolerance, float):
             is_equal = np.all(diff <= tolerance)
