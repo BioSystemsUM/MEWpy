@@ -131,6 +131,8 @@ def get_simulator(model, envcond=None, constraints=None, reference=None, reset_s
     elif "etfl" in name:
         try:
             from .cobra import Simulation
+            from etfl.optim.config import standard_solver_config
+            standard_solver_config(model, verbose=False)
             instance = Simulation(
                 model, envcond=envcond, constraints=constraints, reference=reference, reset_solver=reset_solver)
             instance._MAX_STR = 'max'

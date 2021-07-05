@@ -1,6 +1,4 @@
 import logging
-import warnings
-
 from .problem import AbstractKOProblem, AbstractOUProblem
 from ..util.parsing import GeneEvaluator, build_tree, Boolean
 
@@ -31,22 +29,15 @@ class GKOProblem(AbstractKOProblem):
             model, fevaluation=fevaluation, **kwargs)
 
     def _build_target_list(self):
-
+        print("Building modification target list.")
         genes = set(self.simulator.genes)
+        print("Computing essential genes.")
         essential = set(self.simulator.essential_genes())
         transport = set(self.simulator.get_transport_genes())
         target = genes - essential - transport
         if self.non_target:
             target = target - set(self.non_target)
         target = list(target)
-        try:
-            from ..util.constants import EAConstants
-            if EAConstants.PROB_TARGET and self.product:
-                from ..util.graph import probabilistic_gene_targets
-                target = probabilistic_gene_targets(self.model, self.product, target)
-        except Exception as e:
-            warnings.warn(str(e))
-
         self._trg_list = target
 
     def solution_to_constraints(self, candidate):
@@ -100,14 +91,6 @@ class GOUProblem(AbstractOUProblem):
         if self.non_target:
             target = target - set(self.non_target)
         target = list(target)
-        try:
-            from ..util.constants import EAConstants
-            if EAConstants.PROB_TARGET and self.product:
-                from ..util.graph import probabilistic_gene_targets
-                target = probabilistic_gene_targets(self.model, self.product, target)
-        except Exception as e:
-            warnings.warn(str(e))
-
         self._trg_list = target
 
     def __op(self):

@@ -8,4 +8,5 @@ jmetalpy
 cobamp
 networkx
 matplotlib
+tqdm
 

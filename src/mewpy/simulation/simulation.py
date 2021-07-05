@@ -164,11 +164,21 @@ class SimulationResult(object):
         return (f"objective: {self.objective_value}\nStatus: "
                 f"{self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}")
 
-    @property
-    def data_frame(self):
+    def find(self, pattern=None, sort=False):
+        values = [(key, value) for key, value in self.fluxes.items()]
+        if pattern:
+            import re
+            re_expr = re.compile(pattern)
+            values = [x for x in values if re_expr.search(x[0]) is not None]
+        if sort:
+            values.sort(key=lambda x: x[1])
         import pandas as pd
-        df = pd.DataFrame(list(self.fluxes.items()), columns=['Reaction ID', 'Flux'])
+        df = pd.DataFrame(values, columns=['Reaction ID', 'Flux rate'])
         return df
+
+    @property
+    def dataframe(self):
+        return self.find()
 
     def get_net_conversion(self, biomassId=None):
         """Returns a string representation of the net conversion.
@@ -181,13 +191,13 @@ class SimulationResult(object):
         left = ""
         right = ""
         firstLeft, firstRight = True, True
-
+        from . import get_simulator
+        sim = get_simulator(self.model)
         ssFluxes = self.fluxes
-        reactions = self.model.reactions
-        for r_id in reactions.keys():
+        for r_id in sim.reactions:
             fluxValue = ssFluxes[r_id]
-            sub = reactions[r_id].get_substrates()
-            prod = reactions[r_id].get_products()
+            sub = list(sim.get_substrates(r_id).keys())
+            prod = list(sim.get_products(r_id).keys())
             # if rId is a drain reaction
             if fluxValue != 0.0 and (len(sub) == 0 or len(prod) == 0):
                 m = sub + prod

@@ -1,5 +1,3 @@
-import warnings
-from collections import OrderedDict
 import numpy as np
 from .problem import AbstractKOProblem, AbstractOUProblem
 
@@ -31,7 +29,9 @@ class RKOProblem(AbstractKOProblem):
         """Default modification target builder.
         Removes drains, transport and essential reactions
         """
+        print("Building modification target list.")
         reactions = set(self.simulator.reactions)
+        print("Computing essential reactions")
         essential = set(self.simulator.essential_reactions())
         drains = set(self.simulator.get_drains())
         transport = set(self.simulator.get_transport_reactions())
@@ -68,6 +68,7 @@ class ROUProblem(AbstractOUProblem):
             model, fevaluation=fevaluation, **kwargs)
 
     def _build_target_list(self):
+        print("Building modification target list.")
         reactions = set(self.simulator.reactions)
         # drains = set(self.simulator.get_drains())
         target = reactions  # - drains
@@ -97,8 +98,8 @@ class ROUProblem(AbstractOUProblem):
 
 class MediumProblem(AbstractOUProblem):
     """
-    Medium Optimization Problem. Try to find an optimized uptake configuration. 
-    By default all uptake reactions are considered. Uptake reactions not included on 
+    Medium Optimization Problem. Try to find an optimized uptake configuration.
+    By default all uptake reactions are considered. Uptake reactions not included in
     a solution candidate are KO.
 
     :param model: The constraint metabolic model.
@@ -121,7 +122,7 @@ class MediumProblem(AbstractOUProblem):
     def __init__(self, model, fevaluation=None, **kwargs):
         super(ROUProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
-        self.levels = kwargs.get('levels',np.linspace(0,10,101))
+        self.levels = kwargs.get('levels', np.linspace(0, 10, 101))
         self.candidate_max_size = kwargs.get(
             'candidate_max_size', len(self.target))
 
@@ -140,8 +141,9 @@ class MediumProblem(AbstractOUProblem):
         constraints = dict()
         from mewpy.util.constants import ModelConstants
         for rxn in self.target_list:
-            if rxn in candidate.items():
-                constraint[rxn] = (-1*lv, ModelConstants.REACTION_UPPER_BOUND)
+            if rxn in candidate.keys():
+                lv = candidate[rxn]
+                constraints[rxn] = (-1 * lv, ModelConstants.REACTION_UPPER_BOUND)
             else:
-                constraint[rxn] = (0,0)
+                constraints[rxn] = (0, 0)
         return constraints

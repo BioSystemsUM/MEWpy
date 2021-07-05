@@ -3,7 +3,7 @@ import warnings
 from abc import ABC, abstractmethod
 from enum import Enum
 import numpy as np
-from ..optimization.ea import Solution
+from ..optimization.ea import Solution, filter_duplicates
 from ..simulation import get_simulator
 from ..util.constants import EAConstants, ModelConstants
 
@@ -15,9 +15,8 @@ class Strategy(Enum):
     def __eq__(self, other):
         """Overrides equal to enable string name comparison.
         Allows to seamlessly use:
-            SimulationMethod.FBA = SimulationMethod.FBA
-            SimulationMethod.FBA = 'FBA'
-        without requiring an additional level of comparison (SimulationMethod.FBA.name = 'FBA')
+            Strategy.KO = Strategy.KO
+            Strategy.KO = 'KO'.
         """
         if isinstance(other, Strategy):
             return super().__eq__(other)
@@ -207,7 +206,6 @@ class AbstractProblem(ABC):
         :param decode: If the solution needs to be decoded.
         :returns: A list of fitness.
         """
-        p = []
         decoded = {}
         # decoded constraints
         if decode:
@@ -219,15 +217,17 @@ class AbstractProblem(ABC):
         # pre simulation
         simulation_results = dict()
         try:
+            p = []
             for method in self.methods:
                 simulation_result = self.simulator.simulate(
                     constraints=constraints, method=method, scalefactor=self.scalefactor)
                 simulation_results[method] = simulation_result
             # apply the evaluation function(s)
             for f in self.fevaluation:
-                p.append(f(simulation_results, decoded,
-                           scalefactor=self.scalefactor))
+                v = f(simulation_results, decoded, scalefactor=self.scalefactor)
+                p.append(v)
         except Exception as e:
+            p = []
             for f in self.fevaluation:
                 p.append(f.worst_fitness)
             if EAConstants.DEBUG:
@@ -310,7 +310,7 @@ class AbstractProblem(ABC):
         for solution in population:
             res = self.simplify(solution)
             pop.extend(res)
-        return pop
+        return filter_duplicates(pop)
 
 
 class AbstractKOProblem(AbstractProblem):
