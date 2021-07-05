@@ -123,13 +123,11 @@ class AbstractEA(ABC):
             final_pop = self._run_so()
         else:
             final_pop = self._run_mo()
-
-        pop = filter_duplicates(self._convertPopulation(final_pop))
+        pop = self._convertPopulation(final_pop)
+        pop = filter_duplicates(pop)
         if simplify:
             pop = self.problem.simplify_population(pop)
-        else:
-            self.final_population = pop
-
+        self.final_population = pop
         return self.final_population
 
     def dataframe(self):
