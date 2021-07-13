@@ -490,7 +490,7 @@ class AbstractOUProblem(AbstractProblem):
             elif wt < 0:
                 return (level * wt, 0)
 
-    def reaction_constraints(self, rxn, lv):
+    def reaction_constraints(self, rxn, lv, reference):
         """
         Converts a (reaction, level) pair into a constraint
         If a reaction is reversible, the direction with no or less wild type flux
@@ -501,7 +501,7 @@ class AbstractOUProblem(AbstractProblem):
         :returns: A dictionary of reaction constraints.
         """
         constraints = {}
-        fluxe_wt = self.reference[rxn]
+        fluxe_wt = reference[rxn]
         rev_rxn = self.simulator.reverse_reaction(rxn)
         if lv == 0:
             # KO constraint
@@ -515,7 +515,7 @@ class AbstractOUProblem(AbstractProblem):
         else:
             # there's a reverse reaction...
             # one of the two reactions needs to be KO, the one with no flux in the wt.
-            rev_fluxe_wt = self.reference[rev_rxn]
+            rev_fluxe_wt = reference[rev_rxn]
             if abs(fluxe_wt) >= abs(rev_fluxe_wt):
                 ko_rxn, ou_rxn, fwt = rev_rxn, rxn, fluxe_wt
             else:

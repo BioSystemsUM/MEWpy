@@ -198,5 +198,5 @@ class OptRamProblem(AbstractOUProblem):
                     continue
                 else:
                     gr_constraints.update(
-                        self.reaction_constraints(rxn_id, lv))
+                        self.reaction_constraints(rxn_id, lv,self.reference))
         return gr_constraints

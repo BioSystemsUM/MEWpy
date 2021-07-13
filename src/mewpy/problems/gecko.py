@@ -144,12 +144,18 @@ class GeckoOUProblem(AbstractOUProblem):
         :returns: A dictionary of metabolic constraints.
         """
         constraints = dict()
+        #
+        try:
+            deletions = {rxn: 0 for rxn, lv in candidate.items() if lv == 0}
+            reference = self.simulator.simulate(constraints=deletions, method='pFBA').fluxes
+        except Exception:
+            reference = self.reference
 
         if self.prot_rev_reactions is None:
             self.prot_rev_reactions = self.simulator.protein_rev_reactions
 
         for rxn, lv in candidate.items():
-            fluxe_wt = self.reference[rxn]
+            fluxe_wt = reference[rxn]
             prot = rxn[len(self.prot_prefix):]
             if lv < 0:
                 raise ValueError("All UO levels should be positive")
@@ -170,11 +176,11 @@ class GeckoOUProblem(AbstractOUProblem):
                 if prot in self.prot_rev_reactions.keys():
                     reactions = self.prot_rev_reactions[prot]
                     for r, r_rev in reactions:
-                        if self.reference[r] == 0 and self.reference[r_rev] == 0:
+                        if reference[r] == 0 and reference[r_rev] == 0:
                             continue
-                        elif self.reference[r] > 0 and self.reference[r_rev] == 0:
+                        elif reference[r] > 0 and reference[r_rev] == 0:
                             constraints[r_rev] = 0.0
-                        elif self.reference[r] == 0 and self.reference[r_rev] > 0:
+                        elif reference[r] == 0 and reference[r_rev] > 0:
                             constraints[r] = 0.0
                         else:
                             warnings.warn(

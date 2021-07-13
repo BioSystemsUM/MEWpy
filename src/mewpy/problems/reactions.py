@@ -83,6 +83,12 @@ class ROUProblem(AbstractOUProblem):
         Suposes that reverseble reactions have been treated and bounded with positive flux values
         """
         constraints = dict()
+        # computes reference fluxes based on deletions
+        try:
+            deletions = {rxn: 0 for rxn, lv in candidate.items() if lv == 0}
+            reference = self.simulator.simulate(constraints=deletions, method='pFBA').fluxes
+        except Exception:
+            reference = self.reference
         # print(type(candidate), candidate)
         for rxn, lv in candidate.items():
             rev_rxn = self.simulator.reverse_reaction(rxn)
@@ -92,7 +98,7 @@ class ROUProblem(AbstractOUProblem):
             elif lv < 0:
                 raise ValueError("All UO levels should be positive")
             else:
-                constraints.update(self.reaction_constraints(rxn, lv))
+                constraints.update(self.reaction_constraints(rxn, lv, reference))
         return constraints
 
 

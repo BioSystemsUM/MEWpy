@@ -34,15 +34,23 @@ class ModelList(object):
         'multi-pool' for individually modeled protein pools.
 
         """
+        model = None
         try:
-            file_name = self.model_files[item]
-        except KeyError:
-            raise KeyError('model name must be one of {}'.format(', '.join(list(self.model_files))))
-        if file_name not in self.models:
-            model = load_cbmodel(os.path.join(os.path.dirname(__file__), 'data/{}'.format(file_name)))
-            self.simplify_model(model)
-            self.models[file_name] = model
-        return self.models[file_name]
+            model = load_cbmodel(item)
+            file_name = item
+        except:
+            pass
+        if model is None:
+            try:
+                file_name = self.model_files[item]
+                if file_name not in self.models:
+                    model = load_cbmodel(os.path.join(os.path.dirname(__file__), 'data/{}'.format(file_name)))
+            except KeyError:
+                raise KeyError('model name must be one of {}'.format(', '.join(list(self.model_files))))
+
+        self.simplify_model(model)
+        self.models[file_name] = model
+        return model
 
     def simplify_model(self, model):
         met_copy = AttrOrderedDict()
@@ -127,8 +135,10 @@ class GeckoModel(CBModel):
 
         # biomass reaction id (str)
         if biomass_reaction_id not in self.reactions:
-            raise RuntimeError(f"Reaction {biomass_reaction_id} is not in the model")
-        self.biomass_reaction = biomass_reaction_id
+            try:
+                self.biomass_reaction = model.biomass_reaction
+            except:
+                self.biomass_reaction = None
 
         # protein reaction id (CBReaction)
         try:

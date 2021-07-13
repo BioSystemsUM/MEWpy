@@ -119,7 +119,16 @@ class GOUProblem(AbstractOUProblem):
         """
         gr_constraints = dict()
         genes = candidate
-
+        # Computes reference fluxes based on deletions
+        try:
+            deletions = [gene for gene, lv in candidate.items() if lv == 0]
+            active_genes = set(self.simulator.genes) - set(deletions)
+            active_reactions = self.simulator.evaluate_gprs(active_genes)
+            inactive_reactions = set(self.simulator.reactions) - set(active_reactions)
+            gr_constraints = {rxn: 0 for rxn in inactive_reactions}
+            reference = self.simulator.simulate(constraints=gr_constraints, method='pFBA').fluxes
+        except Exception:
+            reference = self.reference
         # operators check
         self.__op()
         # evaluate gpr
@@ -144,6 +153,6 @@ class GOUProblem(AbstractOUProblem):
                     raise ValueError("All UO levels should be positive")
                 else:
                     gr_constraints.update(
-                        self.reaction_constraints(rxn_id, lv))
+                        self.reaction_constraints(rxn_id, lv, reference))
 
         return gr_constraints
