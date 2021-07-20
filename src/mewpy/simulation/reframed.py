@@ -253,14 +253,17 @@ class Simulation(CBModelContainer, Simulator):
         """
         self.model.update()
 
-    def add_reaction(self, reaction, replace=True):
+    def add_reaction(self, rxn_id, stoichiometry, lb=-inf, ub=inf, replace=True, *kwargs):
         """Adds a reaction to the model
 
         Args:
-            reaction: The reaction, a Reframed reaction, to be added.
+            rxn_id: The reaction identifier
+            stoichiometry: The reaction stoichiometry, a dictionary of species: coefficient
             replace (bool, optional): If the reaction should be replaced in case it is already defined.\
             Defaults to True.
         """
+        from reframed.core.cbmodel import CBReaction
+        reaction = CBReaction(rxn_id, stoichiometry=stoichiometry, lb=lb, ub=ub)
         self.model.add_reaction(reaction, replace=replace)
 
     def remove_reaction(self, r_id):

@@ -224,6 +224,30 @@ class Simulation(CobraModelContainer, Simulator):
                 active_reactions.append(r_id)
         return active_reactions
 
+    def add_reaction(self, rxn_id, stoichiometry, lb=-inf, ub=inf, replace=True, *kwargs):
+        """Adds a reaction to the model
+
+        Args:
+            rxn_id: The reaction identifier
+            stoichiometry: The reaction stoichiometry, a dictionary of species: coefficient
+            replace (bool, optional): If the reaction should be replaced in case it is already defined.\
+            Defaults to True.
+        """
+        from cobra import Reaction
+        reaction = Reaction(rxn_id)
+        reaction.add_metabolites(stoichiometry)
+        reaction.lower_bound = lb
+        reaction.upper_bound = ub
+        self.model.add_reaction(reaction)
+
+    def remove_reaction(self, r_id):
+        """Removes a reaction from the model.
+
+        Args:
+            r_id (str): The reaction identifier.
+        """
+        self.model.remove_reactions(r_id)
+
     def get_uptake_reactions(self):
         """
         :returns: The list of uptake reactions.
