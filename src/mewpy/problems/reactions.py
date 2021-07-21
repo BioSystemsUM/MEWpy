@@ -89,6 +89,8 @@ class ROUProblem(AbstractOUProblem):
             reference = self.simulator.simulate(constraints=deletions, method='pFBA').fluxes
         except Exception:
             reference = self.reference
+        if not reference:
+            reference = self.reference
         # print(type(candidate), candidate)
         for rxn, lv in candidate.items():
             rev_rxn = self.simulator.reverse_reaction(rxn)

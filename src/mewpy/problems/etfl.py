@@ -217,7 +217,9 @@ class ETFLGOUProblem(AbstractOUProblem):
             reference = self.simulator.simulate(constraints=constr, method='pFBA').fluxes
         except Exception:
             reference = self.reference
-
+        if not reference:
+            reference = self.reference
+    
         no_trans = []
         # translation reactions
         for gene_id, lv in candidate.items():

@@ -129,6 +129,8 @@ class GOUProblem(AbstractOUProblem):
             reference = self.simulator.simulate(constraints=gr_constraints, method='pFBA').fluxes
         except Exception:
             reference = self.reference
+        if not reference:
+            reference = self.reference
         # operators check
         self.__op()
         # evaluate gpr

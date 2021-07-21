@@ -233,10 +233,10 @@ if __name__ == '__main__':
                     "TRY": "R_EX_trp_L_e_"
                     }
 
-    for k, v in compounds_EC.items():
-        for i in range(RUNS):
-            millis = int(round(time() * 1000))
-            cb_ko(v, filename="CBMODEL_{}_KO_{}.csv".format(k, millis))
+    # for k, v in compounds_EC.items():
+    #    for i in range(RUNS):
+    #        millis = int(round(time() * 1000))
+    #        cb_ko(v, filename="CBMODEL_{}_KO_{}.csv".format(k, millis))
     for k, v in compounds_EC.items():
         for i in range(RUNS):
             millis = int(round(time() * 1000))

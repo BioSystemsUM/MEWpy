@@ -150,6 +150,8 @@ class GeckoOUProblem(AbstractOUProblem):
             reference = self.simulator.simulate(constraints=deletions, method='pFBA').fluxes
         except Exception:
             reference = self.reference
+        if not reference:
+            reference = self.reference
 
         if self.prot_rev_reactions is None:
             self.prot_rev_reactions = self.simulator.protein_rev_reactions

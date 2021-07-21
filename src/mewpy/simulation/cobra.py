@@ -224,7 +224,7 @@ class Simulation(CobraModelContainer, Simulator):
                 active_reactions.append(r_id)
         return active_reactions
 
-    def add_reaction(self, rxn_id, stoichiometry, lb=-inf, ub=inf, replace=True, *kwargs):
+    def add_reaction(self, rxn_id, stoichiometry, lb=ModelConstants.REACTION_LOWER_BOUND, ub=ModelConstants.REACTION_LOWER_BOUND, replace=True, *kwargs):
         """Adds a reaction to the model
 
         Args:
@@ -358,7 +358,8 @@ class Simulation(CobraModelContainer, Simulator):
             lb, ub = self.environmental_conditions[reaction]
         else:
             lb, ub = self.model.reactions.get_by_id(reaction).bounds
-        return lb if lb > -np.inf else -999999, ub if ub < np.inf else 999999
+        return lb if lb > -np.inf else ModelConstants.REACTION_LOWER_BOUND,\
+            ub if ub < np.inf else ModelConstants.REACTION_UPPER_BOUND
 
     def find_bounds(self):
         """
@@ -371,10 +372,10 @@ class Simulation(CobraModelContainer, Simulator):
         upper_bound = np.nanmedian(upper_bounds[upper_bounds != 0.0])
         if np.isnan(lower_bound):
             LOGGER.warning("Could not identify a median lower bound.")
-            lower_bound = -1000.0
+            lower_bound = ModelConstants.REACTION_LOWER_BOUND
         if np.isnan(upper_bound):
             LOGGER.warning("Could not identify a median upper bound.")
-            upper_bound = 1000.0
+            upper_bound = ModelConstants.REACTION_UPPER_BOUND
         return lower_bound, upper_bound
 
     def find_unconstrained_reactions(self):
