@@ -70,6 +70,15 @@ class GeckoKOProblem(AbstractKOProblem):
                     f"Index out of range: {idx} from {len(self.target_list[idx])}")
         return decoded_candidate
 
+    def encode(self, candidate):
+        """
+        Translates a candidate solution in problem specific representation to
+        an iterable of ids, or (ids, folds).
+
+        :param candidate: The candidate representation.
+        """
+        p_size = len(self.prot_prefix)
+        return set([self.target_list.index(k[p_size:]) for k in candidate])
 
 class GeckoOUProblem(AbstractOUProblem):
     """
@@ -133,6 +142,20 @@ class GeckoOUProblem(AbstractOUProblem):
                 raise IndexError(
                     f"Index out of range: {idx} from {len(self.target_list[idx])}")
         return decoded_candidate
+
+
+    def encode(self, candidate):
+        """
+        Translates a candidate solution in problem specific representation to
+        an iterable of ids, or (ids, folds).
+
+        :param iterable candidate: The candidate representation.
+        :returns: a list of index tupple (modification_target_index,level_index). The indexes are
+                  problem dependent.
+        """
+        p_size = len(self.prot_prefix)
+        return set([(self.target_list.index(k[p_size:]), self.levels.index(lv))
+                    for k, lv in candidate.items()])
 
     def solution_to_constraints(self, candidate):
         """
