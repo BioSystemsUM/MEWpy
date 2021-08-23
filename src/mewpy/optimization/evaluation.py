@@ -550,7 +550,7 @@ class ModificationType(PhenotypeEvaluationFunction, KineticEvaluationFunction):
 
 
 class MolecularWeight(PhenotypeEvaluationFunction):
-    """Minimizes the molecular weight of the sum of product of a set of reactions (g/gDW/h).
+    """Minimizes the sum of molecular weights of the products of a set of reactions (g/gDW/h).
     """
 
     def __init__(self, reactions, maximize=False, **kwargs):
@@ -569,7 +569,7 @@ class MolecularWeight(PhenotypeEvaluationFunction):
             for m, v in p.items():
                 elem = simulator.metabolite_elements(m)
                 rmw += v * sum([atomic_weights[e]*n for e, n in elem.item()])
-            self.mw[rx] = rwm
+            self.mw[rx] = rmw
 
     def get_fitness(self, simul_results, candidate, **kwargs):
         sim = simul_results[self.method] if self.method in simul_results.keys(
