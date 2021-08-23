@@ -224,14 +224,22 @@ class Simulation(CobraModelContainer, Simulator):
                 active_reactions.append(r_id)
         return active_reactions
 
-    def add_reaction(self, rxn_id, stoichiometry, lb=ModelConstants.REACTION_LOWER_BOUND, ub=ModelConstants.REACTION_LOWER_BOUND, replace=True, *kwargs):
+    def add_metabolite(self, id, formula=None, name=None, compartment=None):
+        from cobra import Metabolite
+        meta = Metabolite(id, formula=formula, name=name, compartment=compartment)
+        self.model.add_metabolites([meta])
+
+    def add_reaction(self, rxn_id, stoichiometry, lb=ModelConstants.REACTION_LOWER_BOUND,
+                     ub=ModelConstants.REACTION_UPPER_BOUND, replace=True, *kwargs):
         """Adds a reaction to the model
 
         Args:
             rxn_id: The reaction identifier
             stoichiometry: The reaction stoichiometry, a dictionary of species: coefficient
-            replace (bool, optional): If the reaction should be replaced in case it is already defined.\
-            Defaults to True.
+            lb: Reaction flux lower bound, defaults to ModelConstants.REACTION_LOWER_BOUND
+            ub: Reaction flux upper bound, defaults to ModelConstants.REACTION_UPPER_BOUND
+            replace(bool, optional): If the reaction should be replaced in case it is already defined.\
+                Defaults to True.
         """
         from cobra import Reaction
         reaction = Reaction(rxn_id)

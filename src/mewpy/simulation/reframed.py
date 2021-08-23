@@ -253,7 +253,25 @@ class Simulation(CBModelContainer, Simulator):
         """
         self.model.update()
 
-    def add_reaction(self, rxn_id, stoichiometry, lb=ModelConstants.REACTION_LOWER_BOUND, ub=ModelConstants.REACTION_LOWER_BOUND, replace=True, **kwargs):
+    def add_metabolite(self, id, formula=None, name=None, compartment=None):
+        """Adds a metabolite
+
+        :param id: [description]
+        :type id: [type]
+        :param formula: [description], defaults to None
+        :type formula: [type], optional
+        :param name: [description], defaults to None
+        :type name: [type], optional
+        :param compartment: [description], defaults to None
+        :type compartment: [type], optional
+        """
+        from reframed.core.model import Metabolite
+        meta = Metabolite(id, name=name, compartment=compartment)
+        meta.metadata['FORMULA'] = formula
+        self.model.add_metabolite(meta)
+
+    def add_reaction(self, rxn_id, stoichiometry, lb=ModelConstants.REACTION_LOWER_BOUND,
+                     ub=ModelConstants.REACTION_UPPER_BOUND, replace=True, **kwargs):
         """Adds a reaction to the model
 
         Args:
