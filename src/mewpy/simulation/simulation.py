@@ -165,10 +165,22 @@ class SimulationResult(object):
                 f"{self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}")
 
     def find(self, pattern=None, sort=False):
+        """Returns a dataframe of reactions and their fluxes matching a pattern or a list of patterns.
+
+        :param pattern: a string or a list of strings. defaults to None
+        :param sort: If the dataframe is to be sorted by flux rates. Defaults to False
+        :type sort: bool, optional
+        :return: returns a dataframe.
+        :rtype: pandas.DataFrame
+        """
         values = [(key, value) for key, value in self.fluxes.items()]
         if pattern:
             import re
-            re_expr = re.compile(pattern)
+            if isinstance(pattern, list):
+                patt = '|'.join(pattern)
+                re_expr = re.compile(patt)
+            else:
+                re_expr = re.compile(pattern)
             values = [x for x in values if re_expr.search(x[0]) is not None]
         if sort:
             values.sort(key=lambda x: x[1])
