@@ -628,3 +628,12 @@ class GeckoSimulation(Simulation):
                                 pairs[k] = [(la[0], la[1])]
             self._protein_rev_reactions = pairs
         return self._protein_rev_reactions
+
+
+    def getKcat(self,protein):
+       """ Returns a dictionary of reactions and respective Kcat for a specific enzyme·
+       """ 
+       m_r = self.metabolite_reaction_lookup()
+       r_d = m_r[protein]
+       return {k:v for k,v in r_d.items() if v<0}
+        
