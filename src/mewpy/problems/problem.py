@@ -6,6 +6,7 @@ import numpy as np
 from ..optimization.ea import Solution, filter_duplicates
 from ..simulation import get_simulator
 from ..util.constants import EAConstants, ModelConstants
+from ..util.process import get_fevaluator
 
 
 class Strategy(Enum):
@@ -297,19 +298,19 @@ class AbstractProblem(ABC):
                 res.append(simplification)
             return res
 
-    def simplify_population(self, population):
+    def simplify_population(self, population, n_cpu=1):
         """Simplifies a population of solutions
 
         Args:
             population (list): List of mewpy.optimization.ea.Solution
-
+            n_cpu (int): Number of CPUs.
         Returns:
             list: Simplified population
         """
         pop = []
         for solution in population:
-            res = self.simplify(solution)
-            pop.extend(res)
+                res = self.simplify(solution)
+                pop.extend(res)
         return filter_duplicates(pop)
 
 
