@@ -369,6 +369,16 @@ class Simulation(CobraModelContainer, Simulator):
         return lb if lb > -np.inf else ModelConstants.REACTION_LOWER_BOUND,\
             ub if ub < np.inf else ModelConstants.REACTION_UPPER_BOUND
 
+    def set_reaction_bounds(self, reaction, lb=None, ub=None):
+        """
+        Sets the bounds for a given reaction.
+        :param reaction: str, reaction ID
+        :param float lb: lower bound 
+        :param float ub: upper bound
+        """
+        rxn = self.model.reactions.get_by_id(r)
+        rxn.bounds = (lb, ub)
+
     def find_bounds(self):
         """
         Return the median upper and lower bound of the metabolic model.

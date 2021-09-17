@@ -426,6 +426,15 @@ class Simulation(CBModelContainer, Simulator):
         return lb if lb > -np.inf else ModelConstants.REACTION_LOWER_BOUND,\
             ub if ub < np.inf else ModelConstants.REACTION_UPPER_BOUND
 
+    def set_reaction_bounds(self, reaction,lb=None,ub=None):
+        """
+        Sets the bounds for a given reaction.
+        :param reaction: str, reaction ID
+        :param float lb: lower bound 
+        :param float ub: upper bound
+        """
+        self.model.set_flux_bounds(reaction,lb,ub)
+        
     def find_bounds(self):
         """
         Return the median upper and lower bound of the metabolic model.
