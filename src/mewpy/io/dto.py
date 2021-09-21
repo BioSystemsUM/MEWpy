@@ -18,11 +18,11 @@ except ImportError:
 
     Reframed_Model = str
 
-from mewpy.algebra import Symbolic, NoneAtom
-from mewpy.variables import Variable
+from mewpy.mew.algebra import Symbolic, NoneAtom
+from mewpy.mew.variables import Variable
 
 if TYPE_CHECKING:
-    from mewpy.variables import Gene, Interaction, Metabolite, Reaction, Regulator, Target
+    from mewpy.mew.variables import Gene, Interaction, Metabolite, Reaction, Regulator, Target
     from mewpy.model import Model, MetabolicModel, RegulatoryModel
 
 

@@ -6,10 +6,10 @@ import numpy as np
 from . import SimulationMethod, SStatus
 from .simulation import Simulator, SimulationResult, ModelContainer
 from mewpy.model import Model, MetabolicModel, RegulatoryModel
-from mewpy.variables import Reaction
+from mewpy.mew.variables import Reaction
 from mewpy.util.constants import ModelConstants
 from mewpy.util.utilities import Dispatcher
-from mewpy.analysis import FBA, pFBA, fva
+from mewpy.mew.analysis import FBA, pFBA, fva
 from mewpy.solvers.solution import Solution, Status
 from tqdm import tqdm
 

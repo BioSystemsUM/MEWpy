@@ -3,8 +3,8 @@ from typing import Union
 from mewpy.model import Model, MetabolicModel, RegulatoryModel
 from mewpy.solvers.solution import Solution, Status
 from mewpy.solvers.solver import VarType, Solver
-from mewpy.lp import Notification, ConstraintContainer, VariableContainer, MetabolicLinearizer, GPRLinearizer
-from mewpy.solution import ModelSolution
+from mewpy.mew.lp import Notification, ConstraintContainer, VariableContainer, MetabolicLinearizer, GPRLinearizer
+from mewpy.mew.solution import ModelSolution
 
 
 # TODO: missing documentation and typing
@@ -15,7 +15,6 @@ class FBA(MetabolicLinearizer):
                  solver: Union[str, Solver, None] = None,
                  build: bool = True,
                  attach: bool = False):
-
         """
         Flux Balance Analysis (FBA) of a metabolic model. Regular implementation of a FBA for a metabolic model.
 
@@ -210,14 +209,13 @@ class milpFBA(MetabolicLinearizer, GPRLinearizer):
                  solver: Union[str, Solver, None] = None,
                  build: bool = True,
                  attach: bool = False):
-
         """
         Mixed-Integer Flux Balance Analysis (FBA) of a metabolic model.
         Regular implementation of a FBA for a metabolic model.
         Additionally, GPRs are linearized into mixed-integer constraints, so that genes are variables of the linear
         problem to be solved.
 
-        Check the mewpy.lp.linearizers module for more detail regarding GPRs linearization
+        Check the mewpy.mew.lp.linearizers module for more detail regarding GPRs linearization
 
         :param model: a mewpy Model, MetabolicModel, RegulatoryModel or all. The model is used to retrieve
         variables and constraints to the linear problem
@@ -381,7 +379,6 @@ class pFBA(FBA):
                  solver: Union[str, Solver, None] = None,
                  build: bool = True,
                  attach: bool = False):
-
         """
         Parsimonious Flux Balance Analysis (FBA) of a metabolic model.
         Regular implementation of a pFBA for a metabolic model.

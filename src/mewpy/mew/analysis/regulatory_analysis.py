@@ -7,8 +7,8 @@ from pandas import DataFrame, concat
 from .milp_bool import milpBool
 from .sim_bool import SimBool
 from .analysis_utils import decode_solver_solution
-from mewpy.algebra import Symbolic
-from mewpy.variables import Regulator
+from mewpy.mew.algebra import Symbolic
+from mewpy.mew.variables import Regulator
 
 if TYPE_CHECKING:
     from mewpy.model import Model, MetabolicModel, RegulatoryModel
@@ -132,7 +132,6 @@ def regulatory_events(model,
                       active_states: bool = True,
                       operators: Dict[Symbolic, Callable] = None,
                       decoder: dict = None):
-
     """
 
     Regulatory events of a model

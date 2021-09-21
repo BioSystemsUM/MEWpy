@@ -1,14 +1,14 @@
 from typing import TYPE_CHECKING, Any, Union, Generator, Dict, List, Tuple, Set
 
 from mewpy.model.model import Model
-from mewpy.lp import Notification
+from mewpy.mew.lp import Notification
 from mewpy.util.history import recorder
 from mewpy.util.serialization import serialize
 from mewpy.util.utilities import iterable, generator
 
 if TYPE_CHECKING:
-    from mewpy.algebra import Expression
-    from mewpy.variables import Gene, Metabolite, Reaction
+    from mewpy.mew.algebra import Expression
+    from mewpy.mew.variables import Gene, Metabolite, Reaction
 
 
 # TODO: methods stubs

@@ -4,8 +4,8 @@ from warnings import warn
 from mewpy.solvers.solver import Solver
 from mewpy.model import Model, MetabolicModel, RegulatoryModel
 from mewpy.util.constants import ModelConstants
-from mewpy.lp import MetabolicLinearizer
-from mewpy.solution import ModelSolution, DynamicSolution
+from mewpy.mew.lp import MetabolicLinearizer
+from mewpy.mew.solution import ModelSolution, DynamicSolution
 
 
 # TODO: type hinting and documentation
@@ -16,7 +16,6 @@ class RFBA(MetabolicLinearizer):
                  solver: Union[str, Solver, None] = None,
                  build: bool = True,
                  attach: bool = False):
-
         """
         Regulatory Flux Balance Analysis (RFBA) of a metabolic-regulatory model.
         Implementation of a steady-state and dynamic versions of RFBA for a integrated metabolic-regulatory model.
@@ -75,7 +74,6 @@ class RFBA(MetabolicLinearizer):
         return {}
 
     def sim_bool(self, state):
-
         """
         Solves the boolean regulatory network for a given specific state.
         It also updates all targets having a valid regulatory interaction associated with it for the resulting state
@@ -134,7 +132,6 @@ class RFBA(MetabolicLinearizer):
         return result
 
     def decode_metabolic_state(self, state):
-
         """
         Method responsible for decoding the RFBA metabolic state, namely the state of all metabolic genes associated
         at least with one reaction in the GPRs rule.
@@ -166,7 +163,6 @@ class RFBA(MetabolicLinearizer):
         return constraints
 
     def next_state(self, state, constraints):
-
         """
         Retrieves the next state for a given state
 
@@ -234,7 +230,6 @@ class RFBA(MetabolicLinearizer):
                               reduced_costs=False,
                               pool_size=0,
                               pool_gap=None):
-
         """
         RFBA model one-step simulation (pseudo steady-state).
 
@@ -321,7 +316,6 @@ class RFBA(MetabolicLinearizer):
                          reduced_costs=False,
                          pool_size=0,
                          pool_gap=None):
-
         """
         RFBA model dynamic simulation (until the metabolic-regulatory state is reached).
 

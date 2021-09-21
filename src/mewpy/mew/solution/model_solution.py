@@ -6,7 +6,7 @@ from typing import Type, Union, TYPE_CHECKING
 from pandas import Series, DataFrame, concat
 
 from mewpy.util.constants import ModelConstants
-from mewpy.solution.solution import ModelSolutionInterface
+from .solution import ModelSolutionInterface
 
 if TYPE_CHECKING:
     from mewpy.model import Model, MetabolicModel, RegulatoryModel

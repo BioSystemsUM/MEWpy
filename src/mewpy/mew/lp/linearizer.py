@@ -12,8 +12,8 @@ from .linear_utils import integer_coefficients, bounds_from_symbol, bounds_from_
 from .notification import Notification
 
 if TYPE_CHECKING:
-    from mewpy.algebra import Symbolic
-    from mewpy.variables import Reaction, Metabolite
+    from mewpy.mew.algebra import Symbolic
+    from mewpy.mew.variables import Reaction, Metabolite
 
 MEWPY_LB = ModelConstants.REACTION_LOWER_BOUND
 MEWPY_UB = ModelConstants.REACTION_UPPER_BOUND

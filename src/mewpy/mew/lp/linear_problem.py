@@ -6,7 +6,7 @@ from numpy import zeros
 from mewpy.solvers import get_default_solver, solvers
 from mewpy.solvers.solution import Solution
 from mewpy.solvers.solver import Solver, VarType
-from mewpy.solution import ModelSolution
+from mewpy.mew.solution import ModelSolution
 
 from .linear_containers import ConstraintContainer, VariableContainer
 from .notification import Notification
@@ -102,7 +102,6 @@ class LinearProblem(LinearProblemInterface):
                  solver: Union[str, Solver] = None,
                  build: bool = True,
                  attach: bool = False):
-
         """
 
         Linear programing base implementation. A mewpy model is converted into a linear problem using reframed/mewpy
@@ -230,7 +229,6 @@ class LinearProblem(LinearProblemInterface):
 
     @property
     def method(self) -> str:
-
         """
         Name of the method implementation to build and solve the linear problem
 
@@ -241,7 +239,6 @@ class LinearProblem(LinearProblemInterface):
 
     @property
     def model(self) -> Union['Model', 'MetabolicModel', 'RegulatoryModel']:
-
         """
 
         mewpy model of this simulator
@@ -253,7 +250,6 @@ class LinearProblem(LinearProblemInterface):
 
     @property
     def solver(self) -> Union[Solver]:
-
         """
         mewpy solver instance for this linear problem. It contains an interface for the concrete solver
 
@@ -264,7 +260,6 @@ class LinearProblem(LinearProblemInterface):
 
     @property
     def constraints(self) -> Dict[str, ConstraintContainer]:
-
         """
         A copy of the constraints container.
         This container holds all ConstraintContainer objects for this linear problem.
@@ -277,7 +272,6 @@ class LinearProblem(LinearProblemInterface):
 
     @property
     def variables(self) -> Dict[str, VariableContainer]:
-
         """
         A copy of the variables container.
         This container holds all VariableContainer objects for this linear problem.
@@ -290,7 +284,6 @@ class LinearProblem(LinearProblemInterface):
 
     @property
     def objective(self) -> Dict[Union[str, Tuple[str, str]], Union[float, int]]:
-
         """
         A copy of the objective dictionary. Keys are either variable identifiers or tuple of variable identifiers.
         Values are the corresponding coefficients
@@ -304,7 +297,6 @@ class LinearProblem(LinearProblemInterface):
 
     @property
     def minimize(self) -> bool:
-
         """
 
         The linear problem objective sense/direction
@@ -361,7 +353,6 @@ class LinearProblem(LinearProblemInterface):
                        linear: Union[str, Dict[str, Union[float, int]]] = None,
                        quadratic: Dict[Tuple[str, str], Union[float, int]] = None,
                        minimize: bool = True):
-
         """
 
         INTERNAL USE ONLY. See set_objective method
@@ -418,7 +409,6 @@ class LinearProblem(LinearProblemInterface):
                       linear: Union[str, Dict[str, Union[float, int]]] = None,
                       quadratic: Dict[Tuple[str, str], Union[float, int]] = None,
                       minimize: bool = True):
-
         """
         A dictionary of the objective for the linear problem.
         Keys must be variables of the linear problem,
@@ -440,7 +430,6 @@ class LinearProblem(LinearProblemInterface):
         self._solver.set_objective(linear=linear, quadratic=quadratic, minimize=minimize)
 
     def set_bounds(self, variable: str, lb: Union[float, int], ub: Union[float, int]):
-
         """
         Set the bounds of a given linear variable available in the linear problem.
         Note that, only the bounds of atom variables can be set
@@ -488,7 +477,6 @@ class LinearProblem(LinearProblemInterface):
     # -----------------------------------------------------------------------------
 
     def optimize(self, *args, **kwargs) -> Union[ModelSolution, Solution]:
-
         """
 
         Abstract implementation
@@ -504,7 +492,6 @@ class LinearProblem(LinearProblemInterface):
 
     @abstractmethod
     def build(self):
-
         """
 
         Abstract implementation
@@ -515,7 +502,6 @@ class LinearProblem(LinearProblemInterface):
         # The concrete implementation is defined by each simulation method, e.g. fba, pfba, etc
 
     def build_solver(self):
-
         """
 
         It creates an new solver instance and adds the current state (variables, constraints) of the linear problem

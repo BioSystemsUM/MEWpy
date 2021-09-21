@@ -4,8 +4,8 @@ from mewpy.solvers.solver import Solver
 
 from mewpy.model import Model, MetabolicModel, RegulatoryModel
 from mewpy.solvers.solution import Solution
-from mewpy.lp import Notification, InteractionLinearizer, GPRLinearizer
-from mewpy.solution import ModelSolution
+from mewpy.mew.lp import Notification, InteractionLinearizer, GPRLinearizer
+from mewpy.mew.solution import ModelSolution
 
 
 # TODO: type hinting and documentation
@@ -16,13 +16,12 @@ class milpBool(GPRLinearizer, InteractionLinearizer):
                  solver: Union[str, Solver, None] = None,
                  build: bool = True,
                  attach: bool = False):
-
         """
         Mixed-Integer Boolean simulation (milpBool) of a regulatory model.
         This analysis method solves a set of interactions by linearization using mixed-integer constraints,
         so that regulators are variables of the linear problem to be solved.
 
-        Check the mewpy.lp.linearizers module for more detail regarding interactions linearization
+        Check the mewpy.mew.lp.linearizers module for more detail regarding interactions linearization
 
         :param model: a mewpy Model, MetabolicModel, RegulatoryModel or all. The model is used to retrieve
         variables and constraints to the linear problem

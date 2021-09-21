@@ -1,7 +1,7 @@
 from typing import Union, List, Tuple, Set, Dict, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mewpy.variables.coefficient import Coefficient
+    from mewpy.mew.variables.coefficient import Coefficient
 
 
 class Notification:

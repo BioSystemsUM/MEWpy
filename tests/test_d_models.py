@@ -34,8 +34,8 @@ class TestMewModel(unittest.TestCase):
         rule = '((NOT (o2(e)>0)) AND (NOT (no3(e)>0)) AND (NOT (no2(e)>0)) AND (NOT (4tmao(e)>0)) AND (NOT (' \
                'dmso(e)>0)) AND (for(e)>0)) OR (b0001 == 1)'
 
-        from mewpy.algebra import Expression, parse_expression, Symbolic, And, Or
-        from mewpy.variables import Regulator
+        from mewpy.mew.algebra import Expression, parse_expression, Symbolic, And, Or
+        from mewpy.mew.variables import Regulator
 
         # parsing
         symbolic = parse_expression(rule)
@@ -87,7 +87,7 @@ class TestMewModel(unittest.TestCase):
         """
         Tests model and variables object
         """
-        from mewpy.variables import Gene, Metabolite, Reaction, Target, Interaction, Regulator
+        from mewpy.mew.variables import Gene, Metabolite, Reaction, Target, Interaction, Regulator
 
         # integrated model
         gene = Gene(2)
@@ -123,7 +123,7 @@ class TestMewModel(unittest.TestCase):
         metabolite2 = Metabolite('h2o2')
         gene1 = Gene('b0001')
 
-        from mewpy.algebra import parse_expression, Expression
+        from mewpy.mew.algebra import parse_expression, Expression
         expr1 = parse_expression('b0001')
 
         gpr1 = Expression(expr1, {gene1.id: gene1})
@@ -295,25 +295,25 @@ class TestMewModel(unittest.TestCase):
         model.objective = {'Biomass_Ecoli_core': 1}
 
         # fba
-        from mewpy.analysis import FBA
+        from mewpy.mew.analysis import FBA
         simulator = FBA(model)
         sol = simulator.optimize()
         self.assertGreater(sol.objective_value, 0)
 
         # pfba
-        from mewpy.analysis import pFBA
+        from mewpy.mew.analysis import pFBA
         simulator = pFBA(model)
         sol = simulator.optimize()
         self.assertGreater(sol.objective_value, 0)
 
         # milpfba
-        from mewpy.analysis import milpFBA
+        from mewpy.mew.analysis import milpFBA
         simulator = milpFBA(model)
         sol = simulator.optimize()
         self.assertGreater(sol.objective_value, 0)
 
         # deletions
-        from mewpy.analysis import single_reaction_deletion, single_gene_deletion
+        from mewpy.mew.analysis import single_reaction_deletion, single_gene_deletion
         reactions_deletion = single_reaction_deletion(model=model,
                                                       method='pfba',
                                                       reactions=list(model.reactions.keys())[0:10])
@@ -324,7 +324,7 @@ class TestMewModel(unittest.TestCase):
                                               genes=list(model.genes.keys())[0:10])
         self.assertGreater(len(genes_deletion), 0)
 
-        from mewpy.analysis import fva
+        from mewpy.mew.analysis import fva
         fva_sol = fva(model=model, method='pfba', fraction=0.9, reactions=list(model.reactions.keys())[0:10])
         self.assertGreater(len(fva_sol), 0)
 
@@ -332,24 +332,24 @@ class TestMewModel(unittest.TestCase):
         model = read_model(self.regulatory_reader)
 
         # milpBool
-        from mewpy.analysis import milpBool
+        from mewpy.mew.analysis import milpBool
         simulator = milpBool(model)
         sol = simulator.optimize()
         self.assertEqual(sol.objective_value, 0)
 
         # SimBool
-        from mewpy.analysis import SimBool
+        from mewpy.mew.analysis import SimBool
         simulator = SimBool(model)
         sol = simulator.optimize()
         self.assertEqual(sol.objective_value, 0)
 
         # deletions
-        from mewpy.analysis import single_regulator_deletion
+        from mewpy.mew.analysis import single_regulator_deletion
         sol = single_regulator_deletion(model)
         self.assertGreater(len(sol), 0)
 
         # truth table/regulatory events
-        from mewpy.analysis import regulatory_events
+        from mewpy.mew.analysis import regulatory_events
         reg_events = regulatory_events(model=model)
         self.assertGreater(len(reg_events), 0)
 
@@ -379,12 +379,12 @@ class TestMewModel(unittest.TestCase):
         model.objective = {_BIOMASS_ID: 1}
         model.get('pH').coefficient.coefficients = (0, 14)
 
-        from mewpy.analysis import SRFBA
+        from mewpy.mew.analysis import SRFBA
         simulator = SRFBA(model)
         sol = simulator.optimize()
         self.assertGreater(sol.objective_value, 0)
 
-        from mewpy.analysis import RFBA
+        from mewpy.mew.analysis import RFBA
         simulator = RFBA(model)
         sol = simulator.optimize()
         self.assertIsNotNone(sol)
@@ -393,19 +393,19 @@ class TestMewModel(unittest.TestCase):
         self.assertIsNotNone(sol)
 
         # ifva
-        from mewpy.analysis import ifva
+        from mewpy.mew.analysis import ifva
         sol = ifva(model, method='srfba', reactions=list(model.reactions.keys())[0:10])
         self.assertGreater(len(sol), 0)
 
-        from mewpy.analysis import isingle_reaction_deletion
+        from mewpy.mew.analysis import isingle_reaction_deletion
         sol = isingle_reaction_deletion(model, method='srfba', reactions=list(model.reactions.keys())[0:10])
         self.assertGreater(len(sol), 0)
 
-        from mewpy.analysis import isingle_gene_deletion
+        from mewpy.mew.analysis import isingle_gene_deletion
         sol = isingle_gene_deletion(model, method='srfba', genes=list(model.genes.keys())[0:10])
         self.assertGreater(len(sol), 0)
 
-        from mewpy.analysis import isingle_regulator_deletion
+        from mewpy.mew.analysis import isingle_regulator_deletion
         sol = isingle_regulator_deletion(model, method='srfba', regulators=list(model.regulators.keys())[0:10])
         self.assertGreater(len(sol), 0)
 
@@ -455,35 +455,35 @@ class TestMewModel(unittest.TestCase):
         self.assertEqual(model.external_compartment, 'c')
 
         # fba
-        from mewpy.analysis import FBA
+        from mewpy.mew.analysis import FBA
         fba = FBA(model)
         sol = fba.optimize()
         self.assertGreater(sol.x.get('r11'), 0)
         self.assertEqual(len(model.simulators), 0)
 
         # pfba
-        from mewpy.analysis import pFBA
+        from mewpy.mew.analysis import pFBA
         pfba = pFBA(model)
         sol = pfba.optimize()
         self.assertGreater(sol.x.get('r11'), 0)
         self.assertEqual(len(model.simulators), 0)
 
         # milpFBA
-        from mewpy.analysis import milpFBA
+        from mewpy.mew.analysis import milpFBA
         milpfba = milpFBA(model)
         sol = milpfba.optimize()
         self.assertGreater(sol.x.get('r11'), 0)
         self.assertEqual(len(model.simulators), 0)
 
         # milpBool
-        from mewpy.analysis import milpBool
+        from mewpy.mew.analysis import milpBool
         milpbool = milpBool(model)
         sol = milpbool.optimize()
         self.assertGreater(sol.x.get('pH'), 1)
         self.assertEqual(len(model.simulators), 0)
 
         # SimBool
-        from mewpy.analysis import SimBool
+        from mewpy.mew.analysis import SimBool
         model.get('pH').coefficient.coefficients = (10, 14)
         simbool = SimBool(model)
         sol = simbool.optimize()
@@ -492,14 +492,14 @@ class TestMewModel(unittest.TestCase):
         model.get('pH').coefficient.coefficients = (0, 14)
 
         # milpFBA
-        from mewpy.analysis import milpFBA
+        from mewpy.mew.analysis import milpFBA
         milpfba = milpFBA(model)
         sol = milpfba.optimize()
         self.assertGreater(sol.x.get('r11'), 0)
         self.assertEqual(len(model.simulators), 0)
 
         # RFBA
-        from mewpy.analysis import RFBA
+        from mewpy.mew.analysis import RFBA
         initial_state = {
             'pH': 7,
             'g21': 1,
@@ -526,7 +526,7 @@ class TestMewModel(unittest.TestCase):
         self.assertEqual(len(model.simulators), 0)
 
         # SRFBA
-        from mewpy.analysis import SRFBA
+        from mewpy.mew.analysis import SRFBA
         srfba = SRFBA(model)
         sol = srfba.optimize()
         self.assertGreater(sol.x.get('r11'), 0)
@@ -572,7 +572,7 @@ class TestMewModel(unittest.TestCase):
         model.get('pH').coefficient.coefficients = (0, 14)
 
         # multiple simulators attached
-        from mewpy.analysis import FBA, pFBA, SRFBA
+        from mewpy.mew.analysis import FBA, pFBA, SRFBA
         fba = FBA(model, attach=True)
         pfba = pFBA(model, attach=True)
         srfba = SRFBA(model, attach=True)
@@ -735,7 +735,7 @@ class TestMewModel(unittest.TestCase):
             'r6': 100}
 
         # multiple simulators attached
-        from mewpy.analysis import FBA, pFBA, RFBA, SRFBA
+        from mewpy.mew.analysis import FBA, pFBA, RFBA, SRFBA
         fba = FBA(model, attach=True)
         pfba = pFBA(model, attach=True)
         rfba = RFBA(model, attach=True)
@@ -748,7 +748,7 @@ class TestMewModel(unittest.TestCase):
         # r17: n <-> 2o | g37 or g38
         # r18: n <-
         # r19: o ->
-        from mewpy.variables import Variable, Regulator, Interaction, Metabolite, Reaction
+        from mewpy.mew.variables import Variable, Regulator, Interaction, Metabolite, Reaction
         g39 = Regulator(identifier='g39', coefficients=(1, 1))
         g40 = Regulator(identifier='g40', coefficients=(0, 0))
 
@@ -757,7 +757,7 @@ class TestMewModel(unittest.TestCase):
         g37 = Variable.from_types(types=('target', 'gene'), identifier='g37')
         g38 = Variable.from_types(types=('target', 'gene'), identifier='g38')
 
-        from mewpy.algebra import Expression, parse_expression
+        from mewpy.mew.algebra import Expression, parse_expression
         i_g37_expression = Expression(parse_expression('g39 and not g40'), {'g39': g39, 'g40': g40})
         i_g38_expression = Expression(parse_expression('g39 and not g40'), {'g39': g39, 'g40': g40})
 
@@ -919,7 +919,7 @@ class TestMewModel(unittest.TestCase):
         reg_g33 = model.get('g33')
         reg_g33.coefficient.coefficients = (1,)
 
-        from mewpy.algebra import Not, Symbol, Expression
+        from mewpy.mew.algebra import Not, Symbol, Expression
         symbolic = Not(variables=[Symbol(value=reg_g33.id)])
         variables = {'g33': reg_g33}
         regulatory_event = Expression(symbolic=symbolic, variables=variables)

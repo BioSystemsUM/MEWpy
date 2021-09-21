@@ -3,7 +3,7 @@ from typing import Union, TYPE_CHECKING
 
 from mewpy.model import MetabolicModel
 from mewpy.io.dto import VariableRecord, DataTransferObject, CompartmentRecord, FunctionTerm
-from mewpy.algebra import Expression, NoneAtom
+from mewpy.mew.algebra import Expression, NoneAtom
 
 from .engine import Engine
 from .engines_utils import build_symbolic, expression_warning, cobra_warning

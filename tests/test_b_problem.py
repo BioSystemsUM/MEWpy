@@ -95,7 +95,7 @@ class TestGOUP(TestRKOP):
 class TestOptRAM(TestRKOP):
 
     def setUp(self):
-        from mewpy.regulation.optram import OptRamProblem, load_optram
+        from mewpy.problems import OptRamProblem, load_optram
         regnet = load_optram(OPTRAM_GENES, OPTRAM_TFS, OPTRAM_REGNET, gene_prefix='G_')
         from reframed.io.sbml import load_cbmodel
         model = load_cbmodel(OPTRAM_MODEL)
@@ -155,7 +155,7 @@ class TestOptORF(unittest.TestCase):
         from mewpy.optimization.evaluation import BPCY, WYIELD
         evaluator_1 = BPCY(_BIOMASS_ID, _PRODUCT_ID, method='pFBA')
         evaluator_2 = WYIELD(_BIOMASS_ID, _PRODUCT_ID)
-        from mewpy.regulation.optorf import OptORFProblem
+        from mewpy.problems import OptORFProblem
         self.problem = OptORFProblem(model, [evaluator_1, evaluator_2], candidate_max_size=6)
 
     def test_targets(self):

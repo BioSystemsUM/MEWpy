@@ -1,9 +1,9 @@
 from typing import Union, TYPE_CHECKING
 
-from mewpy.algebra import Symbolic
+from mewpy.mew.algebra import Symbolic
 
 if TYPE_CHECKING:
-    from mewpy.variables import Variable
+    from mewpy.mew.variables import Variable
 
 integer_coefficients = ((0, 0), (1, 1), (0.0, 0.0), (1.0, 1.0), (0, 1), (0.0, 1.0))
 

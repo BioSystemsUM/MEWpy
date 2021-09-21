@@ -10,8 +10,8 @@ except ImportError:
     concat = False
     DataFrame = False
 
-from mewpy.algebra import Expression, parse_expression
-from mewpy.lp import Notification
+from mewpy.mew.algebra import Expression, parse_expression
+from mewpy.mew.lp import Notification
 from mewpy.util.utilities import generator
 from mewpy.util.serialization import serialize
 from mewpy.util.history import recorder

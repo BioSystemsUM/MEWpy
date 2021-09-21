@@ -17,7 +17,7 @@ except ImportError:
     Reframed_Model = str
 
 from ..io import Reader, Engines, read_model
-from ..problems.problem import AbstractKOProblem
+from .problem import AbstractKOProblem
 
 
 # TODO: should it be in io?

@@ -3,7 +3,7 @@ from functools import partial
 from math import ceil
 from typing import Union, TYPE_CHECKING
 
-from mewpy.algebra import Expression, Symbol, Or, And, NoneAtom, Float
+from mewpy.mew.algebra import Expression, Symbol, Or, And, NoneAtom, Float
 from mewpy.model import RegulatoryModel, MetabolicModel
 from mewpy.io.dto import DataTransferObject, VariableRecord, History, FunctionTerm, CompartmentRecord
 from mewpy.util.constants import ModelConstants
