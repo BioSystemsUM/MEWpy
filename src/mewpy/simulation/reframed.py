@@ -41,20 +41,44 @@ class CBModelContainer(ModelContainer):
         self.model = model
 
     @property
+    def id(self):
+        return model.id
+
+    @property
     def reactions(self):
         return list(self.model.reactions.keys())
+
+    def get_reaction(self, r_id):
+        rxn = self.model.reactions[r_id]
+        res = {'id': r_id, 'name': rxn.name, 'lb': rxn.lb, 'ub': rxn.ub, 'stoichiometry': rxn.stoichiometry}
+        res['gpr'] = str(rxn.gpr) if rxn.gpr is not None else None
+        return res
 
     @property
     def genes(self):
         return list(self.model.genes.keys())
 
+    def get_gene(self, g_id):
+        g = self.model.genes[g_id]
+        res = {'id': g_id, 'name': g.name}
+
     @property
     def metabolites(self):
         return list(self.model.metabolites.keys())
 
+    def get_metabolite(self, m_id):
+        met = self.model.metabolites[m_id]
+        res = {'id': m_id, 'name': met.name, 'compartment': met.compartment, 'formula': met.metadata.get('FORMULA', '')}
+        return res
+
     @property
     def compartments(self):
         return self.model.compartments
+
+    def get_compartment(self, c_id):
+        c = self.model.compartments[c_id]
+        res = {'id': c_id, 'name': c.name, 'external': c.external}
+        return res
 
     def get_gpr(self, reaction_id):
         """Returns the gpr rule (str) for a given reaction ID.
@@ -71,7 +95,7 @@ class CBModelContainer(ModelContainer):
         else:
             return None
 
-    def get_drains(self):
+    def get_exchange_reactions(self):
         return self.model.get_exchange_reactions()
 
     def get_substrates(self, rxn_id):
@@ -101,7 +125,7 @@ class CBModelContainer(ModelContainer):
             elif reaction.get_products():
                 return reaction.ub
 
-        return {rxn: get_active_bound(rxn) for rxn in self.get_drains()
+        return {rxn: get_active_bound(rxn) for rxn in self.get_exchange_reactions()
                 if is_active(rxn)}
 
 
@@ -112,8 +136,6 @@ class Simulation(CBModelContainer, Simulator):
     :param model: An metabolic model instance.
 
     Optional:
-
-    :param objective: The model objective.
     :param dic envcond: Dictionary of environmental conditions.
     :param dic constraints: A dictionary of reaction constraints.
     :param solver: An instance of the LP solver.
@@ -122,7 +144,7 @@ class Simulation(CBModelContainer, Simulator):
     """
 
     # TODO: the parent init call is missing ... super() can resolve the mro of the simulation diamond inheritance
-    def __init__(self, model: CBModel, objective=None, envcond=None, constraints=None, solver=None, reference=None,
+    def __init__(self, model: CBModel, envcond=None, constraints=None, solver=None, reference=None,
                  reset_solver=ModelConstants.RESET_SOLVER):
 
         if not isinstance(model, CBModel):
@@ -297,7 +319,7 @@ class Simulation(CBModelContainer, Simulator):
         :returns: The list of uptake reactions.
 
         """
-        drains = self.get_drains()
+        drains = self.get_exchange_reactions()
         reacs = [r for r in drains if self.model.reactions[r].reversible or
                  ((self.model.reactions[r].lb is None or self.model.reactions[r].lb < 0)
                   and len(self.model.reactions[r].get_substrates()) > 0) or
@@ -594,10 +616,10 @@ class Simulation(CBModelContainer, Simulator):
 
 class GeckoSimulation(Simulation):
 
-    def __init__(self, model: GeckoModel, objective=None, envcond=None, constraints=None, solver=None, reference=None,
+    def __init__(self, model: GeckoModel, envcond=None, constraints=None, solver=None, reference=None,
                  reset_solver=ModelConstants.RESET_SOLVER, protein_prefix=None):
         super(GeckoSimulation, self).__init__(
-            model, objective, envcond, constraints, solver, reference, reset_solver)
+            model, envcond, constraints, solver, reference, reset_solver)
         self.protein_prefix = protein_prefix if protein_prefix else 'draw_prot_'
         self._essential_proteins = None
 

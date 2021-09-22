@@ -33,7 +33,7 @@ class RKOProblem(AbstractKOProblem):
         reactions = set(self.simulator.reactions)
         print("Computing essential reactions")
         essential = set(self.simulator.essential_reactions())
-        drains = set(self.simulator.get_drains())
+        drains = set(self.simulator.get_exchange_reactions())
         transport = set(self.simulator.get_transport_reactions())
         target = reactions - essential - drains - transport
         if self.non_target is not None:
@@ -70,7 +70,7 @@ class ROUProblem(AbstractOUProblem):
     def _build_target_list(self):
         print("Building modification target list.")
         reactions = set(self.simulator.reactions)
-        # drains = set(self.simulator.get_drains())
+        # drains = set(self.simulator.get_exchange_reactions())
         target = reactions  # - drains
         if self.non_target is not None:
             target = target - set(self.non_target)

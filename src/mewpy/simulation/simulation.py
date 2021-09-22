@@ -45,7 +45,7 @@ class ModelContainer(ABC):
     def medium(self):
         raise NotImplementedError
 
-    def get_drains(self):
+    def get_exchange_reactions(self):
         return NotImplementedError
 
     def get_gpr(self, reaction_id):

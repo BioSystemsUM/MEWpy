@@ -32,16 +32,37 @@ class CobraModelContainer(ModelContainer):
         self.model = model
 
     @property
+    def id(self):
+        return model.id
+
+    @property
     def reactions(self):
         return [rxn.id for rxn in self.model.reactions]
+
+    def get_reaction(self, r_id):
+        rxn = self.model.reactions.get_by_id(r_id)
+        stoichiometry = {met.id: val for met, val in rxn.metabolites.items()}
+        res = {'id': r_id, 'name': rxn.name, 'lb': rxn.lower_bound,
+               'ub': rxn.upper_bound, 'stoichiometry': stoichiometry}
+        res['gpr'] = rxn.gene_reaction_rule if rxn.gene_reaction_rule is not None else None
+        return res
 
     @property
     def genes(self):
         return [gene.id for gene in self.model.genes]
 
+    def get_gene(self, g_id):
+        g = self.model.genes.get_by_id(g_id)
+        res = {'id': g_id, 'name': g.name}
+
     @property
     def metabolites(self):
         return [met.id for met in self.model.metabolites]
+
+    def get_metabolite(self, m_id):
+        met = self.model.metabolites.get_by_id(m_id)
+        res = {'id': m_id, 'name': met.name, 'compartment': met.compartment, 'formula': met.formula}
+        return res
 
     @property
     def medium(self):
@@ -49,7 +70,14 @@ class CobraModelContainer(ModelContainer):
 
     @property
     def compartments(self):
-        return self.model._compartments
+        return self.model.compartments
+
+    def get_compartment(self, c_id):
+        c = self.model.compartments[c_id]
+        from cobra.medium import find_external_compartment
+        e = find_external_compartment(self.model)
+        res = {'id': c_id, 'name': c, 'external': (e == c_id)}
+        return res
 
     def get_gpr(self, reaction_id):
         """Returns the gpr rule (str) for a given reaction ID.
@@ -74,7 +102,7 @@ class CobraModelContainer(ModelContainer):
         reaction = self.model.reactions.get_by_id(rxn_id)
         return {k.id: v for k, v in reaction.metabolites.items() if v > 0}
 
-    def get_drains(self):
+    def get_exchange_reactions(self):
         rxns = [r.id for r in self.model.exchanges]
         return rxns
 
@@ -87,7 +115,6 @@ class Simulation(CobraModelContainer, Simulator):
 
     Optional:
 
-    :param objective: The model objective.
     :param dic envcond: Dictionary of environmental conditions.
     :param dic constraints: A dictionary of reaction constraints.
     :param solver: An instance of the LP solver.
@@ -95,7 +122,7 @@ class Simulation(CobraModelContainer, Simulator):
 
     """
 
-    def __init__(self, model: Model, objective=None, envcond=None, constraints=None, solver=None, reference=None,
+    def __init__(self, model: Model, envcond=None, constraints=None, solver=None, reference=None,
                  reset_solver=ModelConstants.RESET_SOLVER):
 
         if not isinstance(model, Model):
@@ -103,8 +130,6 @@ class Simulation(CobraModelContainer, Simulator):
 
         self.model = model
         self.model.solver = get_default_solver()
-        if objective:
-            self.objective = objective
         self.environmental_conditions = OrderedDict() if envcond is None else envcond
         self.constraints = OrderedDict() if constraints is None else constraints
         self.solver = solver
@@ -260,7 +285,7 @@ class Simulation(CobraModelContainer, Simulator):
         """
         :returns: The list of uptake reactions.
         """
-        drains = self.get_drains()
+        drains = self.get_exchange_reactions()
         rxns = [r for r in drains if self.model.reactions.get_by_id(r).reversibility
                 or ((self.model.reactions.get_by_id(r).lower_bound is None
                      or self.model.reactions.get_by_id(r).lower_bound < 0)
@@ -541,7 +566,7 @@ class GeckoSimulation(Simulation):
     Simulator for geckopy.gecko.GeckoModel
     """
 
-    def __init__(self, model, objective=None, envcond=None, constraints=None, solver=None, reference=None,
+    def __init__(self, model, envcond=None, constraints=None, solver=None, reference=None,
                  reset_solver=ModelConstants.RESET_SOLVER, protein_prefix=None):
         try:
             from geckopy.gecko import GeckoModel
@@ -551,7 +576,7 @@ class GeckoSimulation(Simulation):
             raise RuntimeError("The geckopy package is not installed.")
 
         super(GeckoSimulation, self).__init__(
-            model, objective, envcond, constraints, solver, reference, reset_solver)
+            model, envcond, constraints, solver, reference, reset_solver)
         self.protein_prefix = protein_prefix if protein_prefix else 'draw_prot_'
         self._essential_proteins = None
         self._protein_rev_reactions = None
@@ -639,11 +664,9 @@ class GeckoSimulation(Simulation):
             self._protein_rev_reactions = pairs
         return self._protein_rev_reactions
 
-
-    def getKcat(self,protein):
-       """ Returns a dictionary of reactions and respective Kcat for a specific enzyme·
-       """ 
-       m_r = self.metabolite_reaction_lookup()
-       r_d = m_r[protein]
-       return {k:v for k,v in r_d.items() if v<0}
-        
+    def getKcat(self, protein):
+        """ Returns a dictionary of reactions and respective Kcat for a specific enzyme·
+        """
+        m_r = self.metabolite_reaction_lookup()
+        r_d = m_r[protein]
+        return {k: v for k, v in r_d.items() if v < 0}

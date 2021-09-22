@@ -84,7 +84,7 @@ class MewModelContainer(ModelContainer):
 
         return {}
 
-    def get_drains(self):
+    def get_exchange_reactions(self):
 
         if self.model.is_metabolic():
             return list(self.model.exchanges.keys())
@@ -170,7 +170,6 @@ class Simulation(MewModelContainer, Simulator):
 
     def __init__(self,
                  model: Union[Model, MetabolicModel, RegulatoryModel],
-                 objective: str = None,
                  envcond: Dict[str, Tuple[Union[int, float], Union[int, float]]] = None,
                  constraints: Dict[str, Tuple[Union[int, float], Union[int, float]]] = None,
                  reference: Dict[str, Union[int, float]] = None,
@@ -188,7 +187,6 @@ class Simulation(MewModelContainer, Simulator):
 
         Optional:
 
-        :param objective: the model objective
         :param envcond: a dictionary of additional environmental conditions
         :param constraints: a dictionary of additional constraints
         :param reference: A dictionary of the wild type flux values
@@ -640,14 +638,12 @@ class Simulation(MewModelContainer, Simulator):
                  constraints: Dict[str, Tuple[Union[int, float], Union[int, float]]] = None,
                  reference: Dict[str, Union[int, float]] = None,
                  scalefactor: float = None,
-                 solver: Union['Solver', 'CplexSolver', 'GurobiSolver', 'OptLangSolver'] = None) -> SimulationResult:
         """
 
-        Simulates a phenotype for a given objective and set of constraints using the specified method.
-        Reference wild-type conditions are also accepted
+         Siulates a phenotype for a given objective and set of constraints using the specified method.
+         Reference wild-type conditions are also accepted
 
-        :param objective: The simulation objective. If none, the model objective is considered.
-        :param method: The SimulationMethod (FBA, pFBA, lMOMA, etc ...).
+         :param ob jective:  The simulation objec t iv:param method: The SimulationMethod (FBA, pFBA, lMOMA, etc ...).
         See available methods at mewpy.simulation.SimulationMethod
         :param maximize: The optimization direction
         :param constraints: A dictionary of constraints to be applied to the model
@@ -691,7 +687,7 @@ class Simulation(MewModelContainer, Simulator):
                                 method=method)
 
     def FVA(self,
-            obj_frac: float = 0.9,
+            obj_frac: float=0.9,
             reactions=None,
             constraints=None,
             loopless=False,
@@ -720,7 +716,7 @@ class Simulation(MewModelContainer, Simulator):
 
         simulation_constraints = {**constraints, **self.constraints, **self.environmental_conditions}
 
-        solution = fva(model=self.model,
+        solution=fva(model=self.model,
                        fraction=obj_frac,
                        reactions=reactions,
                        constraints=simulation_constraints,
