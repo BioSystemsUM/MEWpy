@@ -10,14 +10,15 @@ from reframed.core.model import AttrOrderedDict, ReactionType, Compartment, Meta
 from reframed.core.cbmodel import CBModel, CBReaction, Gene
 
 from .problem import AbstractKOProblem
-from mewpy.simulation import Simulator, get_simulator
+from mewpy.simulation import get_simulator
+from mewpy.simulation.simulation import Simulator
 
 
 class CommunityKOProblem(AbstractKOProblem):
     """
     Community Knockout Optimization Problem.
 
-    :param models: A list of metabolic model.
+    :param models: A list of metabolic models.
     :param list fevaluation: A list of callable EvaluationFunctions.
 
     Optional parameters:
@@ -33,7 +34,7 @@ class CommunityKOProblem(AbstractKOProblem):
     """
 
     def __init__(self, models: list, fevaluation=[], copy_models=True, **kwargs):
-        super(CommunityProblem, self).__init__(
+        super(CommunityKOProblem, self).__init__(
             None, fevaluation=fevaluation, **kwargs)
         self.organisms = AttrOrderedDict()
         self.model_ids = list({model.id for model in models})
@@ -143,7 +144,7 @@ class CommunityKOProblem(AbstractKOProblem):
                     for m_id, coeff in rxn['stoichiometry'].items()
                 }
 
-                if r_id == model.biomass_reaction:
+                if r_id in [x for x, v in model.objective.items() if v > 0]:
                     new_stoichiometry[biomass_id] = 1
 
                 if rxn['gpr'] is None:
@@ -222,7 +223,4 @@ class CommunityKOProblem(AbstractKOProblem):
             p = []
             for f in self.fevaluation:
                 p.append(f.worst_fitness)
-            if EAConstants.DEBUG:
-                warnings.warn(
-                    f"Solution couldn't be evaluated [{e}]")
         return p

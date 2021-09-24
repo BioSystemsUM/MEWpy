@@ -32,7 +32,11 @@ class Environment(OrderedDict):
         """
 
         if fmt_func is None:
-            def fmt_func(x): return x[5:-2]
+            def fmt_func(x):
+                if x[:2] == 'R_':
+                    return x[5:-2]
+                else:
+                    return x[3:-2]
         elif not isinstance(fmt_func, FunctionType):
             raise RuntimeError("fmt_func argument must be a string or function.")
 
@@ -44,7 +48,7 @@ class Environment(OrderedDict):
 
         return compounds
 
-    def apply(self, model, exclusive=True, inplace=True, warning=True):
+    def apply(self, model, exclusive=True, inplace=True, warning=True, prefix=None):
         """
         Apply environmental conditions to a given model
         Args:
@@ -58,24 +62,27 @@ class Environment(OrderedDict):
         else:
             sim = model
 
+        if prefix:
+            e = {f"{prefix}{rxn_id}": (lb, ub) for rxn_id, (lb, ub) in self.items()}
+        else:
+            e = self
+
         if exclusive:
             env = Environment.empty(model)
-            env.update(self)
+            env.update(e)
         else:
-            env = self
+            env = e
 
         if not inplace:
             constraints = {}
 
         for r_id, (lb, ub) in env.items():
-            if r_id in model.reactions:
+            if r_id in sim.reactions:
                 if inplace:
                     sim.set_reaction_bounds(r_id, lb, ub)
                 else:
                     constraints[r_id] = (lb, ub)
-            elif warning:
-                warn(f'Exchange reaction not in model: {r_id}')
-
+                    
         if not inplace:
             return constraints
 
@@ -117,7 +124,7 @@ class Environment(OrderedDict):
         return env
 
     @staticmethod
-    def from_compounds(compounds, fmt_func=None, max_uptake=10.0):
+    def from_compounds(compounds, fmt_func=None, max_uptake=10.0, prefix='R_'):
         """
         Initialize environment from list of medium compounds
         Arguments:
@@ -132,7 +139,8 @@ class Environment(OrderedDict):
         """
 
         if fmt_func is None:
-            def fmt_func(x): return f"R_EX_{x}_e"
+            def fmt_func(x):
+                return f"{prefix}EX_{x}_e"
         elif isinstance(fmt_func, str):
             fmt_str = fmt_func
             def fmt_func(x): return fmt_str.format(x)

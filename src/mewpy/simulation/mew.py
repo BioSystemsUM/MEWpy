@@ -638,12 +638,12 @@ class Simulation(MewModelContainer, Simulator):
                  constraints: Dict[str, Tuple[Union[int, float], Union[int, float]]] = None,
                  reference: Dict[str, Union[int, float]] = None,
                  scalefactor: float = None,
-        """
-
-         Siulates a phenotype for a given objective and set of constraints using the specified method.
-         Reference wild-type conditions are also accepted
-
-         :param ob jective:  The simulation objec t iv:param method: The SimulationMethod (FBA, pFBA, lMOMA, etc ...).
+                 solver: Union['Solver', 'CplexSolver', 'GurobiSolver', 'OptLangSolver'] = None) -> SimulationResult:
+        """ 
+        Simulates a phenotype for a given objective and set of constraints using the specified method.
+        Reference wild-type conditions are also accepted
+ 
+        :param ob jective:  The simulation objec t iv:param method: The SimulationMethod (FBA, pFBA, lMOMA, etc ...).
         See available methods at mewpy.simulation.SimulationMethod
         :param maximize: The optimization direction
         :param constraints: A dictionary of constraints to be applied to the model
@@ -687,7 +687,7 @@ class Simulation(MewModelContainer, Simulator):
                                 method=method)
 
     def FVA(self,
-            obj_frac: float=0.9,
+            obj_frac: float = 0.9,
             reactions=None,
             constraints=None,
             loopless=False,
@@ -716,7 +716,7 @@ class Simulation(MewModelContainer, Simulator):
 
         simulation_constraints = {**constraints, **self.constraints, **self.environmental_conditions}
 
-        solution=fva(model=self.model,
+        solution = fva(model=self.model,
                        fraction=obj_frac,
                        reactions=reactions,
                        constraints=simulation_constraints,

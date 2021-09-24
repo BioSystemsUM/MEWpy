@@ -33,7 +33,7 @@ class CobraModelContainer(ModelContainer):
 
     @property
     def id(self):
-        return model.id
+        return self.model.id
 
     @property
     def reactions(self):
@@ -54,6 +54,7 @@ class CobraModelContainer(ModelContainer):
     def get_gene(self, g_id):
         g = self.model.genes.get_by_id(g_id)
         res = {'id': g_id, 'name': g.name}
+        return res
 
     @property
     def metabolites(self):

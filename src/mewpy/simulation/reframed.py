@@ -42,7 +42,7 @@ class CBModelContainer(ModelContainer):
 
     @property
     def id(self):
-        return model.id
+        return self.model.id
 
     @property
     def reactions(self):
@@ -61,6 +61,7 @@ class CBModelContainer(ModelContainer):
     def get_gene(self, g_id):
         g = self.model.genes[g_id]
         res = {'id': g_id, 'name': g.name}
+        return res
 
     @property
     def metabolites(self):
