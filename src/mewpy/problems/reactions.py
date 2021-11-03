@@ -60,7 +60,7 @@ class ROUProblem(AbstractOUProblem):
     :param float scalefactor: A scaling factor to be used in the LP formulation.
     :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
     :param list levels: Over/under expression levels (Default EAConstants.LEVELS)
-
+    :param boolean twostep: If deletions should be applied before identifiying reference flux values.
     """
 
     def __init__(self, model, fevaluation=None, **kwargs):
@@ -84,12 +84,13 @@ class ROUProblem(AbstractOUProblem):
         """
         constraints = dict()
         # computes reference fluxes based on deletions
-        try:
-            deletions = {rxn: 0 for rxn, lv in candidate.items() if lv == 0}
-            reference = self.simulator.simulate(constraints=deletions, method='pFBA').fluxes
-        except Exception:
-            reference = self.reference
-        if not reference:
+        if self.twostep:
+            try:
+                deletions = {rxn: 0 for rxn, lv in candidate.items() if lv == 0}
+                reference = self.simulator.simulate(constraints=deletions, method='pFBA').fluxes
+            except Exception:
+                reference = self.reference
+        else:
             reference = self.reference
         # print(type(candidate), candidate)
         for rxn, lv in candidate.items():

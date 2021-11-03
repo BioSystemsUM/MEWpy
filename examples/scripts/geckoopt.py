@@ -10,12 +10,12 @@ from time import time
 
 from mewpy.model.gecko import GeckoModel
 from mewpy.optimization import EA
-from mewpy.optimization.evaluation import BPCY, WYIELD, TargetFlux
+from mewpy.optimization.evaluation import BPCY, WYIELD, TargetFlux, ModificationType
 from mewpy.problems.gecko import GeckoKOProblem, GeckoOUProblem
 from mewpy.simulation import SimulationMethod
 from mewpy.util.io import population_to_csv
 
-ITERATIONS = 100
+ITERATIONS = 600
 
 
 def ec_gecko_ko(compound, display=False, filename=None):
@@ -199,14 +199,15 @@ def yeast_gecko_ou(compound, display=False, filename=None):
 
     evaluator_1 = BPCY(BIOMASS, compound, method='lMOMA')
     evaluator_2 = WYIELD(BIOMASS, compound)
+    evaluator_3 = ModificationType()
     # The optimization problem
     problem = GeckoOUProblem(model,
-                             fevaluation=[evaluator_1, evaluator_2],
+                             fevaluation=[evaluator_1, evaluator_2,evaluator_3],
                              envcond=envcond,
                              candidate_max_size=6)
 
     # A new instance of the EA optimizer
-    ea = EA(problem, max_generations=ITERATIONS)
+    ea = EA(problem, max_generations=ITERATIONS, algorithm='NSGAIII')
     # runs the optimization
     final_pop = ea.run()
     # optimization results
@@ -222,10 +223,10 @@ def yeast_gecko_ou(compound, display=False, filename=None):
 
 if __name__ == '__main__':
 
-    N_EXP = 1
+    N_EXP = 10
 
-    compounds = {'SUC': 'r_2056',
-                 'TYR': 'r_1913',
+    compounds = {#'SUC': 'r_2056',
+                 #'TYR': 'r_1913',
                  'PHE': 'r_1903',
                  'TRY': 'r_1912'}
 
@@ -235,11 +236,11 @@ if __name__ == '__main__':
             yeast_gecko_ou(v, display=False,
                            filename="gecko_{}_OU_{}.csv".format(k, millis))
 
-    for k, v in compounds.items():
-        for _ in range(N_EXP):
-            millis = int(round(time() * 1000))
-            yeast_gecko_ko(v, display=False,
-                           filename="gecko_{}_KO_{}.csv".format(k, millis))
+    #for k, v in compounds.items():
+    #    for _ in range(N_EXP):
+    #        millis = int(round(time() * 1000))
+    #        yeast_gecko_ko(v, display=False,
+    #                       filename="gecko_{}_KO_{}.csv".format(k, millis))
 
     # E. coli AutoPACMEN model
     ec_gecko_ou('R_EX_tyr__L_e', filename='gecko_ec_tyr.csv')

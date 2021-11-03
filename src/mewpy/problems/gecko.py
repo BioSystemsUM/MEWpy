@@ -80,6 +80,7 @@ class GeckoKOProblem(AbstractKOProblem):
         p_size = len(self.prot_prefix)
         return set([self.target_list.index(k[p_size:]) for k in candidate])
 
+
 class GeckoOUProblem(AbstractOUProblem):
     """
     Gecko Under/Over expression Optimization Problem
@@ -99,7 +100,7 @@ class GeckoOUProblem(AbstractOUProblem):
     :param float scalefactor: a scaling factor to be used in the LP formulation.
     :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
     :param str prot_prefix: the protein draw reaction prefix. Default `draw_prot_`.
-
+    :param boolean twostep: If deletions should be applied before identifiying reference flux values.
 
     Note:
     Target as well as non target proteins are defined with their prot id, ex `P0351`, and with the associated reaction
@@ -143,7 +144,6 @@ class GeckoOUProblem(AbstractOUProblem):
                     f"Index out of range: {idx} from {len(self.target_list[idx])}")
         return decoded_candidate
 
-
     def encode(self, candidate):
         """
         Translates a candidate solution in problem specific representation to
@@ -167,13 +167,13 @@ class GeckoOUProblem(AbstractOUProblem):
         :returns: A dictionary of metabolic constraints.
         """
         constraints = dict()
-        #
-        try:
-            deletions = {rxn: 0 for rxn, lv in candidate.items() if lv == 0}
-            reference = self.simulator.simulate(constraints=deletions, method='pFBA').fluxes
-        except Exception:
-            reference = self.reference
-        if not reference:
+        if self.twostep:
+            try:
+                deletions = {rxn: 0 for rxn, lv in candidate.items() if lv == 0}
+                reference = self.simulator.simulate(constraints=deletions, method='pFBA').fluxes
+            except Exception:
+                reference = self.reference
+        else:
             reference = self.reference
 
         if self.prot_rev_reactions is None:

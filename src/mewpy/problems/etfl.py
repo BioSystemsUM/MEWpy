@@ -119,6 +119,7 @@ class ETFLGOUProblem(AbstractOUProblem):
     :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
     :param tuple operators: (and, or) operations. Default (MIN, MAX).
     :param list levels: Over/under expression levels (Default EAConstants.LEVELS).
+    :param boolean twostep: If deletions should be applied before identifiying reference flux values.
     :param boolean only_gpr: Only uses GPRs and do not alter pseudo translation reactions bounds (Default False).
 
     Note:  Operators that can not be pickled may be defined by a string e.g. 'lambda x,y: (x+y)/2'.
@@ -211,13 +212,14 @@ class ETFLGOUProblem(AbstractOUProblem):
         Decodes a candidate, a dict of genes:lv into a dictionary of reaction constraints
         """
         gr_constraints = dict()
-        try:
-            deletions = {rxn: 0 for rxn, lv in candidate if lv == 0}
-            constr = self.__deletions(deletions)
-            reference = self.simulator.simulate(constraints=constr, method='pFBA').fluxes
-        except Exception:
-            reference = self.reference
-        if not reference:
+        if self.twostep:
+            try:
+                deletions = {rxn: 0 for rxn, lv in candidate if lv == 0}
+                constr = self.__deletions(deletions)
+                reference = self.simulator.simulate(constraints=constr, method='pFBA').fluxes
+            except Exception:
+                reference = self.reference
+        else:
             reference = self.reference
     
         no_trans = []

@@ -389,13 +389,14 @@ class AbstractOUProblem(AbstractProblem):
 
         :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
         :param list levels: Over/under expression levels (Default EAConstants.LEVELS).
-
+        :param boolean twostep: If deletions should be applied before identifiying reference flux values.
         """
         super(AbstractOUProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
         self.strategy = Strategy.OU
         self.levels = kwargs.get('levels', EAConstants.LEVELS)
         self._reference = kwargs.get('reference', None)
+        self.twostep = kwargs.get('twostep', True)
 
     def decode(self, candidate):
         """The decoder function for the problem. Needs to be implemented by extending classes."""
