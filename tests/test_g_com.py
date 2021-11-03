@@ -59,18 +59,19 @@ class TestComCobra(TestComReframed):
         model1.reactions.get_by_id("ATPM").lower_bound = 0
         model1.reactions.get_by_id("ATPM").upper_bound = 0
         model1.id = 'm1'
-
         model2 = model1.copy()
         model2.id = 'm2'
-
         model3 = model1.copy()
         model3.id = 'm3'
         self.models = [model1, model2, model3]
+        # build the problem
         self.problem = CommunityKOProblem(self.models)
-        cmodel = self.problem.merge_models()
         # Define the environmental conditions
         from mewpy.simulation.environment import Environment
         medium = Environment.from_model(model1).get_compounds()
+        # environmental conditionc from cobrapy models that drop the 'R_' prefix
         env = Environment.from_compounds(medium, prefix='')
+        cmodel = self.problem.merge_models()
+        # apply environmental conditions to a reframed model uses the 'R_' prefix
         env = env.apply(cmodel, inplace=False, prefix='R_')
         self.env = env
