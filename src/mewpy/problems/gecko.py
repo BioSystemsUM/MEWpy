@@ -167,13 +167,15 @@ class GeckoOUProblem(AbstractOUProblem):
         :returns: A dictionary of metabolic constraints.
         """
         constraints = dict()
+        reference = None
         if self.twostep:
             try:
                 deletions = {rxn: 0 for rxn, lv in candidate.items() if lv == 0}
                 reference = self.simulator.simulate(constraints=deletions, method='pFBA').fluxes
-            except Exception:
+            except Exception as e:
+                print(e)
                 reference = self.reference
-        else:
+        if not self.twostep or not reference:
             reference = self.reference
 
         if self.prot_rev_reactions is None:

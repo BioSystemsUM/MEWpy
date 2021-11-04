@@ -84,13 +84,15 @@ class ROUProblem(AbstractOUProblem):
         """
         constraints = dict()
         # computes reference fluxes based on deletions
+        reference = None
         if self.twostep:
             try:
                 deletions = {rxn: 0 for rxn, lv in candidate.items() if lv == 0}
                 reference = self.simulator.simulate(constraints=deletions, method='pFBA').fluxes
-            except Exception:
+            except Exception as e:
+                print(e)
                 reference = self.reference
-        else:
+        if not self.twostep or not reference:
             reference = self.reference
         # print(type(candidate), candidate)
         for rxn, lv in candidate.items():

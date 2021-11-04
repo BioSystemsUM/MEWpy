@@ -212,14 +212,16 @@ class ETFLGOUProblem(AbstractOUProblem):
         Decodes a candidate, a dict of genes:lv into a dictionary of reaction constraints
         """
         gr_constraints = dict()
+        reference = None
         if self.twostep:
             try:
                 deletions = {rxn: 0 for rxn, lv in candidate if lv == 0}
                 constr = self.__deletions(deletions)
                 reference = self.simulator.simulate(constraints=constr, method='pFBA').fluxes
-            except Exception:
+            except Exception as e:
+                print(e)
                 reference = self.reference
-        else:
+        if not self.twostep or not reference:
             reference = self.reference
     
         no_trans = []

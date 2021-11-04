@@ -120,7 +120,9 @@ class GOUProblem(AbstractOUProblem):
         """
         gr_constraints = dict()
         genes = candidate
+
         # Computes reference fluxes based on deletions
+        reference = None
         if self.twostep:
             try:
                 deletions = [gene for gene, lv in candidate.items() if lv == 0]
@@ -129,9 +131,10 @@ class GOUProblem(AbstractOUProblem):
                 inactive_reactions = set(self.simulator.reactions) - set(active_reactions)
                 gr_constraints = {rxn: 0 for rxn in inactive_reactions}
                 reference = self.simulator.simulate(constraints=gr_constraints, method='pFBA').fluxes
-            except Exception:
+            except Exception as e:
+                print(e)
                 reference = self.reference
-        else:
+        if not self.twostep or not reference:
             reference = self.reference
         # operators check
         self.__op()
