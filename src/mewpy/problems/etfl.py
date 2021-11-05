@@ -61,7 +61,7 @@ class ETFLGKOProblem(AbstractKOProblem):
                 self.has_enzyme.append(g)
             for e in ee:
                 gene_reaction[g].extend(enzyme_reaction[e.id])
-        self.gene_reaction = gene_reaction
+        self.gene_enzyme_reaction = gene_reaction
 
     def _build_target_list(self):
         print("Building modification target list.")
@@ -92,12 +92,13 @@ class ETFLGKOProblem(AbstractKOProblem):
                 except Exception:
                     no_trans.append(g)
         # GPR based reaction KO
-        active_genes = set(self.simulator.genes) - set(genes)
+        active_genes = set(self.simulator.genes) - set(no_trans)
         active_reactions = self.simulator.evaluate_gprs(active_genes)
-        catalyzed_reactions = set(itertools.chain.from_iterable(
-            [self.gene_reaction[g] for g in genes if g not in no_trans]))
-        inactive_reactions = set(self.simulator.reactions) - set(active_reactions) - catalyzed_reactions
-        gr_constraints = {rxn: 0 for rxn in inactive_reactions}
+        # reactions for which there are enzymes whose gene translation has been KO
+        #catalyzed_reactions = set(itertools.chain.from_iterable(
+        #    [self.gene_enzyme_reaction[g] for g in genes]))
+        inactive_reactions = set(self.simulator.reactions) - set(active_reactions)  # - catalyzed_reactions
+        gr_constraints.update({rxn: 0 for rxn in inactive_reactions})
         return gr_constraints
 
 
@@ -124,6 +125,12 @@ class ETFLGOUProblem(AbstractOUProblem):
 
     Note:  Operators that can not be pickled may be defined by a string e.g. 'lambda x,y: (x+y)/2'.
 
+
+    Up and down regulations are applied on E(T)FL models following a multi-step strategy:
+    1) If a gene has an associated enzyme, the gene translation pseudo-reaction has its bounds altered, reflecting
+    the modification on expression;
+    2) Genes that do not have associated enzymes, have their expression altered using reactions GPRs 
+
     """
 
     def __init__(self, model, fevaluation=None, **kwargs):
@@ -136,6 +143,7 @@ class ETFLGOUProblem(AbstractOUProblem):
         self.gene_reaction_mapping()
 
     def gene_reaction_mapping(self):
+        # map enzyme to reactions
         enzyme_reaction = {}
         for rx in self.model.reactions:
             if hasattr(rx, 'enzymes') and rx.enzymes:
@@ -150,7 +158,7 @@ class ETFLGOUProblem(AbstractOUProblem):
                 self.has_enzyme.append(g)
             for e in ee:
                 gene_reaction[g].extend(enzyme_reaction[e.id])
-        self.gene_reaction = gene_reaction
+        self.gene_enzyme_reaction = gene_reaction
 
     def _build_target_list(self):
         print("Building modification target list.")
@@ -199,12 +207,12 @@ class ETFLGOUProblem(AbstractOUProblem):
                 except Exception:
                     no_trans.append(g)
         # GPR based reaction KO
-        active_genes = set(self.simulator.genes) - set(genes)
+        active_genes = set(self.simulator.genes) - set(no_trans)
         active_reactions = self.simulator.evaluate_gprs(active_genes)
-        catalyzed_reactions = set(itertools.chain.from_iterable(
-            [self.gene_reaction[g] for g in genes if g not in no_trans]))
-        inactive_reactions = set(self.simulator.reactions) - set(active_reactions) - catalyzed_reactions
-        gr_constraints = {rxn: 0 for rxn in inactive_reactions}
+        #catalyzed_reactions = set(itertools.chain.from_iterable(
+        #    [self.gene_enzyme_reaction[g] for g in genes if g not in no_trans]))
+        inactive_reactions = set(self.simulator.reactions) - set(active_reactions)  # - catalyzed_reactions
+        gr_constraints.update({rxn: 0 for rxn in inactive_reactions})
         return gr_constraints
 
     def solution_to_constraints(self, candidate):
@@ -215,11 +223,11 @@ class ETFLGOUProblem(AbstractOUProblem):
         reference = None
         if self.twostep:
             try:
-                deletions = {rxn: 0 for rxn, lv in candidate if lv == 0}
+                deletions = {rxn: lv for rxn, lv in candidate.items() if lv == 0}
                 constr = self.__deletions(deletions)
                 reference = self.simulator.simulate(constraints=constr, method='pFBA').fluxes
             except Exception as e:
-                print(e)
+                logger.warning(f"{candidate}: {e}")
                 reference = self.reference
         if not self.twostep or not reference:
             reference = self.reference
@@ -235,7 +243,7 @@ class ETFLGOUProblem(AbstractOUProblem):
                 except Exception:
                     no_trans.append(gene_id)
         catalyzed_reactions = set(itertools.chain.from_iterable(
-            [self.gene_reaction[g] for g in candidate if g not in no_trans]))
+            [self.gene_enzyme_reaction[g] for g in candidate]))
         # GPR based reaction
         self.__op()
         # evaluate gpr
