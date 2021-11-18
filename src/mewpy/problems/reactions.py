@@ -1,5 +1,6 @@
 import numpy as np
 from .problem import AbstractKOProblem, AbstractOUProblem
+from ..simulation import SStatus
 
 
 class RKOProblem(AbstractKOProblem):
@@ -84,17 +85,16 @@ class ROUProblem(AbstractOUProblem):
         """
         constraints = dict()
         # computes reference fluxes based on deletions
-        reference = None
+        reference = self.reference
         if self.twostep:
             try:
                 deletions = {rxn: 0 for rxn, lv in candidate.items() if lv == 0}
-                reference = self.simulator.simulate(constraints=deletions, method='pFBA').fluxes
+                sr = self.simulator.simulate(constraints=deletions, method='pFBA')
+                if sr.status in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
+                    reference = sr.fluxes
             except Exception as e:
                 print(e)
-                reference = self.reference
-        if not self.twostep or not reference:
-            reference = self.reference
-        # print(type(candidate), candidate)
+
         for rxn, lv in candidate.items():
             rev_rxn = self.simulator.reverse_reaction(rxn)
             # skips if the reverse reaction was already processed

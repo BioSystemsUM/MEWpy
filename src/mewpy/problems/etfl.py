@@ -3,6 +3,7 @@ import itertools
 
 from .problem import AbstractKOProblem, AbstractOUProblem
 from ..util.parsing import GeneEvaluator, build_tree, Boolean
+from ..simulation import SStatus
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,7 @@ class ETFLGKOProblem(AbstractKOProblem):
         self.gene_reaction_mapping()
 
     def gene_reaction_mapping(self):
+        """ Maps genes with associated enzymes to reactions."""
         enzyme_reaction = {}
         for rx in self.model.reactions:
             if hasattr(rx, 'enzymes') and rx.enzymes:
@@ -59,8 +61,8 @@ class ETFLGKOProblem(AbstractKOProblem):
             ee = associated_enzyme(self.model, g)
             if ee:
                 self.has_enzyme.append(g)
-            for e in ee:
-                gene_reaction[g].extend(enzyme_reaction[e.id])
+                for e in ee:
+                    gene_reaction[g].extend(enzyme_reaction[e.id])
         self.gene_enzyme_reaction = gene_reaction
 
     def _build_target_list(self):
@@ -220,18 +222,18 @@ class ETFLGOUProblem(AbstractOUProblem):
         Decodes a candidate, a dict of genes:lv into a dictionary of reaction constraints
         """
         gr_constraints = dict()
-        reference = None
+        reference = self.reference
         if self.twostep:
             try:
                 deletions = {rxn: lv for rxn, lv in candidate.items() if lv == 0}
                 constr = self.__deletions(deletions)
-                reference = self.simulator.simulate(constraints=constr, method='pFBA').fluxes
+                sr = self.simulator.simulate(constraints=constr, method='pFBA')
+                if sr.status in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
+                    reference = sr.fluxes
             except Exception as e:
                 logger.warning(f"{candidate}: {e}")
-                reference = self.reference
-        if not self.twostep or not reference:
-            reference = self.reference
-    
+
+        
         no_trans = []
         # translation reactions
         for gene_id, lv in candidate.items():

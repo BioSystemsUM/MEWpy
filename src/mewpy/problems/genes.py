@@ -1,7 +1,7 @@
 import logging
 from .problem import AbstractKOProblem, AbstractOUProblem
 from ..util.parsing import GeneEvaluator, build_tree, Boolean
-
+from ..simulation import SStatus
 logger = logging.getLogger(__name__)
 
 
@@ -122,7 +122,7 @@ class GOUProblem(AbstractOUProblem):
         genes = candidate
 
         # Computes reference fluxes based on deletions
-        reference = None
+        reference = self.reference
         if self.twostep:
             try:
                 deletions = [gene for gene, lv in candidate.items() if lv == 0]
@@ -130,12 +130,11 @@ class GOUProblem(AbstractOUProblem):
                 active_reactions = self.simulator.evaluate_gprs(active_genes)
                 inactive_reactions = set(self.simulator.reactions) - set(active_reactions)
                 gr_constraints = {rxn: 0 for rxn in inactive_reactions}
-                reference = self.simulator.simulate(constraints=gr_constraints, method='pFBA').fluxes
+                sr = self.simulator.simulate(constraints=gr_constraints, method='pFBA')
+                if sr.status in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
+                    reference = sr.fluxes
             except Exception as e:
                 print(e)
-                reference = self.reference
-        if not self.twostep or not reference:
-            reference = self.reference
         # operators check
         self.__op()
         # evaluate gpr
