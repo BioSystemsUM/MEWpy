@@ -10,11 +10,12 @@ REV = 'rev'
 IRREV = 'irrev'
 
 
-def create_metabolic_graph(model, directed=True, reactions=None, remove=[], edges_labels=False, biomass=False):
+def create_metabolic_graph(model, directed=True, carbon=True, reactions=None, remove=[], edges_labels=False, biomass=False):
     """ Creates a metabolic graph
 
     :param model: A model or a model containter
     :param (bool) directed: Defines if the graph to be directed or undirected. Defaults to True.
+    :param (bool) carbon: Only included edges for metabolites with a carbon atom. Defaults to True.
     :param (list) reactions: List of reactions to be included in the graph. Defaults to None, in which\
         all reactions are included.
     :param list remove: list os metabolites not to be included. May be used to remove cofactores such as ATP/ADP, \
@@ -44,6 +45,8 @@ def create_metabolic_graph(model, directed=True, reactions=None, remove=[], edge
         the_metabolites = container.get_reaction_metabolites(r)
         for m in the_metabolites:
             if m in remove:
+                continue
+            if carbon and 'C' not in container.metabolite_elements(m).keys():
                 continue
             if m not in G.nodes:
                 G.add_node(m, label=m, node_class=METABOLITE, node_id=m)
