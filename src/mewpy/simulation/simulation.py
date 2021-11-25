@@ -239,3 +239,23 @@ class SimulationResult(object):
                 right = right + " " + biomassId
 
         return left + " --> " + right
+
+    def get_metabolites_turnover(self):
+        """ Calculate metabolite turnover.
+
+        Arguments:
+            model: REFRAMED/Cobrapy model or Simulator that generated the solution
+
+        Returns:
+            dict: metabolite turnover rates
+        """
+        from . import get_simulator
+        sim = get_simulator(self.model)
+
+        if not self.values:
+            return None
+
+        m_r_table = sim.metabolite_reaction_lookup()
+        t = {m_id: 0.5*sum([abs(coeff * self.fluxes[r_id]) for r_id, coeff in neighbours.items()])
+             for m_id, neighbours in m_r_table.items()}
+        return t
