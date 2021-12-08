@@ -13,6 +13,7 @@ setup_requirements = requirements + ['pytest-runner']
 test_requirements = requirements + ['pytest', 'cplex']
 install_requirements = requirements
 
+
 setup(
     name='mewpy',
     version='0.1.9',
