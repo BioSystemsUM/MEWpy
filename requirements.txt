@@ -1,6 +1,6 @@
 numpy
 optlang
-python-libsbml
+python-libsbml==5.19.0
 reframed
 cobra
 inspyred
