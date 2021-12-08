@@ -32,5 +32,4 @@ setup(
     keywords='strain optimization',
     url='https://github.com/BioSystemsUM/mewpy/',
     long_description=readme,
-    test_suite='tests',
 )
