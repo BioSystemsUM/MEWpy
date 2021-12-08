@@ -6,13 +6,12 @@ files = ["model/data/*"]
 with open('README.rst') as readme_file:
     readme = readme_file.read()
 
-requirements = ['numpy', 'cobra', 'reframed', 'inspyred', 'jmetalpy',
-                'cobamp', 'networkx', 'matplotlib<3.3', 'tdqm']
+requirements = ['cobra', 'inspyred', 'jmetalpy',
+                'reframed', , 'cobamp', 'networkx', 'matplotlib<3.3', 'python-libsbml==5.19.0']
 
 setup_requirements = requirements + ['pytest-runner']
 test_requirements = requirements + ['pytest', 'cplex']
 install_requirements = requirements
-
 
 setup(
     name='mewpy',
@@ -33,4 +32,5 @@ setup(
     keywords='strain optimization',
     url='https://github.com/BioSystemsUM/mewpy/',
     long_description=readme,
+    test_suite='tests',
 )
