@@ -25,7 +25,7 @@ class TestComReframed(unittest.TestCase):
         # Define the environmental conditions
         from mewpy.simulation.environment import Environment
         medium = Environment.from_model(model1).get_compounds()
-        env = Environment.from_compounds(medium)
+        env = Environment.from_compounds(medium, prefix='R_')
         env = env.apply(cmodel, inplace=False)
         self.env = env
 
