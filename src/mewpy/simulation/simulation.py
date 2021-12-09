@@ -116,6 +116,29 @@ class Simulator(ModelContainer):
     def metabolite_reaction_lookup(self, force_recalculate=False):
         raise NotImplementedError
 
+    def find(self, pattern=None, sort=False, find_in='rxn'):
+        if find_in == 'met':
+            values = self.metabolites
+        else:
+            values = self.reactions
+        if pattern:
+            import re
+            if isinstance(pattern, list):
+                patt = '|'.join(pattern)
+                re_expr = re.compile(patt)
+            else:
+                re_expr = re.compile(pattern)
+            values = [x for x in values if re_expr.search(x) is not None]
+        if sort:
+            values.sort()
+        import pandas as pd
+        if find_in == 'met':
+            data = [self.get_metabolite(x) for x in values]
+        else:
+            data = [self.get_reaction(x) for x in values]
+        df = pd.DataFrame(data)
+        return df
+
 
 class SimulationResult(object):
     """Class that represents simulation results and performs operations over them."""

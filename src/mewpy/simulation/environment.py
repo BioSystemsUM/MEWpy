@@ -124,7 +124,7 @@ class Environment(OrderedDict):
         return env
 
     @staticmethod
-    def from_compounds(compounds, fmt_func=None, max_uptake=10.0, prefix='R_'):
+    def from_compounds(compounds, fmt_func=None, max_uptake=10.0, prefix=''):
         """
         Initialize environment from list of medium compounds
         Arguments:
