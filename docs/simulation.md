@@ -157,7 +157,7 @@ OrderedDict([('CYTDK2', 0.0),
 It is also to possible to retrieve reaction fluxes in the form of a data frame:
 
 ```python
-result.data_frame
+result.dataframe
 ```
 
 ```

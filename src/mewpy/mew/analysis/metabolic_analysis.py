@@ -6,7 +6,7 @@ from typing import Union, TYPE_CHECKING, List, Dict, Tuple
 from pandas import DataFrame
 
 from mewpy.util.constants import ModelConstants
-from mewpy.variables import Reaction, Gene
+from mewpy.mew.variables import Reaction, Gene
 from .fba import FBA, pFBA, milpFBA
 from .analysis_utils import decode_solver_solution
 

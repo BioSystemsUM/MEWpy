@@ -3,6 +3,7 @@ import itertools
 
 from .problem import AbstractKOProblem, AbstractOUProblem
 from ..util.parsing import GeneEvaluator, build_tree, Boolean
+from ..simulation import SStatus
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,7 @@ class ETFLGKOProblem(AbstractKOProblem):
         self.gene_reaction_mapping()
 
     def gene_reaction_mapping(self):
+        """ Maps genes with associated enzymes to reactions."""
         enzyme_reaction = {}
         for rx in self.model.reactions:
             if hasattr(rx, 'enzymes') and rx.enzymes:
@@ -59,9 +61,9 @@ class ETFLGKOProblem(AbstractKOProblem):
             ee = associated_enzyme(self.model, g)
             if ee:
                 self.has_enzyme.append(g)
-            for e in ee:
-                gene_reaction[g].extend(enzyme_reaction[e.id])
-        self.gene_reaction = gene_reaction
+                for e in ee:
+                    gene_reaction[g].extend(enzyme_reaction[e.id])
+        self.gene_enzyme_reaction = gene_reaction
 
     def _build_target_list(self):
         print("Building modification target list.")
@@ -76,7 +78,7 @@ class ETFLGKOProblem(AbstractKOProblem):
         target = list(target)
         self._trg_list = target
 
-    def _trans_solution_to_constraints(self, candidate):
+    def solution_to_constraints(self, candidate):
         """
         Converts a candidate, dict of genes:0 into a dictionary of constraints.
         """
@@ -92,38 +94,14 @@ class ETFLGKOProblem(AbstractKOProblem):
                 except Exception:
                     no_trans.append(g)
         # GPR based reaction KO
-        active_genes = set(self.simulator.genes) - set(genes)
+        active_genes = set(self.simulator.genes) - set(no_trans)
         active_reactions = self.simulator.evaluate_gprs(active_genes)
-        catalyzed_reactions = set(itertools.chain.from_iterable(
-            [self.gene_reaction[g] for g in genes if g not in no_trans]))
-        inactive_reactions = set(self.simulator.reactions) - set(active_reactions) - catalyzed_reactions
-        gr_constraints = {rxn: 0 for rxn in inactive_reactions}
+        # reactions for which there are enzymes whose gene translation has been KO
+        #catalyzed_reactions = set(itertools.chain.from_iterable(
+        #    [self.gene_enzyme_reaction[g] for g in genes]))
+        inactive_reactions = set(self.simulator.reactions) - set(active_reactions)  # - catalyzed_reactions
+        gr_constraints.update({rxn: 0 for rxn in inactive_reactions})
         return gr_constraints
-
-    def _gpr_solution_to_constraints(self, candidate):
-        """
-        Converts a candidate, dict of genes:0 into a dictionary of constraints.
-        """
-        genes = list(candidate.keys())
-        gr_constraints = dict()
-        trans = [gene_has_associated_enzyme(self.model, g) for g in genes]
-        # USE TRANSLATION REACTION
-        if all(trans):
-            gr_constraints = {rxn: 0 for rxn in trans}
-        # USE GPR
-        else:
-            active_genes = set(self.simulator.genes) - set(genes)
-            active_reactions = self.simulator.evaluate_gprs(active_genes)
-            inactive_reactions = set(
-                self.simulator.reactions) - set(active_reactions)
-            gr_constraints = {rxn: 0 for rxn in inactive_reactions}
-        return gr_constraints
-
-    def solution_to_constraints(self, candidate):
-        if self._only_gpr:
-            return self._gpr_solution_to_constraints(candidate)
-        else:
-            return self._trans_solution_to_constraints(candidate)
 
 
 class ETFLGOUProblem(AbstractOUProblem):
@@ -144,9 +122,16 @@ class ETFLGOUProblem(AbstractOUProblem):
     :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
     :param tuple operators: (and, or) operations. Default (MIN, MAX).
     :param list levels: Over/under expression levels (Default EAConstants.LEVELS).
+    :param boolean twostep: If deletions should be applied before identifiying reference flux values.
     :param boolean only_gpr: Only uses GPRs and do not alter pseudo translation reactions bounds (Default False).
 
     Note:  Operators that can not be pickled may be defined by a string e.g. 'lambda x,y: (x+y)/2'.
+
+
+    Up and down regulations are applied on E(T)FL models following a multi-step strategy:
+    1) If a gene has an associated enzyme, the gene translation pseudo-reaction has its bounds altered, reflecting
+    the modification on expression;
+    2) Genes that do not have associated enzymes, have their expression altered using reactions GPRs 
 
     """
 
@@ -160,6 +145,7 @@ class ETFLGOUProblem(AbstractOUProblem):
         self.gene_reaction_mapping()
 
     def gene_reaction_mapping(self):
+        # map enzyme to reactions
         enzyme_reaction = {}
         for rx in self.model.reactions:
             if hasattr(rx, 'enzymes') and rx.enzymes:
@@ -174,7 +160,7 @@ class ETFLGOUProblem(AbstractOUProblem):
                 self.has_enzyme.append(g)
             for e in ee:
                 gene_reaction[g].extend(enzyme_reaction[e.id])
-        self.gene_reaction = gene_reaction
+        self.gene_enzyme_reaction = gene_reaction
 
     def _build_target_list(self):
         print("Building modification target list.")
@@ -206,50 +192,48 @@ class ETFLGOUProblem(AbstractOUProblem):
                     raise ValueError(f"The operator at index {i} is not callable.")
             self._operators = tuple(ops)
 
-    def _gpr_solution_to_constraints(self, candidate):
+    def __deletions(self, candidate):
         """
-        Decodes a candidate, a dict of genes:lv into a dictionary of reaction constraints
+        Converts deletions to constraints. This method is used to infer reference values
+        for under and over regulation.
         """
+        genes = list(candidate.keys())
         gr_constraints = dict()
-        # USE TRANSLATION REACTION
-        trans = [gene_has_associated_enzyme(self.model, g) for g in candidate.keys()]
-        if all(trans):
-            for gene_id, lv in candidate.items():
-                rxn_id = self.model._get_translation_name(gene_id)
-                gr_constraints.update(
-                    self.reaction_constraints(rxn_id, lv))
-        # USE GPR
-        else:
-            # operators check
-            self.__op()
-            # evaluate gpr
-            evaluator = GeneEvaluator(
-                candidate, self._operators[0], self._operators[1])
-            for rxn_id in self.simulator.reactions:
-                gpr = self.simulator.get_gpr(rxn_id)
-                if gpr:
-                    tree = build_tree(gpr, Boolean)
-                    # apply the operators to obtain a level for the reaction
-                    # if a gene as no level associated its factor is 1 (see GeneEvaluator)
-                    lv = tree.evaluate(evaluator.f_operand, evaluator.f_operator)
-
-                    # adds the reaction constraint
-                    rev_rxn = self.simulator.reverse_reaction(rxn_id)
-                    # skips if the reverse reaction was already processed
-                    if rev_rxn and rev_rxn in gr_constraints.keys():
-                        continue
-                    elif lv < 0:
-                        raise ValueError("All UO levels should be positive")
-                    else:
-                        gr_constraints.update(
-                            self.reaction_constraints(rxn_id, lv))
+        no_trans = []
+        # Translation
+        for g in genes:
+            if g in self.has_enzyme:
+                try:
+                    rx = self.model._get_translation_name(g)
+                    gr_constraints[rx] = 0
+                except Exception:
+                    no_trans.append(g)
+        # GPR based reaction KO
+        active_genes = set(self.simulator.genes) - set(no_trans)
+        active_reactions = self.simulator.evaluate_gprs(active_genes)
+        #catalyzed_reactions = set(itertools.chain.from_iterable(
+        #    [self.gene_enzyme_reaction[g] for g in genes if g not in no_trans]))
+        inactive_reactions = set(self.simulator.reactions) - set(active_reactions)  # - catalyzed_reactions
+        gr_constraints.update({rxn: 0 for rxn in inactive_reactions})
         return gr_constraints
 
-    def _trans_solution_to_constraints(self, candidate):
+    def solution_to_constraints(self, candidate):
         """
         Decodes a candidate, a dict of genes:lv into a dictionary of reaction constraints
         """
         gr_constraints = dict()
+        reference = self.reference
+        if self.twostep:
+            try:
+                deletions = {rxn: lv for rxn, lv in candidate.items() if lv == 0}
+                constr = self.__deletions(deletions)
+                sr = self.simulator.simulate(constraints=constr, method='pFBA')
+                if sr.status in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
+                    reference = sr.fluxes
+            except Exception as e:
+                logger.warning(f"{candidate}: {e}")
+
+        
         no_trans = []
         # translation reactions
         for gene_id, lv in candidate.items():
@@ -257,11 +241,11 @@ class ETFLGOUProblem(AbstractOUProblem):
                 try:
                     rx = self.model._get_translation_name(gene_id)
                     gr_constraints.update(
-                        self.reaction_constraints(rx, lv))
+                        self.reaction_constraints(rx, lv, reference))
                 except Exception:
                     no_trans.append(gene_id)
         catalyzed_reactions = set(itertools.chain.from_iterable(
-            [self.gene_reaction[g] for g in candidate if g not in no_trans]))
+            [self.gene_enzyme_reaction[g] for g in candidate]))
         # GPR based reaction
         self.__op()
         # evaluate gpr
@@ -287,18 +271,5 @@ class ETFLGOUProblem(AbstractOUProblem):
                         raise ValueError("All UO levels should be positive")
                     else:
                         gr_constraints.update(
-                            self.reaction_constraints(rxn_id, lv))
+                            self.reaction_constraints(rxn_id, lv, reference))
         return gr_constraints
-
-    def solution_to_constraints(self, candidate):
-        """Converts a solution, dictionary of modifications, into model constraints.
-
-        :param candidate: The solution
-        :type candidate: dict
-        :return: Dictionary of constraints
-        :rtype: dict
-        """
-        if self._only_gpr:
-            return self._gpr_solution_to_constraints(candidate)
-        else:
-            return self._trans_solution_to_constraints(candidate)

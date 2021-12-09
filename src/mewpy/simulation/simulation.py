@@ -45,7 +45,7 @@ class ModelContainer(ABC):
     def medium(self):
         raise NotImplementedError
 
-    def get_drains(self):
+    def get_exchange_reactions(self):
         return NotImplementedError
 
     def get_gpr(self, reaction_id):
@@ -165,10 +165,22 @@ class SimulationResult(object):
                 f"{self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}")
 
     def find(self, pattern=None, sort=False):
+        """Returns a dataframe of reactions and their fluxes matching a pattern or a list of patterns.
+
+        :param pattern: a string or a list of strings. defaults to None
+        :param sort: If the dataframe is to be sorted by flux rates. Defaults to False
+        :type sort: bool, optional
+        :return: returns a dataframe.
+        :rtype: pandas.DataFrame
+        """
         values = [(key, value) for key, value in self.fluxes.items()]
         if pattern:
             import re
-            re_expr = re.compile(pattern)
+            if isinstance(pattern, list):
+                patt = '|'.join(pattern)
+                re_expr = re.compile(patt)
+            else:
+                re_expr = re.compile(pattern)
             values = [x for x in values if re_expr.search(x[0]) is not None]
         if sort:
             values.sort(key=lambda x: x[1])
@@ -227,3 +239,23 @@ class SimulationResult(object):
                 right = right + " " + biomassId
 
         return left + " --> " + right
+
+    def get_metabolites_turnover(self):
+        """ Calculate metabolite turnover.
+
+        Arguments:
+            model: REFRAMED/Cobrapy model or Simulator that generated the solution
+
+        Returns:
+            dict: metabolite turnover rates
+        """
+        from . import get_simulator
+        sim = get_simulator(self.model)
+
+        if not self.values:
+            return None
+
+        m_r_table = sim.metabolite_reaction_lookup()
+        t = {m_id: 0.5*sum([abs(coeff * self.fluxes[r_id]) for r_id, coeff in neighbours.items()])
+             for m_id, neighbours in m_r_table.items()}
+        return t

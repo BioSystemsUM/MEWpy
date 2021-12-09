@@ -10,7 +10,7 @@ from .parsing import tokenize
 from .symbolic import _walk, NoneAtom, Symbolic
 
 if TYPE_CHECKING:
-    from mewpy.variables import Gene, Metabolite, Reaction, Regulator
+    from mewpy.mew.variables import Gene, Metabolite, Reaction, Regulator
 
 
 # TODO: methods stubs and type hinting
@@ -19,7 +19,6 @@ class Expression:
     def __init__(self,
                  symbolic: Symbolic = None,
                  variables: Dict[str, Union['Gene', 'Metabolite', 'Reaction', 'Regulator']] = None):
-
         """
         Association between a symbolic mathematical expression and variables.
 

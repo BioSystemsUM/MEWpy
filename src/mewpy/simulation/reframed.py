@@ -41,20 +41,45 @@ class CBModelContainer(ModelContainer):
         self.model = model
 
     @property
+    def id(self):
+        return self.model.id
+
+    @property
     def reactions(self):
         return list(self.model.reactions.keys())
+
+    def get_reaction(self, r_id):
+        rxn = self.model.reactions[r_id]
+        res = {'id': r_id, 'name': rxn.name, 'lb': rxn.lb, 'ub': rxn.ub, 'stoichiometry': rxn.stoichiometry}
+        res['gpr'] = str(rxn.gpr) if rxn.gpr is not None else None
+        return res
 
     @property
     def genes(self):
         return list(self.model.genes.keys())
 
+    def get_gene(self, g_id):
+        g = self.model.genes[g_id]
+        res = {'id': g_id, 'name': g.name}
+        return res
+
     @property
     def metabolites(self):
         return list(self.model.metabolites.keys())
 
+    def get_metabolite(self, m_id):
+        met = self.model.metabolites[m_id]
+        res = {'id': m_id, 'name': met.name, 'compartment': met.compartment, 'formula': met.metadata.get('FORMULA', '')}
+        return res
+
     @property
     def compartments(self):
         return self.model.compartments
+
+    def get_compartment(self, c_id):
+        c = self.model.compartments[c_id]
+        res = {'id': c_id, 'name': c.name, 'external': c.external}
+        return res
 
     def get_gpr(self, reaction_id):
         """Returns the gpr rule (str) for a given reaction ID.
@@ -71,7 +96,7 @@ class CBModelContainer(ModelContainer):
         else:
             return None
 
-    def get_drains(self):
+    def get_exchange_reactions(self):
         return self.model.get_exchange_reactions()
 
     def get_substrates(self, rxn_id):
@@ -101,7 +126,7 @@ class CBModelContainer(ModelContainer):
             elif reaction.get_products():
                 return reaction.ub
 
-        return {rxn: get_active_bound(rxn) for rxn in self.get_drains()
+        return {rxn: get_active_bound(rxn) for rxn in self.get_exchange_reactions()
                 if is_active(rxn)}
 
 
@@ -112,8 +137,6 @@ class Simulation(CBModelContainer, Simulator):
     :param model: An metabolic model instance.
 
     Optional:
-
-    :param objective: The model objective.
     :param dic envcond: Dictionary of environmental conditions.
     :param dic constraints: A dictionary of reaction constraints.
     :param solver: An instance of the LP solver.
@@ -122,7 +145,7 @@ class Simulation(CBModelContainer, Simulator):
     """
 
     # TODO: the parent init call is missing ... super() can resolve the mro of the simulation diamond inheritance
-    def __init__(self, model: CBModel, objective=None, envcond=None, constraints=None, solver=None, reference=None,
+    def __init__(self, model: CBModel, envcond=None, constraints=None, solver=None, reference=None,
                  reset_solver=ModelConstants.RESET_SOLVER):
 
         if not isinstance(model, CBModel):
@@ -253,14 +276,35 @@ class Simulation(CBModelContainer, Simulator):
         """
         self.model.update()
 
-    def add_reaction(self, reaction, replace=True):
+    def add_metabolite(self, id, formula=None, name=None, compartment=None):
+        """Adds a metabolite
+
+        :param id: [description]
+        :type id: [type]
+        :param formula: [description], defaults to None
+        :type formula: [type], optional
+        :param name: [description], defaults to None
+        :type name: [type], optional
+        :param compartment: [description], defaults to None
+        :type compartment: [type], optional
+        """
+        from reframed.core.model import Metabolite
+        meta = Metabolite(id, name=name, compartment=compartment)
+        meta.metadata['FORMULA'] = formula
+        self.model.add_metabolite(meta)
+
+    def add_reaction(self, rxn_id, stoichiometry, lb=ModelConstants.REACTION_LOWER_BOUND,
+                     ub=ModelConstants.REACTION_UPPER_BOUND, replace=True, **kwargs):
         """Adds a reaction to the model
 
         Args:
-            reaction: The reaction, a Reframed reaction, to be added.
+            rxn_id: The reaction identifier
+            stoichiometry: The reaction stoichiometry, a dictionary of species: coefficient
             replace (bool, optional): If the reaction should be replaced in case it is already defined.\
             Defaults to True.
         """
+        from reframed.core.cbmodel import CBReaction
+        reaction = CBReaction(rxn_id, stoichiometry=stoichiometry, lb=lb, ub=ub)
         self.model.add_reaction(reaction, replace=replace)
 
     def remove_reaction(self, r_id):
@@ -276,7 +320,7 @@ class Simulation(CBModelContainer, Simulator):
         :returns: The list of uptake reactions.
 
         """
-        drains = self.get_drains()
+        drains = self.get_exchange_reactions()
         reacs = [r for r in drains if self.model.reactions[r].reversible or
                  ((self.model.reactions[r].lb is None or self.model.reactions[r].lb < 0)
                   and len(self.model.reactions[r].get_substrates()) > 0) or
@@ -402,8 +446,18 @@ class Simulation(CBModelContainer, Simulator):
         else:
             lb, ub = self.model.reactions[reaction].lb, self.model.reactions[reaction].ub
 
-        return lb if lb > -np.inf else -999999, ub if ub < np.inf else 999999
+        return lb if lb > -np.inf else ModelConstants.REACTION_LOWER_BOUND,\
+            ub if ub < np.inf else ModelConstants.REACTION_UPPER_BOUND
 
+    def set_reaction_bounds(self, reaction,lb=None,ub=None):
+        """
+        Sets the bounds for a given reaction.
+        :param reaction: str, reaction ID
+        :param float lb: lower bound 
+        :param float ub: upper bound
+        """
+        self.model.set_flux_bounds(reaction,lb,ub)
+        
     def find_bounds(self):
         """
         Return the median upper and lower bound of the metabolic model.
@@ -415,10 +469,10 @@ class Simulation(CBModelContainer, Simulator):
         upper_bound = np.nanmedian(upper_bounds[upper_bounds != 0.0])
         if np.isnan(lower_bound):
             LOGGER.warning("Could not identify a median lower bound.")
-            lower_bound = -1000.0
+            lower_bound = ModelConstants.REACTION_LOWER_BOUND
         if np.isnan(upper_bound):
             LOGGER.warning("Could not identify a median upper bound.")
-            upper_bound = 1000.0
+            upper_bound = ModelConstants.REACTION_UPPER_BOUND
         return lower_bound, upper_bound
 
     def find_unconstrained_reactions(self):
@@ -563,10 +617,10 @@ class Simulation(CBModelContainer, Simulator):
 
 class GeckoSimulation(Simulation):
 
-    def __init__(self, model: GeckoModel, objective=None, envcond=None, constraints=None, solver=None, reference=None,
+    def __init__(self, model: GeckoModel, envcond=None, constraints=None, solver=None, reference=None,
                  reset_solver=ModelConstants.RESET_SOLVER, protein_prefix=None):
         super(GeckoSimulation, self).__init__(
-            model, objective, envcond, constraints, solver, reference, reset_solver)
+            model, envcond, constraints, solver, reference, reset_solver)
         self.protein_prefix = protein_prefix if protein_prefix else 'draw_prot_'
         self._essential_proteins = None
 
@@ -620,3 +674,10 @@ class GeckoSimulation(Simulation):
             return f[d.index(reaction_id)]
         else:
             return None
+
+    def getKcat(self,protein):
+       """ Returns a dictionary of reactions and respective Kcat for a specific enzyme·
+       """ 
+       m_r = self.metabolite_reaction_lookup()
+       r_d = m_r[protein]
+       return {k:v for k,v in r_d.items() if v<0}

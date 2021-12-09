@@ -1,7 +1,7 @@
 from typing import Union
 
 from mewpy.solvers.solver import Solver
-from mewpy.solution import ModelSolution
+from mewpy.mew.solution import ModelSolution
 from mewpy.model import Model, MetabolicModel, RegulatoryModel
 
 
@@ -13,7 +13,6 @@ class SimBool:
                  solver: Union[str, Solver, None] = None,
                  build: bool = True,
                  attach: bool = True):
-
         """
         Simulation of a Boolean network (SimBool) for a regulatory model.
 

@@ -1,12 +1,12 @@
 from typing import Union, TYPE_CHECKING, Type, Dict
 import sys
 
-from mewpy.algebra import Expression
-from mewpy.algebra import parse_expression
+from mewpy.mew.algebra import Expression
+from mewpy.mew.algebra import parse_expression
 
 if TYPE_CHECKING:
     from mewpy.model import Model, MetabolicModel, RegulatoryModel
-    from mewpy.variables import Variable, Gene, Interaction, Metabolite, Reaction, Regulator, Target
+    from mewpy.mew.variables import Variable, Gene, Interaction, Metabolite, Reaction, Regulator, Target
 
 sys.setrecursionlimit(50000)
 
@@ -192,7 +192,7 @@ class Serializer:
     @staticmethod
     def _build_children(obj, model):
 
-        from mewpy.variables import Variable
+        from mewpy.mew.variables import Variable
 
         children = {}
 
@@ -268,7 +268,7 @@ class Serializer:
     @classmethod
     def _model_container_deserializer(cls, obj, children):
 
-        from mewpy.variables import Variable
+        from mewpy.mew.variables import Variable
 
         container = {}
 
@@ -301,12 +301,12 @@ class Serializer:
         elif children is None:
 
             if children_types:
-                from mewpy.variables import Variable
+                from mewpy.mew.variables import Variable
                 return {Variable.from_types(children_types, identifier=variable): val
                         for variable, val in obj.items()}
 
             else:
-                from mewpy.variables import Metabolite
+                from mewpy.mew.variables import Metabolite
                 return {Metabolite(key): val for key, val in obj.items()}
 
         else:
@@ -391,7 +391,7 @@ class Serializer:
 
             symbolic = parse_expression(obj)
 
-            from mewpy.variables import Variable
+            from mewpy.mew.variables import Variable
 
             variables = {symbol.name: Variable.from_types(children_types, identifier=symbol.name)
                          for symbol in symbolic.atoms(symbols_only=True)}
@@ -418,7 +418,7 @@ class Serializer:
 
         if children is None:
 
-            from mewpy.variables import Variable
+            from mewpy.mew.variables import Variable
             return {key: Variable.from_types(children_types, identifier=key) for key in obj}
 
         else:
@@ -429,7 +429,7 @@ class Serializer:
 
         if children is None:
 
-            from mewpy.variables import Variable
+            from mewpy.mew.variables import Variable
             return Variable.from_types(children_types, identifier=obj)
 
         else:
@@ -443,7 +443,7 @@ class Serializer:
         # for further detail: https://docs.python.org/3/library/pickle.html#object.__reduce__
 
         from mewpy.model import Model, build_model
-        from mewpy.variables import Variable, build_variable
+        from mewpy.mew.variables import Variable, build_variable
 
         if isinstance(self, Model):
             return build_model, (tuple(self.types), {'identifier': self.id}), self._dict_to_pickle()

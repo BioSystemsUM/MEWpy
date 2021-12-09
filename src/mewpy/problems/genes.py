@@ -1,7 +1,7 @@
 import logging
 from .problem import AbstractKOProblem, AbstractOUProblem
 from ..util.parsing import GeneEvaluator, build_tree, Boolean
-
+from ..simulation import SStatus
 logger = logging.getLogger(__name__)
 
 
@@ -71,6 +71,7 @@ class GOUProblem(AbstractOUProblem):
     :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
     :param tuple operators: (and, or) operations. Default (MIN, MAX).
     :param list levels: Over/under expression levels (Default EAConstants.LEVELS).
+    :param boolean twostep: If deletions should be applied before identifiying reference flux values.
 
     Note:  Operators that can not be pickled may be defined by a string e.g. 'lambda x,y: (x+y)/2'.
 
@@ -120,6 +121,20 @@ class GOUProblem(AbstractOUProblem):
         gr_constraints = dict()
         genes = candidate
 
+        # Computes reference fluxes based on deletions
+        reference = self.reference
+        if self.twostep:
+            try:
+                deletions = [gene for gene, lv in candidate.items() if lv == 0]
+                active_genes = set(self.simulator.genes) - set(deletions)
+                active_reactions = self.simulator.evaluate_gprs(active_genes)
+                inactive_reactions = set(self.simulator.reactions) - set(active_reactions)
+                gr_constraints = {rxn: 0 for rxn in inactive_reactions}
+                sr = self.simulator.simulate(constraints=gr_constraints, method='pFBA')
+                if sr.status in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
+                    reference = sr.fluxes
+            except Exception as e:
+                print(e)
         # operators check
         self.__op()
         # evaluate gpr
@@ -144,6 +159,6 @@ class GOUProblem(AbstractOUProblem):
                     raise ValueError("All UO levels should be positive")
                 else:
                     gr_constraints.update(
-                        self.reaction_constraints(rxn_id, lv))
+                        self.reaction_constraints(rxn_id, lv, reference))
 
         return gr_constraints

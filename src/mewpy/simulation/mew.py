@@ -6,10 +6,10 @@ import numpy as np
 from . import SimulationMethod, SStatus
 from .simulation import Simulator, SimulationResult, ModelContainer
 from mewpy.model import Model, MetabolicModel, RegulatoryModel
-from mewpy.variables import Reaction
+from mewpy.mew.variables import Reaction
 from mewpy.util.constants import ModelConstants
 from mewpy.util.utilities import Dispatcher
-from mewpy.analysis import FBA, pFBA, fva
+from mewpy.mew.analysis import FBA, pFBA, fva
 from mewpy.solvers.solution import Solution, Status
 from tqdm import tqdm
 
@@ -84,7 +84,7 @@ class MewModelContainer(ModelContainer):
 
         return {}
 
-    def get_drains(self):
+    def get_exchange_reactions(self):
 
         if self.model.is_metabolic():
             return list(self.model.exchanges.keys())
@@ -170,7 +170,6 @@ class Simulation(MewModelContainer, Simulator):
 
     def __init__(self,
                  model: Union[Model, MetabolicModel, RegulatoryModel],
-                 objective: str = None,
                  envcond: Dict[str, Tuple[Union[int, float], Union[int, float]]] = None,
                  constraints: Dict[str, Tuple[Union[int, float], Union[int, float]]] = None,
                  reference: Dict[str, Union[int, float]] = None,
@@ -188,7 +187,6 @@ class Simulation(MewModelContainer, Simulator):
 
         Optional:
 
-        :param objective: the model objective
         :param envcond: a dictionary of additional environmental conditions
         :param constraints: a dictionary of additional constraints
         :param reference: A dictionary of the wild type flux values
@@ -641,13 +639,11 @@ class Simulation(MewModelContainer, Simulator):
                  reference: Dict[str, Union[int, float]] = None,
                  scalefactor: float = None,
                  solver: Union['Solver', 'CplexSolver', 'GurobiSolver', 'OptLangSolver'] = None) -> SimulationResult:
-        """
-
+        """ 
         Simulates a phenotype for a given objective and set of constraints using the specified method.
         Reference wild-type conditions are also accepted
-
-        :param objective: The simulation objective. If none, the model objective is considered.
-        :param method: The SimulationMethod (FBA, pFBA, lMOMA, etc ...).
+ 
+        :param ob jective:  The simulation objec t iv:param method: The SimulationMethod (FBA, pFBA, lMOMA, etc ...).
         See available methods at mewpy.simulation.SimulationMethod
         :param maximize: The optimization direction
         :param constraints: A dictionary of constraints to be applied to the model

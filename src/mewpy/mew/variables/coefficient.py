@@ -2,8 +2,8 @@ from typing import Union, List, Tuple, TYPE_CHECKING, Set
 
 from mewpy.util.history import recorder
 from mewpy.util.constants import ModelConstants
-from mewpy.algebra import Symbolic
-from mewpy.lp import Notification
+from mewpy.mew.algebra import Symbolic
+from mewpy.mew.lp import Notification
 
 if TYPE_CHECKING:
     from .variable import Variable

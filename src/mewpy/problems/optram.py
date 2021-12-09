@@ -2,7 +2,7 @@ import math
 from collections import OrderedDict
 import numpy as np
 import pandas as pd
-from ..problems.problem import AbstractOUProblem
+from .problem import AbstractOUProblem
 from ..util.constants import EAConstants
 from ..util.parsing import Boolean, GeneEvaluator, build_tree
 
@@ -198,5 +198,5 @@ class OptRamProblem(AbstractOUProblem):
                     continue
                 else:
                     gr_constraints.update(
-                        self.reaction_constraints(rxn_id, lv))
+                        self.reaction_constraints(rxn_id, lv, self.reference))
         return gr_constraints

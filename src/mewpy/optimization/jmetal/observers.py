@@ -70,7 +70,9 @@ class PrintObjectivesStatObserver():
         :param problem: The jMetalPy problem.
         :returns: A statistics dictionary.
         """
-
+        def minuszero(value):
+            return round(value, 6)
+        
         stats = {}
         first = solutions[0].objectives
         # number of objectives
@@ -88,8 +90,8 @@ class PrintObjectivesStatObserver():
             med_fit = numpy.median(f)
             avg_fit = numpy.mean(f)
             std_fit = numpy.std(f)
-            stats['obj_{}'.format(i)] = {'best': best_fit, 'worst': worst_fit,
-                                         'mean': avg_fit, 'median': med_fit, 'std': std_fit}
+            stats['obj_{}'.format(i)] = {'best': minuszero(best_fit), 'worst': minuszero(worst_fit),
+                                         'mean': minuszero(avg_fit), 'median': minuszero(med_fit), 'std': minuszero(std_fit)}
         return stats
 
     def stats_to_str(self, stats, evaluations, title=False):

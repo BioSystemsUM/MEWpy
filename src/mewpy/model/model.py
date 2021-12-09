@@ -2,13 +2,13 @@ from typing import Any, Union, Type, TYPE_CHECKING, List, Set, Dict
 
 from mewpy.util.history import HistoryManager, recorder
 from mewpy.util.serialization import serialize, Serializer
-from mewpy.lp import Notification
+from mewpy.mew.lp import Notification
 
 # Preventing circular dependencies that only happen due to type checking
 if TYPE_CHECKING:
     from mewpy.model import MetabolicModel, RegulatoryModel
-    from mewpy.variables import Gene, Interaction, Metabolite, Reaction, Regulator, Target
-    from mewpy.lp import LinearProblem
+    from mewpy.mew.variables import Gene, Interaction, Metabolite, Reaction, Regulator, Target
+    from mewpy.mew.lp import LinearProblem
 
 
 class MetaModel(type):

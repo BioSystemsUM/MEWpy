@@ -32,16 +32,38 @@ class CobraModelContainer(ModelContainer):
         self.model = model
 
     @property
+    def id(self):
+        return self.model.id
+
+    @property
     def reactions(self):
         return [rxn.id for rxn in self.model.reactions]
+
+    def get_reaction(self, r_id):
+        rxn = self.model.reactions.get_by_id(r_id)
+        stoichiometry = {met.id: val for met, val in rxn.metabolites.items()}
+        res = {'id': r_id, 'name': rxn.name, 'lb': rxn.lower_bound,
+               'ub': rxn.upper_bound, 'stoichiometry': stoichiometry}
+        res['gpr'] = rxn.gene_reaction_rule if rxn.gene_reaction_rule is not None else None
+        return res
 
     @property
     def genes(self):
         return [gene.id for gene in self.model.genes]
 
+    def get_gene(self, g_id):
+        g = self.model.genes.get_by_id(g_id)
+        res = {'id': g_id, 'name': g.name}
+        return res
+
     @property
     def metabolites(self):
         return [met.id for met in self.model.metabolites]
+
+    def get_metabolite(self, m_id):
+        met = self.model.metabolites.get_by_id(m_id)
+        res = {'id': m_id, 'name': met.name, 'compartment': met.compartment, 'formula': met.formula}
+        return res
 
     @property
     def medium(self):
@@ -49,7 +71,14 @@ class CobraModelContainer(ModelContainer):
 
     @property
     def compartments(self):
-        return self.model._compartments
+        return self.model.compartments
+
+    def get_compartment(self, c_id):
+        c = self.model.compartments[c_id]
+        from cobra.medium import find_external_compartment
+        e = find_external_compartment(self.model)
+        res = {'id': c_id, 'name': c, 'external': (e == c_id)}
+        return res
 
     def get_gpr(self, reaction_id):
         """Returns the gpr rule (str) for a given reaction ID.
@@ -74,7 +103,7 @@ class CobraModelContainer(ModelContainer):
         reaction = self.model.reactions.get_by_id(rxn_id)
         return {k.id: v for k, v in reaction.metabolites.items() if v > 0}
 
-    def get_drains(self):
+    def get_exchange_reactions(self):
         rxns = [r.id for r in self.model.exchanges]
         return rxns
 
@@ -87,7 +116,6 @@ class Simulation(CobraModelContainer, Simulator):
 
     Optional:
 
-    :param objective: The model objective.
     :param dic envcond: Dictionary of environmental conditions.
     :param dic constraints: A dictionary of reaction constraints.
     :param solver: An instance of the LP solver.
@@ -95,7 +123,7 @@ class Simulation(CobraModelContainer, Simulator):
 
     """
 
-    def __init__(self, model: Model, objective=None, envcond=None, constraints=None, solver=None, reference=None,
+    def __init__(self, model: Model, envcond=None, constraints=None, solver=None, reference=None,
                  reset_solver=ModelConstants.RESET_SOLVER):
 
         if not isinstance(model, Model):
@@ -103,8 +131,6 @@ class Simulation(CobraModelContainer, Simulator):
 
         self.model = model
         self.model.solver = get_default_solver()
-        if objective:
-            self.objective = objective
         self.environmental_conditions = OrderedDict() if envcond is None else envcond
         self.constraints = OrderedDict() if constraints is None else constraints
         self.solver = solver
@@ -224,11 +250,43 @@ class Simulation(CobraModelContainer, Simulator):
                 active_reactions.append(r_id)
         return active_reactions
 
+    def add_metabolite(self, id, formula=None, name=None, compartment=None):
+        from cobra import Metabolite
+        meta = Metabolite(id, formula=formula, name=name, compartment=compartment)
+        self.model.add_metabolites([meta])
+
+    def add_reaction(self, rxn_id, stoichiometry, lb=ModelConstants.REACTION_LOWER_BOUND,
+                     ub=ModelConstants.REACTION_UPPER_BOUND, replace=True, *kwargs):
+        """Adds a reaction to the model
+
+        Args:
+            rxn_id: The reaction identifier
+            stoichiometry: The reaction stoichiometry, a dictionary of species: coefficient
+            lb: Reaction flux lower bound, defaults to ModelConstants.REACTION_LOWER_BOUND
+            ub: Reaction flux upper bound, defaults to ModelConstants.REACTION_UPPER_BOUND
+            replace(bool, optional): If the reaction should be replaced in case it is already defined.\
+                Defaults to True.
+        """
+        from cobra import Reaction
+        reaction = Reaction(rxn_id)
+        reaction.add_metabolites(stoichiometry)
+        reaction.lower_bound = lb
+        reaction.upper_bound = ub
+        self.model.add_reaction(reaction)
+
+    def remove_reaction(self, r_id):
+        """Removes a reaction from the model.
+
+        Args:
+            r_id (str): The reaction identifier.
+        """
+        self.model.remove_reactions(r_id)
+
     def get_uptake_reactions(self):
         """
         :returns: The list of uptake reactions.
         """
-        drains = self.get_drains()
+        drains = self.get_exchange_reactions()
         rxns = [r for r in drains if self.model.reactions.get_by_id(r).reversibility
                 or ((self.model.reactions.get_by_id(r).lower_bound is None
                      or self.model.reactions.get_by_id(r).lower_bound < 0)
@@ -334,7 +392,18 @@ class Simulation(CobraModelContainer, Simulator):
             lb, ub = self.environmental_conditions[reaction]
         else:
             lb, ub = self.model.reactions.get_by_id(reaction).bounds
-        return lb if lb > -np.inf else -999999, ub if ub < np.inf else 999999
+        return lb if lb > -np.inf else ModelConstants.REACTION_LOWER_BOUND,\
+            ub if ub < np.inf else ModelConstants.REACTION_UPPER_BOUND
+
+    def set_reaction_bounds(self, reaction, lb=None, ub=None):
+        """
+        Sets the bounds for a given reaction.
+        :param reaction: str, reaction ID
+        :param float lb: lower bound 
+        :param float ub: upper bound
+        """
+        rxn = self.model.reactions.get_by_id(r)
+        rxn.bounds = (lb, ub)
 
     def find_bounds(self):
         """
@@ -347,10 +416,10 @@ class Simulation(CobraModelContainer, Simulator):
         upper_bound = np.nanmedian(upper_bounds[upper_bounds != 0.0])
         if np.isnan(lower_bound):
             LOGGER.warning("Could not identify a median lower bound.")
-            lower_bound = -1000.0
+            lower_bound = ModelConstants.REACTION_LOWER_BOUND
         if np.isnan(upper_bound):
             LOGGER.warning("Could not identify a median upper bound.")
-            upper_bound = 1000.0
+            upper_bound = ModelConstants.REACTION_UPPER_BOUND
         return lower_bound, upper_bound
 
     def find_unconstrained_reactions(self):
@@ -498,7 +567,7 @@ class GeckoSimulation(Simulation):
     Simulator for geckopy.gecko.GeckoModel
     """
 
-    def __init__(self, model, objective=None, envcond=None, constraints=None, solver=None, reference=None,
+    def __init__(self, model, envcond=None, constraints=None, solver=None, reference=None,
                  reset_solver=ModelConstants.RESET_SOLVER, protein_prefix=None):
         try:
             from geckopy.gecko import GeckoModel
@@ -508,7 +577,7 @@ class GeckoSimulation(Simulation):
             raise RuntimeError("The geckopy package is not installed.")
 
         super(GeckoSimulation, self).__init__(
-            model, objective, envcond, constraints, solver, reference, reset_solver)
+            model, envcond, constraints, solver, reference, reset_solver)
         self.protein_prefix = protein_prefix if protein_prefix else 'draw_prot_'
         self._essential_proteins = None
         self._protein_rev_reactions = None
@@ -595,3 +664,10 @@ class GeckoSimulation(Simulation):
                                 pairs[k] = [(la[0], la[1])]
             self._protein_rev_reactions = pairs
         return self._protein_rev_reactions
+
+    def getKcat(self, protein):
+        """ Returns a dictionary of reactions and respective Kcat for a specific enzyme·
+        """
+        m_r = self.metabolite_reaction_lookup()
+        r_d = m_r[protein]
+        return {k: v for k, v in r_d.items() if v < 0}

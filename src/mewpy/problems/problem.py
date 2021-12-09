@@ -6,6 +6,7 @@ import numpy as np
 from ..optimization.ea import Solution, filter_duplicates
 from ..simulation import get_simulator
 from ..util.constants import EAConstants, ModelConstants
+from ..util.process import get_fevaluator
 
 
 class Strategy(Enum):
@@ -297,19 +298,19 @@ class AbstractProblem(ABC):
                 res.append(simplification)
             return res
 
-    def simplify_population(self, population):
+    def simplify_population(self, population, n_cpu=1):
         """Simplifies a population of solutions
 
         Args:
             population (list): List of mewpy.optimization.ea.Solution
-
+            n_cpu (int): Number of CPUs.
         Returns:
             list: Simplified population
         """
         pop = []
         for solution in population:
-            res = self.simplify(solution)
-            pop.extend(res)
+                res = self.simplify(solution)
+                pop.extend(res)
         return filter_duplicates(pop)
 
 
@@ -388,13 +389,14 @@ class AbstractOUProblem(AbstractProblem):
 
         :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
         :param list levels: Over/under expression levels (Default EAConstants.LEVELS).
-
+        :param boolean twostep: If deletions should be applied before identifiying reference flux values.
         """
         super(AbstractOUProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
         self.strategy = Strategy.OU
         self.levels = kwargs.get('levels', EAConstants.LEVELS)
         self._reference = kwargs.get('reference', None)
+        self.twostep = kwargs.get('twostep', True)
 
     def decode(self, candidate):
         """The decoder function for the problem. Needs to be implemented by extending classes."""
@@ -490,7 +492,7 @@ class AbstractOUProblem(AbstractProblem):
             elif wt < 0:
                 return (level * wt, 0)
 
-    def reaction_constraints(self, rxn, lv):
+    def reaction_constraints(self, rxn, lv, reference):
         """
         Converts a (reaction, level) pair into a constraint
         If a reaction is reversible, the direction with no or less wild type flux
@@ -501,7 +503,7 @@ class AbstractOUProblem(AbstractProblem):
         :returns: A dictionary of reaction constraints.
         """
         constraints = {}
-        fluxe_wt = self.reference[rxn]
+        fluxe_wt = reference[rxn]
         rev_rxn = self.simulator.reverse_reaction(rxn)
         if lv == 0:
             # KO constraint
@@ -515,7 +517,7 @@ class AbstractOUProblem(AbstractProblem):
         else:
             # there's a reverse reaction...
             # one of the two reactions needs to be KO, the one with no flux in the wt.
-            rev_fluxe_wt = self.reference[rev_rxn]
+            rev_fluxe_wt = reference[rev_rxn]
             if abs(fluxe_wt) >= abs(rev_fluxe_wt):
                 ko_rxn, ou_rxn, fwt = rev_rxn, rxn, fluxe_wt
             else:

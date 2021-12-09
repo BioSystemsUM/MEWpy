@@ -2,6 +2,7 @@ import warnings
 
 from .problem import AbstractKOProblem, AbstractOUProblem
 from ..util.constants import ModelConstants
+from ..simulation import SStatus
 
 
 class GeckoKOProblem(AbstractKOProblem):
@@ -70,6 +71,16 @@ class GeckoKOProblem(AbstractKOProblem):
                     f"Index out of range: {idx} from {len(self.target_list[idx])}")
         return decoded_candidate
 
+    def encode(self, candidate):
+        """
+        Translates a candidate solution in problem specific representation to
+        an iterable of ids, or (ids, folds).
+
+        :param candidate: The candidate representation.
+        """
+        p_size = len(self.prot_prefix)
+        return set([self.target_list.index(k[p_size:]) for k in candidate])
+
 
 class GeckoOUProblem(AbstractOUProblem):
     """
@@ -90,7 +101,7 @@ class GeckoOUProblem(AbstractOUProblem):
     :param float scalefactor: a scaling factor to be used in the LP formulation.
     :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
     :param str prot_prefix: the protein draw reaction prefix. Default `draw_prot_`.
-
+    :param boolean twostep: If deletions should be applied before identifiying reference flux values.
 
     Note:
     Target as well as non target proteins are defined with their prot id, ex `P0351`, and with the associated reaction
@@ -134,6 +145,19 @@ class GeckoOUProblem(AbstractOUProblem):
                     f"Index out of range: {idx} from {len(self.target_list[idx])}")
         return decoded_candidate
 
+    def encode(self, candidate):
+        """
+        Translates a candidate solution in problem specific representation to
+        an iterable of ids, or (ids, folds).
+
+        :param iterable candidate: The candidate representation.
+        :returns: a list of index tupple (modification_target_index,level_index). The indexes are
+                  problem dependent.
+        """
+        p_size = len(self.prot_prefix)
+        return set([(self.target_list.index(k[p_size:]), self.levels.index(lv))
+                    for k, lv in candidate.items()])
+
     def solution_to_constraints(self, candidate):
         """
         Converts a candidate, a dict {protein:lv}, into a dictionary of constraints
@@ -144,12 +168,21 @@ class GeckoOUProblem(AbstractOUProblem):
         :returns: A dictionary of metabolic constraints.
         """
         constraints = dict()
+        reference = self.reference
+        if self.twostep:
+            try:
+                deletions = {rxn: 0 for rxn, lv in candidate.items() if lv == 0}
+                sr = self.simulator.simulate(constraints=deletions, method='pFBA')
+                if sr.status in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
+                    reference = sr.fluxes
+            except Exception as e:
+                print(e)
 
         if self.prot_rev_reactions is None:
             self.prot_rev_reactions = self.simulator.protein_rev_reactions
 
         for rxn, lv in candidate.items():
-            fluxe_wt = self.reference[rxn]
+            fluxe_wt = reference[rxn]
             prot = rxn[len(self.prot_prefix):]
             if lv < 0:
                 raise ValueError("All UO levels should be positive")
@@ -170,11 +203,11 @@ class GeckoOUProblem(AbstractOUProblem):
                 if prot in self.prot_rev_reactions.keys():
                     reactions = self.prot_rev_reactions[prot]
                     for r, r_rev in reactions:
-                        if self.reference[r] == 0 and self.reference[r_rev] == 0:
+                        if reference[r] == 0 and reference[r_rev] == 0:
                             continue
-                        elif self.reference[r] > 0 and self.reference[r_rev] == 0:
+                        elif reference[r] > 0 and reference[r_rev] == 0:
                             constraints[r_rev] = 0.0
-                        elif self.reference[r] == 0 and self.reference[r_rev] > 0:
+                        elif reference[r] == 0 and reference[r_rev] > 0:
                             constraints[r] = 0.0
                         else:
                             warnings.warn(

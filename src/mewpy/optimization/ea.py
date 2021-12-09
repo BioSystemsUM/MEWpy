@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import signal
 import sys
 from ..util.constants import EAConstants
+from ..util.process import cpu_count
 
 
 class SolutionInterface(ABC):
@@ -126,7 +127,8 @@ class AbstractEA(ABC):
         pop = self._convertPopulation(final_pop)
         pop = filter_duplicates(pop)
         if simplify:
-            pop = self.problem.simplify_population(pop)
+            n_cpu = cpu_count() if self.mp else 1
+            pop = self.problem.simplify_population(pop, n_cpu)
         self.final_population = pop
         return self.final_population
 

@@ -1,9 +1,9 @@
 from typing import Union
 
 from mewpy.solvers.solver import Solver
-from mewpy.lp import Notification, MetabolicLinearizer, InteractionLinearizer, GPRLinearizer
+from mewpy.mew.lp import Notification, MetabolicLinearizer, InteractionLinearizer, GPRLinearizer
 from mewpy.model import Model, MetabolicModel, RegulatoryModel
-from mewpy.solution import ModelSolution
+from mewpy.mew.solution import ModelSolution
 
 
 # TODO: type hinting and documentation
@@ -14,7 +14,6 @@ class SRFBA(MetabolicLinearizer, GPRLinearizer, InteractionLinearizer):
                  solver: Union[str, Solver, None] = None,
                  build: bool = True,
                  attach: bool = False):
-
         """
         Steady-state Regulatory Flux Balance Analysis (SRFBA) of a metabolic-regulatory model.
         Implementation of a steady-state version of SRFBA for a integrated metabolic-regulatory model.

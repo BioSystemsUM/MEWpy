@@ -1,5 +1,6 @@
 import numpy as np
 from .problem import AbstractKOProblem, AbstractOUProblem
+from ..simulation import SStatus
 
 
 class RKOProblem(AbstractKOProblem):
@@ -33,7 +34,7 @@ class RKOProblem(AbstractKOProblem):
         reactions = set(self.simulator.reactions)
         print("Computing essential reactions")
         essential = set(self.simulator.essential_reactions())
-        drains = set(self.simulator.get_drains())
+        drains = set(self.simulator.get_exchange_reactions())
         transport = set(self.simulator.get_transport_reactions())
         target = reactions - essential - drains - transport
         if self.non_target is not None:
@@ -60,7 +61,7 @@ class ROUProblem(AbstractOUProblem):
     :param float scalefactor: A scaling factor to be used in the LP formulation.
     :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
     :param list levels: Over/under expression levels (Default EAConstants.LEVELS)
-
+    :param boolean twostep: If deletions should be applied before identifiying reference flux values.
     """
 
     def __init__(self, model, fevaluation=None, **kwargs):
@@ -70,7 +71,7 @@ class ROUProblem(AbstractOUProblem):
     def _build_target_list(self):
         print("Building modification target list.")
         reactions = set(self.simulator.reactions)
-        # drains = set(self.simulator.get_drains())
+        # drains = set(self.simulator.get_exchange_reactions())
         target = reactions  # - drains
         if self.non_target is not None:
             target = target - set(self.non_target)
@@ -83,7 +84,17 @@ class ROUProblem(AbstractOUProblem):
         Suposes that reverseble reactions have been treated and bounded with positive flux values
         """
         constraints = dict()
-        # print(type(candidate), candidate)
+        # computes reference fluxes based on deletions
+        reference = self.reference
+        if self.twostep:
+            try:
+                deletions = {rxn: 0 for rxn, lv in candidate.items() if lv == 0}
+                sr = self.simulator.simulate(constraints=deletions, method='pFBA')
+                if sr.status in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
+                    reference = sr.fluxes
+            except Exception as e:
+                print(e)
+
         for rxn, lv in candidate.items():
             rev_rxn = self.simulator.reverse_reaction(rxn)
             # skips if the reverse reaction was already processed
@@ -92,7 +103,7 @@ class ROUProblem(AbstractOUProblem):
             elif lv < 0:
                 raise ValueError("All UO levels should be positive")
             else:
-                constraints.update(self.reaction_constraints(rxn, lv))
+                constraints.update(self.reaction_constraints(rxn, lv, reference))
         return constraints
 
 
