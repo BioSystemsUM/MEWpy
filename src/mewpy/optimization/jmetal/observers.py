@@ -16,13 +16,16 @@ class VisualizerObserver():
                  reference_front: List[S] = None,
                  reference_point: list = None,
                  display_frequency: float = 1.0,
-                 non_dominated=False, axis_labels=None) -> None:
+                 non_dominated=False,
+                 axis_labels=None,
+                 nevaluations=None) -> None:
         self.figure = None
         self.display_frequency = display_frequency
         self.reference_point = reference_point
         self.reference_front = reference_front
         self.non_dominated = non_dominated
         self.axis_labels = axis_labels
+        self.nevaluations = nevaluations
 
     def update(self, *args, **kwargs):
         evaluations = kwargs['EVALUATIONS']
@@ -49,7 +52,8 @@ class VisualizerObserver():
                 self.figure = StreamingPlot(axis_labels=self.axis_labels)
                 self.figure.plot(nds, dominated=ds)
             else:
-                self.figure.update(nds, dominated=ds)
+                text = str(evaluations)
+                self.figure.update(nds, dominated=ds, text=text)
 
             self.figure.ax.set_title(
                 'Eval: {}'.format(evaluations), fontsize=13)
@@ -72,7 +76,7 @@ class PrintObjectivesStatObserver():
         """
         def minuszero(value):
             return round(value, 6)
-        
+
         stats = {}
         first = solutions[0].objectives
         # number of objectives

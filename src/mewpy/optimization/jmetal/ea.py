@@ -121,7 +121,8 @@ class EA(AbstractEA):
         if self.visualizer:
             axis_labels = [f.short_str() for f in self.problem.fevaluation]
             algorithm.observable.register(observer=VisualizerObserver(axis_labels=axis_labels))
-        algorithm.observable.register(observer=PrintObjectivesStatObserver())
+        else:
+            algorithm.observable.register(observer=PrintObjectivesStatObserver())
         self.algorithm = algorithm
         algorithm.run()
         result = algorithm.solutions
