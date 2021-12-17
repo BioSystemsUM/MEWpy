@@ -560,11 +560,11 @@ class MolecularWeight(PhenotypeEvaluationFunction):
         self.reactions = reactions
         self.method = kwargs.get('method', SimulationMethod.pFBA)
         # sum of molar masses of product compounds for the reactions
-        self.mw = None
+        self.__mw = None
 
     def compute_rxnmw(self, model):
         from ..util.constants import atomic_weights
-        self.mw = {}
+        self.__mw = {}
         simulator = get_simulator(model)
         for rx in self.reactions:
             p = simulator.get_products(rx)
@@ -574,7 +574,7 @@ class MolecularWeight(PhenotypeEvaluationFunction):
             for m, v in p.items():
                 elem = simulator.metabolite_elements(m)
                 rmw += abs(v) * sum([atomic_weights[e]*n for e, n in elem.items()])
-            self.mw[rx] = rmw
+            self.__mw[rx] = rmw
 
     def get_fitness(self, simul_results, candidate, **kwargs):
         try:
@@ -582,15 +582,15 @@ class MolecularWeight(PhenotypeEvaluationFunction):
         except Exception:
             sim = None
 
-        if not sim or sim.status not in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
+        if sim.status not in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
             return self.no_solution
 
-        if self.mw is None:
-            self.compute_rmw(sim.model)
+        if self.__mw is None:
+            self.compute_rxnmw(sim.model)
 
         fitness = 0
         for rx in self.reactions:
-            fitness += self.mw[rx] * sim.fluxes[rx]
+            fitness += self.__mw[rx] * abs(sim.fluxes[rx])
         return fitness * 0.001
 
     def required_simulations(self):
