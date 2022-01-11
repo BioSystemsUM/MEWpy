@@ -56,7 +56,13 @@ final_pop = ea.run()
 
 ```
 
+When the optimization is concluded, the final population is simplified by removing genetic modifications that do not impair the objectives.
+This step, which also includes the filtering of duplicated solutions, may be skipped:  
 
+```python
+final_pop = ea.run(simplify=False)
+
+```
 
 ## Gene Constraint Problems
 
@@ -116,7 +122,7 @@ envcond = {'r_1714_REV' : (-12.5,100000.0)}
 
 # Optimization objectives
 from mewpy.optimization.evaluation import  BPCY, WYIELD
-evaluator_1 = BPCY(BIOMASS_ID, PRODUCT_ID, method=SimulationMethod.lMOMA)
+evaluator_1 = BPCY(BIOMASS_ID, PRODUCT_ID, method="lMOMA")
 evaluator_2 = WYIELD(BIOMASS_ID, PRODUCT_ID)
 
 # build a new problem instance for enzymatic OU
@@ -150,7 +156,7 @@ MEWpy implements computational strain design optimization with regulatory constr
 
 
 ```python
-from mewpy.regulation.optram import OptRamProblem, load_optram
+from mewpy.problems.optram import OptRamProblem, load_optram
   
 # regulatory matrix Genes x TFs   
 matrix_file = 'regnet.csv'
@@ -173,10 +179,9 @@ model = read_sbml_model('yeast_7.6-optram.xml')
 
 
 # define the optimization objectives
-from mewpy.simulation import SimulationMethod
 from mewpy.optimization.evaluation import BPCY, WYIELD
 
-evaluator_1 = BPCY(BIOMASS_ID, PRODUCT_ID, method=SimulationMethod.lMOMA)
+evaluator_1 = BPCY(BIOMASS_ID, PRODUCT_ID, method="lMOMA")
 evaluator_2 = WYIELD(BIOMASS_ID, PRODUCT_ID)
 
 # environmental conditions
@@ -191,4 +196,3 @@ from mewpy.optimization import EA
 ea = EA(problem, max_generations=100, mp=True)
 final_pop = ea.run()
 ```
-
