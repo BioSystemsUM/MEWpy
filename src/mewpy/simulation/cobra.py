@@ -402,7 +402,7 @@ class Simulation(CobraModelContainer, Simulator):
         :param float lb: lower bound 
         :param float ub: upper bound
         """
-        rxn = self.model.reactions.get_by_id(r)
+        rxn = self.model.reactions.get_by_id(reaction)
         rxn.bounds = (lb, ub)
 
     def find_bounds(self):
