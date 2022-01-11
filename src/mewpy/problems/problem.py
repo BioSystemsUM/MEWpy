@@ -309,8 +309,11 @@ class AbstractProblem(ABC):
         """
         pop = []
         for solution in population:
+            try:
                 res = self.simplify(solution)
                 pop.extend(res)
+            except Exception:
+                pop.append(solution)
         return filter_duplicates(pop)
 
 
