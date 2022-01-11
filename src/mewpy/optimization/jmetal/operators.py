@@ -392,10 +392,14 @@ REP_INT = {
 def build_ko_operators(problem):
     crossover = UniformCrossoverKO(0.8, problem.candidate_max_size)
     mutators = []
-    mutators.append(GrowMutationKO(
-        1.0, max_size=problem.candidate_max_size))
-    mutators.append(ShrinkMutation(
-        1.0, min_size=problem.candidate_min_size))
+
+    # add shrink and growth mutation only if max size != min size
+    if problem.candidate_max_size != problem.candidate_min_size:
+        mutators.append(GrowMutationKO(
+            1.0, max_size=problem.candidate_max_size))
+        mutators.append(ShrinkMutation(
+            1.0, min_size=problem.candidate_min_size))
+
     mutators.append(SingleMutationKO(1.0))
     mutations = MutationContainer(0.3, mutators=mutators)
     return crossover, mutations
@@ -404,11 +408,23 @@ def build_ko_operators(problem):
 def build_ou_operators(problem):
     crossover = UniformCrossoverOU(0.5, problem.candidate_max_size)
     mutators = []
-    mutators.append(GrowMutationOU(
-        1.0, max_size=problem.candidate_max_size))
-    mutators.append(ShrinkMutation(
-        1.0, min_size=problem.candidate_min_size))
-    mutators.append(SingleMutationOU(1.0))
+    _max = problem.candidate_max_size
+    _min = problem.candidate_min_size
+    _t_size = problem.bounder.upper_bound[0]+1
+
+    # add shrink and growth mutation only if max size != min size
+    # and do not add if single ou if  max size == min size == targets size
+    if _max != _min:
+        mutators.append(GrowMutationOU(
+            1.0, max_size=problem.candidate_max_size))
+        mutators.append(ShrinkMutation(
+            1.0, min_size=problem.candidate_min_size))
+        mutators.append(SingleMutationOU(1.0))
+    elif _min != _t_size:
+        mutators.append(SingleMutationOU(1.0))
+    else:
+        pass
+
     mutators.append(SingleMutationOULevel(1.0))
     mutations = MutationContainer(0.3, mutators=mutators)
     return crossover, mutations
