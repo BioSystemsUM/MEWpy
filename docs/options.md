@@ -2,7 +2,7 @@
 
 MEWpy makes available a large set of options, some being globally defined in _mewpy.util.constants_.
 
-**Number of processors for parallel solutions evaluation.**
+**Number of processors for parallel solutions evaluation**
 
 By default, MEWpy uses half of the available treads to run parallel evaluations. However, a user may define the number of parallel threads by altering the `NUM_CPUS` constant in `mewpy.util.constants`:
 
@@ -31,7 +31,7 @@ problem = GOUProblem(model,levels=levels)
 
 
 
-**Number of modifications.**
+**Number of modifications**
 
 The minimum and the maximum number of modifications may be defined directly in the problem definition. For example to allow a maximum of 6 gene deletions:
 
@@ -47,11 +47,11 @@ from mewpy.problems import GKOProblem
 problem = GKOProblem(model,candidate_min_size=4,candidate_max_size=6)
 ```
 
-The default minimum and maximum number of modifications are 1 and 30 respectively. When both the minimum and the maximum number of modifications are equal, all solutions will have the same number of modifications.
+The default minimum and maximum number of modifications are 1 and 10 respectively. When both the minimum and the maximum number of modifications are equal, all solutions will have the same number of modifications.
 
 
 
-**Optimization algorithm.**
+**Optimization algorithm**
 
 MEWpy resorts to Inspyred and JMetalPy packages to evolve modification solutions. If both packages are installed, MEWpy uses Inpyred by default, running the Non-dominated Sorting Genetic Algorithm (NSGA-II) for multi-objective optimizations and a Genetic Algorithm (GA) for single objective problems. To alter the engine preference to JMetalPy the following must be added to your script:
 
@@ -105,3 +105,14 @@ ea = EA(problem,initial_population=init_pop)
 ```
 
 where each item is of the form`modification_target: fold_level`, where the folds levels are values in the list of allowed expression levels.
+
+
+
+**Simplification of solutions**
+
+By default, MEWpy simplifies the final set of solutions by removing genetic modifications that do not alter any of the of the optimization objectives from solutions. This behavior, which is time consuming, may be altered by setting the simplify flag to false when running the EA:
+
+```python
+ea.run(simplify=False)
+```
+

@@ -117,9 +117,22 @@ class Simulator(ModelContainer):
     def metabolite_reaction_lookup(self, force_recalculate=False):
         raise NotImplementedError
 
-    def find(self, pattern=None, sort=False, find_in='rxn'):
-        if find_in == 'met':
+    def find(self, pattern=None, sort=False, find_in='r'):
+        """A user friendly method to find metabolites, reactions or genes in the model.
+
+        :param pattern: The pattern which can be a regular expression, defaults to None in which case all entries are listed.
+        :type pattern: str, optional
+        :param sort: if the search results should be sorted, defaults to False
+        :type sort: bool, optional
+        :param find_in: The search set: 'r' for reactions, 'm' for metabolites, 'g' for genes, defaults to 'r'
+        :type find_in: str, optional
+        :return: the search results
+        :rtype: pandas dataframe
+        """
+        if find_in == 'm':
             values = self.metabolites
+        elif find_in == 'g':
+            values = self.genes
         else:
             values = self.reactions
         if pattern:
@@ -133,8 +146,10 @@ class Simulator(ModelContainer):
         if sort:
             values.sort()
         import pandas as pd
-        if find_in == 'met':
+        if find_in == 'm':
             data = [self.get_metabolite(x) for x in values]
+        if find_in == 'g':
+            data = [{'Gene': x} for x in values]
         else:
             data = [self.get_reaction(x) for x in values]
         df = pd.DataFrame(data)

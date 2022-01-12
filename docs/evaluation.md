@@ -107,6 +107,17 @@ fevaluation =  ModificationType()
 
 
 
+**Molecular weight**
+
+ Minimizes the sum of molecular weights of the products/substrates of a set of reactions (g/gDW/h).
+
+```python
+from mewpy.optimization.evaluation import MolecularWeight
+fevaluation =  MolecularWeight([r_id_1,r_id_2,...])
+```
+
+
+
 **Combining two or more objectives**
 
 The previously defined objective functions may be combined into a linear aggregated weighed sum and used in single objective optimization algorithms, such as Genetic Algorithm or Simulated Annealing. 
