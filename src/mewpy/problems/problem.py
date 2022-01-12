@@ -371,11 +371,14 @@ class AbstractKOProblem(AbstractProblem):
         """
         Generates a solution, a random int set with length in range min_solution_size to max_solution_size.
         """
-        solution = set()
-        solution_size = random.uniform(
-            self.candidate_min_size, self.candidate_max_size)
-        while len(solution) < solution_size:
-            solution.add(random.randint(0, len(self.target_list) - 1))
+
+        if self.candidate_min_size == self.candidate_max_size:
+            solution_size = self.candidate_min_size
+        else:
+            solution_size = random.randint(
+                self.candidate_min_size, self.candidate_max_size)
+
+        solution = set(random.sample(range(len(self.target_list)), solution_size))
         return solution
 
 
@@ -454,18 +457,16 @@ class AbstractOUProblem(AbstractProblem):
         :param dict args: A dictionary of additional parameters.
         :returns: A new solution.
         """
-        solution = set()
-        solution_size = random.uniform(
-            self.candidate_min_size, self.candidate_max_size)
-        idxs = []
-        while len(solution) < solution_size:
-            idx = random.randint(0, len(self.target_list) - 1)
-            lv = random.randint(0, len(self.levels) - 1)
-            # idx = self.target_list.index(random.choice(self.target_list))
-            # lv = self.levels.index(random.choice(self.levels))
-            if idx not in idxs:
-                solution.add((idx, lv))
-                idxs.append(idx)
+
+        if self.candidate_min_size == self.candidate_max_size:
+            solution_size = self.candidate_min_size
+        else:
+            solution_size = random.randint(
+                self.candidate_min_size, self.candidate_max_size)
+
+        keys = random.sample(range(len(self.target_list)), solution_size)
+        values = random.choices(range(len(self.levels)), k=solution_size)
+        solution = set(zip(keys, values))
         return solution
 
     @property
