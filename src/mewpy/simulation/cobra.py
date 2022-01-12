@@ -26,9 +26,7 @@ class CobraModelContainer(ModelContainer):
 
     """
 
-    def __init__(self, model: Model):
-        if not isinstance(model, Model):
-            raise ValueError("The model is not an instance of cobrapy Model")
+    def __init__(self, model: Model = None):
         self.model = model
 
     @property
@@ -134,8 +132,6 @@ class Simulation(CobraModelContainer, Simulator):
         self.environmental_conditions = OrderedDict() if envcond is None else envcond
         self.constraints = OrderedDict() if constraints is None else constraints
         self.solver = solver
-        self._essential_reactions = None
-        self._essential_genes = None
         self._gene_to_reaction = None
         self._reference = reference
         self.__status_mapping = {
@@ -172,83 +168,6 @@ class Simulation(CobraModelContainer, Simulator):
             raise ValueError(
                 'The objective must be a reaction identifier or a dictionary of \
                 reaction identifier with respective coeficients.')
-
-    @property
-    def reference(self):
-        """The reference wild type reaction flux values.
-
-        :returns: A dictionary of wild type reaction flux values.
-
-        """
-        if self._reference is None:
-            self._reference = self.simulate(
-                method=SimulationMethod.pFBA).fluxes
-        return self._reference
-
-    def essential_reactions(self, min_growth=0.01):
-        """Essential reactions are those when knocked out enable a biomass flux value above a minimal growth defined as
-        a percentage of the wild type growth.
-
-        :param float min_growth: Minimal percentage of the wild type growth value. Default 0.01 (1%).
-        :returns: A list of essential reactions.
-
-        """
-        if self._essential_reactions is not None:
-            return self._essential_reactions
-        wt_solution = self.simulate()
-        wt_growth = wt_solution.objective_value
-        reactions = self.reactions
-        self._essential_reactions = []
-        for rxn in tqdm(reactions):
-            res = self.simulate(constraints={rxn: 0})
-            if res:
-                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \
-                        or res.status == SStatus.INFEASIBLE:
-                    self._essential_reactions.append(rxn)
-        return self._essential_reactions
-
-    def essential_genes(self, min_growth=0.01):
-        """Essential genes are those when deleted enable a biomass flux value above a minimal growth defined as a
-        percentage of the wild type growth.
-
-        :param float min_growth: Minimal percentage of the wild type growth value. Default 0.01 (1%).
-        :returns: A list of essential genes.
-
-        """
-        if self._essential_genes is not None:
-            return self._essential_genes
-        self._essential_genes = []
-        wt_solution = self.simulate()
-        wt_growth = wt_solution.objective_value
-        genes = self.genes
-        for gene in tqdm(genes):
-            active_genes = set(self.genes) - {gene}
-            active_reactions = self.evaluate_gprs(active_genes)
-            inactive_reactions = set(self.reactions) - set(active_reactions)
-            gr_constraints = {rxn: 0 for rxn in inactive_reactions}
-            res = self.simulate(constraints=gr_constraints)
-            if res:
-                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \
-                        or res.status == SStatus.INFEASIBLE:
-                    self._essential_genes.append(gene)
-        return self._essential_genes
-
-    def evaluate_gprs(self, active_genes):
-        """Returns the list of active reactions for a given list of active genes.
-
-        :param list active_genes: List of genes identifiers.
-        :returns: A list of active reaction identifiers.
-
-        """
-        active_reactions = []
-        for r_id in self.reactions:
-            reaction = self.model.reactions.get_by_id(r_id)
-            if reaction.gene_reaction_rule:
-                if evaluate_expression_tree(str(reaction.gene_reaction_rule), active_genes):
-                    active_reactions.append(r_id)
-            else:
-                active_reactions.append(r_id)
-        return active_reactions
 
     def add_metabolite(self, id, formula=None, name=None, compartment=None):
         from cobra import Metabolite

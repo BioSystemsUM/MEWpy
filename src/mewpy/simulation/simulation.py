@@ -1,7 +1,8 @@
 from abc import abstractmethod, ABC
 from collections import OrderedDict
-
-from mewpy.simulation import SimulationMethod
+from ..util.parsing import evaluate_expression_tree
+from . import SimulationMethod, SStatus
+from tqdm import tqdm
 
 
 class ModelContainer(ABC):
@@ -139,6 +140,88 @@ class Simulator(ModelContainer):
         df = pd.DataFrame(data)
         return df
 
+    def essential_reactions(self, min_growth=0.01):
+        """Essential reactions are those when knocked out enable a biomass flux value above a minimal growth defined as
+        a percentage of the wild type growth.
+
+        :param float min_growth: Minimal percentage of the wild type growth value. Default 0.01 (1%).
+        :returns: A list of essential reactions.
+
+        """
+        essential = getattr(self, '_essential_reactions', None)
+        if essential is not None:
+            return essential
+        wt_solution = self.simulate()
+        wt_growth = wt_solution.objective_value
+        reactions = self.reactions
+        self._essential_reactions = []
+        print("Computing essential reactions:")
+        for rxn in tqdm(reactions):
+            res = self.simulate(constraints={rxn: 0})
+            if res:
+                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \
+                        or res.status == SStatus.INFEASIBLE:
+                    self._essential_reactions.append(rxn)
+        return self._essential_reactions
+
+    def evaluate_gprs(self, active_genes):
+        """Returns the list of active reactions for a given list of active genes.
+
+        :param list active_genes: List of genes identifiers.
+        :returns: A list of active reaction identifiers.
+
+        """
+        active_reactions = []
+        reactions = self.reactions
+        for r_id in reactions:
+            gpr = self.get_gpr(r_id)
+            if gpr:
+                if evaluate_expression_tree(str(gpr), active_genes):
+                    active_reactions.append(r_id)
+            else:
+                active_reactions.append(r_id)
+        return active_reactions
+
+    def essential_genes(self, min_growth=0.01):
+        """Essential genes are those when deleted enable a biomass flux value above a minimal growth defined as
+        a percentage of the wild type growth.
+
+        :param float min_growth: Minimal percentage of the wild type growth value. Default 0.01 (1%).
+        :returns: A list of essential genes.
+
+        """
+        essential = getattr(self, '_essential_genes', None)
+        if essential is not None:
+            return essential
+        self._essential_genes = []
+        wt_solution = self.simulate()
+        wt_growth = wt_solution.objective_value
+        genes = self.genes
+        print("Computing essential genes:")
+        for gene in tqdm(genes):
+            active_genes = set(self.genes) - {gene}
+            active_reactions = self.evaluate_gprs(active_genes)
+            inactive_reactions = set(self.reactions) - set(active_reactions)
+            gr_constraints = {rxn: 0 for rxn in inactive_reactions}
+            res = self.simulate(constraints=gr_constraints)
+            if res:
+                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \
+                        or res.status == SStatus.INFEASIBLE:
+                    self._essential_genes.append(gene)
+        return self._essential_genes
+
+    @property
+    def reference(self):
+        """The reference wild type reaction flux values.
+
+        :returns: A dictionary of wild type reaction flux values.
+
+        """
+        ref = getattr(self, '_reference', None)
+        if ref is not None:
+            return ref
+        self._reference = self.simulate(method="pFBA").fluxes
+        return self._reference
 
 class SimulationResult(object):
     """Class that represents simulation results and performs operations over them."""
