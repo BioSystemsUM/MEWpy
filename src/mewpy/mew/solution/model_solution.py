@@ -16,17 +16,6 @@ if TYPE_CHECKING:
 class PolymorphicSolution:
 
     @classmethod
-    def from_cobamp(cls: Type['ModelSolution'],
-                    method,
-                    solution,
-                    **kwargs):
-        return cls(method=method,
-                   x=solution.var_values(),
-                   objective_value=solution.objective_value(),
-                   status=solution.status(),
-                   **kwargs)
-
-    @classmethod
     def from_solver(cls: Type['ModelSolution'],
                     method,
                     solution,

@@ -12,17 +12,6 @@ from .linear_containers import ConstraintContainer, VariableContainer
 from .notification import Notification
 from .linear_utils import LinkedList, Node, integer_coefficients
 
-try:
-    # noinspection PyPackageRequirements
-    from cobamp.core.linear_systems import GenericLinearSystem
-    # noinspection PyPackageRequirements
-    from cobamp.core.optimization import LinearSystemOptimizer
-
-except ImportError:
-
-    GenericLinearSystem = None
-    LinearSystemOptimizer = None
-
 if TYPE_CHECKING:
     from mewpy.model import Model, MetabolicModel, RegulatoryModel
 
@@ -644,38 +633,6 @@ class LinearProblem(LinearProblemInterface):
     # -----------------------------------------------------------------------------
     # Operations/Manipulations - LinearProblem getters
     # -----------------------------------------------------------------------------
-    def get_linear_system(self) -> Tuple[GenericLinearSystem, LinearSystemOptimizer]:
-
-        if GenericLinearSystem is None or LinearSystemOptimizer is None:
-            raise RuntimeError('CoBAMP is not installed or was not found')
-
-        lb, ub = self.get_bounds(as_tuples=True)
-        b_lb, b_ub = self.get_bounds(b_bounds=True, as_tuples=True)
-
-        var_names = list(self._sub_cols.keys())
-        var_types = [types.value.lower() for var in self._variables.values() for types in var.variables_type]
-
-        linear_system = GenericLinearSystem(S=self.matrix,
-                                            lb=lb,
-                                            ub=ub,
-                                            b_lb=b_lb,
-                                            b_ub=b_ub,
-                                            var_names=var_names,
-                                            var_types=var_types)
-
-        linear_system.build_problem()
-        optimizer = LinearSystemOptimizer(linear_system, build=False)
-
-        if hasattr(self.model, 'objective'):
-
-            objective = zeros(self.shape[1], )
-
-            for k, v in self.model.objective.items():
-                objective[self.index(variable=k)] = v
-
-            linear_system.set_objective(objective, False)
-
-        return linear_system, optimizer
 
     def index(self, variable=None, constraint=None, as_list=False, as_int=False, default=None):
 
