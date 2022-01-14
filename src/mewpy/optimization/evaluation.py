@@ -4,7 +4,7 @@ from abc import ABCMeta, abstractmethod
 from functools import reduce
 import numpy as np
 from ..simulation import get_simulator, SimulationMethod, SStatus
-from ..util.constants import EAConstants
+from ..util.constants import EAConstants, ModelConstants
 
 
 class EvaluationFunction:
@@ -169,6 +169,7 @@ class WYIELD(PhenotypeEvaluationFunction):
         self.scale = kwargs.get('scale', False)
         self.method = SimulationMethod.FBA
         self.alpha = kwargs.get('alpha', 0.3)
+        self.obj_frac = kwargs.get('obj_frac', 0.99)
         if self.alpha > 1 or self.alpha < 0:
             warnings.warn(
                 "The value of the tradeoff parameter alpha should be in range 0 to 1. Setting default value.")
@@ -205,7 +206,7 @@ class WYIELD(PhenotypeEvaluationFunction):
             raise ValueError(
                 "Reaction ids are not present in the fluxes distribution.")
 
-        biomassFluxValue = ssFluxes[self.biomassId] * 0.999
+        biomassFluxValue = ssFluxes[self.biomassId] * self.obj_frac
 
         try:
             # computed only once
@@ -221,7 +222,7 @@ class WYIELD(PhenotypeEvaluationFunction):
             constraints = {}
             constraints.update(sim.simulation_constraints)
             # add biomass constraint
-            constraints[self.biomassId] = (biomassFluxValue, 100000.0)
+            constraints[self.biomassId] = (biomassFluxValue, ModelConstants.REACTION_UPPER_BOUND)
 
             # only need to simulate FVA max if alpha is larger than 0, otherwise it will always be zero
             if (self.alpha > 0):
@@ -370,6 +371,7 @@ class BPCY_FVA(PhenotypeEvaluationFunction):
         self.method = kwargs.get('method', SimulationMethod.pFBA)
         self.reference = kwargs.get('reference', None)
         self.worst_fitness = 0.0
+        self.obj_frac = kwargs.get('obj_frac', 0.99)
 
     def get_fitness(self, simul_results, candidate, **kwargs):
         """Evaluates a candidate.
@@ -406,8 +408,8 @@ class BPCY_FVA(PhenotypeEvaluationFunction):
         v_max = 1
         constraints = sim.simulation_constraints
         # add biomass constraint
-        biomassFluxValue = ssFluxes[self.biomassId] * 0.999
-        constraints[self.biomassId] = (biomassFluxValue, 100000.0)
+        biomassFluxValue = ssFluxes[self.biomassId] * self.obj_frac
+        constraints[self.biomassId] = (biomassFluxValue, ModelConstants.REACTION_UPPER_BOUND)
 
         fvaMaxResult = simulation.simulate(
             objective={self.productId: 1}, constraints=constraints)
@@ -554,33 +556,41 @@ class MolecularWeight(PhenotypeEvaluationFunction):
     """
 
     def __init__(self, reactions, maximize=False, **kwargs):
-        super(ModificationType, self).__init__(maximize=maximize, worst_fitness=np.inf)
+        super(MolecularWeight, self).__init__(maximize=maximize, worst_fitness=np.inf)
         self.reactions = reactions
         self.method = kwargs.get('method', SimulationMethod.pFBA)
         # sum of molar masses of product compounds for the reactions
-        self.mw = None
+        self.__mw = None
 
     def compute_rxnmw(self, model):
         from ..util.constants import atomic_weights
+        self.__mw = {}
         simulator = get_simulator(model)
         for rx in self.reactions:
             p = simulator.get_products(rx)
+            if not p:
+                p = simulator.get_substrates(rx)
             rmw = 0
             for m, v in p.items():
                 elem = simulator.metabolite_elements(m)
-                rmw += v * sum([atomic_weights[e]*n for e, n in elem.item()])
-            self.mw[rx] = rmw
+                rmw += abs(v) * sum([atomic_weights[e]*n for e, n in elem.items()])
+            self.__mw[rx] = rmw
 
     def get_fitness(self, simul_results, candidate, **kwargs):
-        sim = simul_results[self.method] if self.method in simul_results.keys(
-        ) else None
-        if not sim or sim.status not in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
+        try:
+            sim = simul_results[self.method]
+        except Exception:
+            sim = None
+
+        if sim.status not in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
             return self.no_solution
-        if not self.mw:
-            self.compute_rmw(sim.model)
+
+        if self.__mw is None:
+            self.compute_rxnmw(sim.model)
+
         fitness = 0
         for rx in self.reactions:
-            fitness += self.mw[rx] * sim.fluxes[rx]
+            fitness += self.__mw[rx] * abs(sim.fluxes[rx])
         return fitness * 0.001
 
     def required_simulations(self):

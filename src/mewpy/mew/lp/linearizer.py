@@ -694,7 +694,7 @@ class LogicLinearizer(LinearProblem):
             # Thus, all operator columns (variables) will be under the columns linked list engine. When retrieving
             # the operator expression indexes from the cols dictionary in the other methods, the last index
             # of the slice should be used to get the last real column, as the result of this column is the one that
-            # really matters. The hashes of the columns for the cobamp simulation engine should be the the row name plus
+            # really matters. The hashes of the columns for the simulation engine should be the the row name plus
             # str of the operator
 
             last_variable = atom

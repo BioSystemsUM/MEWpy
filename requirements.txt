@@ -3,7 +3,6 @@ cobra
 reframed
 inspyred
 jmetalpy
-cobamp
 networkx
 matplotlib
 tqdm

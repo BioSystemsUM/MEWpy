@@ -17,7 +17,6 @@ from . import SimulationMethod, SStatus, get_default_solver
 from .simulation import Simulator, SimulationResult, ModelContainer
 from ..model.gecko import GeckoModel
 from ..util.constants import ModelConstants
-from ..util.parsing import evaluate_expression_tree
 from ..util.utilities import elements
 from tqdm import tqdm
 
@@ -34,10 +33,7 @@ class CBModelContainer(ModelContainer):
 
     """
 
-    def __init__(self, model: CBModel):
-        if not isinstance(model, CBModel):
-            raise ValueError(
-                "The model is not an instance of ReFramed CBModel")
+    def __init__(self, model: CBModel = None):
         self.model = model
 
     @property
@@ -148,16 +144,16 @@ class Simulation(CBModelContainer, Simulator):
     def __init__(self, model: CBModel, envcond=None, constraints=None, solver=None, reference=None,
                  reset_solver=ModelConstants.RESET_SOLVER):
 
+
         if not isinstance(model, CBModel):
             raise ValueError(
                 "Model is None or is not an instance of REFRAMED CBModel")
+            
         self.model = model
         set_default_solver(solver_map[get_default_solver()])
         self.environmental_conditions = OrderedDict() if envcond is None else envcond
         self.constraints = OrderedDict() if constraints is None else constraints
         self.solver = solver
-        self._essential_reactions = None
-        self._essential_genes = None
         self._reference = reference
         self._gene_to_reaction = None
         self.solver = solver
@@ -192,84 +188,6 @@ class Simulation(CBModelContainer, Simulator):
                 reaction identifier with respective coeficients.')
 
         self.model.set_objective(d)
-
-    @property
-    def reference(self):
-        """The reference wild type reaction flux values.
-
-        :returns: A dictionary of wild type reaction flux values.
-
-        """
-        if self._reference is None:
-            self._reference = self.simulate(
-                method=SimulationMethod.pFBA).fluxes
-        return self._reference
-
-    def essential_reactions(self, min_growth=0.01):
-        """Essential reactions are those when knocked out enable a biomass flux value above a minimal growth defined as
-        a percentage of the wild type growth.
-
-        :param float min_growth: Minimal percentage of the wild type growth value. Default 0.01 (1%).
-        :returns: A list of essential reactions.
-
-        """
-        if self._essential_reactions is not None:
-            return self._essential_reactions
-        wt_solution = self.simulate()
-        wt_growth = wt_solution.objective_value
-        reactions = self.model.reactions.keys()
-        self._essential_reactions = []
-        for rxn in tqdm(reactions):
-            res = self.simulate(constraints={rxn: 0})
-            if res:
-                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \
-                        or res.status == SStatus.INFEASIBLE:
-                    self._essential_reactions.append(rxn)
-        return self._essential_reactions
-
-    def essential_genes(self, min_growth=0.01):
-        """Essential genes are those when deleted enable a biomass flux value above a minimal growth defined as
-        a percentage of the wild type growth.
-
-        :param float min_growth: Minimal percentage of the wild type growth value. Default 0.01 (1%).
-        :returns: A list of essential genes.
-
-        """
-        if self._essential_genes is not None:
-            return self._essential_genes
-        self._essential_genes = []
-        wt_solution = self.simulate()
-        wt_growth = wt_solution.objective_value
-        genes = self.model.genes
-        for gene in tqdm(genes):
-            active_genes = set(self.model.genes) - {gene}
-            active_reactions = self.evaluate_gprs(active_genes)
-            inactive_reactions = set(
-                self.model.reactions) - set(active_reactions)
-            gr_constraints = {rxn: 0 for rxn in inactive_reactions}
-            res = self.simulate(constraints=gr_constraints)
-            if res:
-                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \
-                        or res.status == SStatus.INFEASIBLE:
-                    self._essential_genes.append(gene)
-        return self._essential_genes
-
-    def evaluate_gprs(self, active_genes):
-        """Returns the list of active reactions for a given list of active genes.
-
-        :param list active_genes: List of genes identifiers.
-        :returns: A list of active reaction identifiers.
-
-        """
-        active_reactions = []
-        reactions = self.model.reactions
-        for r_id, reaction in reactions.items():
-            if reaction.gpr:
-                if evaluate_expression_tree(str(reaction.gpr), active_genes):
-                    active_reactions.append(r_id)
-            else:
-                active_reactions.append(r_id)
-        return active_reactions
 
     def update(self):
         """Updates the model
@@ -394,7 +312,6 @@ class Simulation(CBModelContainer, Simulator):
     def gene_reactions(self):
         """
         :returns: a map of genes to reactions.
-
         """
         if not self._gene_to_reaction:
             gr = OrderedDict()
@@ -428,9 +345,6 @@ class Simulation(CBModelContainer, Simulator):
         formula = self.model.metabolites[metabolite_id].metadata['FORMULA']
         return elements(formula)
 
-    # TODO: this is repeated
-    def set_objective(self, reaction):
-        self.model.set_objective({reaction: 1})
 
     def get_reaction_bounds(self, reaction):
         """
@@ -449,15 +363,15 @@ class Simulation(CBModelContainer, Simulator):
         return lb if lb > -np.inf else ModelConstants.REACTION_LOWER_BOUND,\
             ub if ub < np.inf else ModelConstants.REACTION_UPPER_BOUND
 
-    def set_reaction_bounds(self, reaction,lb=None,ub=None):
+    def set_reaction_bounds(self, reaction, lb=None, ub=None):
         """
         Sets the bounds for a given reaction.
         :param reaction: str, reaction ID
         :param float lb: lower bound 
         :param float ub: upper bound
         """
-        self.model.set_flux_bounds(reaction,lb,ub)
-        
+        self.model.set_flux_bounds(reaction, lb, ub)
+
     def find_bounds(self):
         """
         Return the median upper and lower bound of the metabolic model.
@@ -675,9 +589,9 @@ class GeckoSimulation(Simulation):
         else:
             return None
 
-    def getKcat(self,protein):
-       """ Returns a dictionary of reactions and respective Kcat for a specific enzyme·
-       """ 
-       m_r = self.metabolite_reaction_lookup()
-       r_d = m_r[protein]
-       return {k:v for k,v in r_d.items() if v<0}
+    def getKcat(self, protein):
+        """ Returns a dictionary of reactions and respective Kcat for a specific enzyme·
+        """
+        m_r = self.metabolite_reaction_lookup()
+        r_d = m_r[protein]
+        return {k: v for k, v in r_d.items() if v < 0}

@@ -31,7 +31,6 @@ class GKOProblem(AbstractKOProblem):
     def _build_target_list(self):
         print("Building modification target list.")
         genes = set(self.simulator.genes)
-        print("Computing essential genes.")
         essential = set(self.simulator.essential_genes())
         transport = set(self.simulator.get_transport_genes())
         target = genes - essential - transport

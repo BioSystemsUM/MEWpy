@@ -35,7 +35,13 @@ def to_json(model, filename=None):
     return filename
 
 
-def build_escher(model=None, fluxes=None, fmt_func=None, **kwargs):
+def remove_prefix(text, prefix='R_'):
+    if text.startswith(prefix):
+        return text[len(prefix):]
+    return text
+
+
+def build_escher(model=None, fluxes=None, fmt_func=remove_prefix, **kwargs):
     try:
         import escher
     except ImportError:

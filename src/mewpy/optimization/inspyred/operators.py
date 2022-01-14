@@ -23,6 +23,11 @@ def shrink_mutation(random, candidate, args):
     """
     mutRate = args.setdefault("gs_mutation_rate", 0.1)
     minSize = args["candidate_min_size"]
+    maxSize = args["candidate_max_size"]
+
+    if minSize == maxSize:
+        return candidate
+
     if random.random() > mutRate or len(candidate) <= minSize:
         return candidate
     index = random.randint(0, len(candidate) - 1)
@@ -167,9 +172,15 @@ def grow_mutation_KO(random, candidate, args):
     """
     bounder = args["_ec"].bounder
     mutRate = args.setdefault("gs_mutation_rate", 0.1)
+    minSize = args["candidate_min_size"]
+    maxSize = args["candidate_max_size"]
+
+    if minSize == maxSize:
+        return candidate
+
     if random.random() > mutRate:
         return candidate
-    maxSize = args["candidate_max_size"]
+
     mutant = copy.copy(candidate)
     if len(mutant) < maxSize:
         newElem = random.randint(bounder.lower_bound, bounder.upper_bound)
@@ -197,9 +208,16 @@ def grow_mutation_OU(random, candidate, args):
     """
     bounder = args["_ec"].bounder
     mutRate = args.setdefault("gs_mutation_rate", 0.1)
+
+    minSize = args["candidate_min_size"]
+    maxSize = args["candidate_max_size"]
+
+    if minSize == maxSize:
+        return candidate
+
     if random.random() > mutRate:
         return candidate
-    maxSize = args["candidate_max_size"]
+
     mutant = copy.copy(candidate)
     if len(mutant) < maxSize:
         idx = random.randint(bounder.lower_bound[0], bounder.upper_bound[0])
@@ -259,6 +277,14 @@ def single_mutation_OU(random, candidate, args):
 
     bounder = args["_ec"].bounder
     mutRate = args.setdefault("mutation_rate", 0.1)
+    minSize = args["candidate_min_size"]
+    maxSize = args["candidate_max_size"]
+
+    import random
+    id = random.randint(1, 1000)
+    if minSize == maxSize and minSize == bounder.upper_bound[0]+1:
+        return candidate
+
     if random.random() > mutRate:
         return candidate
 
@@ -300,6 +326,8 @@ def single_mutation_OU_level(random, candidate, args):
     - *mutation_rate* -- the rate at which mutation is performed (default 0.1)
 
     """
+    import random
+    id = random.randint(1, 1000)
 
     bounder = args["_ec"].bounder
     mutRate = args.setdefault("mutation_rate", 0.1)
@@ -307,8 +335,7 @@ def single_mutation_OU_level(random, candidate, args):
         return candidate
     mutant = copy.copy(candidate)
     index = random.randint(0, len(mutant) - 1) if len(mutant) > 1 else 0
-    # the first idx has a 50% chance of beeing mutated
-    # the second always mutates
+    
     mutantL = list(mutant)
     idx, idy = mutantL[index]
     lv = random.randint(bounder.lower_bound[1], bounder.upper_bound[1])

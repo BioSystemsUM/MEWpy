@@ -7,15 +7,20 @@ solvers = []
 try:
     import gurobipy
     solvers.append('gurobi')
-    # disables solver output.
-    # gurobipy.setParam('OutputFlag', 0)
-except ImportError:
+except ImportError as e:
     pass
+
+if 'gurobi' in solvers:
+    try:
+        # disables solver output.
+        gurobipy.setParam('OutputFlag', 0)
+    except:
+        pass
 
 try:
     import cplex
     solvers.append('cplex')
-except ImportError:
+except ImportError as e:
     pass
 
 try:
@@ -37,7 +42,7 @@ def get_default_solver():
     if default_solver:
         return default_solver
 
-    solver_order = ['gurobi', 'cplex', 'glpk']
+    solver_order = ['cplex', 'gurobi', 'glpk']
 
     for solver in solver_order:
         if solver in solvers:
@@ -62,31 +67,6 @@ def set_default_solver(solvername):
         default_solver = solvername.lower()
     else:
         raise RuntimeError(f"Solver {solvername} not available.")
-
-
-solvers = []
-
-try:
-    import gurobipy
-    solvers.append('gurobi')
-except ImportError:
-    pass
-
-
-try:
-    import cplex
-    solvers.append('cplex')
-except ImportError:
-    pass
-
-try:
-    import swiglpk
-    solvers.append('glpk')
-except ImportError:
-    pass
-
-
-default_solver = None
 
 
 # Model specific simulators mapping:

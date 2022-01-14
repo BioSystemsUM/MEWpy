@@ -32,7 +32,6 @@ class RKOProblem(AbstractKOProblem):
         """
         print("Building modification target list.")
         reactions = set(self.simulator.reactions)
-        print("Computing essential reactions")
         essential = set(self.simulator.essential_reactions())
         drains = set(self.simulator.get_exchange_reactions())
         transport = set(self.simulator.get_transport_reactions())
