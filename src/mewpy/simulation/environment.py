@@ -168,7 +168,7 @@ class Environment(OrderedDict):
 
         env = Environment()
 
-        for r_id in sim.get_uptake_reactions():
+        for r_id in sim.get_exchange_reactions():
             env[r_id] = sim.get_reaction_bounds(r_id)
 
         return env
@@ -192,7 +192,7 @@ class Environment(OrderedDict):
 
         env = Environment()
 
-        for r_id in sim.get_uptake_reactions():
+        for r_id in sim.get_exchange_reactions():
             env[r_id] = (-max_uptake, max_secretion)
 
         if inplace:
