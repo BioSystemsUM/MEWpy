@@ -401,7 +401,7 @@ class Simulation(CBModelContainer, Simulator):
     # Simulate
     def simulate(self, objective=None, method=SimulationMethod.FBA,
                  maximize=True, constraints=None, reference=None,
-                 scalefactor=None, solver=None):
+                 scalefactor=None, solver=None, slim=False):
         '''
         Simulates a phenotype when applying a set constraints using the specified method.
 
@@ -456,8 +456,9 @@ class Simulation(CBModelContainer, Simulator):
             reference = self.reference
 
         if method == SimulationMethod.FBA:
+            get_values = not slim
             solution = FBA(self.model, objective=objective, minimize=not maximize,
-                           constraints=simul_constraints, solver=a_solver)
+                           constraints=simul_constraints, solver=a_solver, get_values=get_values)
         elif method == SimulationMethod.pFBA:
             solution = pFBA(self.model, objective=objective, minimize=not maximize,
                             constraints=simul_constraints, solver=a_solver, obj_frac=0.999)
@@ -488,12 +489,15 @@ class Simulation(CBModelContainer, Simulator):
                 for x, y in solution.values.items():
                     solution.values[x] = y / scalefactor
 
-        status = self.__status_mapping[solution.status]
+        if slim:
+            return solution.fobj
 
-        result = SimulationResult(self.model, solution.fobj, fluxes=solution.values, status=status,
-                                  envcond=self.environmental_conditions, model_constraints=self.constraints,
-                                  simul_constraints=constraints, maximize=maximize, method=method)
-        return result
+        else:
+            status = self.__status_mapping[solution.status]
+            result = SimulationResult(self.model, solution.fobj, fluxes=solution.values, status=status,
+                                    envcond=self.environmental_conditions, model_constraints=self.constraints,
+                                    simul_constraints=constraints, maximize=maximize, method=method)
+            return result
 
     def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None,
             format='dict'):

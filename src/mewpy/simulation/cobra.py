@@ -294,7 +294,7 @@ class Simulation(CobraModelContainer, Simulator):
         return self._m_r_lookup
 
     def metabolite_elements(self, metabolite_id):
-        return self.model.metabolites.get_by_id(metabolite_id).elements()
+        return self.model.metabolites.get_by_id(metabolite_id).elements
 
     def get_reaction_bounds(self, reaction):
         """
@@ -352,7 +352,7 @@ class Simulation(CobraModelContainer, Simulator):
 
     # The simulator
     def simulate(self, objective=None, method=SimulationMethod.FBA, maximize=True,
-                 constraints=None, reference=None, scalefactor=None, solver=None):
+                 constraints=None, reference=None, scalefactor=None, solver=None, slim=False):
         '''
         Simulates a phenotype when applying a set constraints using the specified method.
 
@@ -393,7 +393,10 @@ class Simulation(CobraModelContainer, Simulator):
             # such is the case with pytfa.core.Model... need to find some workaround
             objective_sense = self._MAX_STR if maximize else self._MIN_STR
             if method == SimulationMethod.FBA:
-                solution = model.optimize(objective_sense=objective_sense)
+                if slim:
+                    solution = model.slim_optimize()
+                else:
+                    solution = model.optimize(objective_sense=objective_sense)
             elif method == SimulationMethod.pFBA:
                 # make fraction_of_optimum a configurable parameter?
                 solution = pfba(model)
@@ -413,15 +416,18 @@ class Simulation(CobraModelContainer, Simulator):
                 raise Exception(
                     "Unknown method to perform the simulation.")
 
-        status = self.__status_mapping[solution.status]
+        if slim:
+            return solution
 
-        result = SimulationResult(model, solution.objective_value, fluxes=solution.fluxes.to_dict(OrderedDict),
-                                  status=status, envcond=self.environmental_conditions,
-                                  model_constraints=self.constraints,
-                                  simul_constraints=constraints,
-                                  maximize=maximize,
-                                  method=method)
-        return result
+        else:
+            status = self.__status_mapping[solution.status]
+            result = SimulationResult(model, solution.objective_value, fluxes=solution.fluxes.to_dict(OrderedDict),
+                                    status=status, envcond=self.environmental_conditions,
+                                    model_constraints=self.constraints,
+                                    simul_constraints=constraints,
+                                    maximize=maximize,
+                                    method=method)
+            return result
 
     def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None,
             format='dict'):

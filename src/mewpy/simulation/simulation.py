@@ -1,6 +1,7 @@
 from abc import abstractmethod, ABC
 from collections import OrderedDict
 from ..util.parsing import evaluate_expression_tree
+from ..util.process import cpu_count
 from . import SimulationMethod, SStatus
 from tqdm import tqdm
 
@@ -88,25 +89,11 @@ class Simulator(ModelContainer):
         """
         raise NotImplementedError
 
-    def __evaluator__(self, kwargs, candidate):
-        res = self.simulate(constraints=candidate, **kwargs)
-        return res
-
     def simulate_mp(self, objective=None, method=SimulationMethod.FBA, maximize=True, constraints_list=None,
-                    reference=None,
-                    solver=None, n_mp=None, **kwargs):
-        from mewpy.util.process import get_fevaluator
-        args = {}
-        args['objective'] = objective
-        args['method'] = method
-        args['maximize'] = maximize
-        args['reference'] = reference
-        args.update(kwargs)
-        from functools import partial
-        func = partial(self.__evaluator__, args)
+                    reference=None, solver=None, n_mp=None, **kwargs):
 
-        mp_evaluator = get_fevaluator(func)
-        res = mp_evaluator.evaluate(constraints_list, None)
+        res = Parallel(n_jobs=cpu_count())(delayed(self.simulate)(objective, method, maximize, constraints, reference,
+                                                                  solver, **kwargs) for constraints in constraints_list)
         return res
 
     @abstractmethod
@@ -168,15 +155,12 @@ class Simulator(ModelContainer):
             return essential
         wt_solution = self.simulate()
         wt_growth = wt_solution.objective_value
-        reactions = self.reactions
         self._essential_reactions = []
         print("Computing essential reactions:")
-        for rxn in tqdm(reactions):
-            res = self.simulate(constraints={rxn: 0})
-            if res:
-                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \
-                        or res.status == SStatus.INFEASIBLE:
-                    self._essential_reactions.append(rxn)
+        for rxn in tqdm(self.reactions):
+            res = self.simulate(constraints={rxn: 0},   slim=True)
+            if not res or res < min_growth:
+                self._essential_reactions.append(rxn)
         return self._essential_reactions
 
     def evaluate_gprs(self, active_genes):
@@ -218,11 +202,9 @@ class Simulator(ModelContainer):
             active_reactions = self.evaluate_gprs(active_genes)
             inactive_reactions = set(self.reactions) - set(active_reactions)
             gr_constraints = {rxn: 0 for rxn in inactive_reactions}
-            res = self.simulate(constraints=gr_constraints)
-            if res:
-                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \
-                        or res.status == SStatus.INFEASIBLE:
-                    self._essential_genes.append(gene)
+            res = self.simulate(constraints=gr_constraints, slim=True)
+            if not res or res < min_growth:
+                self._essential_genes.append(gene)
         return self._essential_genes
 
     @property
@@ -237,6 +219,7 @@ class Simulator(ModelContainer):
             return ref
         self._reference = self.simulate(method="pFBA").fluxes
         return self._reference
+
 
 class SimulationResult(object):
     """Class that represents simulation results and performs operations over them."""
