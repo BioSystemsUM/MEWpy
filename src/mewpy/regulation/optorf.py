@@ -186,6 +186,21 @@ class OptORFProblem(AbstractKOProblem):
         :return:
         """
 
+        # TODO: fix this implementation. initial state should be a new copy
+        # initial_state = self._initial_state.copy()
+        #
+        # for t_idx in candidate:
+        #
+        #     initial_state[self.target_list[t_idx]] = 0
+        #
+        # # simulation of the regulatory network to determine the affected metabolic state
+        # state = self._sim_bool(initial_state)
+        #
+        # # find the affected reactions
+        # constraints = self._decode_metabolic_state(state)
+        #
+        # return constraints
+
         for t_idx in candidate:
 
             self._initial_state[self.target_list[t_idx]] = 0

@@ -143,7 +143,7 @@ def optorf_ec():
 
     from mewpy.util.io import population_to_csv
 
-    filename = "OPTORF{}_KO_{}.csv".format(_PRODUCT_ID, "ec")
+    filename = "OPTORF_{}_KO_{}.csv".format(_PRODUCT_ID, "ec")
     population_to_csv(problem, final_pop, filename, simplify=False)
 
 
