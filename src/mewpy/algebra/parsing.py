@@ -2,6 +2,7 @@ import re
 from io import StringIO
 from token import NAME, OP, NUMBER
 from tokenize import generate_tokens, untokenize
+from typing import List
 
 from .symbolic import NoneAtom, Symbolic
 from .algebra_constants import (BOOLEAN_STATES,
@@ -69,7 +70,13 @@ class ExpressionParser:
                  is_none=False):
 
         """
-        Internal use
+        Internal use only!
+
+        The ExpressionParser object is to be used only by the next parsing, filtering, transformation
+        and processing methods.
+        It infers the algebra expression nature, and holds corresponding transforming, filtering and replacing methods
+        and dictionaries to be applied to the raw expression.
+
         """
 
         if aliases is None:
@@ -206,17 +213,21 @@ class ExpressionParser:
             self.escape_chars = {**BOOLEAN_ESCAPE_CHARS, **RELATIONAL_ESCAPE_CHARS}
 
 
-def tokenize(rule):
+def tokenize(rule: str) -> List[str]:
+    """
+    Tokenizes a stringify expression.
+    :param rule: stringify expression as string
+    :return: it returns all tokens of the expression
+    """
     return list(filter(lambda x: x != '', rule.replace('(', ' ( ').replace(')', ' ) ').split(' ')))
 
 
-def escape_chars_filter(expression):
+def escape_chars_filter(expression: ExpressionParser):
     """
-
-    For a given self it parses out the special chars by replacing them with the corresponding values in the
-    special_chars argument. By default, the global dictionary BOOL_SPECIAL_CHARS is used. This global dictionary
-    can be altered for adding or removing special chars.
-
+    For a given expression it parses out the special chars by replacing them with the corresponding values.
+    The global dictionary available in the algebra constants module is used according to the expression type.
+    This global dictionary can be altered for adding or removing special chars.
+    :param expression: the ExpressionParser object
     """
 
     for escape_char, replace in expression.escape_chars.items():
@@ -323,14 +334,12 @@ def symbolic_transform(expression):
     """
 
     result = []
-    previous_token = (None, None)
 
     expression.tokens.append((None, None))  # so zip traverses all tokens
 
     for tok, next_token in zip(expression.tokens, expression.tokens[1:]):
 
         token_number, token_val = tok
-        next_tok_num, next_tok_val = next_token
 
         if token_number == NAME:
 
@@ -500,8 +509,16 @@ def evaluate_expression(symbolic_expression, local_dict=None, global_dict=None):
     return eval(symbolic_expression, global_dict, local_dict)
 
 
-# TODO: stubs and type hinting
 def parse_expression(expression: str) -> Symbolic:
+    """
+    Parsing an expression encoded into a string object to a Symbolic object that provides symbolic algebra evaluation
+    with Symbolic-based symbols using regular python binary operators or custom functions
+
+    For more details, consult the Expression object.
+
+    :param expression: an expression as string object containing symbols and python binary (or not) operators
+    :return: it returns a Symbolic object that allows for symbolic algebra evaluation
+    """
     if not expression:
 
         expr_parser = ExpressionParser()

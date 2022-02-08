@@ -1,3 +1,15 @@
+"""
+Algebra Constants
+
+This module contains all algebra constants, namely operators and operand variables.
+In addition, one can also find in this module the corresponding string representations of each operator and operand.
+String representations will be used during expression parsing and evaluation, using python built-in eval in safe mode.
+
+This module also contains common escape characters which will be replaced by the descriptive naming during expression
+parsing.
+"""
+
+# Algebra operators and operands objects
 from .symbolic import (BoolTrue,
                        BoolFalse,
                        And,
@@ -17,7 +29,7 @@ from .symbolic import (BoolTrue,
                        Symbol,
                        NoneAtom)
 
-# Boolean escape chars to be replaced
+# Boolean algebra escape chars to be replaced
 BOOLEAN_ESCAPE_CHARS = {'-': '_dash_',
                         ',': '_comma_',
                         ';': '_semicolon_',
@@ -34,13 +46,15 @@ BOOLEAN_ESCAPE_CHARS = {'-': '_dash_',
                         '(c)': '_c_',
                         '(p)': '_p_'}
 
+# Relational algebra escape chars to be replaced
 RELATIONAL_ESCAPE_CHARS = BOOLEAN_ESCAPE_CHARS
 
-# Boolean string operator symbols
+# Main string representations for Boolean algebra operators
 AND = '&'
 OR = '|'
 NOT = '~'
 
+# Other string representations for Boolean algebra operators
 BOOLEAN_OPERATORS = {'not': NOT,
                      '!': NOT,
                      'and': AND,
@@ -49,12 +63,14 @@ BOOLEAN_OPERATORS = {'not': NOT,
                      OR: OR,
                      NOT: NOT}
 
+# Main string representations for Boolean algebra operators (set)
 GLOBAL_BOOLEAN_OPERATORS = {AND, OR, NOT}
 
-# Boolean states
+# Main string representations for Boolean algebra operands (except symbolic variables)
 TRUE = '1'
 FALSE = '0'
 
+# Other string representations for Boolean algebra operands (except symbolic variables)
 BOOLEAN_STATES = {'on': TRUE,
                   'off': FALSE,
                   'true': TRUE,
@@ -62,14 +78,16 @@ BOOLEAN_STATES = {'on': TRUE,
                   TRUE: TRUE,
                   FALSE: FALSE}
 
+# Main string representations for Boolean algebra operands (set)
 GLOBAL_BOOLEAN_STATES = {TRUE, FALSE}
 
-# Strict relational operators
+# Main string representations for Strict Relational algebra operators
 GREATER = '>'
 LESS = '<'
 EQUAL = '='
 NOT_EQUAL = '!='
 
+# Other string representations for Strict Relational algebra operators
 RELATIONAL_OPERATORS = {'greater than': GREATER,
                         'less than': LESS,
                         'greater': GREATER,
@@ -82,12 +100,14 @@ RELATIONAL_OPERATORS = {'greater than': GREATER,
                         EQUAL: EQUAL,
                         NOT_EQUAL: NOT_EQUAL}
 
+# Main string representations for Strict Relational algebra operators (set)
 GLOBAL_RELATIONAL_OPERATORS = {GREATER, LESS, EQUAL, NOT_EQUAL}
 
-# Relational operators
+# Main string representations for Non-Strict Relational algebra operators
 GREATER_EQUAL = '>='
 LESS_EQUAL = '=>'
 
+# Other string representations for Non-Strict Relational algebra operators
 RELATIONAL_EQUAL_OPERATORS = {'greater than or equal': GREATER_EQUAL,
                               'less than or equal': LESS_EQUAL,
                               'greater or equal': GREATER_EQUAL,
@@ -95,12 +115,17 @@ RELATIONAL_EQUAL_OPERATORS = {'greater than or equal': GREATER_EQUAL,
                               GREATER_EQUAL: GREATER_EQUAL,
                               LESS_EQUAL: LESS_EQUAL}
 
+# Main string representations for Non-Strict Relational algebra operators (set)
 GLOBAL_RELATIONAL_EQUAL_OPERATORS = {GREATER_EQUAL, LESS_EQUAL}
 
+# Main string representations for Non-Strict and Strict algebra operands (except symbolic variables)
 RELATIONAL_STATES = BOOLEAN_STATES
 
+# Main string representations for all algebra operands (except symbolic variables)
 GLOBAL_RELATIONAL_STATES = GLOBAL_BOOLEAN_STATES
 
+# Main string representations for Non-Strict and Strict algebra operators and operands including empty, numeric and
+# symbolic variables
 GLOBAL_MEWPY_OPERATORS = {'BoolFalse': BoolFalse,
                           'BoolTrue': BoolTrue,
                           'And': And,
