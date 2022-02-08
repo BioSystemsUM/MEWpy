@@ -2,14 +2,13 @@ from itertools import product
 from typing import Dict, Union, TYPE_CHECKING, Callable, Any
 
 import pandas as pd
-from pandas import DataFrame
 
 from .algebra_utils import solution_decode, _walk
 from .parsing import tokenize
 from .symbolic import NoneAtom, Symbolic, Symbol
 
 if TYPE_CHECKING:
-    from mewpy.mew.variables import Gene, Metabolite, Reaction, Regulator
+    from mewpy.mew.variables import Gene, Metabolite, Reaction, Regulator, Interaction, Target
 
 
 class Expression:
@@ -339,4 +338,4 @@ class Expression:
 
                     truth_table.append(values)
 
-        return DataFrame(truth_table)
+        return pd.DataFrame(truth_table)
