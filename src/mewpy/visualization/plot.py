@@ -232,7 +232,7 @@ class StreamingPlot:
         # Show plot
         plt.show(block=False)
 
-    def update(self, front, dominated=None, reference_point=None):
+    def update(self, front, dominated=None, reference_point=None, text=None):
         if self.sc is None:
             raise Exception('Figure is none')
 
@@ -253,6 +253,9 @@ class StreamingPlot:
         # If any new reference point, plot
         if reference_point:
             self.scp.set_data([p[0] for p in reference_point], [p[1] for p in reference_point])
+
+        #if text is not None:
+        #    self.fig.title(text, fontsize=10)
 
         # Re-align the axis
         self.ax.relim()

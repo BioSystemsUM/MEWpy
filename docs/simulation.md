@@ -4,7 +4,7 @@
 
 ## Loading metabolic models
 
-Models can be loaded using REFRAMED or COBRApy . 
+Models can be loaded using REFRAMED or COBRApy:
 
 ```python
 # using REFRAMED
@@ -85,6 +85,19 @@ simul.compartments
 {'c': 'cytosol', 'e': 'extracellular space', 'p': 'periplasm'}
 ```
 
+
+
+MEWpy allows to search for specific metabolites, reactions or genes using regular expressions:
+
+```
+# find reactions identified with a term containing 'biomass'
+simul.find('biomass')
+# find metabolites identified with a term containing 'o2'
+simul.find('o2',find_in='m')
+```
+
+
+
 A simulator may also be loaded considering environmental conditions, that will be considered during phenotype simulations. In the next example, glucose consumption is limited to 10 mmol/gDW/h while oxygen is set to unlimited.
 
 ```python
@@ -157,7 +170,9 @@ OrderedDict([('CYTDK2', 0.0),
 It is also to possible to retrieve reaction fluxes in the form of a data frame:
 
 ```python
-result.data_frame
+result.dataframe
+# or using find to list specific fluxes ordered by their values
+result.find('glc|biomass', sorted=True)
 ```
 
 ```
@@ -277,7 +292,7 @@ simul.FVA(reactions=['EX_tyr__L_e'])
 or a data frame:
 
 ```python
-simul.FVA(reactions=['EX_tyr__L_e'],format='df')
+simul.FVA(reactions=['EX_tyr__L_e'], format='df')
 ```
 
 ```
@@ -290,7 +305,7 @@ simul.FVA(reactions=['EX_tyr__L_e'],format='df')
 By default, MEWpy sets the model objective fraction to 90%, however this fraction may be altered. For example, one might want to consider a fraction of 10% from optimal growth:
 
 ```python
-simul.FVA(reactions=['EX_tyr__L_e'],obj_frac=0.1)
+simul.FVA(reactions=['EX_tyr__L_e'], obj_frac=0.1)
 {'EX_tyr__L_e': [0.0, 5.086103322262054]}
 ```
 
@@ -308,7 +323,7 @@ simul.FVA(reactions=['EX_tyr__L_e'], constraints=constraints)
 Gene and reaction essentiality tests identify , respectively, the list of genes and reactions whose deletion would prevent the organism to grow. 
 
 ```python
-simul.essential_reactions
+simul.essential_reactions()
 ['SHK3Dr',
  'DHORTS',
  'OMPDC',
@@ -325,7 +340,7 @@ simul.essential_reactions
 ```
 
 ```python
-simul.essential_genes
+simul.essential_genes()
 ['b3368',
  'b1260',
  'b0109',

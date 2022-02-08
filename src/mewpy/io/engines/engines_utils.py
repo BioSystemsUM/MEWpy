@@ -8,7 +8,7 @@ from typing import Tuple
 import libsbml
 
 from mewpy.util.constants import ModelConstants
-from mewpy.algebra import (And, Or, Not, Less, Greater, LessEqual, GreaterEqual, BoolFalse, BoolTrue,
+from mewpy.mew.algebra import (And, Or, Not, Less, Greater, LessEqual, GreaterEqual, BoolFalse, BoolTrue,
                            NoneAtom, Symbolic, Equal, parse_expression)
 
 

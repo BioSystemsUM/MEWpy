@@ -108,6 +108,15 @@ def evaluate_expression_tree(expression, variables):
     return res
 
 
+def maybe_fn(f, v1, v2):
+    if v1 is None:
+        return v2
+    elif v2 is None:
+        return v1
+    else:
+        return f(v1, v2)
+
+
 class Node(object):
     """
     Binary syntax tree node.
@@ -215,8 +224,10 @@ class Node(object):
         elif self.is_leaf():
             return f_operand(self.value)
         else:
-            return f_operator(self.value)(self.left.evaluate(f_operand, f_operator),
-                                          self.right.evaluate(f_operand, f_operator))
+            return maybe_fn(f_operator(self.value),
+                            self.left.evaluate(f_operand, f_operator),
+                            self.right.evaluate(f_operand, f_operator)
+                            )
 
     def get_conditions(self):
         """
@@ -421,12 +432,13 @@ class GeneEvaluator:
     :param or_operator: function to be applied instead of ('or','|') (not case sensitive)
     """
 
-    def __init__(self, genes_value, and_operator=min, or_operator=max, prefix=""):
+    def __init__(self, genes_value, and_operator=min, or_operator=max, prefix="", unexpressed_value=1):
 
         self.genes_value = genes_value
         self.and_operator = and_operator
         self.or_operator = or_operator
         self.prefix = prefix
+        self.unexpressed_value = unexpressed_value
 
     def f_operator(self, op):
         operators = {S_AND: self.and_operator, S_OR: self.or_operator}
@@ -439,7 +451,7 @@ class GeneEvaluator:
         if op[len(self.prefix):] in self.genes_value:
             return self.genes_value[op]
         else:
-            return 1
+            return self.unexpressed_value
 
 
 def tokenize_function(exp: str):

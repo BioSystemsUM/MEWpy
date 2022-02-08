@@ -1,9 +1,7 @@
 import logging
-import warnings
-
 from .problem import AbstractKOProblem, AbstractOUProblem
 from ..util.parsing import GeneEvaluator, build_tree, Boolean
-
+from ..simulation import SStatus
 logger = logging.getLogger(__name__)
 
 
@@ -31,7 +29,7 @@ class GKOProblem(AbstractKOProblem):
             model, fevaluation=fevaluation, **kwargs)
 
     def _build_target_list(self):
-
+        print("Building modification target list.")
         genes = set(self.simulator.genes)
         essential = set(self.simulator.essential_genes())
         transport = set(self.simulator.get_transport_genes())
@@ -39,14 +37,6 @@ class GKOProblem(AbstractKOProblem):
         if self.non_target:
             target = target - set(self.non_target)
         target = list(target)
-        try:
-            from ..util.constants import EAConstants
-            if EAConstants.PROB_TARGET and self.product:
-                from ..util.graph import probabilistic_gene_targets
-                target = probabilistic_gene_targets(self.model, self.product, target)
-        except Exception as e:
-            warnings.warn(str(e))
-
         self._trg_list = target
 
     def solution_to_constraints(self, candidate):
@@ -80,6 +70,7 @@ class GOUProblem(AbstractOUProblem):
     :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
     :param tuple operators: (and, or) operations. Default (MIN, MAX).
     :param list levels: Over/under expression levels (Default EAConstants.LEVELS).
+    :param boolean twostep: If deletions should be applied before identifiying reference flux values.
 
     Note:  Operators that can not be pickled may be defined by a string e.g. 'lambda x,y: (x+y)/2'.
 
@@ -100,14 +91,6 @@ class GOUProblem(AbstractOUProblem):
         if self.non_target:
             target = target - set(self.non_target)
         target = list(target)
-        try:
-            from ..util.constants import EAConstants
-            if EAConstants.PROB_TARGET and self.product:
-                from ..util.graph import probabilistic_gene_targets
-                target = probabilistic_gene_targets(self.model, self.product, target)
-        except Exception as e:
-            warnings.warn(str(e))
-
         self._trg_list = target
 
     def __op(self):
@@ -137,6 +120,20 @@ class GOUProblem(AbstractOUProblem):
         gr_constraints = dict()
         genes = candidate
 
+        # Computes reference fluxes based on deletions
+        reference = self.reference
+        if self.twostep:
+            try:
+                deletions = [gene for gene, lv in candidate.items() if lv == 0]
+                active_genes = set(self.simulator.genes) - set(deletions)
+                active_reactions = self.simulator.evaluate_gprs(active_genes)
+                inactive_reactions = set(self.simulator.reactions) - set(active_reactions)
+                gr_constraints = {rxn: 0 for rxn in inactive_reactions}
+                sr = self.simulator.simulate(constraints=gr_constraints, method='pFBA')
+                if sr.status in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
+                    reference = sr.fluxes
+            except Exception as e:
+                print(e)
         # operators check
         self.__op()
         # evaluate gpr
@@ -161,6 +158,6 @@ class GOUProblem(AbstractOUProblem):
                     raise ValueError("All UO levels should be positive")
                 else:
                     gr_constraints.update(
-                        self.reaction_constraints(rxn_id, lv))
+                        self.reaction_constraints(rxn_id, lv, reference))
 
         return gr_constraints

@@ -9,7 +9,7 @@ from .terminator import generation_termination
 from ..ea import AbstractEA, Solution
 from ...util.constants import EAConstants
 from ...util.process import get_evaluator, cpu_count
-
+from .operators import OPERATORS
 SOEA = {
     'GA': inspyred.ec.EvolutionaryComputation,
     'SA': inspyred.ec.SA
@@ -33,10 +33,13 @@ class EA(AbstractEA):
 
         self.algorithm_name = algorithm
         self.ea_problem = InspyredProblem(self.problem)
-        from mewpy.problems import Strategy
-        if self.problem.strategy == Strategy.OU:
+
+        # operators
+        if self.problem.operators:
+            self.variators = [OPERATORS[x] for x in self.problem.operators.keys()]
+        elif self.problem.strategy == 'OU':
             self.variators = OU['variators']
-        elif self.problem.strategy == Strategy.KO:
+        elif self.problem.strategy == 'KO':
             self.variators = KO['variators']
         else:
             raise ValueError("Unknow strategy")
@@ -45,6 +48,8 @@ class EA(AbstractEA):
 
         # parameters
         self.args = PARAMETERS.copy()
+        if self.problem.operators_param:
+            self.args.update(self.problem.operators_param)
         self.args['num_selected'] = self.population_size
         self.args['max_generations'] = max_generations,
         self.args['candidate_min_size'] = self.problem.candidate_min_size

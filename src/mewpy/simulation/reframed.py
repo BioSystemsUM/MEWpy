@@ -17,11 +17,13 @@ from . import SimulationMethod, SStatus, get_default_solver
 from .simulation import Simulator, SimulationResult, ModelContainer
 from ..model.gecko import GeckoModel
 from ..util.constants import ModelConstants
-from ..util.parsing import evaluate_expression_tree
+from ..util.utilities import elements
+from tqdm import tqdm
 
 LOGGER = logging.getLogger(__name__)
 
 solver_map = {'gurobi': 'gurobi', 'cplex': 'cplex', 'glpk': 'optlang'}
+
 
 # TODO: missing proteins and set objective implementations
 class CBModelContainer(ModelContainer):
@@ -31,27 +33,49 @@ class CBModelContainer(ModelContainer):
 
     """
 
-    def __init__(self, model: CBModel):
-        if not isinstance(model, CBModel):
-            raise ValueError(
-                "The model is not an instance of ReFramed CBModel")
+    def __init__(self, model: CBModel = None):
         self.model = model
+
+    @property
+    def id(self):
+        return self.model.id
 
     @property
     def reactions(self):
         return list(self.model.reactions.keys())
 
+    def get_reaction(self, r_id):
+        rxn = self.model.reactions[r_id]
+        res = {'id': r_id, 'name': rxn.name, 'lb': rxn.lb, 'ub': rxn.ub, 'stoichiometry': rxn.stoichiometry}
+        res['gpr'] = str(rxn.gpr) if rxn.gpr is not None else None
+        return res
+
     @property
     def genes(self):
         return list(self.model.genes.keys())
+
+    def get_gene(self, g_id):
+        g = self.model.genes[g_id]
+        res = {'id': g_id, 'name': g.name}
+        return res
 
     @property
     def metabolites(self):
         return list(self.model.metabolites.keys())
 
+    def get_metabolite(self, m_id):
+        met = self.model.metabolites[m_id]
+        res = {'id': m_id, 'name': met.name, 'compartment': met.compartment, 'formula': met.metadata.get('FORMULA', '')}
+        return res
+
     @property
     def compartments(self):
         return self.model.compartments
+
+    def get_compartment(self, c_id):
+        c = self.model.compartments[c_id]
+        res = {'id': c_id, 'name': c.name, 'external': c.external}
+        return res
 
     def get_gpr(self, reaction_id):
         """Returns the gpr rule (str) for a given reaction ID.
@@ -68,8 +92,16 @@ class CBModelContainer(ModelContainer):
         else:
             return None
 
-    def get_drains(self):
+    def get_exchange_reactions(self):
         return self.model.get_exchange_reactions()
+
+    def get_substrates(self, rxn_id):
+        reaction = self.model.reactions[rxn_id]
+        return {m_id: coeff for m_id, coeff in reaction.stoichiometry.items() if coeff < 0}
+
+    def get_products(self, rxn_id):
+        reaction = self.model.reactions[rxn_id]
+        return {m_id: coeff for m_id, coeff in reaction.stoichiometry.items() if coeff > 0}
 
     @property
     def medium(self):
@@ -90,7 +122,7 @@ class CBModelContainer(ModelContainer):
             elif reaction.get_products():
                 return reaction.ub
 
-        return {rxn: get_active_bound(rxn) for rxn in self.get_drains()
+        return {rxn: get_active_bound(rxn) for rxn in self.get_exchange_reactions()
                 if is_active(rxn)}
 
 
@@ -101,8 +133,6 @@ class Simulation(CBModelContainer, Simulator):
     :param model: An metabolic model instance.
 
     Optional:
-
-    :param objective: The model objective.
     :param dic envcond: Dictionary of environmental conditions.
     :param dic constraints: A dictionary of reaction constraints.
     :param solver: An instance of the LP solver.
@@ -111,19 +141,19 @@ class Simulation(CBModelContainer, Simulator):
     """
 
     # TODO: the parent init call is missing ... super() can resolve the mro of the simulation diamond inheritance
-    def __init__(self, model: CBModel, objective=None, envcond=None, constraints=None, solver=None, reference=None,
+    def __init__(self, model: CBModel, envcond=None, constraints=None, solver=None, reference=None,
                  reset_solver=ModelConstants.RESET_SOLVER):
+
 
         if not isinstance(model, CBModel):
             raise ValueError(
                 "Model is None or is not an instance of REFRAMED CBModel")
+            
         self.model = model
         set_default_solver(solver_map[get_default_solver()])
         self.environmental_conditions = OrderedDict() if envcond is None else envcond
         self.constraints = OrderedDict() if constraints is None else constraints
         self.solver = solver
-        self._essential_reactions = None
-        self._essential_genes = None
         self._reference = reference
         self._gene_to_reaction = None
         self.solver = solver
@@ -159,97 +189,40 @@ class Simulation(CBModelContainer, Simulator):
 
         self.model.set_objective(d)
 
-    @property
-    def reference(self):
-        """The reference wild type reaction flux values.
-
-        :returns: A dictionary of wild type reaction flux values.
-
-        """
-        if self._reference is None:
-            self._reference = self.simulate(
-                method=SimulationMethod.pFBA).fluxes
-        return self._reference
-
-    def essential_reactions(self, min_growth=0.01):
-        """Essential reactions are those when knocked out enable a biomass flux value above a minimal growth defined as
-        a percentage of the wild type growth.
-
-        :param float min_growth: Minimal percentage of the wild type growth value. Default 0.01 (1%).
-        :returns: A list of essential reactions.
-
-        """
-        if self._essential_reactions is not None:
-            return self._essential_reactions
-        wt_solution = self.simulate()
-        wt_growth = wt_solution.objective_value
-        reactions = self.model.reactions.keys()
-        self._essential_reactions = []
-        for rxn in reactions:
-            res = self.simulate(constraints={rxn: 0})
-            if res:
-                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \
-                        or res.status == SStatus.INFEASIBLE:
-                    self._essential_reactions.append(rxn)
-        return self._essential_reactions
-
-    def essential_genes(self, min_growth=0.01):
-        """Essential genes are those when deleted enable a biomass flux value above a minimal growth defined as
-        a percentage of the wild type growth.
-
-        :param float min_growth: Minimal percentage of the wild type growth value. Default 0.01 (1%).
-        :returns: A list of essential genes.
-
-        """
-        if self._essential_genes is not None:
-            return self._essential_genes
-        self._essential_genes = []
-        wt_solution = self.simulate()
-        wt_growth = wt_solution.objective_value
-        genes = self.model.genes
-        for gene in genes:
-            active_genes = set(self.model.genes) - {gene}
-            active_reactions = self.evaluate_gprs(active_genes)
-            inactive_reactions = set(
-                self.model.reactions) - set(active_reactions)
-            gr_constraints = {rxn: 0 for rxn in inactive_reactions}
-            res = self.simulate(constraints=gr_constraints)
-            if res:
-                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \
-                        or res.status == SStatus.INFEASIBLE:
-                    self._essential_genes.append(gene)
-        return self._essential_genes
-
-    def evaluate_gprs(self, active_genes):
-        """Returns the list of active reactions for a given list of active genes.
-
-        :param list active_genes: List of genes identifiers.
-        :returns: A list of active reaction identifiers.
-
-        """
-        active_reactions = []
-        reactions = self.model.reactions
-        for r_id, reaction in reactions.items():
-            if reaction.gpr:
-                if evaluate_expression_tree(str(reaction.gpr), active_genes):
-                    active_reactions.append(r_id)
-            else:
-                active_reactions.append(r_id)
-        return active_reactions
-
     def update(self):
         """Updates the model
         """
         self.model.update()
 
-    def add_reaction(self, reaction, replace=True):
+    def add_metabolite(self, id, formula=None, name=None, compartment=None):
+        """Adds a metabolite
+
+        :param id: [description]
+        :type id: [type]
+        :param formula: [description], defaults to None
+        :type formula: [type], optional
+        :param name: [description], defaults to None
+        :type name: [type], optional
+        :param compartment: [description], defaults to None
+        :type compartment: [type], optional
+        """
+        from reframed.core.model import Metabolite
+        meta = Metabolite(id, name=name, compartment=compartment)
+        meta.metadata['FORMULA'] = formula
+        self.model.add_metabolite(meta)
+
+    def add_reaction(self, rxn_id, stoichiometry, lb=ModelConstants.REACTION_LOWER_BOUND,
+                     ub=ModelConstants.REACTION_UPPER_BOUND, replace=True, **kwargs):
         """Adds a reaction to the model
 
         Args:
-            reaction: The reaction, a Reframed reaction, to be added.
+            rxn_id: The reaction identifier
+            stoichiometry: The reaction stoichiometry, a dictionary of species: coefficient
             replace (bool, optional): If the reaction should be replaced in case it is already defined.\
             Defaults to True.
         """
+        from reframed.core.cbmodel import CBReaction
+        reaction = CBReaction(rxn_id, stoichiometry=stoichiometry, lb=lb, ub=ub)
         self.model.add_reaction(reaction, replace=replace)
 
     def remove_reaction(self, r_id):
@@ -265,7 +238,7 @@ class Simulation(CBModelContainer, Simulator):
         :returns: The list of uptake reactions.
 
         """
-        drains = self.get_drains()
+        drains = self.get_exchange_reactions()
         reacs = [r for r in drains if self.model.reactions[r].reversible or
                  ((self.model.reactions[r].lb is None or self.model.reactions[r].lb < 0)
                   and len(self.model.reactions[r].get_substrates()) > 0) or
@@ -339,7 +312,6 @@ class Simulation(CBModelContainer, Simulator):
     def gene_reactions(self):
         """
         :returns: a map of genes to reactions.
-
         """
         if not self._gene_to_reaction:
             gr = OrderedDict()
@@ -369,9 +341,10 @@ class Simulation(CBModelContainer, Simulator):
 
         return self._m_r_lookup
 
-    # TODO: this is repeated
-    def set_objective(self, reaction):
-        self.model.set_objective({reaction: 1})
+    def metabolite_elements(self, metabolite_id):
+        formula = self.model.metabolites[metabolite_id].metadata['FORMULA']
+        return elements(formula)
+
 
     def get_reaction_bounds(self, reaction):
         """
@@ -387,7 +360,17 @@ class Simulation(CBModelContainer, Simulator):
         else:
             lb, ub = self.model.reactions[reaction].lb, self.model.reactions[reaction].ub
 
-        return lb if lb > -np.inf else -999999, ub if ub < np.inf else 999999
+        return lb if lb > -np.inf else ModelConstants.REACTION_LOWER_BOUND,\
+            ub if ub < np.inf else ModelConstants.REACTION_UPPER_BOUND
+
+    def set_reaction_bounds(self, reaction, lb=None, ub=None):
+        """
+        Sets the bounds for a given reaction.
+        :param reaction: str, reaction ID
+        :param float lb: lower bound 
+        :param float ub: upper bound
+        """
+        self.model.set_flux_bounds(reaction, lb, ub)
 
     def find_bounds(self):
         """
@@ -400,10 +383,10 @@ class Simulation(CBModelContainer, Simulator):
         upper_bound = np.nanmedian(upper_bounds[upper_bounds != 0.0])
         if np.isnan(lower_bound):
             LOGGER.warning("Could not identify a median lower bound.")
-            lower_bound = -1000.0
+            lower_bound = ModelConstants.REACTION_LOWER_BOUND
         if np.isnan(upper_bound):
             LOGGER.warning("Could not identify a median upper bound.")
-            upper_bound = 1000.0
+            upper_bound = ModelConstants.REACTION_UPPER_BOUND
         return lower_bound, upper_bound
 
     def find_unconstrained_reactions(self):
@@ -418,7 +401,7 @@ class Simulation(CBModelContainer, Simulator):
     # Simulate
     def simulate(self, objective=None, method=SimulationMethod.FBA,
                  maximize=True, constraints=None, reference=None,
-                 scalefactor=None, solver=None):
+                 scalefactor=None, solver=None, slim=False):
         '''
         Simulates a phenotype when applying a set constraints using the specified method.
 
@@ -473,8 +456,9 @@ class Simulation(CBModelContainer, Simulator):
             reference = self.reference
 
         if method == SimulationMethod.FBA:
+            get_values = not slim
             solution = FBA(self.model, objective=objective, minimize=not maximize,
-                           constraints=simul_constraints, solver=a_solver)
+                           constraints=simul_constraints, solver=a_solver, get_values=get_values)
         elif method == SimulationMethod.pFBA:
             solution = pFBA(self.model, objective=objective, minimize=not maximize,
                             constraints=simul_constraints, solver=a_solver, obj_frac=0.999)
@@ -505,12 +489,15 @@ class Simulation(CBModelContainer, Simulator):
                 for x, y in solution.values.items():
                     solution.values[x] = y / scalefactor
 
-        status = self.__status_mapping[solution.status]
+        if slim:
+            return solution.fobj
 
-        result = SimulationResult(self.model, solution.fobj, fluxes=solution.values, status=status,
-                                  envcond=self.environmental_conditions, model_constraints=self.constraints,
-                                  simul_constraints=constraints, maximize=maximize, method=method)
-        return result
+        else:
+            status = self.__status_mapping[solution.status]
+            result = SimulationResult(self.model, solution.fobj, fluxes=solution.values, status=status,
+                                    envcond=self.environmental_conditions, model_constraints=self.constraints,
+                                    simul_constraints=constraints, maximize=maximize, method=method)
+            return result
 
     def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None,
             format='dict'):
@@ -548,10 +535,10 @@ class Simulation(CBModelContainer, Simulator):
 
 class GeckoSimulation(Simulation):
 
-    def __init__(self, model: GeckoModel, objective=None, envcond=None, constraints=None, solver=None, reference=None,
+    def __init__(self, model: GeckoModel, envcond=None, constraints=None, solver=None, reference=None,
                  reset_solver=ModelConstants.RESET_SOLVER, protein_prefix=None):
         super(GeckoSimulation, self).__init__(
-            model, objective, envcond, constraints, solver, reference, reset_solver)
+            model, envcond, constraints, solver, reference, reset_solver)
         self.protein_prefix = protein_prefix if protein_prefix else 'draw_prot_'
         self._essential_proteins = None
 
@@ -570,7 +557,7 @@ class GeckoSimulation(Simulation):
         wt_growth = wt_solution.objective_value
         self._essential_proteins = []
         proteins = self.model.proteins
-        for p in proteins:
+        for p in tqdm(proteins):
             rxn = "{}{}".format(self.protein_prefix, p)
             res = self.simulate(constraints={rxn: 0})
             if res:
@@ -605,3 +592,10 @@ class GeckoSimulation(Simulation):
             return f[d.index(reaction_id)]
         else:
             return None
+
+    def getKcat(self, protein):
+        """ Returns a dictionary of reactions and respective Kcat for a specific enzyme·
+        """
+        m_r = self.metabolite_reaction_lookup()
+        r_d = m_r[protein]
+        return {k: v for k, v in r_d.items() if v < 0}

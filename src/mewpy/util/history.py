@@ -8,7 +8,7 @@ from pandas import DataFrame
 
 if TYPE_CHECKING:
     from mewpy.model import Model
-    from mewpy.variables import Variable
+    from mewpy.mew.variables import Variable
 
 
 class HistoryManager:

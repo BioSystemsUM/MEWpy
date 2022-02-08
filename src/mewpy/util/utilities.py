@@ -61,7 +61,6 @@ def copy_func(f):
 class Dispatcher:
 
     def __init__(self):
-
         """
         Dispatcher for the simulate method of the Simulation interface
         It allows a simplification of the if else chain of methods provided as input to the simulate method
@@ -120,3 +119,12 @@ def generator(container):
 # Taken from the talented team responsible for developing cobrapy!!!!
 chemical_formula_re = re.compile('([A-Z][a-z]?)([0-9.]+[0-9.]?|(?=[A-Z])?)')
 
+
+def elements(formula):
+    all_elements = re.findall(chemical_formula_re, formula)
+    atoms = {}
+    for atom, count in all_elements:
+        if not count:
+            count = '1'
+        atoms[atom] = atoms.get(atom, 0) + int(count)
+    return atoms

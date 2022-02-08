@@ -35,14 +35,22 @@ def to_json(model, filename=None):
     return filename
 
 
-def build_escher(model=None, fluxes=None, fmt_func=None, **kwargs):
+def remove_prefix(text, prefix='R_'):
+    if text.startswith(prefix):
+        return text[len(prefix):]
+    return text
+
+
+def build_escher(model=None, fluxes=None, fmt_func=remove_prefix, **kwargs):
     try:
         import escher
     except ImportError:
         raise RuntimeError("Escher is not installed.")
 
     js = None
-    if isinstance(model, str) and model in escher_maps():
+    if model is None:
+        map_name = 'e_coli_core.Core metabolism'
+    elif isinstance(model, str) and model in escher_maps():
         map_name = model
     else:
         try:

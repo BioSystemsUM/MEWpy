@@ -1,21 +1,33 @@
 import copy
 import warnings
 from abc import ABC, abstractmethod
-from enum import IntEnum
-
+from enum import Enum
 import numpy as np
-
-from ..optimization.ea import Solution
+from ..optimization.ea import Solution, filter_duplicates
 from ..simulation import get_simulator
 from ..util.constants import EAConstants, ModelConstants
+from ..util.process import get_fevaluator
 
 
-class Strategy(IntEnum):
-    """
-    The available optimization strategies
-    """
-    KO = 1
-    OU = 2
+class Strategy(Enum):
+    KO = 'KO'
+    OU = 'OU'
+
+    def __eq__(self, other):
+        """Overrides equal to enable string name comparison.
+        Allows to seamlessly use:
+            Strategy.KO = Strategy.KO
+            Strategy.KO = 'KO'.
+        """
+        if isinstance(other, Strategy):
+            return super().__eq__(other)
+        elif isinstance(other, str):
+            return self.name == other
+        else:
+            return False
+
+    def __hash__(self):
+        return hash(self.name)
 
 
 class KOBounder(object):
@@ -107,6 +119,9 @@ class AbstractProblem(ABC):
         for f in self.fevaluation:
             methods.extend(f.required_simulations())
         self.methods = list(set(methods))
+        # problem specific EA operators
+        self.operators = None
+        self.operators_param = None
 
     @abstractmethod
     def generator(self, random, args):
@@ -192,7 +207,6 @@ class AbstractProblem(ABC):
         :param decode: If the solution needs to be decoded.
         :returns: A list of fitness.
         """
-        p = []
         decoded = {}
         # decoded constraints
         if decode:
@@ -204,15 +218,17 @@ class AbstractProblem(ABC):
         # pre simulation
         simulation_results = dict()
         try:
+            p = []
             for method in self.methods:
                 simulation_result = self.simulator.simulate(
                     constraints=constraints, method=method, scalefactor=self.scalefactor)
                 simulation_results[method] = simulation_result
             # apply the evaluation function(s)
             for f in self.fevaluation:
-                p.append(f(simulation_results, decoded,
-                           scalefactor=self.scalefactor))
+                v = f(simulation_results, decoded, scalefactor=self.scalefactor)
+                p.append(v)
         except Exception as e:
+            p = []
             for f in self.fevaluation:
                 p.append(f.worst_fitness)
             if EAConstants.DEBUG:
@@ -282,20 +298,23 @@ class AbstractProblem(ABC):
                 res.append(simplification)
             return res
 
-    def simplify_population(self, population):
+    def simplify_population(self, population, n_cpu=1):
         """Simplifies a population of solutions
 
         Args:
             population (list): List of mewpy.optimization.ea.Solution
-
+            n_cpu (int): Number of CPUs.
         Returns:
             list: Simplified population
         """
         pop = []
         for solution in population:
-            res = self.simplify(solution)
-            pop.extend(res)
-        return pop
+            try:
+                res = self.simplify(solution)
+                pop.extend(res)
+            except Exception:
+                pop.append(solution)
+        return filter_duplicates(pop)
 
 
 class AbstractKOProblem(AbstractProblem):
@@ -352,11 +371,14 @@ class AbstractKOProblem(AbstractProblem):
         """
         Generates a solution, a random int set with length in range min_solution_size to max_solution_size.
         """
-        solution = set()
-        solution_size = random.uniform(
-            self.candidate_min_size, self.candidate_max_size)
-        while len(solution) < solution_size:
-            solution.add(random.randint(0, len(self.target_list) - 1))
+
+        if self.candidate_min_size == self.candidate_max_size:
+            solution_size = self.candidate_min_size
+        else:
+            solution_size = random.randint(
+                self.candidate_min_size, self.candidate_max_size)
+
+        solution = set(random.sample(range(len(self.target_list)), solution_size))
         return solution
 
 
@@ -373,13 +395,14 @@ class AbstractOUProblem(AbstractProblem):
 
         :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
         :param list levels: Over/under expression levels (Default EAConstants.LEVELS).
-
+        :param boolean twostep: If deletions should be applied before identifiying reference flux values.
         """
         super(AbstractOUProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
         self.strategy = Strategy.OU
         self.levels = kwargs.get('levels', EAConstants.LEVELS)
         self._reference = kwargs.get('reference', None)
+        self.twostep = kwargs.get('twostep', True)
 
     def decode(self, candidate):
         """The decoder function for the problem. Needs to be implemented by extending classes."""
@@ -434,18 +457,16 @@ class AbstractOUProblem(AbstractProblem):
         :param dict args: A dictionary of additional parameters.
         :returns: A new solution.
         """
-        solution = set()
-        solution_size = random.uniform(
-            self.candidate_min_size, self.candidate_max_size)
-        idxs = []
-        while len(solution) < solution_size:
-            idx = random.randint(0, len(self.target_list) - 1)
-            lv = random.randint(0, len(self.levels) - 1)
-            # idx = self.target_list.index(random.choice(self.target_list))
-            # lv = self.levels.index(random.choice(self.levels))
-            if idx not in idxs:
-                solution.add((idx, lv))
-                idxs.append(idx)
+
+        if self.candidate_min_size == self.candidate_max_size:
+            solution_size = self.candidate_min_size
+        else:
+            solution_size = random.randint(
+                self.candidate_min_size, self.candidate_max_size)
+
+        keys = random.sample(range(len(self.target_list)), solution_size)
+        values = random.choices(range(len(self.levels)), k=solution_size)
+        solution = set(zip(keys, values))
         return solution
 
     @property
@@ -463,17 +484,19 @@ class AbstractOUProblem(AbstractProblem):
         :param float level: The expression level for the reaction.
         :param float wt: The reference reaction flux.
         :returns: A tupple, flux bounds for the reaction.
-
         """
         if level > 1:
-            if wt >= 0:
+            if wt > 0:
                 return (level * wt, ModelConstants.REACTION_UPPER_BOUND)
-            else:
+            elif wt < 0:
                 return (-1 * ModelConstants.REACTION_UPPER_BOUND, level * wt)
         else:
-            return (0, level * wt) if wt >= 0 else (level * wt, 0)
+            if wt > 0:
+                return (0, level * wt)
+            elif wt < 0:
+                return (level * wt, 0)
 
-    def reaction_constraints(self, rxn, lv):
+    def reaction_constraints(self, rxn, lv, reference):
         """
         Converts a (reaction, level) pair into a constraint
         If a reaction is reversible, the direction with no or less wild type flux
@@ -484,12 +507,12 @@ class AbstractOUProblem(AbstractProblem):
         :returns: A dictionary of reaction constraints.
         """
         constraints = {}
-        fluxe_wt = self.reference[rxn]
+        fluxe_wt = reference[rxn]
         rev_rxn = self.simulator.reverse_reaction(rxn)
         if lv == 0:
             # KO constraint
             constraints[rxn] = (0, 0)
-        elif lv == 1:
+        elif lv == 1 or fluxe_wt == 0:
             # No contraint is applyed
             pass
         elif rev_rxn is None or rev_rxn == rxn:
@@ -498,7 +521,7 @@ class AbstractOUProblem(AbstractProblem):
         else:
             # there's a reverse reaction...
             # one of the two reactions needs to be KO, the one with no flux in the wt.
-            rev_fluxe_wt = self.reference[rev_rxn]
+            rev_fluxe_wt = reference[rev_rxn]
             if abs(fluxe_wt) >= abs(rev_fluxe_wt):
                 ko_rxn, ou_rxn, fwt = rev_rxn, rxn, fluxe_wt
             else:

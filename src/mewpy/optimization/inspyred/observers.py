@@ -12,8 +12,10 @@ def fitness_statistics(population):
 
     """
 
+    def minuszero(value):
+        return round(value, 6)
+            
     stats = {}
-
     population.sort(reverse=True)
     first = population[0].fitness
 
@@ -35,8 +37,8 @@ def fitness_statistics(population):
         med_fit = numpy.median(f)
         avg_fit = numpy.mean(f)
         std_fit = numpy.std(f)
-        stats['obj'] = {'best': best_fit, 'worst': worst_fit,
-                        'mean': avg_fit, 'median': med_fit, 'std': std_fit}
+        stats['obj'] = {'best': minuszero(best_fit), 'worst': minuszero(worst_fit),
+                        'mean': minuszero(avg_fit), 'median': minuszero(med_fit), 'std': minuszero(std_fit)}
 
     return stats
 

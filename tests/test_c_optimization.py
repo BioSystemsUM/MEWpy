@@ -19,8 +19,9 @@ class TestOptInspyred(unittest.TestCase):
         self.model = load_cbmodel(EC_CORE_MODEL)
         from mewpy.optimization.settings import set_default_population_size
         set_default_population_size(10)
-        from mewpy.optimization import set_default_engine
-        set_default_engine('inspyred')
+        from mewpy.optimization import set_default_engine, get_available_engines
+        if len(get_available_engines()):
+            set_default_engine('inspyred')
 
     def test_engine(self):
         """Assert the availability of optimization engines
@@ -68,8 +69,9 @@ class TestOptJMetal(TestOptInspyred):
         self.model = load_cbmodel(EC_CORE_MODEL)
         from mewpy.optimization.settings import set_default_population_size
         set_default_population_size(10)
-        from mewpy.optimization import set_default_engine
-        set_default_engine('jmetal')
+        from mewpy.optimization import set_default_engine, get_available_engines
+        if len(get_available_engines()):
+            set_default_engine('jmetal')
 
 
 class TestMewOptInspyred(unittest.TestCase):
@@ -83,8 +85,9 @@ class TestMewOptInspyred(unittest.TestCase):
         self.model = read_sbml(EC_CORE_MODEL2, regulatory=False, warnings=False)
         from mewpy.optimization.settings import set_default_population_size
         set_default_population_size(10)
-        from mewpy.optimization import set_default_engine
-        set_default_engine('inspyred')
+        from mewpy.optimization import set_default_engine, get_available_engines
+        if len(get_available_engines()):
+            set_default_engine('inspyred')
 
     def test_engine(self):
         """Assert the availability of optimization engines
@@ -132,8 +135,9 @@ class TestMewOptJMetal(TestMewOptInspyred):
         self.model = read_sbml(EC_CORE_MODEL2, regulatory=False, warnings=False)
         from mewpy.optimization.settings import set_default_population_size
         set_default_population_size(10)
-        from mewpy.optimization import set_default_engine
-        set_default_engine('jmetal')
+        from mewpy.optimization import set_default_engine, get_available_engines
+        if len(get_available_engines()):
+            set_default_engine('jmetal')
 
 
 if __name__ == '__main__':

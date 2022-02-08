@@ -34,15 +34,28 @@ MEWpy supports different models, some integrating omic data, such as enzymatic e
 
 **Deletion** on reactions fluxes are achieved by setting the reactions lower and upper bounds to 0. 
 
-**Under expressing**  a forward reaction consists on setting its flux upper bound to a value lesser to the wild type flux value, while under expressing  a backward reaction flux consists on setting its lower bound to a value greater to the wild type flux value.  For reversible reactions,  the wild type flux direction sets the direction to be preserved, and the lower bound or upper bound is set to 0 if and respectively the wild type flux direction is forward or backward.  Under expressing a reaction with no flux on the wild type is equivalent to a deletion.
+**Under expressing**  a forward reaction consists on setting its flux upper bound to a value lesser to a reference flux value, while under expressing  a backward reaction flux consists on setting its lower bound to a value greater to the reference flux value.  For reversible reactions,  the reference flux direction sets the direction to be preserved, and the lower bound or upper bound is set to 0 if and respectively the reference flux direction is forward or backward.  Under expressing a reaction with no flux on the reference is equivalent to a deletion.
 
-**Over expressing** a forward reaction consists on setting its flux lower bound to a value greater to the wild type flux value, while over expressing  a backward reaction flux consists on setting its upper bound to a value lesser to the wild type flux value.  Similarly to the under expression of reactions strategy,  the wild type flux direction sets the direction to be preserved.
+**Over expressing** a forward reaction consists on setting its flux lower bound to a value greater to the reference flux value, while over expressing  a backward reaction flux consists on setting its upper bound to a value lesser to the reference flux value.  Similarly to the under expression of reactions strategy,  the reference flux direction sets the direction to be preserved.
 
+**Reference flux values** may be defined by a user or automatically computed by MEWpy. The last considers two strategies: 1) use the wild type flux distribution as reference or 2) perform a two step simulation process where deletions are firstly applied to derive a reference flux distribution which will be used to set the over/under regulations on a second step.
+
+To configure a problem with a customized reference distribution, just pass the reference, a dictionary of reaction: value, as a problem parameter:
+```python
+problem = Problem(model, objectives, reference=reference)
+```
+
+To use the wild type flux distribution as reference, computed for the provided medium, set the `twostep` parameter to `False`:
+```python
+problem = Problem(model, objectives, envcond=medium, twostep=False)
+```
+
+The two step approach is applied by default by MEWpy.
 
 
 ### Genes
 
-A combinatorial solution that over- or under expresses a set of genes is propagated to the catalyzed reactions converting transcriptional/translational information into constraints over the fluxes of the reactions (see Fig. 2). To that end, and taking as reference the flux distribution of the wild-type strain obtained using pFBA, the Boolean operators OR/AND in Gene-Protein-Reaction (GPR) rules, are translated, by defaults, into MAX and MIN functions, respectively, asserting new reaction flux constraints. 
+A combinatorial solution that over- or under expresses a set of genes is propagated to the catalyzed reactions converting transcription/translational information into constraints over the fluxes of the reactions (see Fig. 2). To that end, and taking as reference the flux distribution resulting from applying the deletions contained in the genetic modifications, the Boolean operators OR/AND in Gene-Protein-Reaction (GPR) rules are translated into functional operators  (by defaults MAX and MIN functions) asserting new reaction flux constraints. 
 
   
 
@@ -123,13 +136,13 @@ tree.evaluate(be.f_operand, be.f_operator)
 0.25
 ```
 
-That is, the reaction flux will be under expressed to 0.25 of the wild type.
+That is, the reaction flux will be under expressed to 0.25 of the reference.
 
 
 
 ### Enzymes
 
-Genome-Scale Metabolic Models, although being efficient in modeling an organism's gene-protein-reaction (GPR) interactions, are oblivious to other equally important factors (e.g. enzyme kinetics and abundance, Transcription Factors, signaling, etc.) which affect cells' metabolism and transcriptional regulation. The incorporation of such elements as additional constraints leads to better and more accurate phenotype prediction. GECKO (GSMM with enzymatic constraints using kinetic and omics data) and sMOMENT (short MetabOlic Modelling with ENzyme kineTics) models enhance GSMMs by imposing soft constraints as upper bounds on fluxes representing the overall enzyme usage. GEMs stoichiometric matrices are extended by adding new rows that represent the enzymes and new columns that represent each enzyme’s usage. Kinetic information is included, in each added row, as stoichiometric coefficients in the form of enzymes’ turnover (kcat) values. Also, an identity submatrix over the added rows and columns permits to model each enzyme usage upper bound, respecting therefore the constraints on each flux.
+Genome-Scale Metabolic Models, although being efficient in modeling an organism's gene-protein-reaction (GPR) interactions, are oblivious to other equally important factors (e.g. enzyme kinetics and abundance, Transcription Factors, signaling, etc.) which affect cells' metabolism and transcriptional regulation. The incorporation of such elements as additional constraints leads to better and more accurate phenotype prediction. GECKO (GSMM with enzymatic constraints using kinetic and omics data) and sMOMENT (short MetabOlic Modelling with ENzyme kineTics) models enhance GSMMs by imposing soft constraints as upper bounds on fluxes representing the overall enzyme usage. GEMs stoichiometric matrices are extended by adding new rows that represent the enzymes and new columns that represent each enzyme’s usage. Kinetic information is included, in each added row, as stoichiometric coefficients in the form of enzymes’ turnover (kcat) values. Also, an identity sub-matrix over the added rows and columns permits to model each enzyme usage upper bound, respecting therefore the constraints on each flux.
 
 The computational strain optimization method performs modifications to the organism's metabolism by over- and under expressing protein values (see Fig. 3), which are reflected in the catalyzed reaction bounds. The optimization procedure, defined as in the previous sections, delivers solutions that reflect the over- or under expression of proteins whose usage is limited by enzyme upper bound constraints and by the protein pool inside the cell.
 

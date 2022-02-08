@@ -7,8 +7,10 @@ class ModelConstants:
     TOLERANCE = 1E-10
     # reset solver
     RESET_SOLVER = False
-    # Multiprocessing engine
+    # Multiprocessing engine. If ray is installed, it is used by default.
     MP_EVALUATOR = 'ray'
+    # Solver timeout
+    SOLVER_TIMEOUT = 3600
 
 
 class EAConstants:
@@ -34,6 +36,8 @@ class EAConstants:
     PROB_TARGET = True
     # DEBUG
     DEBUG = False
+    # Dump on interrupt
+    KILL_DUMP = False
 
 
 # calculated from https://github.com/HegemanLab/atomicWeightsDecimal (refer to this repository for credits)

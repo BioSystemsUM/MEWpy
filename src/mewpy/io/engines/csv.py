@@ -13,7 +13,7 @@ except ImportError:
     read_csv = False
 
 from mewpy.model import RegulatoryModel
-from mewpy.algebra import Expression, And, Symbol, NoneAtom
+from mewpy.mew.algebra import Expression, And, Symbol, NoneAtom
 from mewpy.io.dto import VariableRecord, DataTransferObject, FunctionTerm
 
 from .engine import Engine

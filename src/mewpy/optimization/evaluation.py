@@ -4,7 +4,7 @@ from abc import ABCMeta, abstractmethod
 from functools import reduce
 import numpy as np
 from ..simulation import get_simulator, SimulationMethod, SStatus
-from ..util.constants import EAConstants
+from ..util.constants import EAConstants, ModelConstants
 
 
 class EvaluationFunction:
@@ -169,6 +169,7 @@ class WYIELD(PhenotypeEvaluationFunction):
         self.scale = kwargs.get('scale', False)
         self.method = SimulationMethod.FBA
         self.alpha = kwargs.get('alpha', 0.3)
+        self.obj_frac = kwargs.get('obj_frac', 0.99)
         if self.alpha > 1 or self.alpha < 0:
             warnings.warn(
                 "The value of the tradeoff parameter alpha should be in range 0 to 1. Setting default value.")
@@ -205,7 +206,7 @@ class WYIELD(PhenotypeEvaluationFunction):
             raise ValueError(
                 "Reaction ids are not present in the fluxes distribution.")
 
-        biomassFluxValue = ssFluxes[self.biomassId] * 0.999
+        biomassFluxValue = ssFluxes[self.biomassId] * self.obj_frac
 
         try:
             # computed only once
@@ -221,7 +222,7 @@ class WYIELD(PhenotypeEvaluationFunction):
             constraints = {}
             constraints.update(sim.simulation_constraints)
             # add biomass constraint
-            constraints[self.biomassId] = (biomassFluxValue, 100000.0)
+            constraints[self.biomassId] = (biomassFluxValue, ModelConstants.REACTION_UPPER_BOUND)
 
             # only need to simulate FVA max if alpha is larger than 0, otherwise it will always be zero
             if (self.alpha > 0):
@@ -370,6 +371,7 @@ class BPCY_FVA(PhenotypeEvaluationFunction):
         self.method = kwargs.get('method', SimulationMethod.pFBA)
         self.reference = kwargs.get('reference', None)
         self.worst_fitness = 0.0
+        self.obj_frac = kwargs.get('obj_frac', 0.99)
 
     def get_fitness(self, simul_results, candidate, **kwargs):
         """Evaluates a candidate.
@@ -406,8 +408,8 @@ class BPCY_FVA(PhenotypeEvaluationFunction):
         v_max = 1
         constraints = sim.simulation_constraints
         # add biomass constraint
-        biomassFluxValue = ssFluxes[self.biomassId] * 0.999
-        constraints[self.biomassId] = (biomassFluxValue, 100000.0)
+        biomassFluxValue = ssFluxes[self.biomassId] * self.obj_frac
+        constraints[self.biomassId] = (biomassFluxValue, ModelConstants.REACTION_UPPER_BOUND)
 
         fvaMaxResult = simulation.simulate(
             objective={self.productId: 1}, constraints=constraints)
@@ -486,22 +488,19 @@ class AggregatedSum(PhenotypeEvaluationFunction, KineticEvaluationFunction):
         return "Aggregated Sum = " + reduce(lambda a, b: a + " " + b, [f.method_str() for f in self.fevaluation], "")
 
 
-class MinCandSize(PhenotypeEvaluationFunction, KineticEvaluationFunction):
+class CandidateSize(PhenotypeEvaluationFunction, KineticEvaluationFunction):
     """
-    This class implements the "minimization of number of reactions" objective function. The fitness is given by
-    1 - size(candidate)/ candidate_max_size, where the candidate_max_size is the maximum size that a candidate can have
-    during optimization.
+    Maximize/minimize the number of modifications (reactions, genes, enzymes, etc.).
 
-    :param maxCandidateSize: (int) Maximum size allowed for candidate.
+    :param (bool) maximize: Optimization sense. Default False (minimize)
 
     """
 
-    def __init__(self, candidate_max_size=EAConstants.MAX_SOLUTION_SIZE, maximize=True):
-        super(MinCandSize, self).__init__(maximize=maximize, worst_fitness=0.0)
-        self.candidate_max_size = candidate_max_size
+    def __init__(self, maximize=False):
+        super(CandidateSize, self).__init__(maximize=maximize, worst_fitness=0.0)
 
     def get_fitness(self, simulResult, candidate, **kwargs):
-        return 1 - len(candidate) / self.candidate_max_size
+        return len(candidate)
 
     def required_simulations(self):
         """
@@ -510,11 +509,19 @@ class MinCandSize(PhenotypeEvaluationFunction, KineticEvaluationFunction):
         return []
 
     def short_str(self):
-        return "MinCandSize"
+        return "Size"
 
     def method_str(self):
-        return "Minimizes the number of alterations"
+        return "Minimize/maximize the number of alterations"
 
+
+class MinCandSize(CandidateSize):
+
+    def __init__(self, maximize=False):
+        warnings.warn("This class will soon be depricated. Use CandidateSize instead.")
+        super(MinCandSize, self).__init__(maximize=maximize, worst_fitness=0.0)
+
+    
 
 class ModificationType(PhenotypeEvaluationFunction, KineticEvaluationFunction):
     """This Objective function favors solutions with deletions, under expression and over expression,
@@ -547,3 +554,66 @@ class ModificationType(PhenotypeEvaluationFunction, KineticEvaluationFunction):
 
     def method_str(self):
         return "ModificationType"
+
+
+class MolecularWeight(PhenotypeEvaluationFunction):
+    """Minimizes the sum of molecular weights of the products of a set of reactions (g/gDW/h).
+    """
+
+    def __init__(self, reactions, maximize=False, **kwargs):
+        super(MolecularWeight, self).__init__(maximize=maximize, worst_fitness=np.inf)
+        self.reactions = reactions
+        self.method = kwargs.get('method', SimulationMethod.pFBA)
+        # sum of molar masses of product compounds for the reactions
+        self.__mw = None
+
+    def compute_rxnmw(self, model):
+        from ..util.constants import atomic_weights
+        self.__mw = {}
+        simulator = get_simulator(model)
+        for rx in self.reactions:
+            p = simulator.get_products(rx)
+            if not p:
+                p = simulator.get_substrates(rx)
+            rmw = 0
+            for m, v in p.items():
+                elem = simulator.metabolite_elements(m)
+                w = 0
+                for e, n in elem.items():
+                    try:
+                        w += atomic_weights[e] * n
+                    except:
+                        print(f"Unkown elemen {e}.")
+
+                rmw += abs(v) * w
+
+            self.__mw[rx] = rmw
+
+    def get_fitness(self, simul_results, candidate, **kwargs):
+        try:
+            sim = simul_results[self.method]
+        except Exception:
+            sim = None
+
+        if sim.status not in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
+            return self.no_solution
+
+        if self.__mw is None:
+            self.compute_rxnmw(sim.model)
+
+        fitness = 0
+        for rx in self.reactions:
+            fitness += self.__mw[rx] * abs(sim.fluxes[rx])
+        return fitness * 0.001
+
+    def required_simulations(self):
+        """
+        If the evaluation function requires a pre-simulation to compute fitness values
+        """
+        return [self.method]
+
+    def short_str(self):
+        return "Molecular Weight"
+
+    def method_str(self):
+        return "MW"

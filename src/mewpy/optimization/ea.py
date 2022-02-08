@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import signal
 import sys
 from ..util.constants import EAConstants
+from ..util.process import cpu_count
 
 
 class SolutionInterface(ABC):
@@ -106,7 +107,7 @@ class AbstractEA(ABC):
         self.mp = mp
         self.final_population = None
 
-    def run(self):
+    def run(self, simplify=True):
         """ Runs the optimization for the defined problem.
         The number of objectives is defined to be the number of evaluation functions in fevalution.
         """
@@ -123,24 +124,57 @@ class AbstractEA(ABC):
             final_pop = self._run_so()
         else:
             final_pop = self._run_mo()
-
-        self.final_population = self._convertPopulation(final_pop)
+        pop = self._convertPopulation(final_pop)
+        pop = filter_duplicates(pop)
+        if simplify:
+            n_cpu = cpu_count() if self.mp else 1
+            pop = self.problem.simplify_population(pop, n_cpu)
+        self.final_population = pop
         return self.final_population
 
+    def dataframe(self):
+        """Returns a dataframe of the final population.
+
+        :raises Exception: if the final population is empty or None.
+        :return: Returns a dataframe of the final population
+        :rtype: pandas.Dataframe
+        """
+        if not self.final_population:
+            raise Exception("No solutions")
+        table = [[x.values, len(x.values)]+x.fitness for x in self.final_population]
+        import pandas as pd
+        columns = ["Modification", "Size"]
+        columns.extend([obj.short_str() for obj in self.problem.fevaluation])
+        df = pd.DataFrame(table, columns=columns)
+        return df
+
+    def plot(self):
+        """Plots the final population.
+
+        :raises Exception:  if the final population is empty or None.
+        """
+        if not self.final_population:
+            raise Exception("No solutions")
+        from ..visualization.plot import StreamingPlot
+        labels = [obj.short_str() for obj in self.problem.fevaluation]
+        p = StreamingPlot(axis_labels=labels)
+        p.plot(self.final_population)
+
     def __signalHandler(self, signum, frame):
-        print("Dumping current population.")
-        try:
-            pop = self._get_current_population()
-            data = [s.toDict() for s in pop]
-            import json
-            from datetime import datetime
-            now = datetime.now()
-            dt_string = now.strftime("%d%m%Y-%H%M%S")
-            with open(f'mewpy-dump-{dt_string}.json', 'w') as outfile:
-                json.dump(data, outfile)
-        except Exception:
-            print("Unable to dump population.")
-        print("Exiting")
+        if EAConstants.KILL_DUMP:
+            print("Dumping current population.")
+            try:
+                pop = self._get_current_population()
+                data = [s.toDict() for s in pop]
+                import json
+                from datetime import datetime
+                now = datetime.now()
+                dt_string = now.strftime("%d%m%Y-%H%M%S")
+                with open(f'mewpy-dump-{dt_string}.json', 'w') as outfile:
+                    json.dump(data, outfile)
+            except Exception:
+                print("Unable to dump population.")
+            print("Exiting")
         sys.exit(0)
 
     @ abstractmethod

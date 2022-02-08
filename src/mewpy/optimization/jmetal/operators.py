@@ -327,3 +327,104 @@ class SingleMutationOULevel(Mutation[OUSolution]):
 
     def get_name(self):
         return 'Single Mutation KO'
+
+
+class GaussianMutation(Mutation[Solution]):
+    """
+     A Gaussian mutator
+    """
+
+    def __init__(self, probability: float = 0.1,
+                 gaussian_mutation_rate: float = 0.1,
+                 gaussian_mean: float = 0.0,
+                 gaussian_std: float = 1.0):
+        super(GaussianMutation, self).__init__(probability=probability)
+        self.gaussian_mutation_rate = gaussian_mutation_rate
+        self.gaussian_mean = gaussian_mean
+        self.gaussian_std = gaussian_std
+
+    def execute(self, solution: Solution) -> Solution:
+        if random.random() <= self.probability:
+            mutant = copy.copy(solution.variables)
+            for i, m in enumerate(mutant):
+                if random.random() < self.gaussian_mutation_rate:
+                    v = m + random.gauss(self.gaussian_mean, self.gaussian_std)
+                    while v < solution.lower_bound[i] or v > solution.upper_bound[i]:
+                        v = m + random.gauss(self.gaussian_mean, self.gaussian_std)
+                    solution.variables[i] = v
+        return solution
+
+    def get_name(self):
+        return 'Gaussian Mutator'
+
+
+class SingleRealMutation(Mutation[Solution]):
+    """
+    Mutates a single element
+    """
+
+    def __init__(self, probability: float = 0.1):
+        super(SingleMutation, self).__init__(probability=probability)
+
+    def execute(self, solution: Solution) -> Solution:
+        if random.random() <= self.probability:
+            index = random.randint(0, solution.number_of_variables - 1)
+            solution.variables[index] = solution.lower_bound[index] + \
+                (solution.upper_bound[index] - solution.lower_bound[index]) * random.random()
+        return solution
+
+    def get_name(self):
+        return 'Single Real Mutation'
+
+
+REP_INT = {
+    "SHRINK": ShrinkMutation,
+    "GROWKO": GrowMutationKO,
+    "GROWOU": GrowMutationOU,
+    "UCROSSKO": UniformCrossoverKO,
+    "UCROSSOU": UniformCrossoverOU,
+    "SMUTKO": SingleMutationKO,
+    "SMUTOU": SingleMutationOU,
+    "SMLEVEL": SingleMutationOULevel
+}
+
+
+def build_ko_operators(problem):
+    crossover = UniformCrossoverKO(0.8, problem.candidate_max_size)
+    mutators = []
+
+    # add shrink and growth mutation only if max size != min size
+    if problem.candidate_max_size != problem.candidate_min_size:
+        mutators.append(GrowMutationKO(
+            1.0, max_size=problem.candidate_max_size))
+        mutators.append(ShrinkMutation(
+            1.0, min_size=problem.candidate_min_size))
+
+    mutators.append(SingleMutationKO(1.0))
+    mutations = MutationContainer(0.3, mutators=mutators)
+    return crossover, mutations
+
+
+def build_ou_operators(problem):
+    crossover = UniformCrossoverOU(0.5, problem.candidate_max_size)
+    mutators = []
+    _max = problem.candidate_max_size
+    _min = problem.candidate_min_size
+    _t_size = problem.bounder.upper_bound[0]+1
+
+    # add shrink and growth mutation only if max size != min size
+    # and do not add if single ou if  max size == min size == targets size
+    if _max != _min:
+        mutators.append(GrowMutationOU(
+            1.0, max_size=problem.candidate_max_size))
+        mutators.append(ShrinkMutation(
+            1.0, min_size=problem.candidate_min_size))
+        mutators.append(SingleMutationOU(1.0))
+    elif _min != _t_size:
+        mutators.append(SingleMutationOU(1.0))
+    else:
+        pass
+
+    mutators.append(SingleMutationOULevel(1.0))
+    mutations = MutationContainer(0.3, mutators=mutators)
+    return crossover, mutations

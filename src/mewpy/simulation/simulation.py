@@ -1,7 +1,9 @@
 from abc import abstractmethod, ABC
 from collections import OrderedDict
-
-from mewpy.simulation import SimulationMethod
+from ..util.parsing import evaluate_expression_tree
+from ..util.process import cpu_count
+from . import SimulationMethod, SStatus
+from tqdm import tqdm
 
 
 class ModelContainer(ABC):
@@ -45,7 +47,7 @@ class ModelContainer(ABC):
     def medium(self):
         raise NotImplementedError
 
-    def get_drains(self):
+    def get_exchange_reactions(self):
         return NotImplementedError
 
     def get_gpr(self, reaction_id):
@@ -87,25 +89,11 @@ class Simulator(ModelContainer):
         """
         raise NotImplementedError
 
-    def __evaluator__(self, kwargs, candidate):
-        res = self.simulate(constraints=candidate, **kwargs)
-        return res
-
     def simulate_mp(self, objective=None, method=SimulationMethod.FBA, maximize=True, constraints_list=None,
-                    reference=None,
-                    solver=None, n_mp=None, **kwargs):
-        from mewpy.util.process import get_fevaluator
-        args = {}
-        args['objective'] = objective
-        args['method'] = method
-        args['maximize'] = maximize
-        args['reference'] = reference
-        args.update(kwargs)
-        from functools import partial
-        func = partial(self.__evaluator__, args)
+                    reference=None, solver=None, n_mp=None, **kwargs):
 
-        mp_evaluator = get_fevaluator(func)
-        res = mp_evaluator.evaluate(constraints_list, None)
+        res = Parallel(n_jobs=cpu_count())(delayed(self.simulate)(objective, method, maximize, constraints, reference,
+                                                                  solver, **kwargs) for constraints in constraints_list)
         return res
 
     @abstractmethod
@@ -115,6 +103,122 @@ class Simulator(ModelContainer):
     @abstractmethod
     def metabolite_reaction_lookup(self, force_recalculate=False):
         raise NotImplementedError
+
+    def find(self, pattern=None, sort=False, find_in='r'):
+        """A user friendly method to find metabolites, reactions or genes in the model.
+
+        :param pattern: The pattern which can be a regular expression, defaults to None in which case all entries are listed.
+        :type pattern: str, optional
+        :param sort: if the search results should be sorted, defaults to False
+        :type sort: bool, optional
+        :param find_in: The search set: 'r' for reactions, 'm' for metabolites, 'g' for genes, defaults to 'r'
+        :type find_in: str, optional
+        :return: the search results
+        :rtype: pandas dataframe
+        """
+        if find_in == 'm':
+            values = self.metabolites
+        elif find_in == 'g':
+            values = self.genes
+        else:
+            values = self.reactions
+        if pattern:
+            import re
+            if isinstance(pattern, list):
+                patt = '|'.join(pattern)
+                re_expr = re.compile(patt)
+            else:
+                re_expr = re.compile(pattern)
+            values = [x for x in values if re_expr.search(x) is not None]
+        if sort:
+            values.sort()
+        import pandas as pd
+        if find_in == 'm':
+            data = [self.get_metabolite(x) for x in values]
+        if find_in == 'g':
+            data = [{'Gene': x} for x in values]
+        else:
+            data = [self.get_reaction(x) for x in values]
+        df = pd.DataFrame(data)
+        return df
+
+    def essential_reactions(self, min_growth=0.01):
+        """Essential reactions are those when knocked out enable a biomass flux value above a minimal growth defined as
+        a percentage of the wild type growth.
+
+        :param float min_growth: Minimal percentage of the wild type growth value. Default 0.01 (1%).
+        :returns: A list of essential reactions.
+
+        """
+        essential = getattr(self, '_essential_reactions', None)
+        if essential is not None:
+            return essential
+        wt_solution = self.simulate()
+        wt_growth = wt_solution.objective_value
+        self._essential_reactions = []
+        print("Computing essential reactions:")
+        for rxn in tqdm(self.reactions):
+            res = self.simulate(constraints={rxn: 0},   slim=True)
+            if not res or res < min_growth:
+                self._essential_reactions.append(rxn)
+        return self._essential_reactions
+
+    def evaluate_gprs(self, active_genes):
+        """Returns the list of active reactions for a given list of active genes.
+
+        :param list active_genes: List of genes identifiers.
+        :returns: A list of active reaction identifiers.
+
+        """
+        active_reactions = []
+        reactions = self.reactions
+        for r_id in reactions:
+            gpr = self.get_gpr(r_id)
+            if gpr:
+                if evaluate_expression_tree(str(gpr), active_genes):
+                    active_reactions.append(r_id)
+            else:
+                active_reactions.append(r_id)
+        return active_reactions
+
+    def essential_genes(self, min_growth=0.01):
+        """Essential genes are those when deleted enable a biomass flux value above a minimal growth defined as
+        a percentage of the wild type growth.
+
+        :param float min_growth: Minimal percentage of the wild type growth value. Default 0.01 (1%).
+        :returns: A list of essential genes.
+
+        """
+        essential = getattr(self, '_essential_genes', None)
+        if essential is not None:
+            return essential
+        self._essential_genes = []
+        wt_solution = self.simulate()
+        wt_growth = wt_solution.objective_value
+        genes = self.genes
+        print("Computing essential genes:")
+        for gene in tqdm(genes):
+            active_genes = set(self.genes) - {gene}
+            active_reactions = self.evaluate_gprs(active_genes)
+            inactive_reactions = set(self.reactions) - set(active_reactions)
+            gr_constraints = {rxn: 0 for rxn in inactive_reactions}
+            res = self.simulate(constraints=gr_constraints, slim=True)
+            if not res or res < min_growth:
+                self._essential_genes.append(gene)
+        return self._essential_genes
+
+    @property
+    def reference(self):
+        """The reference wild type reaction flux values.
+
+        :returns: A dictionary of wild type reaction flux values.
+
+        """
+        ref = getattr(self, '_reference', None)
+        if ref is not None:
+            return ref
+        self._reference = self.simulate(method="pFBA").fluxes
+        return self._reference
 
 
 class SimulationResult(object):
@@ -164,11 +268,33 @@ class SimulationResult(object):
         return (f"objective: {self.objective_value}\nStatus: "
                 f"{self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}")
 
-    @property
-    def data_frame(self):
+    def find(self, pattern=None, sort=False):
+        """Returns a dataframe of reactions and their fluxes matching a pattern or a list of patterns.
+
+        :param pattern: a string or a list of strings. defaults to None
+        :param sort: If the dataframe is to be sorted by flux rates. Defaults to False
+        :type sort: bool, optional
+        :return: returns a dataframe.
+        :rtype: pandas.DataFrame
+        """
+        values = [(key, value) for key, value in self.fluxes.items()]
+        if pattern:
+            import re
+            if isinstance(pattern, list):
+                patt = '|'.join(pattern)
+                re_expr = re.compile(patt)
+            else:
+                re_expr = re.compile(pattern)
+            values = [x for x in values if re_expr.search(x[0]) is not None]
+        if sort:
+            values.sort(key=lambda x: x[1])
         import pandas as pd
-        df = pd.DataFrame(list(self.fluxes.items()), columns=['Reaction ID', 'Flux'])
+        df = pd.DataFrame(values, columns=['Reaction ID', 'Flux rate'])
         return df
+
+    @property
+    def dataframe(self):
+        return self.find()
 
     def get_net_conversion(self, biomassId=None):
         """Returns a string representation of the net conversion.
@@ -181,13 +307,13 @@ class SimulationResult(object):
         left = ""
         right = ""
         firstLeft, firstRight = True, True
-
+        from . import get_simulator
+        sim = get_simulator(self.model)
         ssFluxes = self.fluxes
-        reactions = self.model.reactions
-        for r_id in reactions.keys():
+        for r_id in sim.reactions:
             fluxValue = ssFluxes[r_id]
-            sub = reactions[r_id].get_substrates()
-            prod = reactions[r_id].get_products()
+            sub = list(sim.get_substrates(r_id).keys())
+            prod = list(sim.get_products(r_id).keys())
             # if rId is a drain reaction
             if fluxValue != 0.0 and (len(sub) == 0 or len(prod) == 0):
                 m = sub + prod
@@ -217,3 +343,23 @@ class SimulationResult(object):
                 right = right + " " + biomassId
 
         return left + " --> " + right
+
+    def get_metabolites_turnover(self):
+        """ Calculate metabolite turnover.
+
+        Arguments:
+            model: REFRAMED/Cobrapy model or Simulator that generated the solution
+
+        Returns:
+            dict: metabolite turnover rates
+        """
+        from . import get_simulator
+        sim = get_simulator(self.model)
+
+        if not self.values:
+            return None
+
+        m_r_table = sim.metabolite_reaction_lookup()
+        t = {m_id: 0.5*sum([abs(coeff * self.fluxes[r_id]) for r_id, coeff in neighbours.items()])
+             for m_id, neighbours in m_r_table.items()}
+        return t

@@ -6,11 +6,12 @@ import numpy as np
 from . import SimulationMethod, SStatus
 from .simulation import Simulator, SimulationResult, ModelContainer
 from mewpy.model import Model, MetabolicModel, RegulatoryModel
-from mewpy.variables import Reaction
+from mewpy.mew.variables import Reaction
 from mewpy.util.constants import ModelConstants
 from mewpy.util.utilities import Dispatcher
-from mewpy.analysis import FBA, pFBA, fva
+from mewpy.mew.analysis import FBA, pFBA, fva
 from mewpy.solvers.solution import Solution, Status
+from tqdm import tqdm
 
 if TYPE_CHECKING:
     from mewpy.solvers.solver import Solver
@@ -22,7 +23,6 @@ LOGGER = logging.getLogger(__name__)
 class MewModelContainer(ModelContainer):
 
     def __init__(self, model: Union[Model, MetabolicModel, RegulatoryModel]):
-
         """
         A mew model container. It provides an interface to access mew model containers
 
@@ -84,7 +84,7 @@ class MewModelContainer(ModelContainer):
 
         return {}
 
-    def get_drains(self):
+    def get_exchange_reactions(self):
 
         if self.model.is_metabolic():
             return list(self.model.exchanges.keys())
@@ -170,12 +170,10 @@ class Simulation(MewModelContainer, Simulator):
 
     def __init__(self,
                  model: Union[Model, MetabolicModel, RegulatoryModel],
-                 objective: str = None,
                  envcond: Dict[str, Tuple[Union[int, float], Union[int, float]]] = None,
                  constraints: Dict[str, Tuple[Union[int, float], Union[int, float]]] = None,
                  reference: Dict[str, Union[int, float]] = None,
                  reset_solver=ModelConstants.RESET_SOLVER):
-
         """
         Simulation supports simulation of a mew Model, MetabolicModel, RegulatoryModel or all.
         Additional environmental conditions and constraints can be set using this interface.
@@ -189,7 +187,6 @@ class Simulation(MewModelContainer, Simulator):
 
         Optional:
 
-        :param objective: the model objective
         :param envcond: a dictionary of additional environmental conditions
         :param constraints: a dictionary of additional constraints
         :param reference: A dictionary of the wild type flux values
@@ -260,7 +257,6 @@ class Simulation(MewModelContainer, Simulator):
         return self._reference
 
     def essential_reactions(self, min_growth=0.01) -> List[str]:
-
         """
         The set of knocked out reactions that impair a minimal growth rate predicted by the model with fba.
         The defined minimal percentage of the wild type growth rate is usually set to 0.01 (1%).
@@ -282,7 +278,7 @@ class Simulation(MewModelContainer, Simulator):
 
         reactions = self.reactions.copy()
 
-        for rxn in reactions:
+        for rxn in tqdm(reactions):
 
             res = self.simulate(constraints={rxn: 0})
 
@@ -295,7 +291,6 @@ class Simulation(MewModelContainer, Simulator):
         return self._essential_reactions
 
     def essential_genes(self, min_growth=0.01) -> List[str]:
-
         """
         The set of knocked out genes that impair a minimal growth rate predicted by the model with fba.
         The defined minimal percentage of the wild type growth rate is usually set to 0.01 (1%).
@@ -317,7 +312,7 @@ class Simulation(MewModelContainer, Simulator):
 
         values = {gene.id: 1.0 for gene in self.model.yield_genes()}
 
-        for gene in self.model.yield_genes():
+        for gene in tqdm(self.model.yield_genes()):
 
             values[gene.id] = 0.0
 
@@ -345,7 +340,6 @@ class Simulation(MewModelContainer, Simulator):
         return self._essential_genes
 
     def evaluate_gprs(self, active_genes) -> List[str]:
-
         """
         Returns the list of active reactions for a given list of active genes.
 
@@ -364,7 +358,6 @@ class Simulation(MewModelContainer, Simulator):
                 if rxn.gpr.is_none or rxn.gpr.evaluate(values=values)]
 
     def add_reaction(self, reaction: Reaction, replace: bool = True, comprehensive=True):
-
         """
         Adds a reaction to the mew model
 
@@ -388,7 +381,6 @@ class Simulation(MewModelContainer, Simulator):
                 self.model.add(reaction, 'reaction', comprehensive=comprehensive, history=False)
 
     def remove_reaction(self, reaction: Reaction, remove_orphans=True):
-
         """
         Removes a reaction from the mew model
 
@@ -459,7 +451,6 @@ class Simulation(MewModelContainer, Simulator):
         return list(genes)
 
     def reverse_reaction(self, reaction_id: str) -> Union[str, None]:
-
         """
         Identify if a reaction is reversible and returns the reverse reaction if it is the case.
 
@@ -499,7 +490,6 @@ class Simulation(MewModelContainer, Simulator):
         return self._m_r_lookup
 
     def get_reaction_bounds(self, reaction: str) -> Tuple[Union[int, float], Union[int, float]]:
-
         """
         Get the bounds for a given reaction.
 
@@ -551,7 +541,6 @@ class Simulation(MewModelContainer, Simulator):
         return lb, ub
 
     def find_unconstrained_reactions(self) -> List[str]:
-
         """
         Finds a list of reactions that are not constrained in the model
 
@@ -650,14 +639,11 @@ class Simulation(MewModelContainer, Simulator):
                  reference: Dict[str, Union[int, float]] = None,
                  scalefactor: float = None,
                  solver: Union['Solver', 'CplexSolver', 'GurobiSolver', 'OptLangSolver'] = None) -> SimulationResult:
-
-        """
-
+        """ 
         Simulates a phenotype for a given objective and set of constraints using the specified method.
         Reference wild-type conditions are also accepted
-
-        :param objective: The simulation objective. If none, the model objective is considered.
-        :param method: The SimulationMethod (FBA, pFBA, lMOMA, etc ...).
+ 
+        :param ob jective:  The simulation objec t iv:param method: The SimulationMethod (FBA, pFBA, lMOMA, etc ...).
         See available methods at mewpy.simulation.SimulationMethod
         :param maximize: The optimization direction
         :param constraints: A dictionary of constraints to be applied to the model
@@ -708,7 +694,6 @@ class Simulation(MewModelContainer, Simulator):
             internal=None,
             solver=None,
             format='dict'):
-
         """
 
         It performs a Flux Variability Analysis (FVA).

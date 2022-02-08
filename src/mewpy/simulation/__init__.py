@@ -7,15 +7,20 @@ solvers = []
 try:
     import gurobipy
     solvers.append('gurobi')
-    # disables solver output.
-    # gurobipy.setParam('OutputFlag', 0)
-except ImportError:
+except ImportError as e:
     pass
+
+if 'gurobi' in solvers:
+    try:
+        # disables solver output.
+        gurobipy.setParam('OutputFlag', 0)
+    except:
+        pass
 
 try:
     import cplex
     solvers.append('cplex')
-except ImportError:
+except ImportError as e:
     pass
 
 try:
@@ -37,7 +42,7 @@ def get_default_solver():
     if default_solver:
         return default_solver
 
-    solver_order = ['gurobi', 'cplex', 'glpk']
+    solver_order = ['cplex', 'gurobi', 'glpk']
 
     for solver in solver_order:
         if solver in solvers:
@@ -62,31 +67,6 @@ def set_default_solver(solvername):
         default_solver = solvername.lower()
     else:
         raise RuntimeError(f"Solver {solvername} not available.")
-
-
-solvers = []
-
-try:
-    import gurobipy
-    solvers.append('gurobi')
-except ImportError:
-    pass
-
-
-try:
-    import cplex
-    solvers.append('cplex')
-except ImportError:
-    pass
-
-try:
-    import swiglpk
-    solvers.append('glpk')
-except ImportError:
-    pass
-
-
-default_solver = None
 
 
 # Model specific simulators mapping:
@@ -126,11 +106,18 @@ def get_simulator(model, envcond=None, constraints=None, reference=None, reset_s
         module_name, class_name = map_model_simulator[name]
         module = __import__(module_name, fromlist=[None])
         class_ = getattr(module, class_name)
+        try:
+            model.solver.configuration.timeout = ModelConstants.SOLVER_TIMEOUT
+        except:
+            pass
         instance = class_(model, envcond=envcond,
                           constraints=constraints, reference=reference, reset_solver=reset_solver)
     elif "etfl" in name:
         try:
             from .cobra import Simulation
+            from etfl.optim.config import standard_solver_config
+            standard_solver_config(model, verbose=False)
+            model.solver.configuration.timeout = max(7200, ModelConstants.SOLVER_TIMEOUT)
             instance = Simulation(
                 model, envcond=envcond, constraints=constraints, reference=reference, reset_solver=reset_solver)
             instance._MAX_STR = 'max'
@@ -142,6 +129,7 @@ def get_simulator(model, envcond=None, constraints=None, reference=None, reset_s
             from cobra.core.model import Model
             if isinstance(model, Model):
                 from .cobra import Simulation
+                model.solver.configuration.timeout = ModelConstants.SOLVER_TIMEOUT
                 instance = Simulation(
                     model, envcond=envcond, constraints=constraints, reference=reference, reset_solver=reset_solver)
         except ImportError:
