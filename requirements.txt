@@ -6,4 +6,5 @@ jmetalpy
 networkx
 matplotlib
 tqdm
+joblib
 

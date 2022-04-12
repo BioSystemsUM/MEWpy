@@ -583,7 +583,7 @@ class MolecularWeight(PhenotypeEvaluationFunction):
                     try:
                         w += atomic_weights[e] * n
                     except:
-                        print(f"Unkown elemen {e}.")
+                        pass
 
                 rmw += abs(v) * w
 

@@ -93,14 +93,6 @@ class CobraModelContainer(ModelContainer):
         else:
             return None
 
-    def get_substrates(self, rxn_id):
-        reaction = self.model.reactions.get_by_id(rxn_id)
-        return {k.id: v for k, v in reaction.metabolites.items() if v < 0}
-
-    def get_products(self, rxn_id):
-        reaction = self.model.reactions.get_by_id(rxn_id)
-        return {k.id: v for k, v in reaction.metabolites.items() if v > 0}
-
     def get_exchange_reactions(self):
         rxns = [r.id for r in self.model.exchanges]
         return rxns
@@ -422,11 +414,11 @@ class Simulation(CobraModelContainer, Simulator):
         else:
             status = self.__status_mapping[solution.status]
             result = SimulationResult(model, solution.objective_value, fluxes=solution.fluxes.to_dict(OrderedDict),
-                                    status=status, envcond=self.environmental_conditions,
-                                    model_constraints=self.constraints,
-                                    simul_constraints=constraints,
-                                    maximize=maximize,
-                                    method=method)
+                                      status=status, envcond=self.environmental_conditions,
+                                      model_constraints=self.constraints,
+                                      simul_constraints=constraints,
+                                      maximize=maximize,
+                                      method=method)
             return result
 
     def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None,

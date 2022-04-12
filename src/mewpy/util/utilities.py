@@ -1,3 +1,6 @@
+from tqdm import tqdm
+import joblib
+import contextlib
 import functools
 import re
 import types
@@ -74,41 +77,28 @@ class Dispatcher:
         self.registry = {}
 
     def __get__(self, instance, owner):
-
         if instance is None:
             return self
-
         return self.dispatch(instance, owner)
 
     def dispatch(self, instance, owner):
-
         def wrapper(state, *args, **kwargs):
-
             method = self.registry.get(state).__get__(instance, owner)
-
             return method(*args, **kwargs)
-
         return wrapper
 
     def register(self, state):
-
         def wrapper(method):
-
             self.registry[state] = method
-
             return method
-
         return wrapper
 
 
 def iterable(obj, is_string=False):
     if isinstance(obj, Iterable):
-
         if is_string and isinstance(obj, str):
             return (obj,)
-
         return obj
-
     return (obj,)
 
 
@@ -128,3 +118,20 @@ def elements(formula):
             count = '1'
         atoms[atom] = atoms.get(atom, 0) + int(count)
     return atoms
+
+
+@contextlib.contextmanager
+def tqdm_joblib(tqdm_object):
+    """Context manager to patch joblib to report into tqdm progress bar given as argument"""
+    class TqdmBatchCompletionCallback(joblib.parallel.BatchCompletionCallBack):
+        def __call__(self, *args, **kwargs):
+            tqdm_object.update(n=self.batch_size)
+            return super().__call__(*args, **kwargs)
+
+    old_batch_callback = joblib.parallel.BatchCompletionCallBack
+    joblib.parallel.BatchCompletionCallBack = TqdmBatchCompletionCallback
+    try:
+        yield tqdm_object
+    finally:
+        joblib.parallel.BatchCompletionCallBack = old_batch_callback
+        tqdm_object.close()

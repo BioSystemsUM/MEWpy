@@ -45,6 +45,8 @@ class CBModelContainer(ModelContainer):
         return list(self.model.reactions.keys())
 
     def get_reaction(self, r_id):
+        if r_id not in self.reactions:
+            raise ValueError(f"Reactions {r_id} does not exist")
         rxn = self.model.reactions[r_id]
         res = {'id': r_id, 'name': rxn.name, 'lb': rxn.lb, 'ub': rxn.ub, 'stoichiometry': rxn.stoichiometry}
         res['gpr'] = str(rxn.gpr) if rxn.gpr is not None else None
@@ -77,31 +79,8 @@ class CBModelContainer(ModelContainer):
         res = {'id': c_id, 'name': c.name, 'external': c.external}
         return res
 
-    def get_gpr(self, reaction_id):
-        """Returns the gpr rule (str) for a given reaction ID.
-
-        :param str reaction_id: The reaction identifier.
-        :returns: A string representation of the GPR rule.
-
-        """
-        if reaction_id not in self.reactions:
-            raise ValueError(f"Reactions {reaction_id} does not exist")
-        reaction = self.model.reactions[reaction_id]
-        if reaction.gpr:
-            return str(reaction.gpr)
-        else:
-            return None
-
     def get_exchange_reactions(self):
         return self.model.get_exchange_reactions()
-
-    def get_substrates(self, rxn_id):
-        reaction = self.model.reactions[rxn_id]
-        return {m_id: coeff for m_id, coeff in reaction.stoichiometry.items() if coeff < 0}
-
-    def get_products(self, rxn_id):
-        reaction = self.model.reactions[rxn_id]
-        return {m_id: coeff for m_id, coeff in reaction.stoichiometry.items() if coeff > 0}
 
     @property
     def medium(self):
@@ -144,11 +123,10 @@ class Simulation(CBModelContainer, Simulator):
     def __init__(self, model: CBModel, envcond=None, constraints=None, solver=None, reference=None,
                  reset_solver=ModelConstants.RESET_SOLVER):
 
-
         if not isinstance(model, CBModel):
             raise ValueError(
                 "Model is None or is not an instance of REFRAMED CBModel")
-            
+
         self.model = model
         set_default_solver(solver_map[get_default_solver()])
         self.environmental_conditions = OrderedDict() if envcond is None else envcond
@@ -345,7 +323,6 @@ class Simulation(CBModelContainer, Simulator):
         formula = self.model.metabolites[metabolite_id].metadata['FORMULA']
         return elements(formula)
 
-
     def get_reaction_bounds(self, reaction):
         """
         Returns the bounds for a given reaction.
@@ -495,8 +472,8 @@ class Simulation(CBModelContainer, Simulator):
         else:
             status = self.__status_mapping[solution.status]
             result = SimulationResult(self.model, solution.fobj, fluxes=solution.values, status=status,
-                                    envcond=self.environmental_conditions, model_constraints=self.constraints,
-                                    simul_constraints=constraints, maximize=maximize, method=method)
+                                      envcond=self.environmental_conditions, model_constraints=self.constraints,
+                                      simul_constraints=constraints, maximize=maximize, method=method)
             return result
 
     def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None,
