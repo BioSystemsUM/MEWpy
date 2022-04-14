@@ -56,5 +56,5 @@ class ODEStatus(Enum):
 class ODESolver(ABC):
 
     @abstractmethod
-    def solve(self, t_span, **kwargs):
+    def solve(self, y0, t_span, **kwargs):
         raise NotImplementedError

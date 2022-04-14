@@ -38,7 +38,7 @@ class ODESpySolver(ODESolver):
     def set_initial_condition(self, initial_condition):
         self.initial_condition = initial_condition
 
-    def solve(self, t_span, **kwargs):
+    def solve(self, y0, t_span, **kwargs):
         """
         Returns the solver method from odespy package.
 
@@ -55,7 +55,6 @@ class ODESpySolver(ODESolver):
         solver.nsteps = SolverConfigurations.N_STEPS
         solver.atol = SolverConfigurations.ABSOLUTE_TOL
         solver.rtol = SolverConfigurations.RELATIVE_TOL
-        y = kwargs.get('initial', self.initial_condition)
-        solver.set_initial_condition(y)
+        solver.set_initial_condition(y0)
         sol, _ = solver.solve()
         return sol

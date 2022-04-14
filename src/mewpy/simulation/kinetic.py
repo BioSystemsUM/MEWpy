@@ -79,7 +79,13 @@ class KineticSimulation:
         self.__dict__.update(state)
 
     def get_initial_concentrations(self):
-        return list(self.model.concentrations.values())
+        values = []
+        for i, m in enumerate(self.model.metabolites):
+            try:
+                values.append(self.model.concentrations[m])
+            except:
+                values.append(None)
+        return values
 
     def get_time_steps(self):
         return self.tSteps

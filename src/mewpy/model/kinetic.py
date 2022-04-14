@@ -335,9 +335,6 @@ class ODEModel(Model):
         return yprime
 
     def build_ode(self,factors=None, local=False):
-        # ruleExprs = ["    v['{}'] = {}".format(pId, self.parsedRules[pId])
-        #             for pId in self.parsedRules.keys()]
-
         rmap = OrderedDict()
         m = {m_id: f"x[{i}]" for i, m_id in enumerate(self.metabolites)}
         c = {c_id: f"p['{c_id}']" for c_id in self.compartments}
@@ -352,9 +349,7 @@ class ODEModel(Model):
                         for r_id, ratelaw in self.ratelaws.items()}        
         r = {r_id: f"({parsed_rates[r_id]})" for r_id in self.reactions}
         rmap.update(r)
-        # aux = {p_id: rule.replace(rmap)
-        #       for p_id, rule in self.assignment_rules.items()}
-
+       
         rate_exprs = [' '*4+"r['{}'] = {}".format(r_id, parsed_rates[r_id])
                       for r_id in self.reactions]
 
