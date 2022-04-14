@@ -64,7 +64,7 @@ def solver_instance(model=None):
     """ Returns a new instance of the currently selected solver.
 
     Arguments:
-        model : CBModel (optional) -- immediatly instantiate problem with given model
+        model : COBRApy/REFRAMED model or a Simulator (optional) -- immediatly instantiate problem with given model
 
     Returns:
         Solver
@@ -139,7 +139,8 @@ def ode_solver_instance(func, method: ODEMethod):
     """ Returns a new instance of the currently selected solver.
 
     Arguments:
-        model : CBModel (optional) -- immediatly instantiate problem with given model
+        func : a function
+        method: a method
 
     Returns:
         Solver
