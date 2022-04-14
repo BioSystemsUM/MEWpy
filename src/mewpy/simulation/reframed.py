@@ -129,8 +129,11 @@ class Simulation(CBModelContainer, Simulator):
 
         self.model = model
         set_default_solver(solver_map[get_default_solver()])
-        self.environmental_conditions = OrderedDict() if envcond is None else envcond
-        self.constraints = OrderedDict() if constraints is None else constraints
+        # keep track on reaction bounds changes
+        self._environmental_conditions = OrderedDict() if envcond is None else envcond
+        self._constraints = dict() if constraints is None else {
+            k: v for k, v in constraints.items() if k not in list(self._environmental_conditions.keys())}
+
         self.solver = solver
         self._reference = reference
         self._gene_to_reaction = None
@@ -147,6 +150,30 @@ class Simulation(CBModelContainer, Simulator):
             s_status.UNKNOWN: SStatus.UNKNOWN,
             s_status.SUBOPTIMAL: SStatus.SUBOPTIMAL
         }
+        # apply the env. cond. and additional constraints to the model
+        for r_id, bounds in self._environmental_conditions.items():
+            self._set_model_reaction_bounds(r_id, bounds)
+        for r_id, bounds in self._constraints.items():
+            self._set_model_reaction_bounds(r_id, bounds)
+
+    def _set_model_reaction_bounds(self, r_id, bounds):
+        if isinstance(bounds, tuple):
+            lb = bounds[0]
+            ub = bounds[1]
+        elif isinstance(bounds, (int, float)):
+            lb = bounds
+            ub = bounds
+        else:
+            raise ValueError(f"Invalid bounds definition {bounds}")
+        self.model.set_flux_bounds(r_id, lb, ub)
+
+    @property
+    def environmental_conditions(self):
+        return self._environmental_conditions.copy()
+
+    @environmental_conditions.setter
+    def environmental_conditions(self, a):
+        raise ValueError("Can not change environmental conditions. Use set_reaction_bounds instead")
 
     @property
     def objective(self):
@@ -329,14 +356,7 @@ class Simulation(CBModelContainer, Simulator):
         :param reaction: str, reaction ID
         :return: lb(s), ub(s), tuple
         """
-
-        if reaction in self.constraints:
-            lb, ub = self.constraints[reaction]
-        elif reaction in self.environmental_conditions:
-            lb, ub = self.environmental_conditions[reaction]
-        else:
-            lb, ub = self.model.reactions[reaction].lb, self.model.reactions[reaction].ub
-
+        lb, ub = self.model.reactions[reaction].lb, self.model.reactions[reaction].ub
         return lb if lb > -np.inf else ModelConstants.REACTION_LOWER_BOUND,\
             ub if ub < np.inf else ModelConstants.REACTION_UPPER_BOUND
 
@@ -347,6 +367,10 @@ class Simulation(CBModelContainer, Simulator):
         :param float lb: lower bound 
         :param float ub: upper bound
         """
+        if rxn in self.get_uptake_reactions():
+            self._environmental_conditions[rxn] = (lb, ub)
+        else:
+            self._constraints[rxn] = (lb, ub)
         self.model.set_flux_bounds(reaction, lb, ub)
 
     def find_bounds(self):
@@ -396,12 +420,9 @@ class Simulation(CBModelContainer, Simulator):
 
         simul_constraints = OrderedDict()
         if constraints:
-            simul_constraints.update(constraints)
-        if self.constraints:
-            simul_constraints.update(self.constraints)
-        if self.environmental_conditions:
-            simul_constraints.update(self.environmental_conditions)
-
+            simul_constraints.update({k: v for k, v in constraints.items()
+                                      if k not in list(self._environmental_conditions.keys())})
+        
         a_solver = solver
         if not self._reset_solver and not a_solver:
             if self.solver is None:
@@ -472,7 +493,7 @@ class Simulation(CBModelContainer, Simulator):
         else:
             status = self.__status_mapping[solution.status]
             result = SimulationResult(self.model, solution.fobj, fluxes=solution.values, status=status,
-                                      envcond=self.environmental_conditions, model_constraints=self.constraints,
+                                      envcond=self.environmental_conditions, model_constraints=self._constraints.copy(),
                                       simul_constraints=constraints, maximize=maximize, method=method)
             return result
 
@@ -493,14 +514,14 @@ class Simulation(CBModelContainer, Simulator):
         :returns: A dictionary of flux variation ranges.
 
         """
-        _constraints = {}
-        if self.environmental_conditions:
-            _constraints.update(self.environmental_conditions)
+        simul_constraints = {}
         if constraints:
-            _constraints.update(constraints)
+            simul_constraints.update({k: v for k, v in constraints.items()
+                                      if k not in list(self._environmental_conditions.keys())})
+
         from reframed.cobra.variability import FVA
         res = FVA(self.model, obj_frac=obj_frac, reactions=reactions,
-                  constraints=_constraints, loopless=loopless, internal=internal, solver=solver)
+                  constraints=simul_constraints, loopless=loopless, internal=internal, solver=solver)
         if format == 'df':
             import pandas as pd
             e = res.items()
