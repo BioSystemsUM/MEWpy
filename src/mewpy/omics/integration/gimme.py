@@ -3,7 +3,7 @@ from math import inf
 from ...solvers import solver_instance
 from ...simulation import get_simulator
 from ...simulation.simulation import Simulator
-from .. import Preprocessing
+from .. import Preprocessing, ExpressionSet
 
 
 def GIMME(model, expr, biomass=None, condition=0, cutoff=0.25, growth_frac=0.9,
@@ -36,9 +36,13 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=0.25, growth_frac=0.9,
     else:
         sim = get_simulator(model)
 
-    pp = Preprocessing(sim, expr)
-    coeffs, _ = pp.percentile(condition, cutoff=cutoff)
-    solver = solver_instance(sim)
+    if isinstance(expr, ExpressionSet):
+        pp = Preprocessing(sim, expr)
+        coeffs, _ = pp.percentile(condition, cutoff=cutoff)
+        solver = solver_instance(sim)
+    else:
+        coeffs = expr
+        solver = solver_instance(sim)
 
     # TODO: improve this on the simulator side
     if biomass is None:

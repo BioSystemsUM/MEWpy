@@ -56,19 +56,20 @@ class ExpressionSet(object):
         Returns:
             [type]: [description]
         """
-        if condition is None:
-            values = self[:, :]
-        elif isinstance(condition, int):
+
+        if isinstance(condition, int):
             values = self[:, condition]
         elif isinstance(condition, str):
             values = self[:, self._condition_index[condition]]
+        else:
+            values = self[:, :]
 
         # format
-        format = kwargs.get('format', None)
-        if format and condition:
-            if format == 'list':
+        form = kwargs.get('format', 'dict')
+        if form and condition is not None:
+            if form == 'list':
                 return values.tolist()
-            elif format == 'dict':
+            elif form == 'dict':
                 return dict(zip(self._identifiers, values.tolist()))
             else:
                 return values
@@ -216,7 +217,7 @@ def gene_to_reaction_expression(model, gene_exp, and_func=min, or_func=max):
 
     Args:
         model: A model or a MEWpy Simulation
-        gene_exp (list): expresion values
+        gene_exp (dict): gene identifiers and expression values
         and_func ([type], optional): Function for AND. Defaults to min.
         or_func ([type], optional): Function for OR. Defaults to max.
 
@@ -229,12 +230,16 @@ def gene_to_reaction_expression(model, gene_exp, and_func=min, or_func=max):
         sim = get_simulator(model)
 
     rxn_exp = {}
-    evaluator = GeneEvaluator(gene_exp, and_func, or_func)
+    evaluator = GeneEvaluator(gene_exp, and_func, or_func, unexpressed_value=None)
     for rxn_id in sim.reactions:
         gpr = sim.get_gpr(rxn_id)
         if gpr:
             tree = build_tree(gpr, Boolean)
-            lv = tree.evaluate(evaluator.f_operand, evaluator.f_operator)
+            op_set = tree.get_operands().intersection(set(gene_exp.keys()))
+            if len(op_set) == 0:
+                lv = None
+            else:
+                lv = tree.evaluate(evaluator.f_operand, evaluator.f_operator)
             rxn_exp[rxn_id] = lv
     return rxn_exp
 
@@ -275,7 +280,9 @@ class Preprocessing(object):
             'or_func', max) if or_func is None else or_func
         rxn_exp = gene_to_reaction_expression(
             self.model, exp, and_func, or_func)
-        return rxn_exp
+        # Removes None if maybe is none to evaluate GPRs
+        res = {k: v for k, v in rxn_exp.items() if v is not None}
+        return res
 
     def percentile(self, condition=None, cutoff=0.25):
         """Processes a percentil threshold and returns the respective
@@ -288,8 +295,21 @@ class Preprocessing(object):
         Returns:
             dict, float: the coefficients and threshold
         """
-        rxn_exp = self.reactions_expression(condition)
-        threshold = np.percentile(list(rxn_exp.values()), cutoff)
-        coeffs = {r_id: threshold-val for r_id,
-                  val in rxn_exp.items() if val < threshold}
+        if type(cutoff) is tuple:
+            coef = []
+            thre = []
+            for cut in cutoff:
+                rxn_exp = self.reactions_expression(condition)
+                threshold = np.percentile(list(rxn_exp.values()), cut)
+                coeffs = {r_id: threshold-val for r_id,
+                          val in rxn_exp.items() if val < threshold}
+                coef.append(coeffs)
+                thre.append(threshold)
+            coeffs = tuple(coef)
+            threshold = tuple(thre)
+        else:
+            rxn_exp = self.reactions_expression(condition)
+            threshold = np.percentile(list(rxn_exp.values()), cutoff)
+            coeffs = {r_id: threshold-val for r_id,
+                    val in rxn_exp.items() if val < threshold}
         return coeffs, threshold
