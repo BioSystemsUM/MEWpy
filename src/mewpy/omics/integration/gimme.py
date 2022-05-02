@@ -57,9 +57,10 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=0.25, growth_frac=0.9,
 
     if not constraints:
         constraints = {}
-
+    # add growth constraint
     constraints[biomass] = (growth_frac * wt_solution.fluxes[biomass], inf)
 
+    # make model irreversible
     for r_id in sim.reactions:
         lb, _ = sim.get_reaction_bounds(r_id)
         if lb < 0:

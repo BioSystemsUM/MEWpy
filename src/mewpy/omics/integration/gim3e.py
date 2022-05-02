@@ -8,7 +8,7 @@ from ...simulation.simulation import Simulator
 from .. import Preprocessing
 
 
-def GIM3E(model, expr, metabol, biomass=None, constraints=None,
+def GIM3E(model, expr, metabolites=[], biomass=None, constraints=None,
           opt_frac=0.9, penalty=1.01, tolerance=1E-9, inline=False):
 
     if not inline:
@@ -24,14 +24,14 @@ def GIM3E(model, expr, metabol, biomass=None, constraints=None,
     turnover_mets = []
 
     for met in sim.metabolites:
-        compar = sim.get_compartment(met)
+        compar = sim.get_metabolite(met)['compartment']
         turnover_met = 'TM_' + met
         sim.add_metabolite(turnover_met, turnover_met, compar)
         turnover_mets.append(turnover_met)
 
     for met in turnover_mets:
         sink = 'SK_' + met
-        if met[3:] in metabol:
+        if met[3:] in metabolites:
             sim.add_reaction(sink, {met: 1}, lb=(penalty * tolerance), ub=1)
         else:
             sim.add_reaction(sink, {met: 1}, lb=0, ub=1)
@@ -69,14 +69,14 @@ def GIM3E(model, expr, metabol, biomass=None, constraints=None,
     for r_id in sim.reactions:
         penal_coeff = exp_max - express[r_id]
         rxn_coef[r_id] = penal_coeff
-        solver.add_constraint('c' + r_id, {r_id: 1}, '=<', penal_coeff, update=False)
+        solver.add_constraint('c' + r_id, {r_id: 1}, '<', penal_coeff, update=False)
     solver.update()
 
     # optimizar penalties
 
     sol_cons = solver.solve(rxn_coef, minimize=True, contraints=constraints)
 
-    solver.add_constraint('penal_cons', {'penal_const': 1}, '=<', (penalty * sol_cons), update=False)
+    solver.add_constraint('penal_cons', {'penal_const': 1}, '<', (penalty * sol_cons), update=False)
     solver.update()
 
     # Final Optimization

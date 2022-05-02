@@ -11,8 +11,8 @@ def eFlux(model, expr, condition=0, scale_rxn=None, scale_value=1,
         model: a REFRAMED or COBRApy model or a MEWpy Simulator.
         expr (ExpressionSet): transcriptomics data.
         condition: the condition to use in the simulation\
-            (default:0, the first condition is used if more than one.)
-        scale_rxn (str): reaction to scale flux vector (optional)
+                (default:0, the first condition is used if more than one.)
+            scale_rxn (str): reaction to scale flux vector (optional)
         scale_value (float): scaling factor (mandatory if scale_rxn\
             is specified)
         constraints (dict): additional constraints (optional)

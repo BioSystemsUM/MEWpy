@@ -404,6 +404,27 @@ class SimulationResult(object):
              for m_id, neighbours in m_r_table.items()}
         return t
 
+    @classmethod
+    def fromLinearSolver(cls, solution):
+        """Converts a solver Solution object to a SolutionResult object.
+
+        :param solution: solution to be converted
+        :type solution: mewpy.solver.solution.Solution
+        :raises ValueError: if solution is not an instance of mewpy.solver.solution.Solution
+        :return: an instance of SolutionResult
+        :rtype: SolutionResult
+        """
+        from mewpy.solvers import Solution, Status
+        smap = {Status.OPTIMAL: SStatus.OPTIMAL,
+                Status.UNKNOWN: SStatus.UNKNOWN,
+                Status.SUBOPTIMAL: SStatus.SUBOPTIMAL,
+                Status.UNBOUNDED: SStatus.UNBOUNDED,
+                Status.INFEASIBLE: SStatus.INFEASIBLE,
+                Status.INF_OR_UNB: SStatus.INF_OR_UNB
+                }
+        if not isinstance(solution, Solution):
+            raise ValueError('solution should be and instance of mewpy.solvers.solution.Solution')
+        return cls(None, solution.fobj, fluxes=solution.values, status=smap[solution.status])
 
 def simulate(model, envcond=None, objective=None, method=SimulationMethod.FBA, maximize=True, constraints=None, reference=None,
              solver=None, **kwargs):

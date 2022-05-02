@@ -1,5 +1,11 @@
+from .ode import (ODEMethod, SolverConfigurations, ODEStatus,
+                  KineticConfigurations)
+from .solution import Solution, Status
 
+# #################################################
 # Linear Programming Solvers
+# #################################################
+
 solvers = dict()
 
 try:
@@ -75,24 +81,31 @@ def solver_instance(model=None):
     if solver:
         return solvers[solver](model)
 
-
+# #################################################
 # ODE solvers
-
-from .ode import (ODEMethod, SolverConfigurations, ODEStatus,
-                  KineticConfigurations)
+# #################################################
 
 
 ode_solvers = dict()
 
+
 try:
-    from .odespy_solver import ODESpySolver
-    ode_solvers['odespy'] = ODESpySolver
+    from .scikits_solver import ScikitsODESolver
+    ode_solvers['scikits'] = ScikitsODESolver
 except ImportError:
     pass
+
 
 try:
     from .scipy_solver import ScipySolver
     ode_solvers['scipy'] = ScipySolver
+except ImportError:
+    pass
+
+
+try:
+    from .odespy_solver import ODESpySolver
+    ode_solvers['odespy'] = ODESpySolver
 except ImportError:
     pass
 
@@ -106,7 +119,7 @@ def get_default_ode_solver():
     if default_ode_solver:
         return default_ode_solver
 
-    ode_solver_order = ['scipy', 'odespy']
+    ode_solver_order = ['scikits', 'scipy', 'odespy']
 
     for solver in ode_solver_order:
         if solver in list(ode_solvers.keys()):
@@ -132,7 +145,6 @@ def set_default_ode_solver(solvername):
         default_ode_solver = solvername.lower()
     else:
         raise RuntimeError(f"ODE solver {solvername} not available.")
-
 
 
 def ode_solver_instance(func, method: ODEMethod):
