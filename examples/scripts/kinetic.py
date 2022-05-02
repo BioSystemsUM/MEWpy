@@ -6,6 +6,9 @@ from numpy import linspace, array, dot, isnan
 import os
 
 
+from mewpy.solvers import set_default_ode_solver
+set_default_ode_solver('scikits')
+
 DIR = os.path.dirname(os.path.realpath(__file__))
 PATH = os.path.join(DIR, '../models/kinetic/')
 DATA_FILE = os.path.join(PATH, "chassagnole2002.xml")

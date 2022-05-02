@@ -13,9 +13,9 @@ methods = {
     ODEMethod.DORMAN_PRINCE: odespy.DormandPrince,
     ODEMethod.RKFehlberg: odespy.RKFehlberg,
     ODEMethod.Dopri5: odespy.Dopri5,
-    ODEMethod.Dop853: odespy.Dop853,
+    # ODEMethod.Dop853: odespy.Dop853,
     ODEMethod.Vode: odespy.Vode,
-    ODEMethod.Radau5: odespy.Radau5,
+    ODEMethod.Radau: odespy.Radau5,
     ODEMethod.AdamsBashMoulton2: odespy.AdamsBashMoulton2,
     ODEMethod.AdamsBashforth2: odespy.AdamsBashforth2
 }

@@ -116,6 +116,8 @@ class KineticSimulation:
 
             th.start()
             th.join(self.timeout)
+            if th.is_alive():
+                th.join()
             status = th.status
             sstateRates = th.rates
             sstateConc = th.concentrations
