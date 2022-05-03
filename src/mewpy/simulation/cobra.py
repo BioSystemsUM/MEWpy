@@ -93,14 +93,6 @@ class CobraModelContainer(ModelContainer):
         else:
             return None
 
-    def get_substrates(self, rxn_id):
-        reaction = self.model.reactions.get_by_id(rxn_id)
-        return {k.id: v for k, v in reaction.metabolites.items() if v < 0}
-
-    def get_products(self, rxn_id):
-        reaction = self.model.reactions.get_by_id(rxn_id)
-        return {k.id: v for k, v in reaction.metabolites.items() if v > 0}
-
     def get_exchange_reactions(self):
         rxns = [r.id for r in self.model.exchanges]
         return rxns
@@ -129,8 +121,10 @@ class Simulation(CobraModelContainer, Simulator):
 
         self.model = model
         self.model.solver = get_default_solver()
-        self.environmental_conditions = OrderedDict() if envcond is None else envcond
-        self.constraints = OrderedDict() if constraints is None else constraints
+        self._environmental_conditions = OrderedDict() if envcond is None else envcond
+        self._constraints = dict() if constraints is None else {
+            k: v for k, v in constraints.items() if k not in list(self._environmental_conditions.keys())}
+
         self.solver = solver
         self._gene_to_reaction = None
         self._reference = reference
@@ -149,6 +143,32 @@ class Simulation(CobraModelContainer, Simulator):
 
         self._MAX_STR = 'maximize'
         self._MIN_STR = 'minimize'
+
+        # apply the env. cond. and additional constraints to the model
+        for r_id, bounds in self._environmental_conditions.items():
+            self._set_model_reaction_bounds(r_id, bounds)
+        for r_id, bounds in self._constraints.items():
+            self._set_model_reaction_bounds(r_id, bounds)
+
+    @property
+    def environmental_conditions(self):
+        return self._environmental_conditions.copy()
+
+    @environmental_conditions.setter
+    def environmental_conditions(self, a):
+        raise ValueError("Can not change environmental conditions. Use set_reaction_bounds instead")
+
+    def _set_model_reaction_bounds(self, r_id, bounds):
+        if isinstance(bounds, tuple):
+            lb = bounds[0]
+            ub = bounds[1]
+        elif isinstance(bounds, (int, float)):
+            lb = bounds
+            ub = bounds
+        else:
+            raise ValueError(f"Invalid bounds definition {bounds}")
+        rxn = self.model.reactions.get_by_id(r_id)
+        rxn.bounds = (lb, ub)
 
     @property
     def objective(self):
@@ -304,13 +324,7 @@ class Simulation(CobraModelContainer, Simulator):
         :return: lb(s), ub(s), tuple
 
         """
-
-        if reaction in self.constraints:
-            lb, ub = self.constraints[reaction]
-        elif reaction in self.environmental_conditions:
-            lb, ub = self.environmental_conditions[reaction]
-        else:
-            lb, ub = self.model.reactions.get_by_id(reaction).bounds
+        lb, ub = self.model.reactions.get_by_id(reaction).bounds
         return lb if lb > -np.inf else ModelConstants.REACTION_LOWER_BOUND,\
             ub if ub < np.inf else ModelConstants.REACTION_UPPER_BOUND
 
@@ -321,6 +335,10 @@ class Simulation(CobraModelContainer, Simulator):
         :param float lb: lower bound 
         :param float ub: upper bound
         """
+        if rxn in self.get_uptake_reactions():
+            self._environmental_conditions[rxn] = (lb, ub)
+        else:
+            self._constraints[rxn] = (lb, ub)
         rxn = self.model.reactions.get_by_id(reaction)
         rxn.bounds = (lb, ub)
 
@@ -370,14 +388,11 @@ class Simulation(CobraModelContainer, Simulator):
         elif isinstance(objective, dict) and len(objective) > 0:
             objective = next(iter(objective.keys()))
 
-        simul_constraints = OrderedDict()
+        simul_constraints = {}
         if constraints:
-            simul_constraints.update(constraints)
-        if self.constraints:
-            simul_constraints.update(self.constraints)
-        if self.environmental_conditions:
-            simul_constraints.update(self.environmental_conditions)
-
+            simul_constraints.update({k: v for k, v in constraints.items()
+                                      if k not in list(self._environmental_conditions.keys())})
+        
         with self.model as model:
             model.objective = objective
             for rxn in list(simul_constraints.keys()):
@@ -422,11 +437,11 @@ class Simulation(CobraModelContainer, Simulator):
         else:
             status = self.__status_mapping[solution.status]
             result = SimulationResult(model, solution.objective_value, fluxes=solution.fluxes.to_dict(OrderedDict),
-                                    status=status, envcond=self.environmental_conditions,
-                                    model_constraints=self.constraints,
-                                    simul_constraints=constraints,
-                                    maximize=maximize,
-                                    method=method)
+                                      status=status, envcond=self.environmental_conditions,
+                                      model_constraints=self._constraints.copy(),
+                                      simul_constraints=constraints,
+                                      maximize=maximize,
+                                      method=method)
             return result
 
     def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None,
@@ -449,10 +464,9 @@ class Simulation(CobraModelContainer, Simulator):
         from cobra.flux_analysis.variability import flux_variability_analysis
 
         simul_constraints = {}
-        if self.environmental_conditions:
-            simul_constraints.update(self.environmental_conditions)
         if constraints:
-            simul_constraints.update(constraints)
+            simul_constraints.update({k: v for k, v in constraints.items()
+                                      if k not in list(self._environmental_conditions.keys())})
 
         with self.model as model:
 

@@ -22,9 +22,17 @@ class TestExpressionSet(unittest.TestCase):
         self.sim = get_simulator(model)
 
     def test_GIMME(self):
-        from mewpy.omics.integration import GIMME
+        from mewpy.omics import GIMME
         GIMME(self.sim, self.expr)
 
     def test_eFlux(self):
-        from mewpy.omics.integration import eFlux
+        from mewpy.omics import eFlux
         eFlux(self.sim, self.expr)
+
+    def test_iMAT(self):
+        from mewpy.omics import iMAT
+        iMAT(self.sim, self.expr)
+
+    # def test_GIM3E(self):
+    #    from mewpy.omics import GIM3E
+    #    GIM3E(self.sim, self.expr)

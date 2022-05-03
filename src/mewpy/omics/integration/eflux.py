@@ -1,18 +1,18 @@
 from ...simulation import get_simulator
 from ...simulation.simulation import Simulator
-from .. import Preprocessing
+from .. import Preprocessing, ExpressionSet
 
 
 def eFlux(model, expr, condition=0, scale_rxn=None, scale_value=1,
-          constraints=None, parsimonious=False, **kwargs):
+          constraints=None, parsimonious=False, max_exp = None, **kwargs):
     """ Run an E-Flux simulation (Colijn et al, 2009).
 
     Arguments:
         model: a REFRAMED or COBRApy model or a MEWpy Simulator.
         expr (ExpressionSet): transcriptomics data.
         condition: the condition to use in the simulation\
-            (default:0, the first condition is used if more than one.)
-        scale_rxn (str): reaction to scale flux vector (optional)
+                (default:0, the first condition is used if more than one.)
+            scale_rxn (str): reaction to scale flux vector (optional)
         scale_value (float): scaling factor (mandatory if scale_rxn\
             is specified)
         constraints (dict): additional constraints (optional)
@@ -26,10 +26,17 @@ def eFlux(model, expr, condition=0, scale_rxn=None, scale_value=1,
     else:
         sim = get_simulator(model)
 
-    pp = Preprocessing(sim, expr)
+    if isinstance(expr, ExpressionSet):
+        pp = Preprocessing(sim, expr)
+        rxn_exp = pp.reactions_expression(condition)
+    else:
+        rxn_exp = expr
 
-    rxn_exp = pp.reactions_expression(condition)
-    max_exp = max(rxn_exp.values())
+    if max_exp:
+        max_exp = max_exp
+    else:
+        max_exp = max(rxn_exp.values())
+
     bounds = {}
 
     for r_id in sim.reactions:
@@ -53,12 +60,12 @@ def eFlux(model, expr, condition=0, scale_rxn=None, scale_value=1,
 
     if scale_rxn is not None:
 
-        if sol.values[scale_rxn] != 0:
-            k = abs(scale_value / sol.values[scale_rxn])
+        if sol.fluxes[scale_rxn] != 0:
+            k = abs(scale_value / sol.fluxes[scale_rxn])
         else:
             k = 0
 
-        for r_id, val in sol.values.items():
-            sol.values[r_id] = val * k
+        for r_id, val in sol.fluxes.items():
+            sol.fluxes[r_id] = val * k
 
     return sol

@@ -1,8 +1,6 @@
 """ Adapted from Daniel Machado's REFRAMED"""
 from enum import Enum
 import re
-from ..simulation import get_simulator
-from ..simulation.simulation import Simulator
 
 
 class Status(Enum):

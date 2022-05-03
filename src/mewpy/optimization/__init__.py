@@ -1,4 +1,5 @@
 from ..util.constants import EAConstants
+from .evaluation import *
 
 engines = dict()
 
