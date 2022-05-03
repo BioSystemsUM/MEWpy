@@ -169,6 +169,8 @@ class ETFLGOUProblem(AbstractOUProblem):
         target = genes - transport
         if self.non_target:
             target = target - set(self.non_target)
+        if self._partial_solution:
+            target = target - set(self._partial_solution.keys())
         target = list(target)
         self._trg_list = target
 

@@ -408,7 +408,7 @@ class AbstractOUProblem(AbstractProblem):
 
     def decode(self, candidate):
         """The decoder function for the problem. Needs to be implemented by extending classes."""
-        decoded = self._partial_solution
+        decoded = self._partial_solution.copy()
         for idx, lv_idx in candidate:
             try:
                 rxn = self.target_list[idx]

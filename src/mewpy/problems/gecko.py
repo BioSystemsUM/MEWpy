@@ -127,6 +127,8 @@ class GeckoOUProblem(AbstractOUProblem):
         target = proteins
         if self.non_target:
             target = target - set(self.non_target)
+        if self._partial_solution:
+            target = target - set(self._partial_solution.keys())
         self._trg_list = list(target)
 
     def decode(self, candidate):
