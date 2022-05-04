@@ -80,6 +80,9 @@ class ModelContainer(ABC):
     def get_exchange_reactions(self):
         return NotImplementedError
 
+    def get_gene_reactions(self):
+        raise NotImplementedError
+
     def get_gpr(self, rxn_id):
         """
         :returns: A string representation of the reaction GPR if exists None otherwise.
@@ -198,10 +201,12 @@ class Simulator(ModelContainer):
         essential = getattr(self, '_essential_reactions', None)
         if essential is not None:
             return essential
-        constraints_list = [{rxn: 0} for rxn in self.reactions]
-        res = self.simulate_mp(constraints_list=constraints_list, slim=True, desc='Essential Reactions')
-        self._essential_reactions = [self.reactions[i]
-                                     for i in range(len(self.reactions)) if res[i] is None or res[i] < min_growth]
+        essential = []
+        for rxn in tqdm(self.reactions):
+            res = self.simulate(constraints={rxn:  0},  slim=True)
+            if not res or res < min_growth:
+                essential.append(rxn)
+        self._essential_reactions = essential
         return self._essential_reactions
 
     def evaluate_gprs(self, active_genes):
@@ -222,6 +227,21 @@ class Simulator(ModelContainer):
                 active_reactions.append(r_id)
         return active_reactions
 
+    def is_essential_gene(self, gene, min_growth=0.01):
+        gr = self.get_gene_reactions()
+        active_genes = set(self.genes) - {gene}
+        rxns = gr.get(gene, [])
+        if not rxns:
+            return False
+        inactive_reactions = []
+        for r_id in rxns:
+            gpr = self.get_gpr(r_id)
+            if gpr and not evaluate_expression_tree(str(gpr), active_genes):
+                inactive_reactions.append(r_id)
+        constraints = {rxn: 0 for rxn in inactive_reactions}
+        res = self.simulate(constraints=constraints, slim=True)
+        return not res or res < min_growth
+
     def essential_genes(self, min_growth=0.01):
         """Essential genes are those when deleted enable a biomass flux value above a minimal growth defined as
         a percentage of the wild type growth.
@@ -233,18 +253,11 @@ class Simulator(ModelContainer):
         essential = getattr(self, '_essential_genes', None)
         if essential is not None:
             return essential
-        self._essential_genes = []
-        genes = self.genes
-        #TODO: Use parallel processing
-        print("Computing essential genes:")
-        for gene in tqdm(genes):
-            active_genes = set(self.genes) - {gene}
-            active_reactions = self.evaluate_gprs(active_genes)
-            inactive_reactions = set(self.reactions) - set(active_reactions)
-            gr_constraints = {rxn: 0 for rxn in inactive_reactions}
-            res = self.simulate(constraints=gr_constraints, slim=True)
-            if not res or res < min_growth:
-                self._essential_genes.append(gene)
+        essential = []
+        for g in tqdm(self.genes):
+            if self.is_essential_gene(g):
+                essential.append(g)
+        self._essential_genes = essential
         return self._essential_genes
 
     @property
@@ -425,6 +438,7 @@ class SimulationResult(object):
         if not isinstance(solution, Solution):
             raise ValueError('solution should be and instance of mewpy.solvers.solution.Solution')
         return cls(None, solution.fobj, fluxes=solution.values, status=smap[solution.status])
+
 
 def simulate(model, envcond=None, objective=None, method=SimulationMethod.FBA, maximize=True, constraints=None, reference=None,
              solver=None, **kwargs):

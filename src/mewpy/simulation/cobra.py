@@ -97,6 +97,23 @@ class CobraModelContainer(ModelContainer):
         rxns = [r.id for r in self.model.exchanges]
         return rxns
 
+    def get_gene_reactions(self):
+        """
+        :returns: A map of genes to reactions.
+        """
+        if not self._gene_to_reaction:
+            gr = dict()
+            for rxn_id in self.reactions:
+                rxn = self.model.reactions.get_by_id(rxn_id)
+                genes = rxn.genes
+                for g in genes:
+                    if g.id in gr.keys():
+                        gr[g.id].append(rxn_id)
+                    else:
+                        gr[g.id] = [rxn_id]
+            self._gene_to_reaction = gr
+        return self._gene_to_reaction
+
 
 class Simulation(CobraModelContainer, Simulator):
     """Generic Simulation class for cobra Model.
@@ -283,23 +300,6 @@ class Simulation(CobraModelContainer, Simulator):
                 return rev
         return None
 
-    def gene_reactions(self):
-        """
-        :returns: A map of genes to reactions.
-        """
-        if not self._gene_to_reaction:
-            gr = OrderedDict()
-            for rxn_id in self.reactions:
-                rxn = self.model.reactions.get_by_id(rxn_id)
-                genes = rxn.genes
-                for g in genes:
-                    if g in gr.keys():
-                        gr[g.id].append(rxn_id)
-                    else:
-                        gr[g.id] = [rxn_id]
-            self._gene_to_reaction = gr
-        return self._gene_to_reaction
-
     def metabolite_reaction_lookup(self, force_recalculate=False):
         """ Return the network topology as a nested map from metabolite to reaction to coefficient.
         :return: a dictionary lookup table
@@ -392,7 +392,7 @@ class Simulation(CobraModelContainer, Simulator):
         if constraints:
             simul_constraints.update({k: v for k, v in constraints.items()
                                       if k not in list(self._environmental_conditions.keys())})
-        
+
         with self.model as model:
             model.objective = objective
             for rxn in list(simul_constraints.keys()):

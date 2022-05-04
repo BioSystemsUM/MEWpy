@@ -82,6 +82,24 @@ class CBModelContainer(ModelContainer):
     def get_exchange_reactions(self):
         return self.model.get_exchange_reactions()
 
+    def get_gene_reactions(self):
+        """
+        :returns: a map of genes to reactions.
+        """
+        if not self._gene_to_reaction:
+            gr = OrderedDict()
+            for rxn_id in self.reactions:
+                rxn = self.model.reactions[rxn_id]
+                if rxn.gpr:
+                    genes = rxn.gpr.get_genes()
+                    for g in genes:
+                        if g in gr.keys():
+                            gr[g].append(rxn_id)
+                        else:
+                            gr[g] = [rxn_id]
+            self._gene_to_reaction = gr
+        return self._gene_to_reaction
+
     @property
     def medium(self):
 
@@ -314,24 +332,6 @@ class Simulation(CBModelContainer, Simulator):
                     continue
             return None
 
-    def gene_reactions(self):
-        """
-        :returns: a map of genes to reactions.
-        """
-        if not self._gene_to_reaction:
-            gr = OrderedDict()
-            for rxn_id in self.reactions:
-                rxn = self.model.reactions[rxn_id]
-                if rxn.gpr:
-                    genes = rxn.gpr.get_genes()
-                    for g in genes:
-                        if g in gr.keys():
-                            gr[g].append(rxn_id)
-                        else:
-                            gr[g] = [rxn_id]
-            self._gene_to_reaction = gr
-        return self._gene_to_reaction
-
     def metabolite_reaction_lookup(self, force_recalculate=False):
         """ Return the network topology as a nested map from metabolite to reaction to coefficient.
         :return: a dictionary lookup table
@@ -422,7 +422,7 @@ class Simulation(CBModelContainer, Simulator):
         if constraints:
             simul_constraints.update({k: v for k, v in constraints.items()
                                       if k not in list(self._environmental_conditions.keys())})
-        
+
         a_solver = solver
         if not self._reset_solver and not a_solver:
             if self.solver is None:

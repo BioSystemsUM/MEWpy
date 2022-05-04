@@ -1,4 +1,4 @@
-"""scikit ODE Solver
+"""scikits ODE Solver
 """
 from .ode import ODEMethod, SolverConfigurations, ODESolver
 from scikits.odes.odeint import odeint
