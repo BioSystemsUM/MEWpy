@@ -293,7 +293,7 @@ class Simulation(CBModelContainer, Simulator):
         """Returns the list of genes that only catalyze transport reactions.
         """
         trp_rxs = self.get_transport_reactions()
-        r_g = self.gene_reactions()
+        r_g = self.get_gene_reactions()
         genes = []
         for g, rxs in r_g.items():
             if set(rxs).issubset(set(trp_rxs)):
