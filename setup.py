@@ -16,7 +16,7 @@ install_requirements = requirements
 
 setup(
     name='mewpy',
-    version='0.1.13',
+    version='0.1.14',
     python_requires='>=3.6',
     package_dir={'': 'src'},
     packages=find_packages('src'),
