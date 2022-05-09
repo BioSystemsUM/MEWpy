@@ -181,10 +181,11 @@ class Simulator(ModelContainer):
             values = [x for x in values if re_expr.search(x) is not None]
         if sort:
             values.sort()
+
         import pandas as pd
         if find_in == 'm':
             data = [self.get_metabolite(x) for x in values]
-        if find_in == 'g':
+        elif find_in == 'g':
             data = [{'Gene': x} for x in values]
         else:
             data = [self.get_reaction(x) for x in values]

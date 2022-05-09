@@ -10,7 +10,7 @@ REV = 'rev'
 IRREV = 'irrev'
 
 
-def create_metabolic_graph(model, directed=True, carbon=True, reactions=None, remove=[], edges_labels=False, biomass=False):
+def create_metabolic_graph(model, directed=True, carbon=True, reactions=None, remove=[], edges_labels=False, biomass=False, metabolites=False):
     """ Creates a metabolic graph
 
     :param model: A model or a model containter
@@ -69,6 +69,21 @@ def create_metabolic_graph(model, directed=True, carbon=True, reactions=None, re
                 G[tail][head]['label'] = label
 
             G[tail][head]['reversible'] = lb < 0
+
+    if not metabolites:
+        met_nodes = [x for x, v in dict(G.nodes(data="node_class")).items() if v == METABOLITE]
+        for m in met_nodes:
+            in_ = G.in_edges(m, data=True)
+            out_ = G.out_edges(m, data=True)
+            for s, _, r1 in in_:
+                for _, t, r2 in out_:
+                    try:
+                        rev = r1['reversible'] and r2['reversible']
+                    except:
+                        rev = False
+                    G.add_edge(s, t)
+            G.remove_node(m)
+
     return G
 
 

@@ -267,7 +267,7 @@ class Simulation(CobraModelContainer, Simulator):
             p = self.model.reactions.get_by_id(rx).products
             for x in p:
                 p_set.add(x.compartment)
-            if len(s) == 1 and len(p) == 1 and len(p_set.intersection(s_set)) == 0:
+            if len(p_set.intersection(s_set)) == 0:
                 transport_reactions.append(rx)
         return transport_reactions
 
@@ -316,30 +316,30 @@ class Simulation(CobraModelContainer, Simulator):
     def metabolite_elements(self, metabolite_id):
         return self.model.metabolites.get_by_id(metabolite_id).elements
 
-    def get_reaction_bounds(self, reaction):
+    def get_reaction_bounds(self, reaction_id):
         """
         Returns the bounds for a given reaction.
 
-        :param reaction: str, reaction ID
+        :param reaction_id: str, reaction ID
         :return: lb(s), ub(s), tuple
 
         """
-        lb, ub = self.model.reactions.get_by_id(reaction).bounds
+        lb, ub = self.model.reactions.get_by_id(reaction_id).bounds
         return lb if lb > -np.inf else ModelConstants.REACTION_LOWER_BOUND,\
             ub if ub < np.inf else ModelConstants.REACTION_UPPER_BOUND
 
-    def set_reaction_bounds(self, reaction, lb=None, ub=None):
+    def set_reaction_bounds(self, reaction_id, lb=None, ub=None):
         """
         Sets the bounds for a given reaction.
-        :param reaction: str, reaction ID
+        :param reaction_id: str, reaction ID
         :param float lb: lower bound 
         :param float ub: upper bound
         """
-        if rxn in self.get_uptake_reactions():
-            self._environmental_conditions[rxn] = (lb, ub)
+        if reaction_id in self.get_uptake_reactions():
+            self._environmental_conditions[reaction_id] = (lb, ub)
         else:
-            self._constraints[rxn] = (lb, ub)
-        rxn = self.model.reactions.get_by_id(reaction)
+            self._constraints[reaction_id] = (lb, ub)
+        rxn = self.model.reactions.get_by_id(reaction_id)
         rxn.bounds = (lb, ub)
 
     def find_bounds(self):
