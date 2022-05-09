@@ -45,6 +45,8 @@ class CBModelContainer(ModelContainer):
         return list(self.model.reactions.keys())
 
     def get_reaction(self, r_id):
+        if r_id not in self.reactions:
+            raise ValueError(f"Reactions {r_id} does not exist")
         rxn = self.model.reactions[r_id]
         res = {'id': r_id, 'name': rxn.name, 'lb': rxn.lb, 'ub': rxn.ub, 'stoichiometry': rxn.stoichiometry}
         res['gpr'] = str(rxn.gpr) if rxn.gpr is not None else None
@@ -77,31 +79,26 @@ class CBModelContainer(ModelContainer):
         res = {'id': c_id, 'name': c.name, 'external': c.external}
         return res
 
-    def get_gpr(self, reaction_id):
-        """Returns the gpr rule (str) for a given reaction ID.
-
-        :param str reaction_id: The reaction identifier.
-        :returns: A string representation of the GPR rule.
-
-        """
-        if reaction_id not in self.reactions:
-            raise ValueError(f"Reactions {reaction_id} does not exist")
-        reaction = self.model.reactions[reaction_id]
-        if reaction.gpr:
-            return str(reaction.gpr)
-        else:
-            return None
-
     def get_exchange_reactions(self):
         return self.model.get_exchange_reactions()
 
-    def get_substrates(self, rxn_id):
-        reaction = self.model.reactions[rxn_id]
-        return {m_id: coeff for m_id, coeff in reaction.stoichiometry.items() if coeff < 0}
-
-    def get_products(self, rxn_id):
-        reaction = self.model.reactions[rxn_id]
-        return {m_id: coeff for m_id, coeff in reaction.stoichiometry.items() if coeff > 0}
+    def get_gene_reactions(self):
+        """
+        :returns: a map of genes to reactions.
+        """
+        if not self._gene_to_reaction:
+            gr = OrderedDict()
+            for rxn_id in self.reactions:
+                rxn = self.model.reactions[rxn_id]
+                if rxn.gpr:
+                    genes = rxn.gpr.get_genes()
+                    for g in genes:
+                        if g in gr.keys():
+                            gr[g].append(rxn_id)
+                        else:
+                            gr[g] = [rxn_id]
+            self._gene_to_reaction = gr
+        return self._gene_to_reaction
 
     @property
     def medium(self):
@@ -144,15 +141,17 @@ class Simulation(CBModelContainer, Simulator):
     def __init__(self, model: CBModel, envcond=None, constraints=None, solver=None, reference=None,
                  reset_solver=ModelConstants.RESET_SOLVER):
 
-
         if not isinstance(model, CBModel):
             raise ValueError(
                 "Model is None or is not an instance of REFRAMED CBModel")
-            
+
         self.model = model
         set_default_solver(solver_map[get_default_solver()])
-        self.environmental_conditions = OrderedDict() if envcond is None else envcond
-        self.constraints = OrderedDict() if constraints is None else constraints
+        # keep track on reaction bounds changes
+        self._environmental_conditions = OrderedDict() if envcond is None else envcond
+        self._constraints = dict() if constraints is None else {
+            k: v for k, v in constraints.items() if k not in list(self._environmental_conditions.keys())}
+
         self.solver = solver
         self._reference = reference
         self._gene_to_reaction = None
@@ -169,6 +168,30 @@ class Simulation(CBModelContainer, Simulator):
             s_status.UNKNOWN: SStatus.UNKNOWN,
             s_status.SUBOPTIMAL: SStatus.SUBOPTIMAL
         }
+        # apply the env. cond. and additional constraints to the model
+        for r_id, bounds in self._environmental_conditions.items():
+            self._set_model_reaction_bounds(r_id, bounds)
+        for r_id, bounds in self._constraints.items():
+            self._set_model_reaction_bounds(r_id, bounds)
+
+    def _set_model_reaction_bounds(self, r_id, bounds):
+        if isinstance(bounds, tuple):
+            lb = bounds[0]
+            ub = bounds[1]
+        elif isinstance(bounds, (int, float)):
+            lb = bounds
+            ub = bounds
+        else:
+            raise ValueError(f"Invalid bounds definition {bounds}")
+        self.model.set_flux_bounds(r_id, lb, ub)
+
+    @property
+    def environmental_conditions(self):
+        return self._environmental_conditions.copy()
+
+    @environmental_conditions.setter
+    def environmental_conditions(self, a):
+        raise ValueError("Can not change environmental conditions. Use set_reaction_bounds instead")
 
     @property
     def objective(self):
@@ -270,7 +293,7 @@ class Simulation(CBModelContainer, Simulator):
         """Returns the list of genes that only catalyze transport reactions.
         """
         trp_rxs = self.get_transport_reactions()
-        r_g = self.gene_reactions()
+        r_g = self.get_gene_reactions()
         genes = []
         for g, rxs in r_g.items():
             if set(rxs).issubset(set(trp_rxs)):
@@ -309,24 +332,6 @@ class Simulation(CBModelContainer, Simulator):
                     continue
             return None
 
-    def gene_reactions(self):
-        """
-        :returns: a map of genes to reactions.
-        """
-        if not self._gene_to_reaction:
-            gr = OrderedDict()
-            for rxn_id in self.reactions:
-                rxn = self.model.reactions[rxn_id]
-                if rxn.gpr:
-                    genes = rxn.gpr.get_genes()
-                    for g in genes:
-                        if g in gr.keys():
-                            gr[g].append(rxn_id)
-                        else:
-                            gr[g] = [rxn_id]
-            self._gene_to_reaction = gr
-        return self._gene_to_reaction
-
     def metabolite_reaction_lookup(self, force_recalculate=False):
         """ Return the network topology as a nested map from metabolite to reaction to coefficient.
         :return: a dictionary lookup table
@@ -345,21 +350,13 @@ class Simulation(CBModelContainer, Simulator):
         formula = self.model.metabolites[metabolite_id].metadata['FORMULA']
         return elements(formula)
 
-
     def get_reaction_bounds(self, reaction):
         """
         Returns the bounds for a given reaction.
         :param reaction: str, reaction ID
         :return: lb(s), ub(s), tuple
         """
-
-        if reaction in self.constraints:
-            lb, ub = self.constraints[reaction]
-        elif reaction in self.environmental_conditions:
-            lb, ub = self.environmental_conditions[reaction]
-        else:
-            lb, ub = self.model.reactions[reaction].lb, self.model.reactions[reaction].ub
-
+        lb, ub = self.model.reactions[reaction].lb, self.model.reactions[reaction].ub
         return lb if lb > -np.inf else ModelConstants.REACTION_LOWER_BOUND,\
             ub if ub < np.inf else ModelConstants.REACTION_UPPER_BOUND
 
@@ -370,6 +367,10 @@ class Simulation(CBModelContainer, Simulator):
         :param float lb: lower bound 
         :param float ub: upper bound
         """
+        if rxn in self.get_uptake_reactions():
+            self._environmental_conditions[rxn] = (lb, ub)
+        else:
+            self._constraints[rxn] = (lb, ub)
         self.model.set_flux_bounds(reaction, lb, ub)
 
     def find_bounds(self):
@@ -401,7 +402,7 @@ class Simulation(CBModelContainer, Simulator):
     # Simulate
     def simulate(self, objective=None, method=SimulationMethod.FBA,
                  maximize=True, constraints=None, reference=None,
-                 scalefactor=None, solver=None):
+                 scalefactor=None, solver=None, slim=False):
         '''
         Simulates a phenotype when applying a set constraints using the specified method.
 
@@ -419,11 +420,8 @@ class Simulation(CBModelContainer, Simulator):
 
         simul_constraints = OrderedDict()
         if constraints:
-            simul_constraints.update(constraints)
-        if self.constraints:
-            simul_constraints.update(self.constraints)
-        if self.environmental_conditions:
-            simul_constraints.update(self.environmental_conditions)
+            simul_constraints.update({k: v for k, v in constraints.items()
+                                      if k not in list(self._environmental_conditions.keys())})
 
         a_solver = solver
         if not self._reset_solver and not a_solver:
@@ -456,8 +454,9 @@ class Simulation(CBModelContainer, Simulator):
             reference = self.reference
 
         if method == SimulationMethod.FBA:
+            get_values = not slim
             solution = FBA(self.model, objective=objective, minimize=not maximize,
-                           constraints=simul_constraints, solver=a_solver)
+                           constraints=simul_constraints, solver=a_solver, get_values=get_values)
         elif method == SimulationMethod.pFBA:
             solution = pFBA(self.model, objective=objective, minimize=not maximize,
                             constraints=simul_constraints, solver=a_solver, obj_frac=0.999)
@@ -488,12 +487,15 @@ class Simulation(CBModelContainer, Simulator):
                 for x, y in solution.values.items():
                     solution.values[x] = y / scalefactor
 
-        status = self.__status_mapping[solution.status]
+        if slim:
+            return solution.fobj
 
-        result = SimulationResult(self.model, solution.fobj, fluxes=solution.values, status=status,
-                                  envcond=self.environmental_conditions, model_constraints=self.constraints,
-                                  simul_constraints=constraints, maximize=maximize, method=method)
-        return result
+        else:
+            status = self.__status_mapping[solution.status]
+            result = SimulationResult(self.model, solution.fobj, fluxes=solution.values, status=status,
+                                      envcond=self.environmental_conditions, model_constraints=self._constraints.copy(),
+                                      simul_constraints=constraints, maximize=maximize, method=method)
+            return result
 
     def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None,
             format='dict'):
@@ -512,14 +514,14 @@ class Simulation(CBModelContainer, Simulator):
         :returns: A dictionary of flux variation ranges.
 
         """
-        _constraints = {}
-        if self.environmental_conditions:
-            _constraints.update(self.environmental_conditions)
+        simul_constraints = {}
         if constraints:
-            _constraints.update(constraints)
+            simul_constraints.update({k: v for k, v in constraints.items()
+                                      if k not in list(self._environmental_conditions.keys())})
+
         from reframed.cobra.variability import FVA
         res = FVA(self.model, obj_frac=obj_frac, reactions=reactions,
-                  constraints=_constraints, loopless=loopless, internal=internal, solver=solver)
+                  constraints=simul_constraints, loopless=loopless, internal=internal, solver=solver)
         if format == 'df':
             import pandas as pd
             e = res.items()

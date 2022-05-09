@@ -93,17 +93,26 @@ class CobraModelContainer(ModelContainer):
         else:
             return None
 
-    def get_substrates(self, rxn_id):
-        reaction = self.model.reactions.get_by_id(rxn_id)
-        return {k.id: v for k, v in reaction.metabolites.items() if v < 0}
-
-    def get_products(self, rxn_id):
-        reaction = self.model.reactions.get_by_id(rxn_id)
-        return {k.id: v for k, v in reaction.metabolites.items() if v > 0}
-
     def get_exchange_reactions(self):
         rxns = [r.id for r in self.model.exchanges]
         return rxns
+
+    def get_gene_reactions(self):
+        """
+        :returns: A map of genes to reactions.
+        """
+        if not self._gene_to_reaction:
+            gr = dict()
+            for rxn_id in self.reactions:
+                rxn = self.model.reactions.get_by_id(rxn_id)
+                genes = rxn.genes
+                for g in genes:
+                    if g.id in gr.keys():
+                        gr[g.id].append(rxn_id)
+                    else:
+                        gr[g.id] = [rxn_id]
+            self._gene_to_reaction = gr
+        return self._gene_to_reaction
 
 
 class Simulation(CobraModelContainer, Simulator):
@@ -129,8 +138,10 @@ class Simulation(CobraModelContainer, Simulator):
 
         self.model = model
         self.model.solver = get_default_solver()
-        self.environmental_conditions = OrderedDict() if envcond is None else envcond
-        self.constraints = OrderedDict() if constraints is None else constraints
+        self._environmental_conditions = OrderedDict() if envcond is None else envcond
+        self._constraints = dict() if constraints is None else {
+            k: v for k, v in constraints.items() if k not in list(self._environmental_conditions.keys())}
+
         self.solver = solver
         self._gene_to_reaction = None
         self._reference = reference
@@ -149,6 +160,32 @@ class Simulation(CobraModelContainer, Simulator):
 
         self._MAX_STR = 'maximize'
         self._MIN_STR = 'minimize'
+
+        # apply the env. cond. and additional constraints to the model
+        for r_id, bounds in self._environmental_conditions.items():
+            self._set_model_reaction_bounds(r_id, bounds)
+        for r_id, bounds in self._constraints.items():
+            self._set_model_reaction_bounds(r_id, bounds)
+
+    @property
+    def environmental_conditions(self):
+        return self._environmental_conditions.copy()
+
+    @environmental_conditions.setter
+    def environmental_conditions(self, a):
+        raise ValueError("Can not change environmental conditions. Use set_reaction_bounds instead")
+
+    def _set_model_reaction_bounds(self, r_id, bounds):
+        if isinstance(bounds, tuple):
+            lb = bounds[0]
+            ub = bounds[1]
+        elif isinstance(bounds, (int, float)):
+            lb = bounds
+            ub = bounds
+        else:
+            raise ValueError(f"Invalid bounds definition {bounds}")
+        rxn = self.model.reactions.get_by_id(r_id)
+        rxn.bounds = (lb, ub)
 
     @property
     def objective(self):
@@ -238,7 +275,7 @@ class Simulation(CobraModelContainer, Simulator):
         """Returns the list of genes that only catalyze transport reactions.
         """
         trp_rxs = self.get_transport_reactions()
-        r_g = self.gene_reactions()
+        r_g = self.get_gene_reactions()
         genes = []
         for g, rxs in r_g.items():
             if set(rxs).issubset(set(trp_rxs)):
@@ -263,23 +300,6 @@ class Simulation(CobraModelContainer, Simulator):
                 return rev
         return None
 
-    def gene_reactions(self):
-        """
-        :returns: A map of genes to reactions.
-        """
-        if not self._gene_to_reaction:
-            gr = OrderedDict()
-            for rxn_id in self.reactions:
-                rxn = self.model.reactions.get_by_id(rxn_id)
-                genes = rxn.genes
-                for g in genes:
-                    if g in gr.keys():
-                        gr[g.id].append(rxn_id)
-                    else:
-                        gr[g.id] = [rxn_id]
-            self._gene_to_reaction = gr
-        return self._gene_to_reaction
-
     def metabolite_reaction_lookup(self, force_recalculate=False):
         """ Return the network topology as a nested map from metabolite to reaction to coefficient.
         :return: a dictionary lookup table
@@ -294,7 +314,7 @@ class Simulation(CobraModelContainer, Simulator):
         return self._m_r_lookup
 
     def metabolite_elements(self, metabolite_id):
-        return self.model.metabolites.get_by_id(metabolite_id).elements()
+        return self.model.metabolites.get_by_id(metabolite_id).elements
 
     def get_reaction_bounds(self, reaction):
         """
@@ -304,13 +324,7 @@ class Simulation(CobraModelContainer, Simulator):
         :return: lb(s), ub(s), tuple
 
         """
-
-        if reaction in self.constraints:
-            lb, ub = self.constraints[reaction]
-        elif reaction in self.environmental_conditions:
-            lb, ub = self.environmental_conditions[reaction]
-        else:
-            lb, ub = self.model.reactions.get_by_id(reaction).bounds
+        lb, ub = self.model.reactions.get_by_id(reaction).bounds
         return lb if lb > -np.inf else ModelConstants.REACTION_LOWER_BOUND,\
             ub if ub < np.inf else ModelConstants.REACTION_UPPER_BOUND
 
@@ -321,6 +335,10 @@ class Simulation(CobraModelContainer, Simulator):
         :param float lb: lower bound 
         :param float ub: upper bound
         """
+        if rxn in self.get_uptake_reactions():
+            self._environmental_conditions[rxn] = (lb, ub)
+        else:
+            self._constraints[rxn] = (lb, ub)
         rxn = self.model.reactions.get_by_id(reaction)
         rxn.bounds = (lb, ub)
 
@@ -352,7 +370,7 @@ class Simulation(CobraModelContainer, Simulator):
 
     # The simulator
     def simulate(self, objective=None, method=SimulationMethod.FBA, maximize=True,
-                 constraints=None, reference=None, scalefactor=None, solver=None):
+                 constraints=None, reference=None, scalefactor=None, solver=None, slim=False):
         '''
         Simulates a phenotype when applying a set constraints using the specified method.
 
@@ -370,13 +388,10 @@ class Simulation(CobraModelContainer, Simulator):
         elif isinstance(objective, dict) and len(objective) > 0:
             objective = next(iter(objective.keys()))
 
-        simul_constraints = OrderedDict()
+        simul_constraints = {}
         if constraints:
-            simul_constraints.update(constraints)
-        if self.constraints:
-            simul_constraints.update(self.constraints)
-        if self.environmental_conditions:
-            simul_constraints.update(self.environmental_conditions)
+            simul_constraints.update({k: v for k, v in constraints.items()
+                                      if k not in list(self._environmental_conditions.keys())})
 
         with self.model as model:
             model.objective = objective
@@ -393,7 +408,10 @@ class Simulation(CobraModelContainer, Simulator):
             # such is the case with pytfa.core.Model... need to find some workaround
             objective_sense = self._MAX_STR if maximize else self._MIN_STR
             if method == SimulationMethod.FBA:
-                solution = model.optimize(objective_sense=objective_sense)
+                if slim:
+                    solution = model.slim_optimize()
+                else:
+                    solution = model.optimize(objective_sense=objective_sense)
             elif method == SimulationMethod.pFBA:
                 # make fraction_of_optimum a configurable parameter?
                 solution = pfba(model)
@@ -413,15 +431,18 @@ class Simulation(CobraModelContainer, Simulator):
                 raise Exception(
                     "Unknown method to perform the simulation.")
 
-        status = self.__status_mapping[solution.status]
+        if slim:
+            return solution
 
-        result = SimulationResult(model, solution.objective_value, fluxes=solution.fluxes.to_dict(OrderedDict),
-                                  status=status, envcond=self.environmental_conditions,
-                                  model_constraints=self.constraints,
-                                  simul_constraints=constraints,
-                                  maximize=maximize,
-                                  method=method)
-        return result
+        else:
+            status = self.__status_mapping[solution.status]
+            result = SimulationResult(model, solution.objective_value, fluxes=solution.fluxes.to_dict(OrderedDict),
+                                      status=status, envcond=self.environmental_conditions,
+                                      model_constraints=self._constraints.copy(),
+                                      simul_constraints=constraints,
+                                      maximize=maximize,
+                                      method=method)
+            return result
 
     def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None,
             format='dict'):
@@ -443,10 +464,9 @@ class Simulation(CobraModelContainer, Simulator):
         from cobra.flux_analysis.variability import flux_variability_analysis
 
         simul_constraints = {}
-        if self.environmental_conditions:
-            simul_constraints.update(self.environmental_conditions)
         if constraints:
-            simul_constraints.update(constraints)
+            simul_constraints.update({k: v for k, v in constraints.items()
+                                      if k not in list(self._environmental_conditions.keys())})
 
         with self.model as model:
 

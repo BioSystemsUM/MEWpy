@@ -1,7 +1,9 @@
 from abc import abstractmethod, ABC
 from collections import OrderedDict
 from ..util.parsing import evaluate_expression_tree
+from ..util.process import cpu_count
 from . import SimulationMethod, SStatus
+from joblib import Parallel, delayed
 from tqdm import tqdm
 
 
@@ -43,17 +45,50 @@ class ModelContainer(ABC):
         raise NotImplementedError
 
     @property
+    def compartments(self):
+        """
+        :returns: A list of compartments identifiers.
+
+        """
+        raise NotImplementedError
+
+    @property
     def medium(self):
         raise NotImplementedError
+
+    def get_reaction(self, r_id):
+        raise NotImplementedError
+
+    def get_gene(self, g_id):
+        raise NotImplementedError
+
+    def get_compartment(self, c_id):
+        raise NotImplementedError
+
+    def get_reaction_metabolites(self, r_id):
+        rxn = self.get_reaction(r_id)
+        return rxn['stoichiometry']
+
+    def get_substrates(self, rxn_id):
+        met = self.get_reaction_metabolites(rxn_id)
+        return {m_id: coeff for m_id, coeff in met.items() if coeff < 0}
+
+    def get_products(self, rxn_id):
+        met = self.get_reaction_metabolites(rxn_id)
+        return {m_id: coeff for m_id, coeff in met.items() if coeff > 0}
 
     def get_exchange_reactions(self):
         return NotImplementedError
 
-    def get_gpr(self, reaction_id):
+    def get_gene_reactions(self):
+        raise NotImplementedError
+
+    def get_gpr(self, rxn_id):
         """
         :returns: A string representation of the reaction GPR if exists None otherwise.
         """
-        raise NotImplementedError
+        rxn = self.get_reaction(rxn_id)
+        return rxn['gpr']
 
     def summary(self):
         print(f"Metabolites: {len(self.metabolites)}")
@@ -88,25 +123,26 @@ class Simulator(ModelContainer):
         """
         raise NotImplementedError
 
-    def __evaluator__(self, kwargs, candidate):
-        res = self.simulate(constraints=candidate, **kwargs)
-        return res
-
     def simulate_mp(self, objective=None, method=SimulationMethod.FBA, maximize=True, constraints_list=None,
-                    reference=None,
-                    solver=None, n_mp=None, **kwargs):
-        from mewpy.util.process import get_fevaluator
-        args = {}
-        args['objective'] = objective
-        args['method'] = method
-        args['maximize'] = maximize
-        args['reference'] = reference
-        args.update(kwargs)
-        from functools import partial
-        func = partial(self.__evaluator__, args)
+                    reference=None, solver=None, jobs=None, desc="Parallel Simulation", **kwargs):
+        """Parallel phenotype simulations.
 
-        mp_evaluator = get_fevaluator(func)
-        res = mp_evaluator.evaluate(constraints_list, None)
+        :param (dict) objective: The simulations objective. If none, the model objective is considered.
+        :param (SimulationMethod) method: The SimulationMethod (FBA, pFBA, lMOMA, etc ...)
+        :param (boolean) maximize: The optimization direction
+        :param (dict) constraints: A dictionary of constraints to be applied to the model.
+        :param (dict) reference: A dictionary of reaction flux values.
+        :param (Solver) solver: An instance of the solver.
+        :param (int) jobs: The number of parallel jobs.
+        :param (str) desc: Description to present in tdqm. 
+        """
+        constraints_list = [None] if not constraints_list else constraints_list
+        jobs = jobs if jobs else cpu_count()
+        print(f"Using {jobs} jobs")
+        from ..util.utilities import tqdm_joblib
+        with tqdm_joblib(tqdm(desc=desc, total=len(constraints_list))) as progress_bar:
+            res = Parallel(n_jobs=jobs)(delayed(simulate)(self.model, self.environmental_conditions, objective, method,
+                                                          maximize, constraints, reference, solver, **kwargs) for constraints in constraints_list)
         return res
 
     @abstractmethod
@@ -161,22 +197,16 @@ class Simulator(ModelContainer):
 
         :param float min_growth: Minimal percentage of the wild type growth value. Default 0.01 (1%).
         :returns: A list of essential reactions.
-
         """
         essential = getattr(self, '_essential_reactions', None)
         if essential is not None:
             return essential
-        wt_solution = self.simulate()
-        wt_growth = wt_solution.objective_value
-        reactions = self.reactions
-        self._essential_reactions = []
-        print("Computing essential reactions:")
-        for rxn in tqdm(reactions):
-            res = self.simulate(constraints={rxn: 0})
-            if res:
-                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \
-                        or res.status == SStatus.INFEASIBLE:
-                    self._essential_reactions.append(rxn)
+        essential = []
+        for rxn in tqdm(self.reactions):
+            res = self.simulate(constraints={rxn:  0},  slim=True)
+            if not res or res < min_growth:
+                essential.append(rxn)
+        self._essential_reactions = essential
         return self._essential_reactions
 
     def evaluate_gprs(self, active_genes):
@@ -197,6 +227,21 @@ class Simulator(ModelContainer):
                 active_reactions.append(r_id)
         return active_reactions
 
+    def is_essential_gene(self, gene, min_growth=0.01):
+        gr = self.get_gene_reactions()
+        active_genes = set(self.genes) - {gene}
+        rxns = gr.get(gene, [])
+        if not rxns:
+            return False
+        inactive_reactions = []
+        for r_id in rxns:
+            gpr = self.get_gpr(r_id)
+            if gpr and not evaluate_expression_tree(str(gpr), active_genes):
+                inactive_reactions.append(r_id)
+        constraints = {rxn: 0 for rxn in inactive_reactions}
+        res = self.simulate(constraints=constraints, slim=True)
+        return not res or res < min_growth
+
     def essential_genes(self, min_growth=0.01):
         """Essential genes are those when deleted enable a biomass flux value above a minimal growth defined as
         a percentage of the wild type growth.
@@ -208,21 +253,11 @@ class Simulator(ModelContainer):
         essential = getattr(self, '_essential_genes', None)
         if essential is not None:
             return essential
-        self._essential_genes = []
-        wt_solution = self.simulate()
-        wt_growth = wt_solution.objective_value
-        genes = self.genes
-        print("Computing essential genes:")
-        for gene in tqdm(genes):
-            active_genes = set(self.genes) - {gene}
-            active_reactions = self.evaluate_gprs(active_genes)
-            inactive_reactions = set(self.reactions) - set(active_reactions)
-            gr_constraints = {rxn: 0 for rxn in inactive_reactions}
-            res = self.simulate(constraints=gr_constraints)
-            if res:
-                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \
-                        or res.status == SStatus.INFEASIBLE:
-                    self._essential_genes.append(gene)
+        essential = []
+        for g in tqdm(self.genes):
+            if self.is_essential_gene(g):
+                essential.append(g)
+        self._essential_genes = essential
         return self._essential_genes
 
     @property
@@ -237,6 +272,7 @@ class Simulator(ModelContainer):
             return ref
         self._reference = self.simulate(method="pFBA").fluxes
         return self._reference
+
 
 class SimulationResult(object):
     """Class that represents simulation results and performs operations over them."""
@@ -380,3 +416,48 @@ class SimulationResult(object):
         t = {m_id: 0.5*sum([abs(coeff * self.fluxes[r_id]) for r_id, coeff in neighbours.items()])
              for m_id, neighbours in m_r_table.items()}
         return t
+
+    @classmethod
+    def fromLinearSolver(cls, solution):
+        """Converts a solver Solution object to a SolutionResult object.
+
+        :param solution: solution to be converted
+        :type solution: mewpy.solver.solution.Solution
+        :raises ValueError: if solution is not an instance of mewpy.solver.solution.Solution
+        :return: an instance of SolutionResult
+        :rtype: SolutionResult
+        """
+        from mewpy.solvers import Solution, Status
+        smap = {Status.OPTIMAL: SStatus.OPTIMAL,
+                Status.UNKNOWN: SStatus.UNKNOWN,
+                Status.SUBOPTIMAL: SStatus.SUBOPTIMAL,
+                Status.UNBOUNDED: SStatus.UNBOUNDED,
+                Status.INFEASIBLE: SStatus.INFEASIBLE,
+                Status.INF_OR_UNB: SStatus.INF_OR_UNB
+                }
+        if not isinstance(solution, Solution):
+            raise ValueError('solution should be and instance of mewpy.solvers.solution.Solution')
+        return cls(None, solution.fobj, fluxes=solution.values, status=smap[solution.status])
+
+
+def simulate(model, envcond=None, objective=None, method=SimulationMethod.FBA, maximize=True, constraints=None, reference=None,
+             solver=None, **kwargs):
+    """Runs an FBA phenotype simulation.
+
+    :param model: cobrapy, reframed, mew constraint-base model
+    :param (dict )envcond : Environmental conditions, defaults to None
+    :param (dict) objective: the FBA objective , defaults to None
+    :param method: The FBA method, defaults to SimulationMethod.FBA
+    :param maximize: optimization sense, defaults to True
+    :param (dict) constraints: additional constraints , defaults to None
+    :param (dict) reference: reference fluxes, defaults to None
+    :param solver: a solver instance, defaults to None
+
+    :returns: SimultationResult
+    """
+    from . import get_simulator
+    sim = get_simulator(model, envcond=envcond)
+    res = sim.simulate(objective=objective, method=method, maximize=maximize,
+                       constraints=constraints, reference=reference,
+                       solver=solver, **kwargs)
+    return res

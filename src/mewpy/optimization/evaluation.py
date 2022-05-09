@@ -488,22 +488,19 @@ class AggregatedSum(PhenotypeEvaluationFunction, KineticEvaluationFunction):
         return "Aggregated Sum = " + reduce(lambda a, b: a + " " + b, [f.method_str() for f in self.fevaluation], "")
 
 
-class MinCandSize(PhenotypeEvaluationFunction, KineticEvaluationFunction):
+class CandidateSize(PhenotypeEvaluationFunction, KineticEvaluationFunction):
     """
-    This class implements the "minimization of number of reactions" objective function. The fitness is given by
-    1 - size(candidate)/ candidate_max_size, where the candidate_max_size is the maximum size that a candidate can have
-    during optimization.
+    Maximize/minimize the number of modifications (reactions, genes, enzymes, etc.).
 
-    :param maxCandidateSize: (int) Maximum size allowed for candidate.
+    :param (bool) maximize: Optimization sense. Default False (minimize)
 
     """
 
-    def __init__(self, candidate_max_size=EAConstants.MAX_SOLUTION_SIZE, maximize=True):
-        super(MinCandSize, self).__init__(maximize=maximize, worst_fitness=0.0)
-        self.candidate_max_size = candidate_max_size
+    def __init__(self, maximize=False):
+        super(CandidateSize, self).__init__(maximize=maximize, worst_fitness=0.0)
 
     def get_fitness(self, simulResult, candidate, **kwargs):
-        return 1 - len(candidate) / self.candidate_max_size
+        return len(candidate)
 
     def required_simulations(self):
         """
@@ -512,11 +509,19 @@ class MinCandSize(PhenotypeEvaluationFunction, KineticEvaluationFunction):
         return []
 
     def short_str(self):
-        return "MinCandSize"
+        return "Size"
 
     def method_str(self):
-        return "Minimizes the number of alterations"
+        return "Minimize/maximize the number of alterations"
 
+
+class MinCandSize(CandidateSize):
+
+    def __init__(self, maximize=False):
+        warnings.warn("This class will soon be depricated. Use CandidateSize instead.")
+        super(MinCandSize, self).__init__(maximize=maximize, worst_fitness=0.0)
+
+    
 
 class ModificationType(PhenotypeEvaluationFunction, KineticEvaluationFunction):
     """This Objective function favors solutions with deletions, under expression and over expression,
@@ -573,7 +578,15 @@ class MolecularWeight(PhenotypeEvaluationFunction):
             rmw = 0
             for m, v in p.items():
                 elem = simulator.metabolite_elements(m)
-                rmw += abs(v) * sum([atomic_weights[e]*n for e, n in elem.items()])
+                w = 0
+                for e, n in elem.items():
+                    try:
+                        w += atomic_weights[e] * n
+                    except:
+                        pass
+
+                rmw += abs(v) * w
+
             self.__mw[rx] = rmw
 
     def get_fitness(self, simul_results, candidate, **kwargs):
