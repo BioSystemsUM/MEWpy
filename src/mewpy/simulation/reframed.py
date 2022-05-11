@@ -402,7 +402,7 @@ class Simulation(CBModelContainer, Simulator):
     # Simulate
     def simulate(self, objective=None, method=SimulationMethod.FBA,
                  maximize=True, constraints=None, reference=None,
-                 scalefactor=None, solver=None, slim=False):
+                 scalefactor=None, solver=None, slim=False, shadow_prices=False):
         '''
         Simulates a phenotype when applying a set constraints using the specified method.
 

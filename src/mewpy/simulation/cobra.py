@@ -370,7 +370,8 @@ class Simulation(CobraModelContainer, Simulator):
 
     # The simulator
     def simulate(self, objective=None, method=SimulationMethod.FBA, maximize=True,
-                 constraints=None, reference=None, scalefactor=None, solver=None, slim=False):
+                 constraints=None, reference=None, scalefactor=None, solver=None, slim=False,
+                 shadow_prices=False):
         '''
         Simulates a phenotype when applying a set constraints using the specified method.
 
@@ -441,7 +442,9 @@ class Simulation(CobraModelContainer, Simulator):
                                       model_constraints=self._constraints.copy(),
                                       simul_constraints=constraints,
                                       maximize=maximize,
-                                      method=method)
+                                      method=method,
+                                      shadow_prices=solution.shadow_prices.to_dict(OrderedDict)
+                                      )
             return result
 
     def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None,
