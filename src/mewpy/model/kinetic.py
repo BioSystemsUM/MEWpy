@@ -153,7 +153,7 @@ class KineticReaction(Rule):
         m = {p_id: f"p['{self.id}_{p_id}']" for p_id in self.parameters.keys()}
         r_map = map.copy()
         r_map.update(m)
-        return self.replace(r_map,local=local)
+        return self.replace(r_map, local=local)
 
     def calculate_rate(self, substrates={}, parameters={}):
         param = {}
@@ -216,7 +216,6 @@ class KineticReaction(Rule):
                     self.parameters[name] = self.parameter_distributions[name].mean()
 
 
-
 class ODEModel(Model):
     # TODO: Generalize to work with any model
     def __init__(self, model_id):
@@ -235,11 +234,6 @@ class ODEModel(Model):
 
         self._func_str = None
         self._constants = None
-
-        self.reacParamsFactors = None
-        self.parsedRates = None
-        self.parsedRules = None
-        self.parsedXdot = None
 
     def get_reactions(self):
         return self.reactions
@@ -308,11 +302,17 @@ class ODEModel(Model):
         self._constants = constants
         return constants
 
-    def print_balance(self, m_id):
+    def print_balance(self, m_id, factors=None):
+        f = factors.get(m_id, 1) if factors else 1
         c_id = self.metabolites[m_id].compartment
         table = self.metabolite_reaction_lookup()
-        terms = [f"{coeff:+g} * r['{r_id}']" for r_id, coeff in table[m_id].items()]
-        if len(terms) == 0 or (self.metabolites[m_id].constant and self.metabolites[m_id].boundary):
+
+        terms = []
+        for r_id, coeff in table[m_id].items():
+            v = coeff * f if coeff > 0 else coeff
+            terms.append(f"{v:+g} * r['{r_id}']")
+
+        if f == 0 or len(terms) == 0 or (self.metabolites[m_id].constant and self.metabolites[m_id].boundary):
             expr = "0"
         else:
             expr = f"1/p['{c_id}'] * ({' '.join(terms)})"
@@ -334,7 +334,8 @@ class ODEModel(Model):
             yprime += reaction.reaction(m_y, self.get_parameters())
         return yprime
 
-    def build_ode(self,factors=None, local=False):
+    def build_ode(self, factors=None, local=False):
+
         rmap = OrderedDict()
         m = {m_id: f"x[{i}]" for i, m_id in enumerate(self.metabolites)}
         c = {c_id: f"p['{c_id}']" for c_id in self.compartments}
@@ -345,15 +346,22 @@ class ODEModel(Model):
         rmap.update(p)
         rmap.update(v)
 
-        parsed_rates = {r_id: ratelaw.parse_law(rmap,local=local)
-                        for r_id, ratelaw in self.ratelaws.items()}        
+        if factors:
+            for k, v in factors.items():
+                exp = rmap[k]
+                rmap[k] = f"{str(v)} * {exp}" if isinstance(exp, str) else v*exp
+
+        parsed_rates = {r_id: ratelaw.parse_law(rmap, local=local)
+                        for r_id, ratelaw in self.ratelaws.items()}
+
         r = {r_id: f"({parsed_rates[r_id]})" for r_id in self.reactions}
+
         rmap.update(r)
-       
+
         rate_exprs = [' '*4+"r['{}'] = {}".format(r_id, parsed_rates[r_id])
                       for r_id in self.reactions]
 
-        balances = [' '*8 + self.print_balance(m_id) for m_id in self.metabolites]
+        balances = [' '*8 + self.print_balance(m_id,     factors=factors) for m_id in self.metabolites]
 
         func_str = 'def ode_func(t, x, r, p, v):\n\n' + \
             '\n'.join(rate_exprs) + '\n\n' + \
