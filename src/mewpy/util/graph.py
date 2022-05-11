@@ -9,6 +9,17 @@ REACTION = 'reaction'
 REV = 'rev'
 IRREV = 'irrev'
 
+COFACT = ['H', 
+          'CO2', 
+          'C21H26N7O17P3', 
+          'C21H25N7O17P3', 
+          'C10H12N5O13P3', 
+          'C10H12N5O10P2', 
+          'H20', 
+          'HO4P', 
+          'HO7P2', 
+          ]
+
 
 def create_metabolic_graph(model, directed=True, carbon=True, reactions=None, remove=[], edges_labels=False, biomass=False, metabolites=False):
     """ Creates a metabolic graph
@@ -44,7 +55,7 @@ def create_metabolic_graph(model, directed=True, carbon=True, reactions=None, re
     for r in reactions:
         the_metabolites = container.get_reaction_metabolites(r)
         for m in the_metabolites:
-            if m in remove:
+            if m in remove or container.get_metabolite(m)['formula'] in COFACT:
                 continue
             if carbon and 'C' not in container.metabolite_elements(m).keys():
                 continue
