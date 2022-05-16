@@ -13,6 +13,7 @@ from . import get_default_solver, SimulationMethod, SStatus
 from .simulation import Simulator, SimulationResult, ModelContainer
 from ..util.constants import ModelConstants
 from ..util.parsing import evaluate_expression_tree
+from ..util.utilities import AttrDict
 from tqdm import tqdm
 
 
@@ -43,7 +44,7 @@ class CobraModelContainer(ModelContainer):
         res = {'id': r_id, 'name': rxn.name, 'lb': rxn.lower_bound,
                'ub': rxn.upper_bound, 'stoichiometry': stoichiometry}
         res['gpr'] = rxn.gene_reaction_rule if rxn.gene_reaction_rule is not None else None
-        return res
+        return AttrDict(res)
 
     @property
     def genes(self):
@@ -52,7 +53,7 @@ class CobraModelContainer(ModelContainer):
     def get_gene(self, g_id):
         g = self.model.genes.get_by_id(g_id)
         res = {'id': g_id, 'name': g.name}
-        return res
+        return AttrDict(res)
 
     @property
     def metabolites(self):
@@ -61,7 +62,7 @@ class CobraModelContainer(ModelContainer):
     def get_metabolite(self, m_id):
         met = self.model.metabolites.get_by_id(m_id)
         res = {'id': m_id, 'name': met.name, 'compartment': met.compartment, 'formula': met.formula}
-        return res
+        return AttrDict(res)
 
     @property
     def medium(self):
@@ -76,7 +77,7 @@ class CobraModelContainer(ModelContainer):
         from cobra.medium import find_external_compartment
         e = find_external_compartment(self.model)
         res = {'id': c_id, 'name': c, 'external': (e == c_id)}
-        return res
+        return AttrDict(res)
 
     def get_gpr(self, reaction_id):
         """Returns the gpr rule (str) for a given reaction ID.

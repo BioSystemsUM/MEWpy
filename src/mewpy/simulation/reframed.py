@@ -17,7 +17,7 @@ from . import SimulationMethod, SStatus, get_default_solver
 from .simulation import Simulator, SimulationResult, ModelContainer
 from ..model.gecko import GeckoModel
 from ..util.constants import ModelConstants
-from ..util.utilities import elements
+from ..util.utilities import elements, AttrDict
 from tqdm import tqdm
 
 LOGGER = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ class CBModelContainer(ModelContainer):
         rxn = self.model.reactions[r_id]
         res = {'id': r_id, 'name': rxn.name, 'lb': rxn.lb, 'ub': rxn.ub, 'stoichiometry': rxn.stoichiometry}
         res['gpr'] = str(rxn.gpr) if rxn.gpr is not None else None
-        return res
+        return AttrDict(res)
 
     @property
     def genes(self):
@@ -59,7 +59,7 @@ class CBModelContainer(ModelContainer):
     def get_gene(self, g_id):
         g = self.model.genes[g_id]
         res = {'id': g_id, 'name': g.name}
-        return res
+        return AttrDict(res)
 
     @property
     def metabolites(self):
@@ -68,7 +68,7 @@ class CBModelContainer(ModelContainer):
     def get_metabolite(self, m_id):
         met = self.model.metabolites[m_id]
         res = {'id': m_id, 'name': met.name, 'compartment': met.compartment, 'formula': met.metadata.get('FORMULA', '')}
-        return res
+        return AttrDict(res)
 
     @property
     def compartments(self):

@@ -8,6 +8,12 @@ import time
 from collections import Iterable
 
 
+class AttrDict(dict):
+    def __init__(self, *args, **kwargs):
+        super(AttrDict, self).__init__(*args, **kwargs)
+        self.__dict__ = self
+
+
 class TimerError(Exception):
     """A custom exception used to report errors in use of Timer class"""
 
