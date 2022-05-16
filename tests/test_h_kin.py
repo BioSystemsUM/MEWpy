@@ -1,8 +1,4 @@
 from mewpy.simulation.kinetic import KineticSimulation
-import os
-from numpy import linspace, array, dot, isnan
-from collections import OrderedDict
-from scipy.integrate import odeint, solve_ivp
 import unittest
 
 MODELS_PATH = 'tests/data/'

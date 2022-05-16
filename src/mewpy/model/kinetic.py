@@ -94,7 +94,7 @@ class Rule(object):
         Returns:
             str: the kinetic rule.
         """
-        param = parameters.copy()
+        param = parameters.copy() if parameters else dict()
         if local:
             param.update(self.parameters)
         t = self.tree.replace(param)
@@ -104,7 +104,7 @@ class Rule(object):
             return t
 
     def calculate_rate(self, substrates={}, parameters={}):
-        param = {}
+        param = dict()
         param.update(substrates)
         param.update(parameters)
         param.update(self.parameters)
@@ -268,6 +268,13 @@ class ODEModel(Model):
             self.ratelaws[r_id] = law
         else:
             warnings.warn(f"No such reaction '{r_id}'", RuntimeWarning)
+
+    def get_ratelaw(self, r_id):
+        if r_id in self.ratelaws.keys():
+            return self.ratelaws[r_id]
+        else:
+            raise ValueError('Reaction has no rate law.')
+
 
     def set_assignment_rule(self, p_id: str, rule: Rule):
         if p_id in self.variable_params or p_id in self.metabolites:
