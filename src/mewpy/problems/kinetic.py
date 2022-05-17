@@ -1,5 +1,5 @@
 from mewpy.problems.problem import AbstractKOProblem, AbstractOUProblem
-from ..simulation import KineticSimulation
+from ..simulation.kinetic import KineticSimulation
 
 
 class KineticKOProblem(AbstractKOProblem):

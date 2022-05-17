@@ -367,10 +367,10 @@ class Simulation(CBModelContainer, Simulator):
         :param float lb: lower bound 
         :param float ub: upper bound
         """
-        if rxn in self.get_uptake_reactions():
-            self._environmental_conditions[rxn] = (lb, ub)
+        if reaction in self.get_uptake_reactions():
+            self._environmental_conditions[reaction] = (lb, ub)
         else:
-            self._constraints[rxn] = (lb, ub)
+            self._constraints[reaction] = (lb, ub)
         self.model.set_flux_bounds(reaction, lb, ub)
 
     def find_bounds(self):
