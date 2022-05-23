@@ -4,21 +4,35 @@ import numpy as np
 from ..simulation import get_simulator
 from ..simulation.simulation import Simulator
 
-METABOLITE = 'metabolite'
-REACTION = 'reaction'
-REV = 'rev'
-IRREV = 'irrev'
+METABOLITE = 'METABOLITE'
+REACTION = 'REACTION    '
+REV = 'REV'
+IRREV = 'IRREV'
 
 COFACT = ['H', 
-          'CO2', 
-          'C21H26N7O17P3', 
-          'C21H25N7O17P3', 
-          'C10H12N5O13P3', 
-          'C10H12N5O10P2', 
-          'H20', 
-          'HO4P', 
-          'HO7P2', 
-          ]
+          'Mg',
+          'Mn',
+          'H',
+          'Zn',
+          'CO2',
+          'H20',
+          'HO4P',
+          'C21H26N7O17P3',      # NADPH
+          'C21H25N7O17P3',      # NADP
+          'C21H27N7O14P2',      # NAD
+          'C10H12N5O13P3',      # ATP
+          'C10H12N5O10P2',      # ADP
+          'C27H33N9O15P2',      # FAD
+          'C21H36N7O16P3S',     # CoA
+          'C12H19N4O7P2S',      # TPP
+          'C8H10NO6P',          # P5P
+          'C63H91CoN13O14P',    # Vitamin B12
+          'C63H88CoN14O14P',    # Vitamin B12
+          'C6H8O6',             # Vitamin C
+          'C10H16N2O3S',        # Vitamin B7
+          'C19H23N7O6',         # THFA
+          'HO7P2',              # ppi
+         ]
 
 
 def create_metabolic_graph(model, directed=True, carbon=True, reactions=None, remove=[], edges_labels=False, biomass=False, metabolites=False):
