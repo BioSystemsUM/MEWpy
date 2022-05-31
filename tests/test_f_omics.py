@@ -32,7 +32,3 @@ class TestExpressionSet(unittest.TestCase):
     def test_iMAT(self):
         from mewpy.omics import iMAT
         iMAT(self.sim, self.expr)
-
-    # def test_GIM3E(self):
-    #    from mewpy.omics import GIM3E
-    #    GIM3E(self.sim, self.expr)

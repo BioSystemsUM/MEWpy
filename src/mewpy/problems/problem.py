@@ -403,12 +403,12 @@ class AbstractOUProblem(AbstractProblem):
         self.strategy = Strategy.OU
         self.levels = kwargs.get('levels', EAConstants.LEVELS)
         self._reference = kwargs.get('reference', None)
-        self.twostep = kwargs.get('twostep', True)
+        self.twostep = kwargs.get('twostep', False)
         self._partial_solution = kwargs.get('partial_solution', dict())
 
     def decode(self, candidate):
         """The decoder function for the problem. Needs to be implemented by extending classes."""
-        decoded = self._partial_solution
+        decoded = self._partial_solution.copy()
         for idx, lv_idx in candidate:
             try:
                 rxn = self.target_list[idx]

@@ -17,7 +17,7 @@ from . import SimulationMethod, SStatus, get_default_solver
 from .simulation import Simulator, SimulationResult, ModelContainer
 from ..model.gecko import GeckoModel
 from ..util.constants import ModelConstants
-from ..util.utilities import elements
+from ..util.utilities import elements, AttrDict
 from tqdm import tqdm
 
 LOGGER = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ class CBModelContainer(ModelContainer):
         rxn = self.model.reactions[r_id]
         res = {'id': r_id, 'name': rxn.name, 'lb': rxn.lb, 'ub': rxn.ub, 'stoichiometry': rxn.stoichiometry}
         res['gpr'] = str(rxn.gpr) if rxn.gpr is not None else None
-        return res
+        return AttrDict(res)
 
     @property
     def genes(self):
@@ -59,7 +59,7 @@ class CBModelContainer(ModelContainer):
     def get_gene(self, g_id):
         g = self.model.genes[g_id]
         res = {'id': g_id, 'name': g.name}
-        return res
+        return AttrDict(res)
 
     @property
     def metabolites(self):
@@ -68,7 +68,7 @@ class CBModelContainer(ModelContainer):
     def get_metabolite(self, m_id):
         met = self.model.metabolites[m_id]
         res = {'id': m_id, 'name': met.name, 'compartment': met.compartment, 'formula': met.metadata.get('FORMULA', '')}
-        return res
+        return AttrDict(res)
 
     @property
     def compartments(self):
@@ -81,6 +81,24 @@ class CBModelContainer(ModelContainer):
 
     def get_exchange_reactions(self):
         return self.model.get_exchange_reactions()
+
+    def get_gene_reactions(self):
+        """
+        :returns: a map of genes to reactions.
+        """
+        if not self._gene_to_reaction:
+            gr = OrderedDict()
+            for rxn_id in self.reactions:
+                rxn = self.model.reactions[rxn_id]
+                if rxn.gpr:
+                    genes = rxn.gpr.get_genes()
+                    for g in genes:
+                        if g in gr.keys():
+                            gr[g].append(rxn_id)
+                        else:
+                            gr[g] = [rxn_id]
+            self._gene_to_reaction = gr
+        return self._gene_to_reaction
 
     @property
     def medium(self):
@@ -275,7 +293,7 @@ class Simulation(CBModelContainer, Simulator):
         """Returns the list of genes that only catalyze transport reactions.
         """
         trp_rxs = self.get_transport_reactions()
-        r_g = self.gene_reactions()
+        r_g = self.get_gene_reactions()
         genes = []
         for g, rxs in r_g.items():
             if set(rxs).issubset(set(trp_rxs)):
@@ -314,24 +332,6 @@ class Simulation(CBModelContainer, Simulator):
                     continue
             return None
 
-    def gene_reactions(self):
-        """
-        :returns: a map of genes to reactions.
-        """
-        if not self._gene_to_reaction:
-            gr = OrderedDict()
-            for rxn_id in self.reactions:
-                rxn = self.model.reactions[rxn_id]
-                if rxn.gpr:
-                    genes = rxn.gpr.get_genes()
-                    for g in genes:
-                        if g in gr.keys():
-                            gr[g].append(rxn_id)
-                        else:
-                            gr[g] = [rxn_id]
-            self._gene_to_reaction = gr
-        return self._gene_to_reaction
-
     def metabolite_reaction_lookup(self, force_recalculate=False):
         """ Return the network topology as a nested map from metabolite to reaction to coefficient.
         :return: a dictionary lookup table
@@ -367,10 +367,10 @@ class Simulation(CBModelContainer, Simulator):
         :param float lb: lower bound 
         :param float ub: upper bound
         """
-        if rxn in self.get_uptake_reactions():
-            self._environmental_conditions[rxn] = (lb, ub)
+        if reaction in self.get_uptake_reactions():
+            self._environmental_conditions[reaction] = (lb, ub)
         else:
-            self._constraints[rxn] = (lb, ub)
+            self._constraints[reaction] = (lb, ub)
         self.model.set_flux_bounds(reaction, lb, ub)
 
     def find_bounds(self):
@@ -402,7 +402,7 @@ class Simulation(CBModelContainer, Simulator):
     # Simulate
     def simulate(self, objective=None, method=SimulationMethod.FBA,
                  maximize=True, constraints=None, reference=None,
-                 scalefactor=None, solver=None, slim=False):
+                 scalefactor=None, solver=None, slim=False, shadow_prices=False):
         '''
         Simulates a phenotype when applying a set constraints using the specified method.
 
@@ -422,7 +422,7 @@ class Simulation(CBModelContainer, Simulator):
         if constraints:
             simul_constraints.update({k: v for k, v in constraints.items()
                                       if k not in list(self._environmental_conditions.keys())})
-        
+
         a_solver = solver
         if not self._reset_solver and not a_solver:
             if self.solver is None:

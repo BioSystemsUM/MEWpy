@@ -4,6 +4,7 @@ from time import time
 from math import inf
 import hashlib
 from copy import deepcopy
+from warnings import warn
 
 from reframed.io.sbml import load_cbmodel, parse_gpr_rule
 from reframed.core.model import AttrOrderedDict, ReactionType, Compartment, Metabolite
@@ -210,6 +211,7 @@ class CommunityKOProblem(AbstractKOProblem):
             cmodel = solution
         try:
             p = []
+            simulation_results = dict()
             for method in self.methods:
                 sim = get_simulator(cmodel, self.environmental_conditions)
                 simulation_result = self.simulator.simulate(method=method, scalefactor=self.scalefactor)
@@ -224,3 +226,5 @@ class CommunityKOProblem(AbstractKOProblem):
             for f in self.fevaluation:
                 p.append(f.worst_fitness)
         return p
+
+

@@ -130,11 +130,11 @@ class MediumProblem(AbstractOUProblem):
     """
 
     def __init__(self, model, fevaluation=None, **kwargs):
-        super(ROUProblem, self).__init__(
+        super(MediumProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
         self.levels = kwargs.get('levels', np.linspace(0, 10, 101))
         self.candidate_max_size = kwargs.get(
-            'candidate_max_size', len(self.target))
+            'candidate_max_size', len(self.target_list))
 
     def _build_target_list(self):
         target = set(self.simulator.get_uptake_reactions())

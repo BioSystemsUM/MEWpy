@@ -95,7 +95,7 @@ class KineticSimulation:
         This method preform the phenotype simulation of the kinetic model, using the solverId method and applying
         the modifications present in the instance of overrideSimulProblem.
 
-        :param dict factores: Modification over the kinetic model.
+        :param dict factors: Modification over the kinetic model.
         :returns: Returns a kineticSimulationResult with the steady-state flux distribution and concentrations.
         """
 

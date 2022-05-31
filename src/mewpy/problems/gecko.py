@@ -81,6 +81,20 @@ class GeckoKOProblem(AbstractKOProblem):
         p_size = len(self.prot_prefix)
         return set([self.target_list.index(k[p_size:]) for k in candidate])
 
+    def solution_to_constraints(self, candidate):
+        """
+        Converts a candidate, a dictionary of reactions, into a dictionary of constraints.
+        This is problem specific. By default return the decoded candidate.
+        """
+        # check prefix
+        def add_prefix(prot):
+            if prot.startswith(self.prot_prefix):
+                return prot
+            else:
+                return f"{self.prot_prefix}{prot}"
+
+        _candidate = {add_prefix(k): v for k, v in candidate.items()}
+        return _candidate
 
 class GeckoOUProblem(AbstractOUProblem):
     """
@@ -127,6 +141,8 @@ class GeckoOUProblem(AbstractOUProblem):
         target = proteins
         if self.non_target:
             target = target - set(self.non_target)
+        if self._partial_solution:
+            target = target - set(self._partial_solution.keys())
         self._trg_list = list(target)
 
     def decode(self, candidate):
@@ -168,20 +184,33 @@ class GeckoOUProblem(AbstractOUProblem):
         :returns: A dictionary of metabolic constraints.
         """
         constraints = dict()
+        if len(candidate) == 0:
+            return constraints
+
+        # check prefix
+        def add_prefix(prot):
+            if prot.startswith(self.prot_prefix):
+                return prot
+            else:
+                return f"{self.prot_prefix}{prot}"
+
+        _candidate = {add_prefix(k): v for k, v in candidate.items()}
+
         reference = self.reference
         if self.twostep:
             try:
-                deletions = {rxn: 0 for rxn, lv in candidate.items() if lv == 0}
-                sr = self.simulator.simulate(constraints=deletions, method='pFBA')
-                if sr.status in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
-                    reference = sr.fluxes
+                deletions = {rxn: 0 for rxn, lv in _candidate.items() if lv == 0}
+                if deletions and len(deletions) < len(_candidate):
+                    sr = self.simulator.simulate(constraints=deletions, method='pFBA')
+                    if sr.status in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
+                        reference = sr.fluxes
             except Exception as e:
                 print(e)
 
         if self.prot_rev_reactions is None:
             self.prot_rev_reactions = self.simulator.protein_rev_reactions
 
-        for rxn, lv in candidate.items():
+        for rxn, lv in _candidate.items():
             fluxe_wt = reference[rxn]
             prot = rxn[len(self.prot_prefix):]
             if lv < 0:
