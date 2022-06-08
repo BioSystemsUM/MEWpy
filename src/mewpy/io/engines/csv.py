@@ -62,7 +62,7 @@ class RegulatoryCSV(Engine):
 
         try:
 
-            df = read_csv(self.io, sep, header=header)
+            df = read_csv(self.io, sep=sep, header=header)
 
         except BaseException as exc:
 

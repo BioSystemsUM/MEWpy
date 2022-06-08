@@ -1,11 +1,10 @@
-from tqdm import tqdm
 import joblib
 import contextlib
 import functools
 import re
 import types
 import time
-from collections import Iterable
+from collections.abc import Iterable
 
 
 class AttrDict(dict):
