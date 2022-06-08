@@ -217,6 +217,17 @@ class Simulation(CBModelContainer, Simulator):
         """
         self.model.update()
 
+    def add_compartment(self, comp_id, name=None, external=False):
+        """ Adds a compartment
+
+            :param str comp_id: Compartment ID
+            :param str name: Compartment name, default None
+            :param bool external: If the compartment is external, default False.
+        """
+        from reframed.core.model import Compartment
+        comp = Compartment(comp_id,name=name,external=external)
+        self.model.add_compartment(comp)
+
     def add_metabolite(self, id, formula=None, name=None, compartment=None):
         """Adds a metabolite
 
@@ -529,6 +540,9 @@ class Simulation(CBModelContainer, Simulator):
             df = pd.DataFrame(f, columns=['Reaction ID', 'Minimum', 'Maximum'])
             return df
         return res
+
+    def create_empty_model(self,model_id:str):
+        return Simulation(CBModel(model_id))
 
 
 class GeckoSimulation(Simulation):

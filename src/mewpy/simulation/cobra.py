@@ -207,6 +207,15 @@ class Simulation(CobraModelContainer, Simulator):
                 'The objective must be a reaction identifier or a dictionary of \
                 reaction identifier with respective coeficients.')
 
+    def add_compartment(self, comp_id, name=None, external=False):
+        """ Adds a compartment
+
+            :param str comp_id: Compartment ID
+            :param str name: Compartment name, default None
+            :param bool external: If the compartment is external, default False.
+        """
+        self.model.compartments = {comp_id: name}
+
     def add_metabolite(self, id, formula=None, name=None, compartment=None):
         from cobra import Metabolite
         meta = Metabolite(id, formula=formula, name=name, compartment=compartment)
@@ -504,6 +513,8 @@ class Simulation(CobraModelContainer, Simulator):
     def set_objective(self, reaction):
         self.model.objective = reaction
 
+    def create_empty_model(self,model_id:str):
+        return Simulation(Model(model_id))
 
 class GeckoSimulation(Simulation):
     """

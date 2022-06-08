@@ -274,6 +274,8 @@ class Simulator(ModelContainer):
         self._reference = self.simulate(method="pFBA").fluxes
         return self._reference
 
+    def create_empty_model(self,model_id:str):
+        return NotImplementedError
 
 class SimulationResult(object):
     """Class that represents simulation results and performs operations over them."""
