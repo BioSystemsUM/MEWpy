@@ -3,7 +3,7 @@ from time import time
 
 from mewpy.optimization import EA
 from mewpy.optimization.evaluation import BPCY, WYIELD
-from mewpy.regulation.optram import OptRamProblem, load_optram
+from mewpy.problems.optram import OptRamProblem, load_optram
 from mewpy.simulation import SimulationMethod
 
 

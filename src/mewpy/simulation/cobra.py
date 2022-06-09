@@ -13,6 +13,7 @@ from . import get_default_solver, SimulationMethod, SStatus
 from .simulation import Simulator, SimulationResult, ModelContainer
 from ..util.constants import ModelConstants
 from ..util.parsing import evaluate_expression_tree
+from ..util.utilities import AttrDict
 from tqdm import tqdm
 
 
@@ -43,7 +44,7 @@ class CobraModelContainer(ModelContainer):
         res = {'id': r_id, 'name': rxn.name, 'lb': rxn.lower_bound,
                'ub': rxn.upper_bound, 'stoichiometry': stoichiometry}
         res['gpr'] = rxn.gene_reaction_rule if rxn.gene_reaction_rule is not None else None
-        return res
+        return AttrDict(res)
 
     @property
     def genes(self):
@@ -52,7 +53,7 @@ class CobraModelContainer(ModelContainer):
     def get_gene(self, g_id):
         g = self.model.genes.get_by_id(g_id)
         res = {'id': g_id, 'name': g.name}
-        return res
+        return AttrDict(res)
 
     @property
     def metabolites(self):
@@ -61,7 +62,7 @@ class CobraModelContainer(ModelContainer):
     def get_metabolite(self, m_id):
         met = self.model.metabolites.get_by_id(m_id)
         res = {'id': m_id, 'name': met.name, 'compartment': met.compartment, 'formula': met.formula}
-        return res
+        return AttrDict(res)
 
     @property
     def medium(self):
@@ -76,7 +77,7 @@ class CobraModelContainer(ModelContainer):
         from cobra.medium import find_external_compartment
         e = find_external_compartment(self.model)
         res = {'id': c_id, 'name': c, 'external': (e == c_id)}
-        return res
+        return AttrDict(res)
 
     def get_gpr(self, reaction_id):
         """Returns the gpr rule (str) for a given reaction ID.
@@ -206,6 +207,15 @@ class Simulation(CobraModelContainer, Simulator):
                 'The objective must be a reaction identifier or a dictionary of \
                 reaction identifier with respective coeficients.')
 
+    def add_compartment(self, comp_id, name=None, external=False):
+        """ Adds a compartment
+
+            :param str comp_id: Compartment ID
+            :param str name: Compartment name, default None
+            :param bool external: If the compartment is external, default False.
+        """
+        self.model.compartments = {comp_id: name}
+
     def add_metabolite(self, id, formula=None, name=None, compartment=None):
         from cobra import Metabolite
         meta = Metabolite(id, formula=formula, name=name, compartment=compartment)
@@ -267,7 +277,7 @@ class Simulation(CobraModelContainer, Simulator):
             p = self.model.reactions.get_by_id(rx).products
             for x in p:
                 p_set.add(x.compartment)
-            if len(s) == 1 and len(p) == 1 and len(p_set.intersection(s_set)) == 0:
+            if len(p_set.intersection(s_set)) == 0:
                 transport_reactions.append(rx)
         return transport_reactions
 
@@ -316,30 +326,30 @@ class Simulation(CobraModelContainer, Simulator):
     def metabolite_elements(self, metabolite_id):
         return self.model.metabolites.get_by_id(metabolite_id).elements
 
-    def get_reaction_bounds(self, reaction):
+    def get_reaction_bounds(self, reaction_id):
         """
         Returns the bounds for a given reaction.
 
-        :param reaction: str, reaction ID
+        :param reaction_id: str, reaction ID
         :return: lb(s), ub(s), tuple
 
         """
-        lb, ub = self.model.reactions.get_by_id(reaction).bounds
+        lb, ub = self.model.reactions.get_by_id(reaction_id).bounds
         return lb if lb > -np.inf else ModelConstants.REACTION_LOWER_BOUND,\
             ub if ub < np.inf else ModelConstants.REACTION_UPPER_BOUND
 
-    def set_reaction_bounds(self, reaction, lb=None, ub=None):
+    def set_reaction_bounds(self, reaction_id, lb=None, ub=None):
         """
         Sets the bounds for a given reaction.
-        :param reaction: str, reaction ID
+        :param reaction_id: str, reaction ID
         :param float lb: lower bound 
         :param float ub: upper bound
         """
-        if rxn in self.get_uptake_reactions():
-            self._environmental_conditions[rxn] = (lb, ub)
+        if reaction_id in self.get_uptake_reactions():
+            self._environmental_conditions[reaction_id] = (lb, ub)
         else:
-            self._constraints[rxn] = (lb, ub)
-        rxn = self.model.reactions.get_by_id(reaction)
+            self._constraints[reaction_id] = (lb, ub)
+        rxn = self.model.reactions.get_by_id(reaction_id)
         rxn.bounds = (lb, ub)
 
     def find_bounds(self):
@@ -370,7 +380,8 @@ class Simulation(CobraModelContainer, Simulator):
 
     # The simulator
     def simulate(self, objective=None, method=SimulationMethod.FBA, maximize=True,
-                 constraints=None, reference=None, scalefactor=None, solver=None, slim=False):
+                 constraints=None, reference=None, scalefactor=None, solver=None, slim=False,
+                 shadow_prices=False):
         '''
         Simulates a phenotype when applying a set constraints using the specified method.
 
@@ -441,7 +452,9 @@ class Simulation(CobraModelContainer, Simulator):
                                       model_constraints=self._constraints.copy(),
                                       simul_constraints=constraints,
                                       maximize=maximize,
-                                      method=method)
+                                      method=method,
+                                      shadow_prices=solution.shadow_prices.to_dict(OrderedDict)
+                                      )
             return result
 
     def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None,
@@ -500,6 +513,8 @@ class Simulation(CobraModelContainer, Simulator):
     def set_objective(self, reaction):
         self.model.objective = reaction
 
+    def create_empty_model(self,model_id:str):
+        return Simulation(Model(model_id))
 
 class GeckoSimulation(Simulation):
     """

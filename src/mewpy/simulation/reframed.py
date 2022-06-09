@@ -17,7 +17,7 @@ from . import SimulationMethod, SStatus, get_default_solver
 from .simulation import Simulator, SimulationResult, ModelContainer
 from ..model.gecko import GeckoModel
 from ..util.constants import ModelConstants
-from ..util.utilities import elements
+from ..util.utilities import elements, AttrDict
 from tqdm import tqdm
 
 LOGGER = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ class CBModelContainer(ModelContainer):
         rxn = self.model.reactions[r_id]
         res = {'id': r_id, 'name': rxn.name, 'lb': rxn.lb, 'ub': rxn.ub, 'stoichiometry': rxn.stoichiometry}
         res['gpr'] = str(rxn.gpr) if rxn.gpr is not None else None
-        return res
+        return AttrDict(res)
 
     @property
     def genes(self):
@@ -59,7 +59,7 @@ class CBModelContainer(ModelContainer):
     def get_gene(self, g_id):
         g = self.model.genes[g_id]
         res = {'id': g_id, 'name': g.name}
-        return res
+        return AttrDict(res)
 
     @property
     def metabolites(self):
@@ -68,7 +68,7 @@ class CBModelContainer(ModelContainer):
     def get_metabolite(self, m_id):
         met = self.model.metabolites[m_id]
         res = {'id': m_id, 'name': met.name, 'compartment': met.compartment, 'formula': met.metadata.get('FORMULA', '')}
-        return res
+        return AttrDict(res)
 
     @property
     def compartments(self):
@@ -216,6 +216,17 @@ class Simulation(CBModelContainer, Simulator):
         """Updates the model
         """
         self.model.update()
+
+    def add_compartment(self, comp_id, name=None, external=False):
+        """ Adds a compartment
+
+            :param str comp_id: Compartment ID
+            :param str name: Compartment name, default None
+            :param bool external: If the compartment is external, default False.
+        """
+        from reframed.core.model import Compartment
+        comp = Compartment(comp_id,name=name,external=external)
+        self.model.add_compartment(comp)
 
     def add_metabolite(self, id, formula=None, name=None, compartment=None):
         """Adds a metabolite
@@ -367,10 +378,10 @@ class Simulation(CBModelContainer, Simulator):
         :param float lb: lower bound 
         :param float ub: upper bound
         """
-        if rxn in self.get_uptake_reactions():
-            self._environmental_conditions[rxn] = (lb, ub)
+        if reaction in self.get_uptake_reactions():
+            self._environmental_conditions[reaction] = (lb, ub)
         else:
-            self._constraints[rxn] = (lb, ub)
+            self._constraints[reaction] = (lb, ub)
         self.model.set_flux_bounds(reaction, lb, ub)
 
     def find_bounds(self):
@@ -402,7 +413,7 @@ class Simulation(CBModelContainer, Simulator):
     # Simulate
     def simulate(self, objective=None, method=SimulationMethod.FBA,
                  maximize=True, constraints=None, reference=None,
-                 scalefactor=None, solver=None, slim=False):
+                 scalefactor=None, solver=None, slim=False, shadow_prices=False):
         '''
         Simulates a phenotype when applying a set constraints using the specified method.
 
@@ -529,6 +540,9 @@ class Simulation(CBModelContainer, Simulator):
             df = pd.DataFrame(f, columns=['Reaction ID', 'Minimum', 'Maximum'])
             return df
         return res
+
+    def create_empty_model(self,model_id:str):
+        return Simulation(CBModel(model_id))
 
 
 class GeckoSimulation(Simulation):

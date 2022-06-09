@@ -181,10 +181,11 @@ class Simulator(ModelContainer):
             values = [x for x in values if re_expr.search(x) is not None]
         if sort:
             values.sort()
+
         import pandas as pd
         if find_in == 'm':
             data = [self.get_metabolite(x) for x in values]
-        if find_in == 'g':
+        elif find_in == 'g':
             data = [{'Gene': x} for x in values]
         else:
             data = [self.get_reaction(x) for x in values]
@@ -273,12 +274,14 @@ class Simulator(ModelContainer):
         self._reference = self.simulate(method="pFBA").fluxes
         return self._reference
 
+    def create_empty_model(self,model_id:str):
+        return NotImplementedError
 
 class SimulationResult(object):
     """Class that represents simulation results and performs operations over them."""
 
     def __init__(self, model, objective_value, fluxes=None, status=None, envcond=None, model_constraints=None,
-                 simul_constraints=None, maximize=True, method=None):
+                 simul_constraints=None, maximize=True, method=None, shadow_prices=None):
         """
         :param model: A model instance.
         :param objective_value: The phenotype simulation objective value.
@@ -288,7 +291,8 @@ class SimulationResult(object):
         :param dict model_constraints: Possible persistent additional constraints.
         :param dict simul_constraints: The simulation constraints.
         :param boolean maximize: Optimization direction.
-
+        :param SimulationMethod method: The phenotypic methos
+        :param dict shadow_prices: shadow prices
         """
         self.model = model
         self.objective_value = objective_value
@@ -302,7 +306,7 @@ class SimulationResult(object):
         # Constraints specific to the simulation
         self.simulation_constraints = simul_constraints if simul_constraints else OrderedDict()
         self.method = method
-
+        self.shadow_prices = shadow_prices
     def get_constraints(self):
         """
         :returns: All constraints applied during the simulation both persistent and simulation specific.
@@ -321,7 +325,7 @@ class SimulationResult(object):
         return (f"objective: {self.objective_value}\nStatus: "
                 f"{self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}")
 
-    def find(self, pattern=None, sort=False):
+    def find(self, pattern=None, sort=False, shadow_prices=False):
         """Returns a dataframe of reactions and their fluxes matching a pattern or a list of patterns.
 
         :param pattern: a string or a list of strings. defaults to None
@@ -330,7 +334,18 @@ class SimulationResult(object):
         :return: returns a dataframe.
         :rtype: pandas.DataFrame
         """
-        values = [(key, value) for key, value in self.fluxes.items()]
+        if shadow_prices:
+            try:
+                values = [(key, value) for key, value in self.shadow_prices.items()]
+                columns = ['Metabolite', 'Shadow Price']
+            except Exception:
+                raise ValueError('No shadow prices')
+        else:
+            try:
+                values = [(key, value) for key, value in self.fluxes.items()]
+                columns = ['Reaction ID', 'Flux rate']
+            except Exception:
+                raise ValueError('No fluxes')
         if pattern:
             import re
             if isinstance(pattern, list):
@@ -342,7 +357,7 @@ class SimulationResult(object):
         if sort:
             values.sort(key=lambda x: x[1])
         import pandas as pd
-        df = pd.DataFrame(values, columns=['Reaction ID', 'Flux rate'])
+        df = pd.DataFrame(values, columns=columns)
         return df
 
     @property

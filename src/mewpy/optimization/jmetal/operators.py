@@ -364,7 +364,7 @@ class SingleRealMutation(Mutation[Solution]):
     """
 
     def __init__(self, probability: float = 0.1):
-        super(SingleMutation, self).__init__(probability=probability)
+        super(SingleRealMutation, self).__init__(probability=probability)
 
     def execute(self, solution: Solution) -> Solution:
         if random.random() <= self.probability:

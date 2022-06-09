@@ -1,11 +1,16 @@
-from tqdm import tqdm
 import joblib
 import contextlib
 import functools
 import re
 import types
 import time
-from collections import Iterable
+from collections.abc import Iterable
+
+
+class AttrDict(dict):
+    def __init__(self, *args, **kwargs):
+        super(AttrDict, self).__init__(*args, **kwargs)
+        self.__dict__ = self
 
 
 class TimerError(Exception):

@@ -1,7 +1,7 @@
 from math import inf
 from mewpy.solvers.solver import VarType
 from mewpy.solvers import solver_instance
-from mewpy.simulation import get_simulator
+from mewpy.simulation import get_simulator, SStatus
 from mewpy.simulation.simulation import Simulator
 
 
@@ -10,7 +10,7 @@ def epFBA(model, objective=None, reactions=None, constraints=None, obj_frac=None
     Modified versions of the Parsimonious Flux Balance Analysis allowing to minimize
     the sum of enzyme usage instead of the sum of reaction flux rates when a model includes 
     enzymatic constraints, such as GECKO and sMOMENT formulations.
-     
+
     If the model defines protein constraints, and no set of reactions are defined,
     the objective will be to minimize enzyme usage, otherwise the objective is to
     minimize the sum of metabolic fluxes.
