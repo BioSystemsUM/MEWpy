@@ -1,7 +1,7 @@
 import threading
 from collections import OrderedDict
 import warnings
-from ..simulation.simulation import SimulationResult
+from ..simulation.simulation import SimulationResult, SimulationInterface
 from ..model.kinetic import ODEModel
 from ..solvers import KineticConfigurations, SolverConfigurations, ODEStatus, ode_solver_instance
 
@@ -61,28 +61,22 @@ class kineticSimulationResult(SimulationResult):
         self.concentations = concentrations
 
 
-class KineticSimulation:
+class KineticSimulation(SimulationInterface):
 
-    def __init__(self, model, parameters=None, tSteps=[0, 1e9], timeout=KineticConfigurations.SOLVER_TIMEOUT):
+    def __init__(self, model,  parameters=None, tSteps=[0, 1e9], timeout=KineticConfigurations.SOLVER_TIMEOUT):
         if not isinstance(model, ODEModel):
             raise ValueError('model is not an instance of ODEModel.')
         self.model = model
-        self.parameters = parameters
         self.tSteps = tSteps
         self.timeout = timeout
+        self.parameters = parameters if parameters else dict()
 
-    def __getstate__(self):
-        state = OrderedDict(self.__dict__.copy())
-        return state
-
-    def __setstate__(self, state):
-        self.__dict__.update(state)
-
-    def get_initial_concentrations(self):
+    def get_initial_concentrations(self, initcon=None):
         values = []
+        _initcon = initcon if initcon else dict()
         for i, m in enumerate(self.model.metabolites):
             try:
-                values.append(self.model.concentrations[m])
+                values.append(_initcon.get(m, self.model.concentrations[m]))
             except:
                 values.append(None)
         return values
@@ -90,7 +84,7 @@ class KineticSimulation:
     def get_time_steps(self):
         return self.tSteps
 
-    def simulate(self, factors=None):
+    def simulate(self, parameters=None, initcon=None, factors=None):
         """
         This method preform the phenotype simulation of the kinetic model, using the solverId method and applying
         the modifications present in the instance of overrideSimulProblem.
@@ -100,19 +94,22 @@ class KineticSimulation:
         """
 
         final_factors = factors if factors is not None else {}
-        # update initial concentrations when a [enz] is changed: == 0, up or down regulated
-        initConcentrations = self.get_initial_concentrations()
+        initConcentrations = self.get_initial_concentrations(initcon)
 
         status = None
         sstateRates = None
         sstateConc = None
+        params = self.parameters
+        if parameters:
+            params.update(parameters)
 
         if self.timeout:
-
-            th = KineticThread(self.model, parameters=self.parameters,
-                               final_factors=final_factors,
+            th = KineticThread(self.model,
                                initial_concentrations=initConcentrations,
-                               time_steps=self.get_time_steps())
+                               time_steps=self.get_time_steps(),
+                               parameters=params,
+                               final_factors=final_factors
+                               )
 
             th.start()
             th.join(self.timeout)
@@ -126,7 +123,7 @@ class KineticSimulation:
             status, sstateRates, sstateConc = kinetic_solve(self.model,
                                                             initConcentrations,
                                                             self.get_time_steps(),
-                                                            self.parameters,
+                                                            params,
                                                             final_factors)
 
         return kineticSimulationResult(self.model, status, factors=final_factors, rates=sstateRates,

@@ -58,7 +58,9 @@ class CBModelContainer(ModelContainer):
 
     def get_gene(self, g_id):
         g = self.model.genes[g_id]
-        res = {'id': g_id, 'name': g.name}
+        gr = self.get_gene_reactions()
+        r = gr[g_id]
+        res = {'id': g_id, 'name': g.name, 'reactions': r}
         return AttrDict(res)
 
     @property
@@ -508,7 +510,7 @@ class Simulation(CBModelContainer, Simulator):
                                       simul_constraints=constraints, maximize=maximize, method=method)
             return result
 
-    def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None,
+    def FVA(self, reactions=None, obj_frac=0.9, constraints=None, loopless=False, internal=None, solver=None,
             format='dict'):
         """ Flux Variability Analysis (FVA).
 
@@ -529,9 +531,18 @@ class Simulation(CBModelContainer, Simulator):
         if constraints:
             simul_constraints.update({k: v for k, v in constraints.items()
                                       if k not in list(self._environmental_conditions.keys())})
+        if reactions is None:
+            _reactions = self.reactions
+        elif isinstance(reactions, str):
+            _reactions = [reactions]
+        elif isinstance(reactions, list):
+            _reactions = reactions
+        else:
+            raise ValueError('Invalid reactions.')
+
 
         from reframed.cobra.variability import FVA
-        res = FVA(self.model, obj_frac=obj_frac, reactions=reactions,
+        res = FVA(self.model, obj_frac=obj_frac, reactions=_reactions,
                   constraints=simul_constraints, loopless=loopless, internal=internal, solver=solver)
         if format == 'df':
             import pandas as pd

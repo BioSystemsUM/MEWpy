@@ -52,7 +52,9 @@ class CobraModelContainer(ModelContainer):
 
     def get_gene(self, g_id):
         g = self.model.genes.get_by_id(g_id)
-        res = {'id': g_id, 'name': g.name}
+        gr = self.get_gene_reactions()
+        r = gr[g_id]
+        res = {'id': g_id, 'name': g.name, 'reactions': r}
         return AttrDict(res)
 
     @property
@@ -457,7 +459,7 @@ class Simulation(CobraModelContainer, Simulator):
                                       )
             return result
 
-    def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None,
+    def FVA(self, reactions=None, obj_frac=0.9, constraints=None, loopless=False, internal=None, solver=None,
             format='dict'):
         """ Flux Variability Analysis (FVA).
 
@@ -481,6 +483,15 @@ class Simulation(CobraModelContainer, Simulator):
             simul_constraints.update({k: v for k, v in constraints.items()
                                       if k not in list(self._environmental_conditions.keys())})
 
+        if reactions is None:
+            _reactions = self.reactions
+        elif isinstance(reactions,str):
+            _reactions = [reactions]
+        elif isinstance(reactions, list):
+            _reactions = reactions
+        else:
+            raise ValueError('Invalid reactions.')
+
         with self.model as model:
 
             if simul_constraints:
@@ -492,12 +503,12 @@ class Simulation(CobraModelContainer, Simulator):
                     else:
                         reac.bounds = (simul_constraints.get(
                             rxn), simul_constraints.get(rxn))
-
+            
             df = flux_variability_analysis(
-                model, reaction_list=reactions, loopless=loopless, fraction_of_optimum=obj_frac)
+                model, reaction_list=_reactions, loopless=loopless, fraction_of_optimum=obj_frac)
 
         variability = {}
-        for r_id in reactions:
+        for r_id in _reactions:
             variability[r_id] = [
                 float(df.loc[r_id][0]), float(df.loc[r_id][1])]
 
