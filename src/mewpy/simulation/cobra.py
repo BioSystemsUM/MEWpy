@@ -546,6 +546,7 @@ class GeckoSimulation(Simulation):
         self.protein_prefix = protein_prefix if protein_prefix else 'draw_prot_'
         self._essential_proteins = None
         self._protein_rev_reactions = None
+        self._prot_react = None
 
     @property
     def proteins(self):
@@ -567,17 +568,63 @@ class GeckoSimulation(Simulation):
                     self._essential_proteins.append(rxn)
         return self._essential_proteins
 
+    def map_prot_react(self):
+        if not self._prot_react:
+            self._prot_react=dict()
+            for p in self.proteins:
+                self._prot_react[p]=[]
+            
+            for r_id in self.reactions:
+                rxn = self.model.reactions.get_by_id(r_id)
+                lsub = rxn.reactants
+                for m in lsub:
+                    if 'prot_' in m.id:
+                        p = m.id[5:-3]
+                        try:
+                            self._prot_react[p].append(r_id)
+                        except Exception:
+                            pass
+        return self._prot_react            
+    
     def protein_reactions(self, protein):
         """
         Returns the list of reactions associated to a protein.
         """
-        reactions = []
-        for r_id, rxn in self.model.reactions.items():
-            lsub = rxn.reactants
-            for m in lsub:
-                if protein in m:
-                    reactions.append(r_id)
-        return reactions
+        mapper = self.map_prot_react()
+        return mapper[protein]
+
+    def get_protein(self,p_id):
+        res = {'id': p_id, 'reactions': self.protein_reactions(p_id)}
+        return AttrDict(res)
+
+    def find_proteins(self, pattern=None, sort=False):
+        """A user friendly method to find proteins in the model.
+
+        :param pattern: The pattern which can be a regular expression, defaults to None in which case all entries are listed.
+        :type pattern: str, optional
+        :param sort: if the search results should be sorted, defaults to False
+        :type sort: bool, optional
+        :return: the search results
+        :rtype: pandas dataframe
+        """
+        values = self.proteins
+        if pattern:
+            import re
+            if isinstance(pattern, list):
+                patt = '|'.join(pattern)
+                re_expr = re.compile(patt)
+            else:
+                re_expr = re.compile(pattern)
+            values = [x for x in values if re_expr.search(x) is not None]
+        if sort:
+            values.sort()
+
+        import pandas as pd
+    
+        data = [self.get_protein(x) for x in values]
+        df = pd.DataFrame(data)
+        return df
+
 
     def reverse_reaction(self, reaction_id):
         """
