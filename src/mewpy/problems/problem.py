@@ -162,6 +162,9 @@ class AbstractProblem(ABC):
                 reference=self._reference, reset_solver=self._reset_solver)
         return self._simul
 
+    def simulate(self, *args, **kwargs):
+        return self._simul.simulate(*args, **kwargs)
+
     def reset_simulator(self):
         self._simul = None
 

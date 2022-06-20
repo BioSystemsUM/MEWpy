@@ -7,6 +7,17 @@ from joblib import Parallel, delayed
 from tqdm import tqdm
 
 
+class SimulationInterface(ABC):
+
+    @abstractmethod
+    def simulate(**kwargs):
+        """Abstract method to run a simulation.
+
+        :returns: A SimulationResult.
+
+        """
+        raise NotImplementedError
+
 class ModelContainer(ABC):
     """Interface for Model container.
        Provides an abstraction from models implementations.
@@ -99,7 +110,7 @@ class ModelContainer(ABC):
         raise NotImplementedError
 
 
-class Simulator(ModelContainer):
+class Simulator(ModelContainer, SimulationInterface):
     """
     Interface for simulators
     """
@@ -115,7 +126,7 @@ class Simulator(ModelContainer):
         raise NotImplementedError
 
     @abstractmethod
-    def FVA(self, obj_frac=0, reactions=None, constraints=None, loopless=False, internal=None, solver=None):
+    def FVA(self, reactions=None, obj_frac=0, constraints=None, loopless=False, internal=None, solver=None):
         """ Abstract method to run Flux Variability Analysis (FVA).
 
         :returns: A dictionary of flux range values.
@@ -186,11 +197,20 @@ class Simulator(ModelContainer):
         if find_in == 'm':
             data = [self.get_metabolite(x) for x in values]
         elif find_in == 'g':
-            data = [{'Gene': x} for x in values]
+            data = [self.get_gene(x) for x in values]
         else:
             data = [self.get_reaction(x) for x in values]
         df = pd.DataFrame(data)
         return df
+
+    def find_genes(self, pattern=None, sort=False):
+        return self.find(pattern=pattern, sort=sort, find_in='g')
+
+    def find_metabolites(self, pattern=None, sort=False):
+        return self.find(pattern=pattern, sort=sort, find_in='m')
+
+    def find_reactions(self, pattern=None, sort=False):
+        return self.find(pattern=pattern, sort=sort, find_in='r')
 
     def essential_reactions(self, min_growth=0.01):
         """Essential reactions are those when knocked out enable a biomass flux value above a minimal growth defined as

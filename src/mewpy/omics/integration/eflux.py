@@ -1,5 +1,5 @@
-from ...simulation import get_simulator
-from ...simulation.simulation import Simulator
+from mewpy.simulation import get_simulator
+from mewpy.simulation.simulation import Simulator
 from .. import Preprocessing, ExpressionSet
 
 

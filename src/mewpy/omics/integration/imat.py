@@ -1,9 +1,9 @@
 from math import inf
 
-from ...solvers.solver import VarType
-from ...solvers import solver_instance
-from ...simulation import get_simulator
-from ...simulation.simulation import Simulator
+from mewpy.solvers.solver import VarType
+from mewpy.solvers import solver_instance
+from mewpy.simulation import get_simulator
+from mewpy.simulation.simulation import Simulator
 from .. import Preprocessing, ExpressionSet
 
 
