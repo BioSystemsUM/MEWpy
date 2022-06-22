@@ -565,11 +565,11 @@ class GeckoSimulation(Simulation):
             if res:
                 if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) or \
                         res.status == SStatus.INFEASIBLE:
-                    self._essential_proteins.append(rxn)
+                    self._essential_proteins.append(p)
         return self._essential_proteins
 
     def map_prot_react(self):
-        if not self._prot_react:
+        if self._prot_react is None:
             self._prot_react=dict()
             for p in self.proteins:
                 self._prot_react[p]=[]
@@ -579,9 +579,11 @@ class GeckoSimulation(Simulation):
                 lsub = rxn.reactants
                 for m in lsub:
                     if 'prot_' in m.id:
-                        p = m.id[5:-3]
+                        p = m.id[5:-2]
                         try:
-                             self._prot_react[p].append(r_id)
+                            l = self._prot_react[p]
+                            l.append(r_id)
+
                         except Exception:
                             pass
         return self._prot_react            
@@ -678,11 +680,11 @@ class GeckoSimulation(Simulation):
         return self._protein_rev_reactions
 
     def getKcat(self, protein):
-        """ Returns a dictionary of reactions and respective Kcat for a specific enzyme·
+        """ Returns a dictionary of reactions and respective Kcat for a specific protein/enzyme·
         """
         m_r = self.metabolite_reaction_lookup()
         res = dict()
-        for m,k in m_r.items():
+        for m, k in m_r.items():
             if protein in m:
-                res.update({r:-1/x for r,x in k.items() if x<0})
+                res.update({r: -1/x for r, x in k.items() if x < 0})
         return res
