@@ -581,7 +581,7 @@ class GeckoSimulation(Simulation):
                     if 'prot_' in m.id:
                         p = m.id[5:-3]
                         try:
-                            self._prot_react[p].append(r_id)
+                             self._prot_react[p].append(r_id)
                         except Exception:
                             pass
         return self._prot_react            
@@ -681,5 +681,8 @@ class GeckoSimulation(Simulation):
         """ Returns a dictionary of reactions and respective Kcat for a specific enzyme·
         """
         m_r = self.metabolite_reaction_lookup()
-        r_d = m_r[protein]
-        return {k: v for k, v in r_d.items() if v < 0}
+        res = dict()
+        for m,k in m_r.items():
+            if protein in m:
+                res.update({r:-1/x for r,x in k.items() if x<0})
+        return res

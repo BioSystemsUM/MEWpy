@@ -1,5 +1,5 @@
 from math import inf
-
+from mewpy.solvers.solution import to_simulation_result
 from mewpy.solvers import solver_instance
 from mewpy.simulation import get_simulator
 from mewpy.simulation.simulation import Simulator
@@ -118,4 +118,6 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=0.25, growth_frac=0.9,
             del solution.values[pos]
             del solution.values[neg]
 
-    return solution
+    res = to_simulation_result(model, biomass, constraints, sim, solution)
+    return res
+

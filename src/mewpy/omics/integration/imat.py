@@ -4,6 +4,7 @@ from mewpy.solvers.solver import VarType
 from mewpy.solvers import solver_instance
 from mewpy.simulation import get_simulator
 from mewpy.simulation.simulation import Simulator
+from mewpy.solvers.solution import to_simulation_result
 from .. import Preprocessing, ExpressionSet
 
 
@@ -78,5 +79,6 @@ def iMAT(model, expr, constraints=None, cut=(0.25, 0.75),
     object = {x: 1 for x in objective}
 
     solution = solver.solve(object, minimize=False, constraints=constraints)
-
-    return solution
+    
+    res = to_simulation_result(model, None, constraints, sim, solution)
+    return res
