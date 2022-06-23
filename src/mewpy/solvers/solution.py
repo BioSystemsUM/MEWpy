@@ -57,13 +57,14 @@ class Solution(object):
 
         return pd.DataFrame(self.values.values(), columns=["value"], index=self.values.keys())
 
-def to_simulation_result(model, biomass, constraints, sim, solution):
+def to_simulation_result(model, biomass, constraints, sim, solution, method=None):
     res = SimulationResult(model.model if isinstance(model, Simulator) else model,
                            biomass,
                            status= status_mapping[solution.status],
                            fluxes=solution.values,
                            envcond=sim.environmental_conditions,
                            model_constraints=sim._constraints.copy(),
-                           simul_constraints=constraints
+                           simul_constraints=constraints,
+                           method=method
                            )                           
     return res

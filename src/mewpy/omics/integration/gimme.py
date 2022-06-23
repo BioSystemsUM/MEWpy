@@ -6,7 +6,7 @@ from mewpy.simulation.simulation import Simulator
 from .. import Preprocessing, ExpressionSet
 
 
-def GIMME(model, expr, biomass=None, condition=0, cutoff=0.25, growth_frac=0.9,
+def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
           constraints=None, parsimonious=False, **kwargs):
     """ Run a GIMME simulation [1]_.
 
@@ -16,7 +16,7 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=0.25, growth_frac=0.9,
         biomass: the biomass reaction identifier
         condition: the condition to use in the simulation\
             (default:0, the first condition is used if more than one.)
-        cutoff (int): percentile cuttof (default: 0.25).
+        cutoff (int): percentile cuttof (default: 25).
         growth_frac (float): minimum growth requirement (default: 0.9)
         constraints (dict): additional constraints
         parsimonious (bool): compute a parsimonious solution (default: False)
@@ -39,10 +39,10 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=0.25, growth_frac=0.9,
     if isinstance(expr, ExpressionSet):
         pp = Preprocessing(sim, expr)
         coeffs, _ = pp.percentile(condition, cutoff=cutoff)
-        solver = solver_instance(sim)
     else:
         coeffs = expr
-        solver = solver_instance(sim)
+    
+    solver = solver_instance(sim)
 
     # TODO: improve this on the simulator side
     if biomass is None:
@@ -119,5 +119,7 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=0.25, growth_frac=0.9,
             del solution.values[neg]
 
     res = to_simulation_result(model, biomass, constraints, sim, solution)
+    if hasattr(solution,'pre_solution'):
+        res.pre_solution = solution.pre_solution
     return res
 

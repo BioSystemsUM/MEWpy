@@ -517,6 +517,7 @@ class Simulation(CobraModelContainer, Simulator):
             e = variability.items()
             f = [[a, b, c] for a, [b, c] in e]
             df = pd.DataFrame(f, columns=['Reaction ID', 'Minimum', 'Maximum'])
+            df = df.set_index(df.columns[0])
             return df
         else:
             return variability
@@ -596,7 +597,7 @@ class GeckoSimulation(Simulation):
         return mapper[protein]
 
     def get_protein(self,p_id):
-        res = {'id': p_id, 'reactions': self.protein_reactions(p_id)}
+        res = {'Protein': p_id, 'reactions': self.protein_reactions(p_id)}
         return AttrDict(res)
 
     def find_proteins(self, pattern=None, sort=False):
@@ -625,6 +626,7 @@ class GeckoSimulation(Simulation):
     
         data = [self.get_protein(x) for x in values]
         df = pd.DataFrame(data)
+        df = df.set_index(df.columns[0])
         return df
 
 

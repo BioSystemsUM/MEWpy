@@ -32,9 +32,7 @@ def eFlux(model, expr, condition=0, scale_rxn=None, scale_value=1,
     else:
         rxn_exp = expr
 
-    if max_exp:
-        max_exp = max_exp
-    else:
+    if max_exp is None:
         max_exp = max(rxn_exp.values())
 
     bounds = {}
