@@ -4,11 +4,12 @@ from mewpy.solvers.solver import VarType
 from mewpy.solvers import solver_instance
 from mewpy.simulation import get_simulator
 from mewpy.simulation.simulation import Simulator
+from mewpy.solvers.solution import to_simulation_result
 from .. import Preprocessing, ExpressionSet
 
 
-def iMAT(model, expr, constraints=None, cut=(0.25, 0.75),
-         percent=False, condition=0, epsilon=1):
+def iMAT(model, expr, constraints=None, cutoff=(25, 75),
+        condition=0, epsilon=1):
 
     if isinstance(model, Simulator):
         sim = model
@@ -17,7 +18,7 @@ def iMAT(model, expr, constraints=None, cut=(0.25, 0.75),
 
     if isinstance(expr, ExpressionSet):
         pp = Preprocessing(sim, expr)
-        coeffs, threshold = pp.percentile(condition, cutoff=cut)
+        coeffs, _ = pp.percentile(condition, cutoff=cutoff)
         low_coeffs, high_coeffs = coeffs
     else:
         low_coeffs, high_coeffs = expr
@@ -78,5 +79,6 @@ def iMAT(model, expr, constraints=None, cut=(0.25, 0.75),
     object = {x: 1 for x in objective}
 
     solution = solver.solve(object, minimize=False, constraints=constraints)
-
-    return solution
+    
+    res = to_simulation_result(model, None, constraints, sim, solution)
+    return res

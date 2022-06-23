@@ -201,6 +201,7 @@ class Simulator(ModelContainer, SimulationInterface):
         else:
             data = [self.get_reaction(x) for x in values]
         df = pd.DataFrame(data)
+        df = df.set_index(df.columns[0])
         return df
 
     def find_genes(self, pattern=None, sort=False):
@@ -378,6 +379,7 @@ class SimulationResult(object):
             values.sort(key=lambda x: x[1])
         import pandas as pd
         df = pd.DataFrame(values, columns=columns)
+        df = df.set_index(columns[0])
         return df
 
     @property
