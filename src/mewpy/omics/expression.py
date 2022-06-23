@@ -77,7 +77,7 @@ class ExpressionSet:
             return values
 
     @classmethod
-    def from_data_frame(cls, data_frame):
+    def from_dataframe(cls, data_frame):
         """Read expression data from a pandas.DataFrame.
 
         Args:
