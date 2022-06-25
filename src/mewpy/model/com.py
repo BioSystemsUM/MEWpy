@@ -22,6 +22,9 @@ class CommunityModel:
     def __init__(self, models: list, copy_models=True, flavor='cobrapy'):
         self.organisms = AttrDict()
         self.model_ids = list({model.id for model in models})
+        self.flavor = flavor
+        self.biomasses = None
+
 
         if len(self.model_ids) < len(models):
             warn("Model ids are not unique, repeated models will be discarded.")
@@ -55,7 +58,7 @@ class CommunityModel:
         """
         old_ext_comps = []
         ext_mets = []
-
+        self.biomasses = []
         # default IDs
         ext_comp_id = "ext"
         biomass_id = "community_biomass"
@@ -68,13 +71,12 @@ class CommunityModel:
         self.comm_model.add_metabolite(biomass_id, name="Total community biomass",compartment=ext_comp_id)
 
         self.comm_model.add_reaction(comm_growth, name="Community growth rate",
-                                     reversible=False, stoichiometry={biomass_id: -1},
-                                     lb=0, ub=inf, objective=1)
+                                     stoichiometry={biomass_id: -1},
+                                     lb=0, ub=inf)
 
         # add each organism
 
         for org_id, model in self.organisms.items():
-
             def rename(old_id):
                 return f"{old_id}_{org_id}"
 
@@ -107,11 +109,11 @@ class CommunityModel:
                     ext_mets.append(m_id)
 
             # add genes
-
-            for g_id in model.genes:
-                gene = model.get_gene(g_id)
-                new_id = rename(g_id)
-                self.comm_model.add_gene(new_id, gene.name)
+            if self.flavor=='reframed':
+                for g_id in model.genes:
+                    gene = model.get_gene(g_id)
+                    new_id = rename(g_id)
+                    self.comm_model.add_gene(new_id, gene.name)
 
             # add internal reactions
             ex_rxns = model.get_exchange_reactions()
@@ -128,7 +130,7 @@ class CommunityModel:
 
                 if r_id in [x for x, v in model.objective.items() if v > 0]:
                     new_stoichiometry[biomass_id] = 1
-
+                    self.biomasses.append(new_id)
         
                 new_gpr = rxn.gpr
                 self.comm_model.add_reaction(new_id,
@@ -136,13 +138,15 @@ class CommunityModel:
                                              stoichiometry=new_stoichiometry,
                                              lb=rxn.lb,
                                              ub=rxn.ub,
-                                             gpr_association=new_gpr)
+                                             gpr=new_gpr)
 
         # Add exchange reactions
 
         for m_id in ext_mets:
             r_id = f"{self._rxn_prefix}EX_{m_id[len(self._met_prefix):]}" 
-            self.comm_model.add_reaction(r_id, reversible=True, stoichiometry={m_id: -1})
+            self.comm_model.add_reaction(r_id,name=f'{m_id} exchange',stoichiometry={m_id: -1},lb=-1000, ub=inf)
+        
+        self.comm_model.objective=comm_growth
         return self.comm_model
 
 

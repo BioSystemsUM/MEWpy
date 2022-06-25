@@ -200,8 +200,12 @@ class Simulator(ModelContainer, SimulationInterface):
             data = [self.get_gene(x) for x in values]
         else:
             data = [self.get_reaction(x) for x in values]
-        df = pd.DataFrame(data)
-        df = df.set_index(df.columns[0])
+        
+        if data:
+            df = pd.DataFrame(data)
+            df = df.set_index(df.columns[0])
+        else: 
+            df = pd.DataFrame()
         return df
 
     def find_genes(self, pattern=None, sort=False):

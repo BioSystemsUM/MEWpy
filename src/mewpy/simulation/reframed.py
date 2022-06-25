@@ -247,8 +247,13 @@ class Simulation(CBModelContainer, Simulator):
         meta.metadata['FORMULA'] = formula
         self.model.add_metabolite(meta)
 
-    def add_reaction(self, rxn_id, stoichiometry, lb=ModelConstants.REACTION_LOWER_BOUND,
-                     ub=ModelConstants.REACTION_UPPER_BOUND, replace=True, **kwargs):
+    def add_gene(self,id,name):
+        from reframed.core.cbmodel import Gene
+        g = Gene(id,name)
+        self.model.add_gene(g)
+
+    def add_reaction(self, rxn_id,  name=None, stoichiometry=None, lb=ModelConstants.REACTION_LOWER_BOUND,
+                     ub=ModelConstants.REACTION_UPPER_BOUND, gpr= None, replace=True, **kwargs):
         """Adds a reaction to the model
 
         Args:
@@ -258,7 +263,7 @@ class Simulation(CBModelContainer, Simulator):
             Defaults to True.
         """
         from reframed.core.cbmodel import CBReaction
-        reaction = CBReaction(rxn_id, stoichiometry=stoichiometry, lb=lb, ub=ub)
+        reaction = CBReaction(rxn_id, stoichiometry=stoichiometry,name=name, lb=lb, ub=ub, gpr_association=gpr)
         self.model.add_reaction(reaction, replace=replace)
 
     def remove_reaction(self, r_id):
