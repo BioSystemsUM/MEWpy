@@ -19,7 +19,7 @@ class CommunityModel:
 
     """
 
-    def __init__(self, models: list, copy_models=True, flavor='cobrapy'):
+    def __init__(self, models: list, copy_models=False, flavor='cobrapy'):
         self.organisms = AttrDict()
         self.model_ids = list({model.id for model in models})
         self.flavor = flavor
@@ -50,8 +50,17 @@ class CommunityModel:
 
 
     def get_community_model(self):
-        return self.model
+        return self.comm_model
 
+    def size(self):
+        return len(self.organisms)
+
+    @property
+    def merged_model(self):
+        """ To make compatible with REFRAMED"""
+        if self.comm_model is None:
+            self._merged_model() 
+        return self.comm_model.model
 
     def _merge_models(self):
         """Merges the models. 

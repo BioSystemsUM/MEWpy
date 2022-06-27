@@ -59,7 +59,7 @@ class CBModelContainer(ModelContainer):
     def get_gene(self, g_id):
         g = self.model.genes[g_id]
         gr = self.get_gene_reactions()
-        r = gr[g_id]
+        r = gr.get(g_id,[])
         res = {'id': g_id, 'name': g.name, 'reactions': r}
         return AttrDict(res)
 
@@ -79,7 +79,7 @@ class CBModelContainer(ModelContainer):
     def get_compartment(self, c_id):
         c = self.model.compartments[c_id]
         res = {'id': c_id, 'name': c.name, 'external': c.external}
-        return res
+        return AttrDict(res)
 
     def get_exchange_reactions(self):
         return self.model.get_exchange_reactions()
