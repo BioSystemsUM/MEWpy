@@ -5,7 +5,8 @@ import re
 import types
 import time
 from collections.abc import Iterable
-
+from .constants import atomic_weights
+from warnings import warn
 
 class AttrDict(dict):
     def __init__(self, *args, **kwargs):
@@ -124,6 +125,21 @@ def elements(formula):
         atoms[atom] = atoms.get(atom, 0) + int(count)
     return atoms
 
+def molecular_weight(formula, element=None):
+
+    elems = elements(formula)
+
+    if element:
+        mw = elems.get(element, 0) * atomic_weights.get(element, 0)
+    else:
+        missing = set(elems) - set(atomic_weights)
+
+        if missing:
+            warn(f"Atomic weight not listed for elements: {missing}")
+
+        mw = sum(atomic_weights.get(elem, 0) * n for elem, n in elems.items())
+
+    return mw
 
 @contextlib.contextmanager
 def tqdm_joblib(tqdm_object):

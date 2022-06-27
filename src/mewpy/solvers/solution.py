@@ -57,9 +57,9 @@ class Solution(object):
 
         return pd.DataFrame(self.values.values(), columns=["value"], index=self.values.keys())
 
-def to_simulation_result(model, biomass, constraints, sim, solution, method=None):
+def to_simulation_result(model, objective_value, constraints, sim, solution, method=None):
     res = SimulationResult(model.model if isinstance(model, Simulator) else model,
-                           biomass,
+                           objective_value,
                            status= status_mapping[solution.status],
                            fluxes=solution.values,
                            envcond=sim.environmental_conditions,
@@ -68,3 +68,18 @@ def to_simulation_result(model, biomass, constraints, sim, solution, method=None
                            method=method
                            )                           
     return res
+
+def print_values(value_dict, pattern=None, sort=False, abstol=1e-9):
+
+    values = [(key, value) for key, value in value_dict.items() if abs(value) > abstol]
+
+    if pattern:
+        re_expr = re.compile(pattern)
+        values = [x for x in values if re_expr.search(x[0]) is not None]
+
+    if sort:
+        values.sort(key=lambda x: x[1])
+
+    entries = (f'{r_id:<12} {val: .6g}'for (r_id, val) in values)
+
+    print('\n'.join(entries))

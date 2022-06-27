@@ -24,6 +24,7 @@ class CommunityModel:
         self.model_ids = list({model.id for model in models})
         self.flavor = flavor
         self.biomasses = None
+        self.biomass = None
         self.reaction_map = None
 
         if len(self.model_ids) < len(models):
@@ -66,7 +67,7 @@ class CommunityModel:
         """
         old_ext_comps = []
         ext_mets = []
-        self.biomasses = []
+        self.biomasses = {}
         self.reaction_map = {}
 
         # default IDs
@@ -140,7 +141,7 @@ class CommunityModel:
 
                 if r_id in [x for x, v in model.objective.items() if v > 0]:
                     new_stoichiometry[biomass_id] = 1
-                    self.biomasses.append(new_id)
+                    self.biomasses[org_id]=new_id
 
                 new_gpr = rxn.gpr
                 self.comm_model.add_reaction(new_id,
@@ -157,4 +158,5 @@ class CommunityModel:
             self.comm_model.add_reaction(r_id, name=f'{m_id} exchange', stoichiometry={m_id: -1}, lb=-1000, ub=inf)
 
         self.comm_model.objective = comm_growth
+        self.biomass = comm_growth
         return self.comm_model
