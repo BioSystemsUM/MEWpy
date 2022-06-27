@@ -126,14 +126,11 @@ def elements(formula):
     return atoms
 
 def molecular_weight(formula, element=None):
-
     elems = elements(formula)
-
     if element:
         mw = elems.get(element, 0) * atomic_weights.get(element, 0)
     else:
         missing = set(elems) - set(atomic_weights)
-
         if missing:
             warn(f"Atomic weight not listed for elements: {missing}")
 
