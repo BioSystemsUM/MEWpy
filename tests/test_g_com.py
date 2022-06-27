@@ -27,6 +27,9 @@ class TestCommReframed(unittest.TestCase):
         res = sim.simulate()
         self.assertGreater(res.objective_value, 0)
 
+    def SteadyCom(self):
+        from mewpy.cobra.steadycom import SteadyCom
+        SteadyCom(self.comm)
 
 class TestCommCobra(unittest.TestCase):
 
@@ -50,3 +53,7 @@ class TestCommCobra(unittest.TestCase):
         sim = self.comm.get_community_model()    
         res = sim.simulate()
         self.assertGreater(res.objective_value, 0)
+
+    def SteadyCom(self):
+        from mewpy.cobra.steadycom import SteadyCom
+        SteadyCom(self.comm)
