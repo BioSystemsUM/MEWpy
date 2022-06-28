@@ -521,6 +521,41 @@ class MinCandSize(CandidateSize):
         warnings.warn("This class will soon be depricated. Use CandidateSize instead.")
         super(MinCandSize, self).__init__(maximize=maximize, worst_fitness=0.0)
 
+
+class CountNRxnFluxesAbove(PhenotypeEvaluationFunction):
+    def __init__(self, reactions, threshold=0.1, maximize=False, **kwargs):
+        super(CountNRxnFluxesAbove, self).__init__(maximize=maximize, worst_fitness=np.inf)
+        self.reactions = reactions
+        self.method = kwargs.get('method', SimulationMethod.pFBA)
+        self.theshold = threshold
+
+    def get_fitness(self, simul_results, candidate, **kwargs):
+        """Evaluates a candidate
+
+        :param simul_results: (dic) A dictionary of phenotype SimulationResult objects
+        :param candidate:  Candidate beeing evaluated
+        :returns: A fitness value.
+
+        """
+        sim = simul_results[self.method] if self.method in simul_results.keys(
+        ) else None
+        if not sim or sim.status not in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
+            return self.no_solution
+
+        count = 0
+        for rxn in self.reactions:
+            if sim.fluxes[rxn]> self.theshold:
+                count +=1
+        return count
+
+    def required_simulations(self):
+        return [self.method]
+
+    def short_str(self):
+        return "CNRFA"
+
+    def method_str(self):
+        return "Count N Reaction Fluxes Above"
     
 
 class ModificationType(PhenotypeEvaluationFunction, KineticEvaluationFunction):
