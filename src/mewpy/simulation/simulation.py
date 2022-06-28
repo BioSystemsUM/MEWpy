@@ -302,6 +302,16 @@ class Simulator(ModelContainer, SimulationInterface):
     def create_empty_model(self,model_id:str):
         return NotImplementedError
 
+    def get_external_metabolites(self):
+        external = []
+        for m_id in self.metabolites:
+            c_id = self.get_metabolite(m_id).compartments
+            if self.get_compartment(c_id).external:
+                external.append(m_id)
+        return m_id
+
+    
+
 class SimulationResult(object):
     """Class that represents simulation results and performs operations over them."""
 

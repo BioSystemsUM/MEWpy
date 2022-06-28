@@ -317,7 +317,7 @@ class CommunitySolution(object):
 
     def print_exchanges(self, m_id=None, abstol=1e-9):
 
-        model = self.community.merged_model
+        model = self.community.comm_model
         exchange_rxns = set(model.get_exchange_reactions())
 
         if m_id:
