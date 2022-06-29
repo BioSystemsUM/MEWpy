@@ -522,9 +522,15 @@ class MinCandSize(CandidateSize):
         super(MinCandSize, self).__init__(maximize=maximize, worst_fitness=0.0)
 
 
-class CountNRxnFluxesAbove(PhenotypeEvaluationFunction):
-    def __init__(self, reactions, threshold=0.1, maximize=False, **kwargs):
-        super(CountNRxnFluxesAbove, self).__init__(maximize=maximize, worst_fitness=np.inf)
+class CNRFA(PhenotypeEvaluationFunction):
+    """Counts the Number of Reaction Fluxes Above a specified value.
+
+    :param PhenotypeEvaluationFunction: [description]
+    :type PhenotypeEvaluationFunction: [type]
+    """
+
+    def __init__(self, reactions, threshold=0.1, maximize=True, **kwargs):
+        super(CNRFA, self).__init__(maximize=maximize, worst_fitness=0)
         self.reactions = reactions
         self.method = kwargs.get('method', SimulationMethod.pFBA)
         self.theshold = threshold
