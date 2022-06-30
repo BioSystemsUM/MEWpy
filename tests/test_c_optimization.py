@@ -107,6 +107,7 @@ class TestMewOptInspyred(unittest.TestCase):
         from mewpy.optimization import EA
         ea = EA(problem, max_generations=2)
         ea.run()
+        ea.dataframe()
         self.assertEqual(ea.get_population_size(), 10)
 
     def test_OUProblem(self):
