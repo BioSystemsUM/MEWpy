@@ -49,9 +49,9 @@ class EvaluationFunction:
         if self.worst_fitness is not None:
             res = self.worst_fitness
         elif self.maximize:
-            res = EAConstants.MIN_THRESHOLD
+            res = -np.inf
         else:
-            res = EAConstants.MAX_THRESHOLD
+            res = np.inf
         return res
 
     def __call__(self, simulationResult, candidate, **kwargs):
