@@ -50,6 +50,15 @@ class EA(AbstractEA):
         self.population_size = kwargs.get('population_size', get_population_size())
         self.max_evaluations = self.max_generations * self.population_size
 
+        s = []
+        for f in self.problem.fevaluation:
+            if f.maximize:
+                s.append(-1)
+            else:
+                s.append(1)
+        self._sense = np.array(s)
+
+
     def get_population_size(self):
         return self.population_size
 
@@ -128,6 +137,9 @@ class EA(AbstractEA):
         result = algorithm.solutions
         return result
 
+    def _correct_sense(self, fitness):
+        return list(np.array(fitness)*self._sense)
+
     def _convertPopulation(self, population):
         """Converts a population represented in Inpyred format to
         MEWpy solution format.
@@ -138,12 +150,9 @@ class EA(AbstractEA):
         """
         p = []
         for i in range(len(population)):
-            # Corrects fitness values for maximization problems
-            # TODO: verify each objective individualy
-            if self.problem.is_maximization:
-                obj = [abs(x) for x in population[i].objectives]
-            else:
-                obj = [x for x in population[i].objectives]
+            # Corrects fitness values for maximization problems            
+            obj = self._correct_sense([x for x in population[i].objectives])
+
             val = set(population[i].variables[:])
             values = self.problem.decode(val)
             const = self.problem.solution_to_constraints(values)
