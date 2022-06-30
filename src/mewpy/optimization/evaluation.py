@@ -49,9 +49,9 @@ class EvaluationFunction:
         if self.worst_fitness is not None:
             res = self.worst_fitness
         elif self.maximize:
-            res = -np.inf
+            res = -math.inf
         else:
-            res = np.inf
+            res = math.inf
         return res
 
     def __call__(self, simulationResult, candidate, **kwargs):
@@ -645,7 +645,11 @@ class MolecularWeight(PhenotypeEvaluationFunction):
         fitness = 0
         for rx in self.reactions:
             fitness += self.__mw[rx] * abs(sim.fluxes[rx])
-        return fitness * 0.001
+
+        if fitness > 0:
+            return fitness * 0.001
+        else:
+            return self.no_solution
 
     def required_simulations(self):
         """
