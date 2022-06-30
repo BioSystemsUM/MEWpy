@@ -238,7 +238,7 @@ class LinearProblem(LinearProblemInterface):
         return self._model
 
     @property
-    def solver(self) -> Union[Solver]:
+    def solver(self) -> Solver:
         """
         mewpy solver instance for this linear problem. It contains an interface for the concrete solver
 
