@@ -7,10 +7,11 @@ from jmetal.util.termination_criterion import StoppingByEvaluations
 
 from .observers import PrintObjectivesStatObserver, VisualizerObserver
 from .problem import JMetalKOProblem, JMetalOUProblem
-from ..ea import AbstractEA, Solution
-from ...util.constants import EAConstants
-from ...util.process import get_evaluator, cpu_count
 from .settings import get_population_size
+from ..ea import AbstractEA, Solution
+from mewpy.util.constants import EAConstants
+from mewpy.util.process import get_evaluator, cpu_count
+import numpy as np
 
 # SOEA alternatives
 soea_map = {
