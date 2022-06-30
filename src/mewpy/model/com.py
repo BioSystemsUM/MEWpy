@@ -1,5 +1,6 @@
 from mewpy.simulation import get_simulator
 from mewpy.simulation.simulation import Simulator
+from mewpy.util.parsing import build_tree, Boolean
 from mewpy.util import AttrDict
 from copy import deepcopy
 from warnings import warn
@@ -26,6 +27,7 @@ class CommunityModel:
         self.biomasses = None
         self.biomass = None
         self.reaction_map = None
+        self.metabolite_map = None
 
         if len(self.model_ids) < len(models):
             warn("Model ids are not unique, repeated models will be discarded.")
@@ -69,6 +71,7 @@ class CommunityModel:
         ext_mets = []
         self.biomasses = {}
         self.reaction_map = {}
+        self.metabolite_map = {}
 
         # default IDs
         ext_comp_id = "ext"
@@ -111,6 +114,7 @@ class CommunityModel:
                                                    name=met.name,
                                                    compartment=rename(met.compartment)
                                                    )
+                    self.metabolite_map[(org_id,m_id)] = new_id
 
                 elif m_id not in self.comm_model.metabolites:  # if is external but was not added yet
                     self.comm_model.add_metabolite(m_id,
@@ -143,7 +147,12 @@ class CommunityModel:
                     new_stoichiometry[biomass_id] = 1
                     self.biomasses[org_id]=new_id
 
-                new_gpr = rxn.gpr
+                if rxn.gpr:
+                    t = build_tree(rxn.gpr, Boolean)
+                    ren = {x:rename(x) for x in t.get_operands()}
+                    new_gpr = t.replace(ren).to_infix().replace(' | ', ' or ').replace(' & ',' and ')
+                else:
+                    new_gpr = rxn.gpr
                 self.comm_model.add_reaction(new_id,
                                              name=rxn.name,
                                              stoichiometry=new_stoichiometry,
@@ -154,8 +163,10 @@ class CommunityModel:
         # Add exchange reactions
 
         for m_id in ext_mets:
-            r_id = f"{self._rxn_prefix}EX_{m_id[len(self._met_prefix):]}"
-            self.comm_model.add_reaction(r_id, name=f'{m_id} exchange', stoichiometry={m_id: -1}, lb=-1000, ub=inf)
+            m = m_id[len(self._met_prefix):] if m_id.startswith(self._met_prefix) else m_id
+            r_id = f"{self._rxn_prefix}EX_{m}"
+            # self.comm_model.add_reaction(r_id, name=f'{m_id} exchange', stoichiometry={m_id: -1}, lb=-1000, ub=inf)
+            self.comm_model.add_reaction(r_id, name=r_id, stoichiometry={m_id: -1}, lb=-inf, ub=inf)
 
         self.comm_model.objective = comm_growth
         self.biomass = comm_growth
