@@ -506,3 +506,11 @@ class CplexSolver(Solver):
         """
 
         self.problem.write(filename)
+
+    def change_coefficients(self, coefficients):
+        """Changes variables coefficients in constraints
+
+        :param coefficients: A list of tuples (constraint name, variable name, new value)
+        :type coefficients: list
+        """
+        self.problem.linear_constraints.set_coefficients(coefficients)
