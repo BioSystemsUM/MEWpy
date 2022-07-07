@@ -176,6 +176,10 @@ class Simulation(CBModelContainer, Simulator):
         for r_id, bounds in self._constraints.items():
             self._set_model_reaction_bounds(r_id, bounds)
 
+        # if modifications on the envirenment are permited
+        # during simulations
+        self._allow_env_changes = False
+
     def _set_model_reaction_bounds(self, r_id, bounds):
         if isinstance(bounds, tuple):
             lb = bounds[0]
@@ -438,9 +442,12 @@ class Simulation(CBModelContainer, Simulator):
 
         simul_constraints = OrderedDict()
         if constraints:
-            simul_constraints.update({k: v for k, v in constraints.items()
-                                      if k not in list(self._environmental_conditions.keys())})
-
+            if not self._allow_env_changes:
+                simul_constraints.update({k: v for k, v in constraints.items()
+                                        if k not in list(self._environmental_conditions.keys())})
+            else:
+                simul_constraints.update(constraints)
+    
         a_solver = solver
         if not self._reset_solver and not a_solver:
             if self.solver is None:
