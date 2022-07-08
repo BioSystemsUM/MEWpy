@@ -1,14 +1,59 @@
 import warnings
 from collections import OrderedDict
 import numpy as np
-from reframed.core.model import Model
-from mewpy.util.parsing import Arithmetic, build_tree
 import copy
+
+from mewpy.util.parsing import Arithmetic, build_tree
+
+
+class Compartment(object):
+    """ class for modeling compartments. """
+
+    def __init__(self, comp_id, name=None, external=False, size=1.0):
+        """
+        Arguments:
+            comp_id (str): a valid unique identifier
+            name (str): compartment name (optional)
+            external (bool): is external (default: false)
+            size (float): compartment size (default: 1.0)
+        """
+        self.id = comp_id
+        self.name = name if name is not None else comp_id
+        self.size = size
+        self.external = external
+        self.metadata = OrderedDict()
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return str(self)
+
+
+class Metabolite(object):
+    """ class for modeling metabolites. """
+
+    def __init__(self, met_id, name=None, compartment=None):
+        """
+        Arguments:
+            met_id (str): a valid unique identifier
+            name (str): common metabolite name
+            compartment (str): compartment containing the metabolite
+        """
+        self.id = met_id
+        self.name = name if name is not None else met_id
+        self.compartment = compartment
+        self.metadata = OrderedDict()
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return str(self)
 
 
 def calculate_yprime(y, rate, substrates, products, substrate_names):
     """
-    This function is used by the rate classes the user creates.
     It takes the numpy array for y_prime,
     and adds or subtracts the amount in rate to all the substrates or products listed
     Returns the new y_prime
@@ -124,8 +169,7 @@ class Rule(object):
 
 class KineticReaction(Rule):
 
-    def __init__(self, r_id, formula: str, substrates: list = [],
-                 products: list = [], parameters: dict = {}, modifiers: list = []):
+    def __init__(self, r_id, formula: str, stoichiometry: dict = {}, parameters: dict = {}, modifiers: list = []):
         """[summary]
 
         Args:
@@ -136,10 +180,17 @@ class KineticReaction(Rule):
             products (list, optional): products. Defaults to [].
         """
         super(KineticReaction, self).__init__(r_id, formula, parameters)
-        self.substrates = substrates
-        self.products = products
+        self.stoichiometry = stoichiometry
         self.modifiers = modifiers
         self.parameter_distributions = {}
+
+    @property
+    def substrates(self):
+        return [k for k, v in self.stoichiometry.items() if v < 0]
+
+    @property
+    def products(self):
+        return [k for k, v in self.stoichiometry.items() if v > 0]
 
     def parse_law(self, map: dict, local=True):
         """Auxialiary method invoked by the model to build the ODE system.
@@ -216,12 +267,13 @@ class KineticReaction(Rule):
                     self.parameters[name] = self.parameter_distributions[name].mean()
 
 
-class ODEModel(Model):
-    # TODO: Generalize to work with any model
+class ODEModel:
     def __init__(self, model_id):
         """ ODE Model.
         """
-        super(ODEModel, self).__init__(model_id)
+        self.id = model_id
+        self.metabolites = OrderedDict()
+        self.compartments = OrderedDict()
         # kinetic rule of each reaction
         self.ratelaws = OrderedDict()
         # initial concentration of metabolites
@@ -235,6 +287,8 @@ class ODEModel(Model):
         self._func_str = None
         self._constants = None
 
+        self._m_r_lookup = None
+
     def get_reactions(self):
         return self.reactions
 
@@ -242,8 +296,30 @@ class ODEModel(Model):
         self.update()
         self._func_str = None
 
-    def add_reaction(self, reaction, replace=True):
-        super(ODEModel, self).add_reaction(reaction, replace)
+    def add_compartment(self, compartment, replace=True):
+        """ Add a compartment to the model.
+        Arguments:
+            compartment (Compartment): compartment to add
+            replace (bool): replace previous compartment with same id (default: True)
+        """
+        if compartment.id in self.compartments and not replace:
+            raise RuntimeError(f"Compartment {compartment.id} already exists.")
+        self.compartments[compartment.id] = compartment
+
+    def add_metabolite(self, metabolite, replace=True):
+        """ Add a metabolite to the model.
+        Arguments:
+            metabolite (Metabolite): metabolite to add
+            replace (bool): replace previous metabolite with same id (default: True)
+        """
+
+        if metabolite.id in self.metabolites and not replace:
+            raise RuntimeError(f"Metabolite {metabolite.id} already exists.")
+
+        if metabolite.compartment not in self.compartments:
+            raise RuntimeError(f"Metabolite {metabolite.id} has invalid compartment {metabolite.compartment}.")
+
+        self.metabolites[metabolite.id] = metabolite
 
     def set_concentration(self, m_id: str, concentration: float):
         """Sets a metabolite initial concentration
@@ -264,17 +340,13 @@ class ODEModel(Model):
             r_id (str): Reaction Identifier
             law (KineticReaction): The reaction rate law.
         """
-        if r_id in self.reactions:
-            self.ratelaws[r_id] = law
-        else:
-            warnings.warn(f"No such reaction '{r_id}'", RuntimeWarning)
+        self.ratelaws[r_id] = law
 
     def get_ratelaw(self, r_id):
         if r_id in self.ratelaws.keys():
             return self.ratelaws[r_id]
         else:
             raise ValueError('Reaction has no rate law.')
-
 
     def set_assignment_rule(self, p_id: str, rule: Rule):
         if p_id in self.variable_params or p_id in self.metabolites:
@@ -287,11 +359,6 @@ class ODEModel(Model):
             self.constant_params[key] = value
         else:
             self.variable_params[key] = value
-
-    def remove_reactions(self, id_list):
-        super(ODEModel, self).remove_reactions(id_list)
-        for r_id in id_list:
-            del self.ratelaws[r_id]
 
     def merge_constants(self):
         constants = OrderedDict()
@@ -308,6 +375,15 @@ class ODEModel(Model):
 
         self._constants = constants
         return constants
+
+    def metabolite_reaction_lookup(self):
+        if not self._m_r_lookup:
+            self._m_r_lookup = {m_id: {} for m_id in self.metabolites}
+
+            for r_id, rule in self.ratelaws.items():
+                for m_id, coeff in rule.stoichiometry.items():
+                    self._m_r_lookup[m_id][r_id] = coeff
+        return self._m_r_lookup
 
     def print_balance(self, m_id, factors=None):
         f = factors.get(m_id, 1) if factors else 1
@@ -361,14 +437,14 @@ class ODEModel(Model):
         parsed_rates = {r_id: ratelaw.parse_law(rmap, local=local)
                         for r_id, ratelaw in self.ratelaws.items()}
 
-        r = {r_id: f"({parsed_rates[r_id]})" for r_id in self.reactions}
+        r = {r_id: f"({parsed_rates[r_id]})" for r_id in self.ratelaws.keys()}
 
         rmap.update(r)
 
         rate_exprs = [' '*4+"r['{}'] = {}".format(r_id, parsed_rates[r_id])
-                      for r_id in self.reactions]
+                      for r_id in self.ratelaws.keys()]
 
-        balances = [' '*8 + self.print_balance(m_id,     factors=factors) for m_id in self.metabolites]
+        balances = [' '*8 + self.print_balance(m_id, factors=factors) for m_id in self.metabolites]
 
         func_str = 'def ode_func(t, x, r, p, v):\n\n' + \
             '\n'.join(rate_exprs) + '\n\n' + \
