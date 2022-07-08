@@ -20,10 +20,10 @@ class TestCommReframed(unittest.TestCase):
         model3 = model1.copy()
         model3.id = 'm3'
         self.models = [model1, model2, model3]
-        self.comm = CommunityModel(self.models)
+        self.comm = CommunityModel(self.models, flavor='reframed')
 
     def FBA(self):
-        sim = self.comm.get_community_model()    
+        sim = self.comm.get_community_model()
         res = sim.simulate()
         self.assertGreater(res.objective_value, 0)
 
@@ -31,7 +31,8 @@ class TestCommReframed(unittest.TestCase):
         from mewpy.cobra.steadycom import SteadyCom
         SteadyCom(self.comm)
 
-class TestCommCobra(unittest.TestCase):
+
+class TestCommCobra(TestCommReframed):
 
     def setUp(self):
         """Set up"""
@@ -48,12 +49,3 @@ class TestCommCobra(unittest.TestCase):
         model3.id = 'm3'
         self.models = [model1, model2, model3]
         self.comm = CommunityModel(self.models)
-
-    def FBA(self):
-        sim = self.comm.get_community_model()    
-        res = sim.simulate()
-        self.assertGreater(res.objective_value, 0)
-
-    def SteadyCom(self):
-        from mewpy.cobra.steadycom import SteadyCom
-        SteadyCom(self.comm)

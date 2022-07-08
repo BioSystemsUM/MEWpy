@@ -115,9 +115,8 @@ def build_problem(community, growth=1, bigM=1000):
     solver.update()
 
     def update_growth(value):
-        # TODO: find a solution that is not CPLEX specific
         coefficients = [(f"g_{x}", f"x_{x}", value) for x in community.organisms]
-        solver.problem.linear_constraints.set_coefficients(coefficients)
+        solver.change_coefficients(coefficients)
 
     solver.update_growth = update_growth
 
@@ -280,8 +279,8 @@ class CommunitySolution(object):
     def mass_flow(self, element=None, as_df=False, abstol=1e-6):
 
         def get_mass(x):
-            met = self.community.merged_model.metabolites[x]
-            formula = met.metadata.get('FORMULA', '')
+            met = self.community.comm_model.get_metabolite(x)
+            formula = x.formula
             mw = molecular_weight(formula, element=element)
             return 0.001 * mw
 
