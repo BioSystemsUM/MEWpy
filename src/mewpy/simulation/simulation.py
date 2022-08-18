@@ -5,6 +5,7 @@ from ..util.process import cpu_count
 from . import SimulationMethod, SStatus
 from joblib import Parallel, delayed
 from tqdm import tqdm
+import math
 
 
 class SimulationInterface(ABC):
@@ -217,6 +218,10 @@ class Simulator(ModelContainer, SimulationInterface):
     def find_reactions(self, pattern=None, sort=False):
         return self.find(pattern=pattern, sort=sort, find_in='r')
 
+    def is_essential_reaction(self, rxn, min_growth=0.01):
+        res = self.simulate(constraints={rxn:0}, slim=True)
+        return res is None or math.isnan(res) or res < min_growth
+
     def essential_reactions(self, min_growth=0.01):
         """Essential reactions are those when knocked out enable a biomass flux value above a minimal growth defined as
         a percentage of the wild type growth.
@@ -229,8 +234,7 @@ class Simulator(ModelContainer, SimulationInterface):
             return essential
         essential = []
         for rxn in tqdm(self.reactions):
-            res = self.simulate(constraints={rxn:  0},  slim=True)
-            if not res or res < min_growth:
+            if self.is_essential_reaction(rxn):
                 essential.append(rxn)
         self._essential_reactions = essential
         return self._essential_reactions
@@ -266,7 +270,7 @@ class Simulator(ModelContainer, SimulationInterface):
                 inactive_reactions.append(r_id)
         constraints = {rxn: 0 for rxn in inactive_reactions}
         res = self.simulate(constraints=constraints, slim=True)
-        return not res or res < min_growth
+        return res is None or math.isnan(res) or res < min_growth
 
     def essential_genes(self, min_growth=0.01):
         """Essential genes are those when deleted enable a biomass flux value above a minimal growth defined as
