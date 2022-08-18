@@ -234,7 +234,7 @@ class Simulator(ModelContainer, SimulationInterface):
             return essential
         essential = []
         for rxn in tqdm(self.reactions):
-            if self.is_essential_reaction(rxn):
+            if self.is_essential_reaction(rxn,min_growth=min_growth):
                 essential.append(rxn)
         self._essential_reactions = essential
         return self._essential_reactions
@@ -285,7 +285,7 @@ class Simulator(ModelContainer, SimulationInterface):
             return essential
         essential = []
         for g in tqdm(self.genes):
-            if self.is_essential_gene(g):
+            if self.is_essential_gene(g,min_growth=min_growth):
                 essential.append(g)
         self._essential_genes = essential
         return self._essential_genes
