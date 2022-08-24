@@ -84,7 +84,7 @@ class AbstractProblem(ABC):
 
     def __init__(self, model, fevaluation=None, **kwargs):
         self.model = model
-        self.fevaluation = fevaluation
+        self.fevaluation = [] if fevaluation is None else fevaluation
         self.number_of_objectives = len(self.fevaluation)
 
         # simulation context : defines the simulations environment
@@ -124,7 +124,7 @@ class AbstractProblem(ABC):
         self.operators_param = None
 
     @abstractmethod
-    def generator(self, random, args):
+    def generator(self, random, **kwargs):
         """The generator function for the problem."""
         raise NotImplementedError
 
@@ -370,7 +370,7 @@ class AbstractKOProblem(AbstractProblem):
             self._bounder = KOBounder(0, max)
         return self._bounder
 
-    def generator(self, random, args):
+    def generator(self, random, **kwargs):
         """
         Generates a solution, a random int set with length in range min_solution_size to max_solution_size.
         """
@@ -454,7 +454,7 @@ class AbstractOUProblem(AbstractProblem):
             self._bounder = OUBounder([0, 0], [max_idx, max_lv])
         return self._bounder
 
-    def generator(self, random, args):
+    def generator(self, random, **kwargs):
         """
         Generates a solution, a random (int,int) set with length in range min_solution_size to max_solution_size.
 

@@ -1,6 +1,6 @@
 from mewpy.problems.problem import AbstractKOProblem, AbstractOUProblem
 from ..simulation.kinetic import KineticSimulation
-
+from re import search
 
 class KineticKOProblem(AbstractKOProblem):
 
@@ -10,9 +10,15 @@ class KineticKOProblem(AbstractKOProblem):
         kinetic_parameters = kwargs.get('kparam', None)
         tSteps = kwargs.get('tSteps', None)
         self.kinetic_sim = KineticSimulation(model, parameters=kinetic_parameters, tSteps=tSteps)
+        for f in self.fevaluation:
+            f.kinetic = True
 
     def _build_target_list(self):
-        target = set(self.model.reactions.keys())
+        p = list(self.model.get_parameters(exclude_compartments=True))
+        target =[]
+        for k in p:
+            if search(r'(?i)[rv]max',k):
+                target.append(k)
         if self.non_target is not None:
             target = target - set(self.non_target)
         self._trg_list = list(target)
@@ -26,7 +32,7 @@ class KineticKOProblem(AbstractKOProblem):
         factors = self.decode(solution) if decode else solution
         simulation_results = self.kinetic_sim.simulate(factors=factors)
         for f in self.fevaluation:
-            p.append(f(simulation_results, solution))
+            p.append(f(simulation_results, factors))
         return p
 
 
@@ -38,11 +44,17 @@ class KineticOUProblem(AbstractOUProblem):
         kinetic_parameters = kwargs.get('kparam', None)
         tSteps = kwargs.get('tSteps', None)
         self.kinetic_sim = KineticSimulation(model, parameters=kinetic_parameters, tSteps=tSteps)
+        for f in self.fevaluation:
+            f.kinetic = True
 
     def _build_target_list(self):
-        target = set(self.model.reactions.keys())
+        p = list(self.model.get_parameters(exclude_compartments=True))
+        target =[]
+        for k in p:
+            if search(r'(?i)max',k):
+                target.append(k)
         if self.non_target is not None:
-            target = target - set(self.non_target)
+            target = set(target) - set(self.non_target)
         self._trg_list = list(target)
 
     def decode(self, candidate):
@@ -54,5 +66,5 @@ class KineticOUProblem(AbstractOUProblem):
         factors = self.decode(solution) if decode else solution
         simulation_results = self.kinetic_sim.simulate(factors=factors)
         for f in self.fevaluation:
-            p.append(f(simulation_results, solution))
+            p.append(f(simulation_results, factors))
         return p

@@ -2,9 +2,7 @@ import warnings
 from collections import OrderedDict
 import numpy as np
 import copy
-
 from mewpy.util.parsing import Arithmetic, build_tree
-
 
 class Compartment(object):
     """ class for modeling compartments. """
@@ -204,6 +202,7 @@ class KineticReaction(Rule):
         m = {p_id: f"p['{self.id}_{p_id}']" for p_id in self.parameters.keys()}
         r_map = map.copy()
         r_map.update(m)
+
         return self.replace(r_map, local=local)
 
     def calculate_rate(self, substrates={}, parameters={}):
@@ -288,9 +287,6 @@ class ODEModel:
         self._constants = None
 
         self._m_r_lookup = None
-
-    def get_reactions(self):
-        return self.reactions
 
     def _clear_temp(self):
         self.update()
@@ -428,12 +424,7 @@ class ODEModel:
         rmap.update(c)
         rmap.update(p)
         rmap.update(v)
-
-        if factors:
-            for k, v in factors.items():
-                exp = rmap[k]
-                rmap[k] = f"{str(v)} * {exp}" if isinstance(exp, str) else v*exp
-
+        
         parsed_rates = {r_id: ratelaw.parse_law(rmap, local=local)
                         for r_id, ratelaw in self.ratelaws.items()}
 
@@ -454,23 +445,28 @@ class ODEModel:
             '    return dxdt\n'
 
         self._func_str = func_str
-
         return self._func_str
 
     def get_ode(self, r_dict=None, params=None, factors=None):
-
+        """
+        Args:
+            r_dict: reaction identifiers to be modified
+            params: modified parameters
+            factors: factors to be applied to parameters
+        """
         p = self.merge_constants()
-        v = self.variable_params.copy()
-
-        if r_dict is not None:
-            r = r_dict
-        else:
-            r = {}
-
         if params:
             p.update(params)
 
-        exec('from math import log', globals())
+        if factors is not None:
+            for k,v in factors.items():
+                if k in p.keys():
+                    p[k]= v * p[k] 
+
+        v = self.variable_params.copy()
+        r = r_dict if r_dict is not None else dict()
+        
+        np.seterr(divide='ignore', invalid='ignore')         
         exec(self.build_ode(factors), globals())
         ode_func = eval('ode_func')
 

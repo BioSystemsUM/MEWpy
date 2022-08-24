@@ -3,6 +3,8 @@ import warnings
 from abc import ABCMeta, abstractmethod
 from functools import reduce
 import numpy as np
+
+from mewpy.solvers.ode import ODEStatus
 from ..simulation import get_simulator, SimulationMethod, SStatus
 from ..util.constants import EAConstants, ModelConstants
 
@@ -70,7 +72,7 @@ class KineticEvaluationFunction(EvaluationFunction):
         super(KineticEvaluationFunction, self).__init__(maximize=maximize, worst_fitness=worst_fitness)
 
 
-class TargetFlux(PhenotypeEvaluationFunction):
+class TargetFlux(PhenotypeEvaluationFunction,KineticEvaluationFunction):
     """ Target Flux evaluation function.
     The fitness value is the flux value of the identified reaction.
     If the reaction parameter is None, the fitness value is the optimization objective value.
@@ -94,6 +96,7 @@ class TargetFlux(PhenotypeEvaluationFunction):
         self.min_biomass_value = min_biomass_value
         self.min_biomass_per = min_biomass_per
         self.method = method
+        self.kinetic = False
 
     def get_fitness(self, simul_results, candidate, **kwargs):
         """Evaluates a candidate
@@ -103,9 +106,13 @@ class TargetFlux(PhenotypeEvaluationFunction):
         :returns: A fitness value.
 
         """
-        sim = simul_results[self.method] if self.method in simul_results.keys(
-        ) else None
-        if not sim or sim.status not in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
+        if self.kinetic:
+            sim = simul_results
+        else:
+            sim = simul_results[self.method] if self.method in simul_results.keys(
+            ) else None
+
+        if not sim or sim.status not in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL, ODEStatus.OPTIMAL):
             return self.no_solution
 
         # only executed once if required
