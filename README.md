@@ -11,11 +11,11 @@ MEWpy is an integrated Metabolic Engineering Workbench for strain design optimiz
 - Omics data integration (eFlux, GIMME, iMAT);
 - Optimization: performs Evolutionary Computation based strain design optimization by knocking out (KO) or over/under expressing (OU) reactions, genes or enzymes.
 
-MEWPy currently supports [REFRAMED](https://github.com/cdanielmachado/reframed) and [COBRApy](https://opencobra.github.io/cobrapy/) simulation environments. The optimization engine relies on either [inspyred](https://github.com/aarongarrett/inspyred) or [jMetalPy](https://github.com/jMetal/jMetalPy) packages, which are used for creating biologically-inspired computational intelligence algorithms in Python.
+MEWPy currently supports [REFRAMED](https://github.com/cdanielmachado/reframed) and [COBRApy](https://opencobra.github.io/cobrapy/) simulation environments. The optimization engine relies on either [inspyred](https://github.com/aarongarrett/inspyred) or [jMetalPy](https://github.com/jMetal/jMetalPy) packages.
 
 ### Examples
 
-Examples are provided as in the as [jupiter notebooks](examples) and as [python scripts](examples).
+Examples are provided as [jupiter notebooks](examples) and as [python scripts](examples).
 
 ### Documentation
 
@@ -31,13 +31,13 @@ Installing from github:
 
 1. clone the repository
 
-`git clone https://github.com/BioSystemsUM/mewpy.git`
+`git clone https://github.com/BioSystemsUM/mewpy.git -b master`
 
 2. run `python setup.py install`
 
-MEWPy requires a compatible solver for linear programming problems, with installed Python dependencies installed, from the following list:
+MEWPy requires a compatible linear programming solver, with installed Python dependencies, from the following list:
 
-- [CPLEX](https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/) (preferred)
+- [CPLEX](https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/) 
 - [GUROBI](http://www.gurobi.com)
 - [GLPK](https://www.gnu.org/software/glpk/)
 
