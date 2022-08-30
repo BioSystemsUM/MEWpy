@@ -170,6 +170,10 @@ class Simulation(CobraModelContainer, Simulator):
         for r_id, bounds in self._constraints.items():
             self._set_model_reaction_bounds(r_id, bounds)
 
+        # if modifications on the envirenment are permited 
+        # during simulations
+        self._allow_env_changes = False
+
     @property
     def environmental_conditions(self):
         return self._environmental_conditions.copy()
@@ -222,9 +226,12 @@ class Simulation(CobraModelContainer, Simulator):
         from cobra import Metabolite
         meta = Metabolite(id, formula=formula, name=name, compartment=compartment)
         self.model.add_metabolites([meta])
+    
+    def add_gene(self,id,name):
+        pass        
 
-    def add_reaction(self, rxn_id, stoichiometry, lb=ModelConstants.REACTION_LOWER_BOUND,
-                     ub=ModelConstants.REACTION_UPPER_BOUND, replace=True, *kwargs):
+    def add_reaction(self, rxn_id, name = None, stoichiometry=None, lb=ModelConstants.REACTION_LOWER_BOUND,
+                     ub=ModelConstants.REACTION_UPPER_BOUND, gpr=None ,replace=True, *kwargs):
         """Adds a reaction to the model
 
         Args:
@@ -237,9 +244,12 @@ class Simulation(CobraModelContainer, Simulator):
         """
         from cobra import Reaction
         reaction = Reaction(rxn_id)
-        reaction.add_metabolites(stoichiometry)
+        reaction.name = name if name else rxn_id
+        stoich = {self.model.metabolites.get_by_id(k):v for k,v in stoichiometry.items()}
+        reaction.add_metabolites(stoich)
         reaction.lower_bound = lb
         reaction.upper_bound = ub
+        if gpr: reaction.gene_reaction_rule = gpr
         self.model.add_reaction(reaction)
 
     def remove_reaction(self, r_id):
@@ -403,8 +413,11 @@ class Simulation(CobraModelContainer, Simulator):
 
         simul_constraints = {}
         if constraints:
-            simul_constraints.update({k: v for k, v in constraints.items()
-                                      if k not in list(self._environmental_conditions.keys())})
+            if not self._allow_env_changes:
+                simul_constraints.update({k: v for k, v in constraints.items()
+                                        if k not in list(self._environmental_conditions.keys())})
+            else:
+                simul_constraints.update(constraints)
 
         with self.model as model:
             model.objective = objective

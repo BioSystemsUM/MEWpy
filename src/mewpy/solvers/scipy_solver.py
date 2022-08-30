@@ -14,10 +14,7 @@ methods = {
 
 class ScipySolver(ODESolver):
 
-    def __init__(self, func, method='RK45'):
-        """ solve_ivp(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
-              events=None, vectorized=False, args=None, **options):
-        """
+    def __init__(self, func, method='LSODA'):
         self.func = func
         self.method = method
         self.initial_condition = None
@@ -26,6 +23,6 @@ class ScipySolver(ODESolver):
         self.initial_condition = initial_condition
 
     def solve(self, y0, t_span, **kwargs):
-        sol = solve_ivp(self.func, t_span, y0, method=methods[self.method])
+        sol = solve_ivp(self.func, t_span, y0, method=methods[self.method],**kwargs)
         C = [c[-1] for c in sol.y]
         return C, sol.t, sol.y

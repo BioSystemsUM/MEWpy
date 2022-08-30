@@ -258,3 +258,11 @@ class Solver(object):
         """
 
         raise Exception('Not implemented for this solver.')
+
+    def change_coefficients(self, coefficients):
+        """Changes variables coefficients in constraints
+
+        :param coefficients: A list of tuples (constraint name, variable name, new value)
+        :type coefficients: list
+        """
+        raise Exception('Not implemented for this solver.')

@@ -357,6 +357,50 @@ class GaussianMutation(Mutation[Solution]):
     def get_name(self):
         return 'Gaussian Mutator'
 
+class UniformCrossover(Crossover[Solution, Solution]):
+    """
+        Uniform Crossover
+    """
+
+    def __init__(self, probability: float = 0.1):
+        super(UniformCrossover, self).__init__(probability=probability)
+
+    def execute(self, parents: List[Solution]) -> List[Solution]:
+        if len(parents) != 2:
+            raise Exception('The number of parents is not two: {}'.format(len(parents)))
+
+        offspring = [copy.deepcopy(parents[0]), copy.deepcopy(parents[1])]
+
+        if random.random() <= self.probability and (
+                offspring[0].number_of_variables > 1 or offspring[1].number_of_variables > 1):
+            mom = copy.copy(offspring[0].variables)
+            dad = copy.copy(offspring[1].variables)
+            child1 = []
+            child2 = []
+            for p in range(len(mom)):
+                if random.random() <= 0.5:
+                    child1.append(mom[p])
+                    child2.append(dad[p])
+                else:
+                    child1.append(dad[p])
+                    child2.append(mom[p])
+                
+            offspring[0].variables = list(child1)
+            offspring[0].number_of_variables = len(child1)
+            offspring[1].variables = list(child2)
+            offspring[1].number_of_variables = len(child2)
+        return offspring
+
+    def get_number_of_parents(self) -> int:
+        return 2
+
+    def get_number_of_children(self) -> int:
+        return 2
+
+    def get_name(self):
+        return 'Uniform Crossover'
+
+
 
 class SingleRealMutation(Mutation[Solution]):
     """

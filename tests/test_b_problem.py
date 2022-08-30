@@ -31,12 +31,12 @@ class TestRKOP(unittest.TestCase):
 
     def test_generator(self):
         import random
-        candidate = self.problem.generator(random, None)
+        candidate = self.problem.generator(random)
         self.assertGreater(len(candidate), 0)
 
     def test_decode(self):
         import random
-        candidate = self.problem.generator(random, None)
+        candidate = self.problem.generator(random)
         solution = self.problem.decode(candidate)
         n_candidate = self.problem.encode(solution)
         self.assertEqual(candidate, n_candidate)
@@ -50,7 +50,7 @@ class TestRKOP(unittest.TestCase):
         constraints = []
         while not ispass and tries < MAX_TRIES:
             tries += 1
-            candidate = self.problem.generator(random, None)
+            candidate = self.problem.generator(random)
             solution = self.problem.decode(candidate)
             constraints = self.problem.solution_to_constraints(solution)
             if len(constraints) > 0:
@@ -59,7 +59,7 @@ class TestRKOP(unittest.TestCase):
 
     def test_simul_constraints(self):
         import random
-        candidate = self.problem.generator(random, None)
+        candidate = self.problem.generator(random)
         solution = self.problem.decode(candidate)
         constraints = self.problem.solution_to_constraints(solution)
         self.problem.simulator.simulate(constraints=constraints)
@@ -104,7 +104,7 @@ class TestOptRAM(TestRKOP):
     @pytest.mark.xfail
     def test_decode(self):
         import random
-        candidate = self.problem.generator(random, None)
+        candidate = self.problem.generator(random)
         solution = self.problem.decode(candidate)
         n_candidate = self.problem.encode(solution)
         self.assertEqual(candidate, n_candidate)
@@ -164,7 +164,7 @@ class TestOptORF(unittest.TestCase):
 
     def test_generator(self):
         import random
-        candidate = self.problem.generator(random, None)
+        candidate = self.problem.generator(random)
         self.assertGreater(len(candidate), 0)
 
 

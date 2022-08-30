@@ -211,6 +211,18 @@ class ExpressionSet:
         values = self.get_condition(condition)
         return np.amin(values), np.amax(values)
 
+    def apply(self, function: None):
+        """Apply a function to all expression values.
+
+        :param function: the unary function to be applyied. Default log base 2.
+        :type function: callable
+        """
+        if function is None:
+            import math
+            def function(x): return math.log(x, 2)
+        f = np.vectorize(function)
+        self._expression = f(self._expression)
+
 
 def gene_to_reaction_expression(model, gene_exp, and_func=min, or_func=max):
     """Process reaction level from GPRs

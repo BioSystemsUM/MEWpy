@@ -5,6 +5,7 @@ from ..util.process import cpu_count
 from . import SimulationMethod, SStatus
 from joblib import Parallel, delayed
 from tqdm import tqdm
+import math
 
 
 class SimulationInterface(ABC):
@@ -200,8 +201,12 @@ class Simulator(ModelContainer, SimulationInterface):
             data = [self.get_gene(x) for x in values]
         else:
             data = [self.get_reaction(x) for x in values]
-        df = pd.DataFrame(data)
-        df = df.set_index(df.columns[0])
+        
+        if data:
+            df = pd.DataFrame(data)
+            df = df.set_index(df.columns[0])
+        else: 
+            df = pd.DataFrame()
         return df
 
     def find_genes(self, pattern=None, sort=False):
@@ -212,6 +217,10 @@ class Simulator(ModelContainer, SimulationInterface):
 
     def find_reactions(self, pattern=None, sort=False):
         return self.find(pattern=pattern, sort=sort, find_in='r')
+
+    def is_essential_reaction(self, rxn, min_growth=0.01):
+        res = self.simulate(constraints={rxn:0}, slim=True)
+        return res is None or math.isnan(res) or res < min_growth
 
     def essential_reactions(self, min_growth=0.01):
         """Essential reactions are those when knocked out enable a biomass flux value above a minimal growth defined as
@@ -225,8 +234,7 @@ class Simulator(ModelContainer, SimulationInterface):
             return essential
         essential = []
         for rxn in tqdm(self.reactions):
-            res = self.simulate(constraints={rxn:  0},  slim=True)
-            if not res or res < min_growth:
+            if self.is_essential_reaction(rxn,min_growth=min_growth):
                 essential.append(rxn)
         self._essential_reactions = essential
         return self._essential_reactions
@@ -262,7 +270,7 @@ class Simulator(ModelContainer, SimulationInterface):
                 inactive_reactions.append(r_id)
         constraints = {rxn: 0 for rxn in inactive_reactions}
         res = self.simulate(constraints=constraints, slim=True)
-        return not res or res < min_growth
+        return res is None or math.isnan(res) or res < min_growth
 
     def essential_genes(self, min_growth=0.01):
         """Essential genes are those when deleted enable a biomass flux value above a minimal growth defined as
@@ -277,7 +285,7 @@ class Simulator(ModelContainer, SimulationInterface):
             return essential
         essential = []
         for g in tqdm(self.genes):
-            if self.is_essential_gene(g):
+            if self.is_essential_gene(g,min_growth=min_growth):
                 essential.append(g)
         self._essential_genes = essential
         return self._essential_genes
@@ -297,6 +305,16 @@ class Simulator(ModelContainer, SimulationInterface):
 
     def create_empty_model(self,model_id:str):
         return NotImplementedError
+
+    def get_external_metabolites(self):
+        external = []
+        for m_id in self.metabolites:
+            c_id = self.get_metabolite(m_id).compartments
+            if self.get_compartment(c_id).external:
+                external.append(m_id)
+        return m_id
+
+    
 
 class SimulationResult(object):
     """Class that represents simulation results and performs operations over them."""

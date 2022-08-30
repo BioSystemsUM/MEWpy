@@ -5,7 +5,8 @@ import re
 import types
 import time
 from collections.abc import Iterable
-
+from .constants import atomic_weights
+from warnings import warn
 
 class AttrDict(dict):
     def __init__(self, *args, **kwargs):
@@ -106,14 +107,11 @@ def iterable(obj, is_string=False):
         return obj
     return (obj,)
 
-
 def generator(container):
     return (value for value in container.values())
 
-
 # Taken from the talented team responsible for developing cobrapy!!!!
 chemical_formula_re = re.compile('([A-Z][a-z]?)([0-9.]+[0-9.]?|(?=[A-Z])?)')
-
 
 def elements(formula):
     all_elements = re.findall(chemical_formula_re, formula)
@@ -124,6 +122,18 @@ def elements(formula):
         atoms[atom] = atoms.get(atom, 0) + int(count)
     return atoms
 
+def molecular_weight(formula, element=None):
+    elems = elements(formula)
+    if element:
+        mw = elems.get(element, 0) * atomic_weights.get(element, 0)
+    else:
+        missing = set(elems) - set(atomic_weights)
+        if missing:
+            warn(f"Atomic weight not listed for elements: {missing}")
+
+        mw = sum(atomic_weights.get(elem, 0) * n for elem, n in elems.items())
+
+    return mw
 
 @contextlib.contextmanager
 def tqdm_joblib(tqdm_object):
@@ -151,3 +161,15 @@ def get_all_subclasses(cls):
         all_subclasses.extend(get_all_subclasses(subclass))
 
     return all_subclasses
+
+def is_notebook() -> bool:
+    try:
+        shell = get_ipython().__class__.__name__
+        if shell == 'ZMQInteractiveShell':
+            return True   # Jupyter notebook or qtconsole
+        elif shell == 'TerminalInteractiveShell':
+            return False  # Terminal running IPython
+        else:
+            return False  # Other type (?)
+    except NameError:
+        return False      # Probably standard Python interpreter

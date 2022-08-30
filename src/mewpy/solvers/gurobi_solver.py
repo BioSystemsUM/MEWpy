@@ -362,3 +362,14 @@ class GurobiSolver(Solver):
         """
 
         self.problem.write(filename)
+
+    def change_coefficients(self, coefficients):
+        """Changes variables coefficients in constraints
+
+        :param coefficients: A list of tuples (constraint name, variable name, new value)
+        :type coefficients: list
+        """
+        for c_id, v_id, x in coefficients:
+            constraint = self.problem.getConstrByName(c_id)
+            variable = self.problem.getVarByName(v_id)
+            self.problem.chgCoeff(constraint, variable, x)
