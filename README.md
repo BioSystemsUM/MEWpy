@@ -5,46 +5,21 @@
 
 # MEWpy
 
-MEWpy is an integrated Metabolic Engineering Workbench, under development, for strain design optimization. Developed in Python, MEWpy offers methods to explore different classes of constraint-based models (CBM).
+MEWpy is an integrated Metabolic Engineering Workbench for strain design optimization. It offers methods to explore different classes of constraint-based models (CBM) for:
 
-- Simulation: allows to simulate different metabolic models considering different phenotype.
+- Simulation: allows to simulate  steady-state metabolic models, considering different formulations (e.g., GECKO, ETFL) and kinetic models;
+- Omics data integration (eFlux, GIMME, iMAT);
 - Optimization: performs Evolutionary Computation based strain design optimization by knocking out (KO) or over/under expressing (OU) reactions, genes or enzymes.
 
-  **Metabolic Constraints**
+MEWPy currently supports [REFRAMED](https://github.com/cdanielmachado/reframed) and [COBRApy](https://opencobra.github.io/cobrapy/) simulation environments. The optimization engine relies on either [inspyred](https://github.com/aarongarrett/inspyred) or [jMetalPy](https://github.com/jMetal/jMetalPy) packages, which are used for creating biologically-inspired computational intelligence algorithms in Python.
 
-  | Method       | Strategy |
-  | ------------ | -------- |
-  | Reactions    | KO / OU  |
-  | Genes (GPRs) | KO / OU  |
-
-  **Enzymatic Constraints**
-
-  | Method                                                                                    | Strategy |
-  | ----------------------------------------------------------------------------------------- | -------- |
-  | [GECKO](https://doi.org/10.15252/msb.20167411)                                            | KO / OU  |
-  | [sMOMENT](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-019-3329-9) | KO / OU  |
-
-  **Regulatory Constraints**
-
-  | Method                                                 | Strategy |
-  | ------------------------------------------------------ | -------- |
-  | [OptRAM](https://doi.org/10.1371/journal.pcbi.1006835) | KO / OU  |
-  | [OptORF](https://doi.org/10.1186/1752-0509-4-53)       | KO       |
-
-- MEWPy currently supports [REFRAMED](https://github.com/cdanielmachado/reframed) and [COBRApy](https://opencobra.github.io/cobrapy/) simulation environments.
-- The optimization engine relies on either [inspyred](https://github.com/aarongarrett/inspyred) or [jMetalPy](https://github.com/jMetal/jMetalPy) packages, which are used for creating biologically-inspired computational intelligence algorithms in Python.
-
-- MEWpy may also be used to run simulation and optimization strategies on [Expression and Thermodynamics Flux](https://doi.org/10.1371/journal.pcbi.1006835) (ETFL).
-
-- Next releases will be compatible with [Metabolism and Macromolecular Expression](https://doi.org/10.1371/journal.pcbi.1006302) (ME) models.
-
-### Usage Examples
+### Examples
 
 Examples are provided as in the as [jupiter notebooks](examples) and as [python scripts](examples).
 
 ### Documentation
 
-The package documentation is avaliable at [mewpy.readthedocs.io](https://mewpy.readthedocs.io).
+The package documentation is available at [mewpy.readthedocs.io](https://mewpy.readthedocs.io).
 
 ### Instalation
 
@@ -72,7 +47,7 @@ Vítor Pereira, Fernando Cruz, Miguel Rocha, MEWpy: a computational strain optim
 
 ### Credits and License
 
-Developed at Centre of Biological Engineering, University of Minho (2019-2020)
+Developed at Centre of Biological Engineering, University of Minho (2019- )
 
 This project has received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement number 814408.
 
