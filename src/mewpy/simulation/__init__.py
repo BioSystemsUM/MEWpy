@@ -1,33 +1,6 @@
 from enum import Enum
-
 from ..util.constants import ModelConstants
-
-solvers = []
-
-try:
-    import gurobipy
-    solvers.append('gurobi')
-except ImportError as e:
-    pass
-
-if 'gurobi' in solvers:
-    try:
-        # disables solver output.
-        gurobipy.setParam('OutputFlag', 0)
-    except:
-        pass
-
-try:
-    import cplex
-    solvers.append('cplex')
-except ImportError as e:
-    pass
-
-try:
-    import swiglpk
-    solvers.append('glpk')
-except ImportError:
-    pass
+from .sglobal import __MEWPY_sim_solvers__
 
 default_solver = None
 
@@ -45,7 +18,7 @@ def get_default_solver():
     solver_order = ['cplex', 'gurobi', 'glpk']
 
     for solver in solver_order:
-        if solver in solvers:
+        if solver in __MEWPY_sim_solvers__:
             default_solver = solver
             break
 
@@ -63,7 +36,7 @@ def set_default_solver(solvername):
 
     global default_solver
 
-    if solvername.lower() in solvers:
+    if solvername.lower() in __MEWPY_sim_solvers__:
         default_solver = solvername.lower()
     else:
         raise RuntimeError(f"Solver {solvername} not available.")

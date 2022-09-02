@@ -9,12 +9,12 @@ def info():
     print('Author:',__author__)
     print('Contact:',__email__,'\n')
 
-    from .simulation import solvers, get_default_solver
-    print('Available LP solvers:',' '.join(solvers))
+    from .simulation import __MEWPY_sim_solvers__, get_default_solver
+    print('Available LP solvers:',' '.join(__MEWPY_sim_solvers__))
     print('Default LP solver:',get_default_solver(),'\n')
     
-    from .solvers import ode_solvers, get_default_ode_solver
-    print('Available ODE solvers:',' '.join(list(ode_solvers.keys())))
+    from .solvers import __MEWPY_ode_solvers__, get_default_ode_solver
+    print('Available ODE solvers:',' '.join(list(__MEWPY_ode_solvers__.keys())))
     print('Default ODE solver:', get_default_ode_solver(),'\n')
     
     from mewpy.util.utilities import get_all_subclasses

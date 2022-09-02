@@ -3,7 +3,8 @@ from typing import Union, TYPE_CHECKING, Tuple, Dict, Set, List
 
 from numpy import zeros
 
-from mewpy.solvers import get_default_solver, solvers
+from mewpy.solvers import get_default_solver
+from mewpy.solvers.sglobal import __MEWPY_solvers__ as solvers
 from mewpy.solvers.solution import Solution
 from mewpy.solvers.solver import Solver, VarType
 from mewpy.mew.solution import ModelSolution
