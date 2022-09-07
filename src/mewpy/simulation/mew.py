@@ -643,8 +643,9 @@ class Simulation(MewModelContainer, Simulator):
         Simulates a phenotype for a given objective and set of constraints using the specified method.
         Reference wild-type conditions are also accepted
  
-        :param ob jective:  The simulation objec t iv:param method: The SimulationMethod (FBA, pFBA, lMOMA, etc ...).
+        :param objective:  The simulation objec t iv:param method: The SimulationMethod (FBA, pFBA, lMOMA, etc ...).
         See available methods at mewpy.simulation.SimulationMethod
+        :param method: The SimulationMethod (FBA, pFBA, lMOMA, etc ...).
         :param maximize: The optimization direction
         :param constraints: A dictionary of constraints to be applied to the model
         :param reference: A dictionary of reaction flux values for lmoma, moma and room
