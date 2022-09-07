@@ -1,10 +1,15 @@
+"""
+##############################################################################
+File containing string exoression parsing utility functions.
+Expressions are decomposed into parsing trees for infix evaluation.
+
+Authors: Vitor Pereira
+##############################################################################
+"""
 import re
 import sys
 from abc import abstractmethod
 from operator import add, sub, mul, truediv, pow
-
-from sympy import Symbol
-from sympy.parsing.sympy_parser import parse_expr
 
 # Boolean operator symbols
 S_AND = '&'
@@ -27,40 +32,6 @@ BOOLEAN_STATES = [S_ON, S_OFF]
 
 BOOLEAN_RELATIONALS = [S_GREATER, S_LESS, S_EQUAL]
 BOOLEAN_EQUAL_RELATIONALS = [S_GREATER_THAN_EQUAL, S_LESS_THAN_EQUAL]
-
-# TODO: This might be problematic, but it seems to be the better way. A disclaimer/instructions of how genes and
-#  special vars must be formatted can also work. If the user provides a list of all genes/regulatory variables in the
-#  TRN or search them in the ids column, this can also be some work arounds.
-
-# Special chars to be replaced
-BOOLEAN_SPECIAL_CHARS = {'-': '_dash_',
-                         # '.' : '_dot_',
-                         ',': '_comma_',
-                         ';': '_semicolon_',
-                         '[': '_lbracket_',
-                         ']': '_rbracket_',
-                         ':': '_colon_',
-                         '+': '_plus_',
-                         '/': '_slash_',
-                         '\\"': '_backslash_',
-                         '=': '_equal_',
-                         '$': '_dollar_',
-                         '%': '_percentage_',
-                         '"': '_quotes_',
-                         '(e)': '_e_',
-                         '(c)': '_c_',
-                         '(p)': '_p_',
-                         '(E)': '_E_',
-                         '(C)': '_C_',
-                         '(P)': '_P_',
-                         'lambda': '_lambda_function_',
-                         'Add': '_Add_',
-                         'add': '_add_',
-                         'Mul': '_Mul_',
-                         'mul': '_mul_',
-                         'Pow': '_Pow_',
-                         'pow': '_pow_',
-                         }
 
 # Increases the system recursion limit for long expressions
 sys.setrecursionlimit(100000)
@@ -109,6 +80,14 @@ def evaluate_expression_tree(expression, variables):
 
 
 def maybe_fn(f, v1, v2):
+    """Maybe evaluator: if one of the arguments is None, it retuns the value of the other\
+    argument. If both arguments are None, it returns None. If both arguments are not None\
+    it returns the evaluation f(v1,v2).
+
+    :param f: a function
+    :param v1: the first argument
+    :param v2: the second argument  
+    """
     if v1 is None:
         return v2
     elif v2 is None:
@@ -191,6 +170,7 @@ class Node(object):
             return self.left.get_operands().union(self.right.get_operands())
 
     def get_parameters(self):
+        """Parameters are all non numeric symbols in an expression"""
         if self.is_leaf():
             if self.value != EMPTY_LEAF and not is_number(self.value):
                 return {self.value}
@@ -200,6 +180,7 @@ class Node(object):
             return self.left.get_parameters().union(self.right.get_parameters())
 
     def print_node(self, level=0):
+        """Prints a parsing tree of the expression."""
         tabs = ""
         for _ in range(level):
             tabs += "\t"
@@ -371,27 +352,6 @@ class Boolean(Syntax):
         r = {'not': [EMPTY_LEAF, S_NOT], 'and': [S_AND],
              'or': [S_OR], '&': [S_AND], '|': [S_OR], '~': [EMPTY_LEAF, S_NOT]}
         return r
-
-    SYMPY_REPLACE = {'not': S_NOT,
-                     '!': S_NOT,
-                     'and': S_AND,
-                     'or': S_OR,
-                     'on': S_ON,
-                     'off': S_OFF,
-                     'true': S_ON,
-                     'false': S_OFF}
-
-    _SYMPY_RELATIONAL_REPLACE = {'greater than or equal': S_GREATER_THAN_EQUAL,
-                                 'less than or equal': S_LESS_THAN_EQUAL,
-                                 'greater or equal': S_GREATER_THAN_EQUAL,
-                                 'less or equal': S_LESS_THAN_EQUAL,
-                                 'greater than': S_GREATER,
-                                 'less than': S_LESS,
-                                 'greater': S_GREATER,
-                                 'less': S_LESS,
-                                 '==': S_EQUAL,
-                                 'equal': S_EQUAL}
-
 
 class BooleanEvaluator:
     """A boolean evaluator.
@@ -593,327 +553,3 @@ def is_condition(token):
     """
     regexp = re.compile(r'>|<|=')
     return bool(regexp.search(token))
-
-
-# generic regulatory rule parser
-def generic_regulatory_rule_parser(rule):
-    exp = tokenize_infix_expression(rule)
-    parsed_str = ''.join(exp)
-
-    return parsed_str, exp
-
-
-# special chars filter
-def special_chars_filter(rule, special_chars=None):
-    """
-    For a given rule it parses out the special chars by replacing them with the corresponding values in the
-    special_chars argument. By default, the global dictionary BOOL_SPECIAL_CHARS is used. This global dictionary can be
-    altered for adding or removing special chars.
-
-
-    :param rule: str, the regulatory rule
-    :param special_chars: dict or None, special (or not) chars to be replaced. BOOL_SPECIAL_CHARS by default \
-        special_chars argument must have unique keys and unique values!!
-    :returns: str, the new parsed rule
-    :returns: dict, the occurred replacements {replace: special_char}
-    """
-
-    if special_chars is None:
-        special_chars = BOOLEAN_SPECIAL_CHARS
-
-    replaces = {}
-
-    for special_char, replace in special_chars.items():
-
-        if special_char in rule:
-            replaces[replace] = special_char
-            rule = rule.replace(special_char, replace)
-
-    return rule, replaces
-
-
-# initial digit filter
-def starts_with_digit_filter(rule):
-    """
-    For a given regulatory rule it checks if all regulatory variables start with a digit (str.is_digit()) and parses
-    out the regulatory variable by adding the prefix '_st_dg_'
-
-    :param rule: str, the regulatory rule
-    :return: tuple, the new parsed regulatory variable as a string object and the occurred replacements as dict object
-    """
-
-    replaces = {}
-    rule = '(' + rule + ')'
-    regexp = re.compile(r'[^a-zA-Z|^_][0-9]+[a-zA-Z]|[^a-zA-Z|^_][0-9]+_')
-    res = list(regexp.finditer(rule))
-
-    new_rule = ''
-
-    last_nd = 0
-    for i in range(len(res)):
-        st = res[i].start() + 1
-        nd = res[i].end()
-        new_rule = new_rule + rule[last_nd:st] + '_st_dg_' + rule[st:nd]
-        last_nd = res[i].end()
-        replaces['_st_dg_'] = ''
-
-    new_rule = new_rule + rule[last_nd:]
-
-    return new_rule[1:-1], replaces
-
-
-# relational filter
-def single_relational_filter(expression):
-    """
-    For a given regulatory expression checks if it is a relational expression and identifies the regulatory
-    variable. Otherwise, returns false
-
-    :param expression: str, the regulatory expression
-    :return: tuple, the regulatory variable as a string object and the condition enclosed by parenthesis, or False
-    """
-
-    replace_dict = Boolean._SYMPY_RELATIONAL_REPLACE
-    for condition in replace_dict:
-        if condition in expression:
-            expression = expression.replace(condition, replace_dict[condition])
-        elif condition.upper() in expression:
-            expression = expression.replace(condition.upper(), replace_dict[condition])
-        elif condition.title() in expression:
-            expression = expression.replace(condition.title(), replace_dict[condition])
-        else:
-            continue
-
-    # first let's handle GreaterEqual LessEqual
-    regex_str = '|'.join([regex for regex in BOOLEAN_EQUAL_RELATIONALS])
-    regexp = re.compile(regex_str)
-    res = list(regexp.finditer(expression))
-
-    if len(res) == 1:
-        return expression[0:res[0].start()], '(' + expression + ')'
-    elif len(res) == 2:
-        return expression[res[0].end():res[1].start()], '(' + expression + ')'
-    elif len(res) > 2:
-        raise ValueError("The condition {} cannot be parsed".format(expression))
-    else:
-        # Then let's handle Greater Less and Equal
-        regex_str = '|'.join([regex for regex in BOOLEAN_RELATIONALS])
-        regexp = re.compile(regex_str)
-        res = list(regexp.finditer(expression))
-
-        if len(res) == 1:
-            return expression[0:res[0].start()], '(' + expression + ')'
-
-        if len(res) == 2:
-            return expression[res[0].end():res[1].start()], '(' + expression + ')'
-
-        if len(res) > 2:
-            raise ValueError("The condition {} cannot be parsed".format(expression))
-
-    return False
-
-
-# symbol filter
-def symbol_filter(expression, local_dict):
-    """
-    For a given regulatory expression it identifies the regulatory variable and parses it out as a sympy symbol.
-
-    :param expression: str, the regulatory expression
-    :param local_dict: dict, mapping between the variables in the expression and a Symbol Sympy's object
-    :return: Symbol, the regulatory variable as a sympy Symbol object
-    """
-
-    sympy_expr = parse_expr(expression, evaluate=False, local_dict=local_dict)
-
-    def get_symbol(atoms):
-
-        for atom in atoms:
-
-            if not atom.is_Atom:
-                return get_symbol(atom.atoms())
-
-            if atom.is_Atom and atom.is_Symbol:
-                return atom
-
-        return
-
-    return get_symbol(sympy_expr.atoms())
-
-
-# variable filter
-def variable_from_str(expression, filter=True, special_chars=None, replaces=None):
-    """
-    For a given expression (string) it identifies the variable and parses it out as a sympy symbol.
-    If more than one variable is present in the regulatory expression, a BaseException is raised
-
-    It also applies the starts_with_digit_filter and special_chars_filter if filter is True. If the replaces
-    dictionary is passed or reconstructed during filtering, the function can return the regulatory variable alias.
-    Otherwise, the alias is equal to the regulatory variable ID depending on the filter condition.
-
-    :param expression: str, expression
-    :param filter: bool, if filter, special_chars_filter and starts_with_digit_filter are applied
-    :param special_chars: dict, dict or None, special (or not) chars to be replaced. BOOL_SPECIAL_CHARS is used by \
-        default. special_chars argument must have unique keys and unique values!!
-    :param replaces: dict, replaces occurred for aliases construction. None is the default.
-    :return: regulatory variable Sympy Symbol, regulatory variable
-    :return: alias: dict, the new variable name map to the old one
-
-    """
-
-    if filter:
-
-        expression, new_replaces = special_chars_filter(expression, special_chars)
-        expression, new_replaces_d = starts_with_digit_filter(expression)
-        new_replaces.update(new_replaces_d)
-
-    else:
-
-        new_replaces = {}
-
-    if replaces is None:
-        replaces = {}
-
-    replaces.update(new_replaces)
-
-    sympify = parse_expr(expression, evaluate=False)
-    aliases = {}
-
-    if len(sympify.atoms()) > 1:
-        raise BaseException("Something went wrong processing the variable {}".format(expression))
-
-    if not isinstance(sympify, Symbol):
-        raise BaseException("Something went wrong processing the variable {}".format(expression))
-
-    old_reg_name = ''.join(sympify.name)
-
-    for replace, special_char in replaces.items():
-        old_reg_name = old_reg_name.replace(replace, special_char)
-
-    aliases[sympify.name] = old_reg_name
-
-    return sympify, aliases
-
-
-# relational filter
-def relational_filter(rule):
-    """
-    For a given boolean expression (string) finds all relational expressions and encloses all of them with
-    parenthesis and replaces the ambiguous operators
-
-    :param rule: str, the boolean expression
-    :return: str, the new boolean expression having all relational enclosed by parenthesis
-    """
-
-    for relational in Boolean._SYMPY_RELATIONAL_REPLACE:
-        if relational in rule:
-            rule = rule.replace(relational, Boolean._SYMPY_RELATIONAL_REPLACE[relational])
-        elif relational.upper() in rule:
-            rule = rule.replace(relational.upper(), Boolean._SYMPY_RELATIONAL_REPLACE[relational])
-        elif relational.title() in rule:
-            rule = rule.replace(relational.title(), Boolean._SYMPY_RELATIONAL_REPLACE[relational])
-        else:
-            continue
-
-    # regex to match a relational of any type: x>0; x<0; x>=0; x=>0;reverse order 0>x ...; with or without white spaces
-    # ([a-zA-Z0-9_]+>[0-9]+)|([a-zA-Z0-9_]+\s>\s[0-9]+)
-
-    regex_str = '|'.join(['([a-zA-Z0-9_]+' + regex + '[0-9.]+)' + '|' +
-                          r'([a-zA-Z0-9_]+\s' + regex + r'\s[0-9.]+)' + '|' +
-                          '([0-9.]+' + regex + '[a-zA-Z0-9_]+)' + '|' +
-                          r'([0-9.]+\s' + regex + r'\s[a-zA-Z0-9_]+)'
-                          for regex in BOOLEAN_EQUAL_RELATIONALS + BOOLEAN_RELATIONALS])
-
-    regexp = re.compile(regex_str)
-    res = list(regexp.finditer(rule))
-
-    for match in set(map(lambda x: x.group(), res)):
-        rule = re.sub(r'\b{}\b'.format(match), '(' + match + ')', rule)
-
-    return rule
-
-
-def bitwise_rule_filter(rule):
-    """
-    Transforms python boolean operators and, or and not to corresponding bitwise ones
-    :param rule: str, boolean rule
-    :return: str, new parsed boolean rule
-    """
-
-    for bool, bit_val in Boolean.SYMPY_REPLACE.items():
-        rule = re.sub(r'\b{}\b'.format(bool), bit_val, rule)
-        rule = re.sub(r'\b{}\b'.format(bool.upper()), bit_val, rule)
-        rule = re.sub(r'\b{}\b'.format(bool.title()), bit_val, rule)
-
-    return rule
-
-
-# Boolean regulatory rule from str
-def boolean_rule_from_str(rule):
-    """
-    It creates a new parsed regulatory rule, list all its elements (operators and operands) and creates a sympy
-    expression.
-    It also identifies all regulatory variables and returns them.
-
-    The regulatory variables might be filtered and transformed with the special characters and starts with digit
-    filters. The old regulatory variable ID is kept as an alias
-
-    :param rule: str, boolean rule
-    :returns rule: str, parsed boolean rule
-    :return elements: list, all elements in the rule (operators and operands)
-    :return sympify: Sympy Boolean object Or, And or Not, Sympy Symbol object, or Sympy Integral object
-    :return symbols: dict, all regulatory variables in the regulatory rule. Keys stand for their new IDs \
-        and values stand for their sympy symbols
-    :return symbols: dict, all regulatory variables in the regulatory rule. Keys stand for their new IDs \
-        and values stand for their aliases
-    """
-
-    regex_str = '|'.join(['(' + regex + '[0-9.]+)' + '|' +
-                          '(' + regex + r'\s[0-9.]+)' + '|'
-                          for regex in BOOLEAN_EQUAL_RELATIONALS + BOOLEAN_RELATIONALS])
-    regexp = re.compile(regex_str)
-
-    rule, replaces = special_chars_filter(rule)
-    rule, new_replaces = starts_with_digit_filter(rule)
-    replaces.update(new_replaces)
-
-    rule = bitwise_rule_filter(rule)
-    rule = relational_filter(rule)
-
-    elements = tokenize_infix_expression(rule)
-
-    aliases = {}
-
-    if len(elements) < 1:
-        return rule, elements, Node(None), [], aliases, []
-
-    if len(elements) == 1:
-
-        if elements[0] == '1' or elements[0] == '0':
-            return rule, elements, build_tree(exp=rule, rules=Boolean), [], [], []
-
-    bool_tree = build_tree(exp=rule, rules=Boolean)
-
-    operands = bool_tree.get_operands()
-    conditionals = bool_tree.get_conditions()
-    new_operands = []
-    new_conditionals = []
-
-    for op in operands:
-
-        res = list(regexp.finditer(op))
-        new_op = op
-
-        for match in set(map(lambda x: x.group(), res)):
-            new_op = re.sub(r'\b{}\b'.format(match), '', op)
-
-        new_operands.append(new_op)
-        if op in conditionals:
-            new_conditionals.append(new_op)
-
-        old_reg_name = ''.join(new_op)
-
-        for replace, special_char in replaces.items():
-            old_reg_name = old_reg_name.replace(replace, special_char)
-
-        aliases[new_op] = [old_reg_name]
-
-    return rule, elements, bool_tree, new_operands, aliases, new_conditionals

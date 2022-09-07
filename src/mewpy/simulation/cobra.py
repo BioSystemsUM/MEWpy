@@ -52,7 +52,9 @@ class CobraModelContainer(ModelContainer):
 
     def get_gene(self, g_id):
         g = self.model.genes.get_by_id(g_id)
-        res = {'id': g_id, 'name': g.name}
+        gr = self.get_gene_reactions()
+        r = gr[g_id]
+        res = {'id': g_id, 'name': g.name, 'reactions': r}
         return AttrDict(res)
 
     @property
@@ -168,6 +170,10 @@ class Simulation(CobraModelContainer, Simulator):
         for r_id, bounds in self._constraints.items():
             self._set_model_reaction_bounds(r_id, bounds)
 
+        # if modifications on the envirenment are permited 
+        # during simulations
+        self._allow_env_changes = False
+
     @property
     def environmental_conditions(self):
         return self._environmental_conditions.copy()
@@ -207,13 +213,25 @@ class Simulation(CobraModelContainer, Simulator):
                 'The objective must be a reaction identifier or a dictionary of \
                 reaction identifier with respective coeficients.')
 
+    def add_compartment(self, comp_id, name=None, external=False):
+        """ Adds a compartment
+
+            :param str comp_id: Compartment ID
+            :param str name: Compartment name, default None
+            :param bool external: If the compartment is external, default False.
+        """
+        self.model.compartments = {comp_id: name}
+
     def add_metabolite(self, id, formula=None, name=None, compartment=None):
         from cobra import Metabolite
         meta = Metabolite(id, formula=formula, name=name, compartment=compartment)
         self.model.add_metabolites([meta])
+    
+    def add_gene(self,id,name):
+        pass        
 
-    def add_reaction(self, rxn_id, stoichiometry, lb=ModelConstants.REACTION_LOWER_BOUND,
-                     ub=ModelConstants.REACTION_UPPER_BOUND, replace=True, *kwargs):
+    def add_reaction(self, rxn_id, name = None, stoichiometry=None, lb=ModelConstants.REACTION_LOWER_BOUND,
+                     ub=ModelConstants.REACTION_UPPER_BOUND, gpr=None ,replace=True, *kwargs):
         """Adds a reaction to the model
 
         Args:
@@ -226,9 +244,12 @@ class Simulation(CobraModelContainer, Simulator):
         """
         from cobra import Reaction
         reaction = Reaction(rxn_id)
-        reaction.add_metabolites(stoichiometry)
+        reaction.name = name if name else rxn_id
+        stoich = {self.model.metabolites.get_by_id(k):v for k,v in stoichiometry.items()}
+        reaction.add_metabolites(stoich)
         reaction.lower_bound = lb
         reaction.upper_bound = ub
+        if gpr: reaction.gene_reaction_rule = gpr
         self.model.add_reaction(reaction)
 
     def remove_reaction(self, r_id):
@@ -392,8 +413,11 @@ class Simulation(CobraModelContainer, Simulator):
 
         simul_constraints = {}
         if constraints:
-            simul_constraints.update({k: v for k, v in constraints.items()
-                                      if k not in list(self._environmental_conditions.keys())})
+            if not self._allow_env_changes:
+                simul_constraints.update({k: v for k, v in constraints.items()
+                                        if k not in list(self._environmental_conditions.keys())})
+            else:
+                simul_constraints.update(constraints)
 
         with self.model as model:
             model.objective = objective
@@ -448,7 +472,7 @@ class Simulation(CobraModelContainer, Simulator):
                                       )
             return result
 
-    def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None,
+    def FVA(self, reactions=None, obj_frac=0.9, constraints=None, loopless=False, internal=None, solver=None,
             format='dict'):
         """ Flux Variability Analysis (FVA).
 
@@ -472,6 +496,15 @@ class Simulation(CobraModelContainer, Simulator):
             simul_constraints.update({k: v for k, v in constraints.items()
                                       if k not in list(self._environmental_conditions.keys())})
 
+        if reactions is None:
+            _reactions = self.reactions
+        elif isinstance(reactions,str):
+            _reactions = [reactions]
+        elif isinstance(reactions, list):
+            _reactions = reactions
+        else:
+            raise ValueError('Invalid reactions.')
+
         with self.model as model:
 
             if simul_constraints:
@@ -483,12 +516,12 @@ class Simulation(CobraModelContainer, Simulator):
                     else:
                         reac.bounds = (simul_constraints.get(
                             rxn), simul_constraints.get(rxn))
-
+            
             df = flux_variability_analysis(
-                model, reaction_list=reactions, loopless=loopless, fraction_of_optimum=obj_frac)
+                model, reaction_list=_reactions, loopless=loopless, fraction_of_optimum=obj_frac)
 
         variability = {}
-        for r_id in reactions:
+        for r_id in _reactions:
             variability[r_id] = [
                 float(df.loc[r_id][0]), float(df.loc[r_id][1])]
 
@@ -497,6 +530,7 @@ class Simulation(CobraModelContainer, Simulator):
             e = variability.items()
             f = [[a, b, c] for a, [b, c] in e]
             df = pd.DataFrame(f, columns=['Reaction ID', 'Minimum', 'Maximum'])
+            df = df.set_index(df.columns[0])
             return df
         else:
             return variability
@@ -504,6 +538,8 @@ class Simulation(CobraModelContainer, Simulator):
     def set_objective(self, reaction):
         self.model.objective = reaction
 
+    def create_empty_model(self,model_id:str):
+        return Simulation(Model(model_id))
 
 class GeckoSimulation(Simulation):
     """
@@ -524,6 +560,7 @@ class GeckoSimulation(Simulation):
         self.protein_prefix = protein_prefix if protein_prefix else 'draw_prot_'
         self._essential_proteins = None
         self._protein_rev_reactions = None
+        self._prot_react = None
 
     @property
     def proteins(self):
@@ -542,20 +579,69 @@ class GeckoSimulation(Simulation):
             if res:
                 if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) or \
                         res.status == SStatus.INFEASIBLE:
-                    self._essential_proteins.append(rxn)
+                    self._essential_proteins.append(p)
         return self._essential_proteins
 
+    def map_prot_react(self):
+        if self._prot_react is None:
+            self._prot_react=dict()
+            for p in self.proteins:
+                self._prot_react[p]=[]
+            
+            for r_id in self.reactions:
+                rxn = self.model.reactions.get_by_id(r_id)
+                lsub = rxn.reactants
+                for m in lsub:
+                    if 'prot_' in m.id:
+                        p = m.id[5:-2]
+                        try:
+                            l = self._prot_react[p]
+                            l.append(r_id)
+
+                        except Exception:
+                            pass
+        return self._prot_react            
+    
     def protein_reactions(self, protein):
         """
         Returns the list of reactions associated to a protein.
         """
-        reactions = []
-        for r_id, rxn in self.model.reactions.items():
-            lsub = rxn.reactants
-            for m in lsub:
-                if protein in m:
-                    reactions.append(r_id)
-        return reactions
+        mapper = self.map_prot_react()
+        return mapper[protein]
+
+    def get_protein(self,p_id):
+        res = {'Protein': p_id, 'reactions': self.protein_reactions(p_id)}
+        return AttrDict(res)
+
+    def find_proteins(self, pattern=None, sort=False):
+        """A user friendly method to find proteins in the model.
+
+        :param pattern: The pattern which can be a regular expression, defaults to None in which case all entries are listed.
+        :type pattern: str, optional
+        :param sort: if the search results should be sorted, defaults to False
+        :type sort: bool, optional
+        :return: the search results
+        :rtype: pandas dataframe
+        """
+        values = self.proteins
+        if pattern:
+            import re
+            if isinstance(pattern, list):
+                patt = '|'.join(pattern)
+                re_expr = re.compile(patt)
+            else:
+                re_expr = re.compile(pattern)
+            values = [x for x in values if re_expr.search(x) is not None]
+        if sort:
+            values.sort()
+
+        import pandas as pd
+    
+        data = [self.get_protein(x) for x in values]
+        df = pd.DataFrame(data)
+        df = df.set_index(df.columns[0])
+        return df
+
 
     def reverse_reaction(self, reaction_id):
         """
@@ -609,8 +695,11 @@ class GeckoSimulation(Simulation):
         return self._protein_rev_reactions
 
     def getKcat(self, protein):
-        """ Returns a dictionary of reactions and respective Kcat for a specific enzyme·
+        """ Returns a dictionary of reactions and respective Kcat for a specific protein/enzyme·
         """
         m_r = self.metabolite_reaction_lookup()
-        r_d = m_r[protein]
-        return {k: v for k, v in r_d.items() if v < 0}
+        res = dict()
+        for m, k in m_r.items():
+            if protein in m:
+                res.update({r: -1/x for r, x in k.items() if x < 0})
+        return res

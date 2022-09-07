@@ -36,7 +36,7 @@ class Metabolite(Variable, variable_type='metabolite', register=True, constructo
         :param reactions: the dictionary of reactions to which the metabolite is associated with
         """
 
-        if not charge and charge is not 0:
+        if not charge and charge != 0:
             charge = None
 
         if not compartment:
@@ -114,7 +114,7 @@ class Metabolite(Variable, variable_type='metabolite', register=True, constructo
     @recorder
     def charge(self, value):
 
-        if not value and value is not 0:
+        if not value and value != 0:
             value = None
 
         self._charge = value

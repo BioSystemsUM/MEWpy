@@ -135,6 +135,7 @@ class MediumProblem(AbstractOUProblem):
         self.levels = kwargs.get('levels', np.linspace(0, 10, 101))
         self.candidate_max_size = kwargs.get(
             'candidate_max_size', len(self.target_list))
+        self.simulator._allow_env_changes = True
 
     def _build_target_list(self):
         target = set(self.simulator.get_uptake_reactions())

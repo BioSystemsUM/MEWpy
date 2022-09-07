@@ -3,6 +3,8 @@ import warnings
 from abc import ABCMeta, abstractmethod
 from functools import reduce
 import numpy as np
+
+from mewpy.solvers.ode import ODEStatus
 from ..simulation import get_simulator, SimulationMethod, SStatus
 from ..util.constants import EAConstants, ModelConstants
 
@@ -49,9 +51,9 @@ class EvaluationFunction:
         if self.worst_fitness is not None:
             res = self.worst_fitness
         elif self.maximize:
-            res = EAConstants.MIN_THRESHOLD
+            res = -math.inf
         else:
-            res = EAConstants.MAX_THRESHOLD
+            res = math.inf
         return res
 
     def __call__(self, simulationResult, candidate, **kwargs):
@@ -70,7 +72,7 @@ class KineticEvaluationFunction(EvaluationFunction):
         super(KineticEvaluationFunction, self).__init__(maximize=maximize, worst_fitness=worst_fitness)
 
 
-class TargetFlux(PhenotypeEvaluationFunction):
+class TargetFlux(PhenotypeEvaluationFunction,KineticEvaluationFunction):
     """ Target Flux evaluation function.
     The fitness value is the flux value of the identified reaction.
     If the reaction parameter is None, the fitness value is the optimization objective value.
@@ -94,6 +96,7 @@ class TargetFlux(PhenotypeEvaluationFunction):
         self.min_biomass_value = min_biomass_value
         self.min_biomass_per = min_biomass_per
         self.method = method
+        self.kinetic = False
 
     def get_fitness(self, simul_results, candidate, **kwargs):
         """Evaluates a candidate
@@ -103,9 +106,13 @@ class TargetFlux(PhenotypeEvaluationFunction):
         :returns: A fitness value.
 
         """
-        sim = simul_results[self.method] if self.method in simul_results.keys(
-        ) else None
-        if not sim or sim.status not in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
+        if self.kinetic:
+            sim = simul_results
+        else:
+            sim = simul_results[self.method] if self.method in simul_results.keys(
+            ) else None
+
+        if not sim or sim.status not in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL, ODEStatus.OPTIMAL):
             return self.no_solution
 
         # only executed once if required
@@ -521,6 +528,47 @@ class MinCandSize(CandidateSize):
         warnings.warn("This class will soon be depricated. Use CandidateSize instead.")
         super(MinCandSize, self).__init__(maximize=maximize, worst_fitness=0.0)
 
+
+class CNRFA(PhenotypeEvaluationFunction):
+    """Counts the Number of Reaction Fluxes Above a specified value.
+
+    :param PhenotypeEvaluationFunction: [description]
+    :type PhenotypeEvaluationFunction: [type]
+    """
+
+    def __init__(self, reactions, threshold=0.1, maximize=True, **kwargs):
+        super(CNRFA, self).__init__(maximize=maximize, worst_fitness=0)
+        self.reactions = reactions
+        self.method = kwargs.get('method', SimulationMethod.pFBA)
+        self.theshold = threshold
+
+    def get_fitness(self, simul_results, candidate, **kwargs):
+        """Evaluates a candidate
+
+        :param simul_results: (dic) A dictionary of phenotype SimulationResult objects
+        :param candidate:  Candidate beeing evaluated
+        :returns: A fitness value.
+
+        """
+        sim = simul_results[self.method] if self.method in simul_results.keys(
+        ) else None
+        if not sim or sim.status not in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
+            return self.no_solution
+
+        count = 0
+        for rxn in self.reactions:
+            if sim.fluxes[rxn]> self.theshold:
+                count +=1
+        return count
+
+    def required_simulations(self):
+        return [self.method]
+
+    def short_str(self):
+        return "CNRFA"
+
+    def method_str(self):
+        return "Count N Reaction Fluxes Above"
     
 
 class ModificationType(PhenotypeEvaluationFunction, KineticEvaluationFunction):
@@ -604,7 +652,11 @@ class MolecularWeight(PhenotypeEvaluationFunction):
         fitness = 0
         for rx in self.reactions:
             fitness += self.__mw[rx] * abs(sim.fluxes[rx])
-        return fitness * 0.001
+
+        if fitness > 0:
+            return fitness * 0.001
+        else:
+            return self.no_solution
 
     def required_simulations(self):
         """

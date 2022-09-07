@@ -2,7 +2,7 @@ import os
 
 from mewpy.optimization import EA
 from mewpy.optimization.evaluation import BPCY, WYIELD
-from mewpy.regulation.optorf import OptORFProblem
+from mewpy.problems import OptORFProblem
 
 
 def optorf_imc():
@@ -91,7 +91,7 @@ def optorf_imc():
 
     from mewpy.util.io import population_to_csv
 
-    filename = "OPTORF{}_KO_{}.csv".format(_PRODUCT_ID, "iJR904_srfba")
+    filename = "OPTORF_{}_KO_{}.csv".format(_PRODUCT_ID, "iJR904_srfba")
     population_to_csv(problem, final_pop, filename, simplify=False)
 
 
@@ -136,9 +136,9 @@ def optorf_ec():
     evaluator_1 = BPCY(_BIOMASS_ID, _PRODUCT_ID)
     evaluator_2 = WYIELD(_BIOMASS_ID, _PRODUCT_ID)
 
-    problem = OptORFProblem(model, [evaluator_1, evaluator_2], candidate_max_size=6)
+    problem = OptORFProblem(model, [evaluator_1, evaluator_2], candidate_max_size=10)
 
-    ea = EA(problem, max_generations=10, mp=True)
+    ea = EA(problem, max_generations=100, mp=True)
     final_pop = ea.run()
 
     from mewpy.util.io import population_to_csv
@@ -149,4 +149,4 @@ def optorf_ec():
 
 if __name__ == '__main__':
     optorf_ec()
-    optorf_imc()
+    # optorf_imc()

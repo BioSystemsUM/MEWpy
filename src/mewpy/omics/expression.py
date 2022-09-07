@@ -6,7 +6,7 @@ from ..simulation.simulation import Simulator
 from ..util.parsing import Boolean, GeneEvaluator, build_tree
 
 
-class ExpressionSet(object):
+class ExpressionSet:
 
     def __init__(self, identifiers: list, conditions: list,
                  expression: np.array, p_values: np.array = None):
@@ -77,7 +77,7 @@ class ExpressionSet(object):
             return values
 
     @classmethod
-    def from_data_frame(cls, data_frame):
+    def from_dataframe(cls, data_frame):
         """Read expression data from a pandas.DataFrame.
 
         Args:
@@ -112,7 +112,7 @@ class ExpressionSet(object):
         return cls.from_data_frame(data)
 
     @property
-    def data_frame(self):
+    def dataframe(self):
         """Build a pandas.DataFrame from the ExpressionProfile.
         Columns headers are conditions and
         line indexes identifiers (genes/proteins)
@@ -211,6 +211,18 @@ class ExpressionSet(object):
         values = self.get_condition(condition)
         return np.amin(values), np.amax(values)
 
+    def apply(self, function: None):
+        """Apply a function to all expression values.
+
+        :param function: the unary function to be applyied. Default log base 2.
+        :type function: callable
+        """
+        if function is None:
+            import math
+            def function(x): return math.log(x, 2)
+        f = np.vectorize(function)
+        self._expression = f(self._expression)
+
 
 def gene_to_reaction_expression(model, gene_exp, and_func=min, or_func=max):
     """Process reaction level from GPRs
@@ -244,7 +256,7 @@ def gene_to_reaction_expression(model, gene_exp, and_func=min, or_func=max):
     return rxn_exp
 
 
-class Preprocessing(object):
+class Preprocessing:
     """Formulation and implementation of preprocessing decisions.
         (A) Types of gene mapping methods
         (B) Types of thresholding approaches (global and local).
@@ -265,8 +277,10 @@ class Preprocessing(object):
         """[summary]
 
         Args:
-            model ([type]): [description]
-            data ([type]): [description]
+            model (Simulator): [description]
+            data (ExpressionSet): [description]
+            and_func (function): (optional)
+            or_func (function): (optional)
         """
         self.model = model
         self.data = data
@@ -284,13 +298,13 @@ class Preprocessing(object):
         res = {k: v for k, v in rxn_exp.items() if v is not None}
         return res
 
-    def percentile(self, condition=None, cutoff=0.25):
+    def percentile(self, condition=None, cutoff=25):
         """Processes a percentil threshold and returns the respective
         reaction coefficients, ie, a dictionary of reaction:coeff
 
         Args:
             condition ([type], optional): [description]. Defaults to None.
-            cutoff (float, optional): [description]. Defaults to 0.25.
+            cutoff (int, optional): [description]. Defaults to 25.
 
         Returns:
             dict, float: the coefficients and threshold

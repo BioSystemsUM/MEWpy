@@ -46,13 +46,9 @@ class GeckoKOProblem(AbstractKOProblem):
         """
         print("Building modification target list.")
         proteins = set(self.simulator.proteins)
-        # as draw_prot_XXXXXX
         print("Computing essential proteins.")
-        ess = self.simulator.essential_proteins(self.prot_prefix)
-        # remove 'draw_prot_'
-        n = len(self.prot_prefix)
-        essential = set([p[n:] for p in ess])
-        target = proteins - essential
+        essential = self.simulator.essential_proteins()
+        target = proteins - set(essential)
         if self.non_target:
             target = target - set(self.non_target)
         self._trg_list = list(target)

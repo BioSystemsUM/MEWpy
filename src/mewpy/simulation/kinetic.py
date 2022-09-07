@@ -1,7 +1,7 @@
-import threading
+from multiprocessing import Process, Manager
 from collections import OrderedDict
 import warnings
-from ..simulation.simulation import SimulationResult
+from ..simulation.simulation import SimulationResult, SimulationInterface
 from ..model.kinetic import ODEModel
 from ..solvers import KineticConfigurations, SolverConfigurations, ODEStatus, ode_solver_instance
 
@@ -12,7 +12,7 @@ def kinetic_solve(model, y0, time_steps, parameters=None, factors=None):
     f = model.get_ode(r_dict=rates, params=parameters, factors=factors)
     solver = ode_solver_instance(f, KineticConfigurations.SOLVER_METHOD)
 
-    C, t, X = solver.solve(y0, time_steps)
+    C, t, y = solver.solve(y0, time_steps)
 
     for c in C:
         if c < -1 * SolverConfigurations.RELATIVE_TOL:
@@ -22,112 +22,123 @@ def kinetic_solve(model, y0, time_steps, parameters=None, factors=None):
     rates.update({k: 0 for k, v in rates.items() if
                   v < SolverConfigurations.ABSOLUTE_TOL and v > - SolverConfigurations.ABSOLUTE_TOL})
     conc = OrderedDict(zip(model.metabolites.keys(), C))
-    return ODEStatus.OPTIMAL, rates, conc
+    return ODEStatus.OPTIMAL, rates, conc, t, y
 
 
-class KineticThread(threading.Thread):
+class KineticThread(Process):
     """
     Solves the ODE inside a thread enabling to impose a timeout limit with thread.join(timeout)
     """
 
-    def __init__(self, model, initial_concentrations=None, time_steps=None, parameters=None, final_factors=None):
-        super(KineticThread, self).__init__()
+    def __init__(self, model, initial_concentrations=None, time_steps=None, parameters=None, factors=None):
+        Process.__init__(self, daemon=True)
         self.model = model
         self.parameters = parameters
-        self.final_factors = final_factors
+        self.factors = factors
         self.initial_concentrations = initial_concentrations
         self.time_steps = time_steps
-        self.status = None
-        self.rates = None
-        self.concentrations = None
+
+        self.result = Manager().dict()
+        self.result['status'] = None
+        self.result["rates"] = None
+        self.result["concentrations"] = None
+        self.result["t"] = None
+        self.result["y"] = None
 
     def run(self):
         try:
-            self.status, self.rates, self.concentrations = kinetic_solve(self.model,
-                                                                         self.initial_concentrations,
-                                                                         self.time_steps,
-                                                                         self.parameters,
-                                                                         self.final_factors)
-        except Exception as e:
-            warnings.warn(f"{e}")
+            status, rates, concentrations, t, y = kinetic_solve(self.model,
+                                                                self.initial_concentrations,
+                                                                self.time_steps,
+                                                                self.parameters,
+                                                                self.factors)
+            self.result['status'] = status
+            self.result["rates"] = rates
+            self.result["concentrations"] = concentrations
+            self.result["t"] = t
+            self.result["y"] = y
+        except Exception:
+            warnings.warn('Timeout')
         return
 
 
-class kineticSimulationResult(SimulationResult):
+class KineticSimulationResult(SimulationResult):
 
-    def __init__(self, model, status, factors=None, rates=None, concentrations=None):
-        super(kineticSimulationResult, self).__init__(model, None, fluxes=rates, status=status)
+    def __init__(self, model, status, factors=None, rates=None, concentrations=None, t=None, y=None):
+        super(KineticSimulationResult, self).__init__(model, None, fluxes=rates, status=status)
         self.factors = factors
-        self.concentations = concentrations
+        self.concentrations = concentrations
+        self.t = t
+        self.y = y
 
 
-class KineticSimulation:
+class KineticSimulation(SimulationInterface):
 
-    def __init__(self, model, parameters=None, tSteps=[0, 1e9], timeout=KineticConfigurations.SOLVER_TIMEOUT):
+    def __init__(self, model,  parameters=None, tSteps=[0, 1e9], timeout=KineticConfigurations.SOLVER_TIMEOUT):
         if not isinstance(model, ODEModel):
             raise ValueError('model is not an instance of ODEModel.')
         self.model = model
-        self.parameters = parameters
         self.tSteps = tSteps
         self.timeout = timeout
+        self.parameters = parameters if parameters else dict()
 
-    def __getstate__(self):
-        state = OrderedDict(self.__dict__.copy())
-        return state
-
-    def __setstate__(self, state):
-        self.__dict__.update(state)
-
-    def get_initial_concentrations(self):
+    def get_initial_concentrations(self, initcon=None):
         values = []
+        _initcon = initcon if initcon else dict()
         for i, m in enumerate(self.model.metabolites):
             try:
-                values.append(self.model.concentrations[m])
-            except:
+                values.append(_initcon.get(m, self.model.concentrations[m]))
+            except :
                 values.append(None)
         return values
 
     def get_time_steps(self):
         return self.tSteps
 
-    def simulate(self, factors=None):
+    def simulate(self, parameters=None, initcon=None, factors=None):
         """
-        This method preform the phenotype simulation of the kinetic model, using the solverId method and applying
-        the modifications present in the instance of overrideSimulProblem.
-
+        This method preform the phenotype simulation of the kinetic model.
+        :param dict parameters: Parameters to be modified. Default None
+        :para dict initcon: initial conditions, metabolite concentrations. Default None
         :param dict factors: Modification over the kinetic model.
         :returns: Returns a kineticSimulationResult with the steady-state flux distribution and concentrations.
         """
 
-        final_factors = factors if factors is not None else {}
-        # update initial concentrations when a [enz] is changed: == 0, up or down regulated
-        initConcentrations = self.get_initial_concentrations()
+        _factors = factors if factors is not None else {}
+        initConcentrations = self.get_initial_concentrations(initcon)
 
         status = None
         sstateRates = None
         sstateConc = None
+        t = None
+        y = None
+        params = self.parameters
+        if parameters:
+            params.update(parameters)
 
         if self.timeout:
+            try:
+                th = KineticThread(self.model,
+                                   initial_concentrations=initConcentrations,
+                                   time_steps=self.get_time_steps(),
+                                   parameters=params,
+                                   factors=_factors)
 
-            th = KineticThread(self.model, parameters=self.parameters,
-                               final_factors=final_factors,
-                               initial_concentrations=initConcentrations,
-                               time_steps=self.get_time_steps())
-
-            th.start()
-            th.join(self.timeout)
-            if th.is_alive():
-                th.join()
-            status = th.status
-            sstateRates = th.rates
-            sstateConc = th.concentrations
-
+                th.start()
+                th.join(self.timeout)
+                status = th.result['status']
+                sstateRates = th.result['rates']
+                sstateConc = th.result['concentrations']
+                t = th.result['t']
+                y = th.result['y']
+            except Exception as e:
+                warnings.warn(str(e))
         else:
-            status, sstateRates, sstateConc = kinetic_solve(self.model,
+            status, sstateRates, sstateConc, t, y = kinetic_solve(self.model,
                                                             initConcentrations,
                                                             self.get_time_steps(),
-                                                            self.parameters,
-                                                            final_factors)
+                                                            params,
+                                                            _factors)
 
-        return kineticSimulationResult(self.model, status, factors=final_factors, rates=sstateRates,
-                                       concentrations=sstateConc)
+        return KineticSimulationResult(self.model, status, factors=_factors, rates=sstateRates,
+                                       concentrations=sstateConc, t=t, y=y)

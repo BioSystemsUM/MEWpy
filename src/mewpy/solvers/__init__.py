@@ -1,31 +1,10 @@
 from .ode import (ODEMethod, SolverConfigurations, ODEStatus,
                   KineticConfigurations)
 from .solution import Solution, Status
-
+from .sglobal import __MEWPY_solvers__, __MEWPY_ode_solvers__
 # #################################################
 # Linear Programming Solvers
 # #################################################
-
-solvers = dict()
-
-try:
-    from .gurobi_solver import GurobiSolver
-    solvers['gurobi'] = GurobiSolver
-except ImportError:
-    pass
-
-
-try:
-    from .cplex_solver import CplexSolver
-    solvers['cplex'] = CplexSolver
-except ImportError:
-    pass
-
-try:
-    from .optlang_solver import OptLangSolver
-    solvers['optlang'] = OptLangSolver
-except ImportError:
-    pass
 
 
 default_solver = None
@@ -41,7 +20,7 @@ def get_default_solver():
     solver_order = ['cplex', 'gurobi', 'optlang']
 
     for solver in solver_order:
-        if solver in list(solvers.keys()):
+        if solver in list(__MEWPY_solvers__.keys()):
             default_solver = solver
             break
 
@@ -60,7 +39,7 @@ def set_default_solver(solvername):
 
     global default_solver
 
-    if solvername.lower() in list(solvers.keys()):
+    if solvername.lower() in list(__MEWPY_solvers__.keys()):
         default_solver = solvername.lower()
     else:
         raise RuntimeError(f"Solver {solvername} not available.")
@@ -79,33 +58,31 @@ def solver_instance(model=None):
     solver = get_default_solver()
 
     if solver:
-        return solvers[solver](model)
+        return __MEWPY_solvers__[solver](model)
 
 # #################################################
 # ODE solvers
 # #################################################
 
 
-ode_solvers = dict()
-
 
 try:
     from .scikits_solver import ScikitsODESolver
-    ode_solvers['scikits'] = ScikitsODESolver
+    __MEWPY_ode_solvers__['scikits'] = ScikitsODESolver
 except ImportError:
     pass
 
 
 try:
     from .scipy_solver import ScipySolver
-    ode_solvers['scipy'] = ScipySolver
+    __MEWPY_ode_solvers__['scipy'] = ScipySolver
 except ImportError:
     pass
 
 
 try:
     from .odespy_solver import ODESpySolver
-    ode_solvers['odespy'] = ODESpySolver
+    __MEWPY_ode_solvers__['odespy'] = ODESpySolver
 except ImportError:
     pass
 
@@ -122,7 +99,7 @@ def get_default_ode_solver():
     ode_solver_order = ['scikits', 'scipy', 'odespy']
 
     for solver in ode_solver_order:
-        if solver in list(ode_solvers.keys()):
+        if solver in list(__MEWPY_ode_solvers__.keys()):
             default_ode_solver = solver
             break
 
@@ -141,7 +118,7 @@ def set_default_ode_solver(solvername):
 
     global default_ode_solver
 
-    if solvername.lower() in list(ode_solvers.keys()):
+    if solvername.lower() in list(__MEWPY_ode_solvers__.keys()):
         default_ode_solver = solvername.lower()
     else:
         raise RuntimeError(f"ODE solver {solvername} not available.")
@@ -160,4 +137,4 @@ def ode_solver_instance(func, method: ODEMethod):
 
     solver = get_default_ode_solver()
     if solver:
-        return ode_solvers[solver](func, method)
+        return __MEWPY_ode_solvers__[solver](func, method)

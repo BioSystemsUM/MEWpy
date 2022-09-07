@@ -7,12 +7,9 @@ This folder contains examples on how MEWpy can be used to perform phenotype simu
 
 ## Jupyter Notebooks:
 
-- The firs example, [simulation](simulation.ipynb), illustrates how MEWpy may be used to perform basic analysis tasks  and phenotype simulations with GSMMs.
-
-- The second example, [ROUProblem](ROUproblem.ipynb), illustrates how MEWpy may be used to identify reaction bounds modifications that favor the production of the aromatic amino acid (AAA) L-tyrosine in yeast.
-
-- The third example, [GOUProblem](GOUproblem.ipynb), aims to increase the production of the same AAA in E. coli by modifying genes expression.
-
+- The  [simulation](simulation.ipynb) and [optimization](optimization.ipynb) notebooks, illustrate how MEWpy may be used to perform basic analysis tasks, phenotype simulations and optimizations using GSMMs.
+- The  [ROUProblem](ROUproblem.ipynb) example illustrates how MEWpy may be used to identify reaction bounds modifications that favor the production of the aromatic amino acid (AAA) L-tyrosine in yeast.
+- The [GOUProblem](GOUproblem.ipynb) example aims to increase the production of the same AAA in E. coli by modifying genes expression.
 - The last example, [GeckoKOProblem](GeckoKOProblem.ipynb), also targets the same goal in yeast by exploiting a GECKO model and by deleting enzymatic proteins.
 
 ## Python scripts
@@ -25,6 +22,7 @@ This folder contains examples on how MEWpy can be used to perform phenotype simu
 - [geckoopt.py](scripts/): Examples on how to run CSOs using the original the REFRAME based GECKO model.
 - [eacomparison.py](scripts/): Compares the performance of distincts MOEAs on solving a GECKO OU problem.
 - [smoment.py](scripts/): Examples on how to run CSOs using sMOMENT and AUTOPACMEN GECKO like models for E.coli.
+- [kinetic.py](scripts/): Example on how to use MEWpy for strain design using a kinetic model.
 - [optram.py](scripts/): OptRAM example.
 - [rfba.py](scripts/): rFBA example.
 - [srfba.py](scripts/): srFBA example.

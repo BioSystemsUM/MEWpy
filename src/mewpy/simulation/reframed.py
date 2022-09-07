@@ -58,7 +58,9 @@ class CBModelContainer(ModelContainer):
 
     def get_gene(self, g_id):
         g = self.model.genes[g_id]
-        res = {'id': g_id, 'name': g.name}
+        gr = self.get_gene_reactions()
+        r = gr.get(g_id,[])
+        res = {'id': g_id, 'name': g.name, 'reactions': r}
         return AttrDict(res)
 
     @property
@@ -77,7 +79,7 @@ class CBModelContainer(ModelContainer):
     def get_compartment(self, c_id):
         c = self.model.compartments[c_id]
         res = {'id': c_id, 'name': c.name, 'external': c.external}
-        return res
+        return AttrDict(res)
 
     def get_exchange_reactions(self):
         return self.model.get_exchange_reactions()
@@ -174,6 +176,10 @@ class Simulation(CBModelContainer, Simulator):
         for r_id, bounds in self._constraints.items():
             self._set_model_reaction_bounds(r_id, bounds)
 
+        # if modifications on the envirenment are permited
+        # during simulations
+        self._allow_env_changes = False
+
     def _set_model_reaction_bounds(self, r_id, bounds):
         if isinstance(bounds, tuple):
             lb = bounds[0]
@@ -217,6 +223,17 @@ class Simulation(CBModelContainer, Simulator):
         """
         self.model.update()
 
+    def add_compartment(self, comp_id, name=None, external=False):
+        """ Adds a compartment
+
+            :param str comp_id: Compartment ID
+            :param str name: Compartment name, default None
+            :param bool external: If the compartment is external, default False.
+        """
+        from reframed.core.model import Compartment
+        comp = Compartment(comp_id,name=name,external=external)
+        self.model.add_compartment(comp)
+
     def add_metabolite(self, id, formula=None, name=None, compartment=None):
         """Adds a metabolite
 
@@ -234,8 +251,13 @@ class Simulation(CBModelContainer, Simulator):
         meta.metadata['FORMULA'] = formula
         self.model.add_metabolite(meta)
 
-    def add_reaction(self, rxn_id, stoichiometry, lb=ModelConstants.REACTION_LOWER_BOUND,
-                     ub=ModelConstants.REACTION_UPPER_BOUND, replace=True, **kwargs):
+    def add_gene(self,id,name):
+        from reframed.core.cbmodel import Gene
+        g = Gene(id,name)
+        self.model.add_gene(g)
+
+    def add_reaction(self, rxn_id,  name=None, stoichiometry=None, lb=ModelConstants.REACTION_LOWER_BOUND,
+                     ub=ModelConstants.REACTION_UPPER_BOUND, gpr= None, replace=True, **kwargs):
         """Adds a reaction to the model
 
         Args:
@@ -245,7 +267,7 @@ class Simulation(CBModelContainer, Simulator):
             Defaults to True.
         """
         from reframed.core.cbmodel import CBReaction
-        reaction = CBReaction(rxn_id, stoichiometry=stoichiometry, lb=lb, ub=ub)
+        reaction = CBReaction(rxn_id, stoichiometry=stoichiometry,name=name, lb=lb, ub=ub, gpr_association=gpr)
         self.model.add_reaction(reaction, replace=replace)
 
     def remove_reaction(self, r_id):
@@ -420,9 +442,12 @@ class Simulation(CBModelContainer, Simulator):
 
         simul_constraints = OrderedDict()
         if constraints:
-            simul_constraints.update({k: v for k, v in constraints.items()
-                                      if k not in list(self._environmental_conditions.keys())})
-
+            if not self._allow_env_changes:
+                simul_constraints.update({k: v for k, v in constraints.items()
+                                        if k not in list(self._environmental_conditions.keys())})
+            else:
+                simul_constraints.update(constraints)
+    
         a_solver = solver
         if not self._reset_solver and not a_solver:
             if self.solver is None:
@@ -497,7 +522,7 @@ class Simulation(CBModelContainer, Simulator):
                                       simul_constraints=constraints, maximize=maximize, method=method)
             return result
 
-    def FVA(self, obj_frac=0.9, reactions=None, constraints=None, loopless=False, internal=None, solver=None,
+    def FVA(self, reactions=None, obj_frac=0.9, constraints=None, loopless=False, internal=None, solver=None,
             format='dict'):
         """ Flux Variability Analysis (FVA).
 
@@ -518,9 +543,18 @@ class Simulation(CBModelContainer, Simulator):
         if constraints:
             simul_constraints.update({k: v for k, v in constraints.items()
                                       if k not in list(self._environmental_conditions.keys())})
+        if reactions is None:
+            _reactions = self.reactions
+        elif isinstance(reactions, str):
+            _reactions = [reactions]
+        elif isinstance(reactions, list):
+            _reactions = reactions
+        else:
+            raise ValueError('Invalid reactions.')
+
 
         from reframed.cobra.variability import FVA
-        res = FVA(self.model, obj_frac=obj_frac, reactions=reactions,
+        res = FVA(self.model, obj_frac=obj_frac, reactions=_reactions,
                   constraints=simul_constraints, loopless=loopless, internal=internal, solver=solver)
         if format == 'df':
             import pandas as pd
@@ -529,6 +563,9 @@ class Simulation(CBModelContainer, Simulator):
             df = pd.DataFrame(f, columns=['Reaction ID', 'Minimum', 'Maximum'])
             return df
         return res
+
+    def create_empty_model(self,model_id:str):
+        return Simulation(CBModel(model_id))
 
 
 class GeckoSimulation(Simulation):

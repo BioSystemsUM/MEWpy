@@ -175,7 +175,7 @@ class JMetalKOProblem(Problem[KOSolution], Evaluable):
                 print("Skipping seed:", s, " ", e)
                 self.__next_ini_sol += 1
         if not solution:
-            solution = self.problem.generator(random, None)
+            solution = self.problem.generator(random)
         new_solution = KOSolution(
             self.problem.bounder.lower_bound,
             self.problem.bounder.upper_bound,
@@ -252,7 +252,7 @@ class JMetalOUProblem(Problem[OUSolution], Evaluable):
                 print("Skipping seed:", s, " ", e)
                 self.__next_ini_sol += 1
         if not solution:
-            solution = self.problem.generator(random, None)
+            solution = self.problem.generator(random)
         new_solution = OUSolution(
             self.problem.bounder.lower_bound,
             self.problem.bounder.upper_bound,
