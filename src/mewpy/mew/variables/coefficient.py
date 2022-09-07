@@ -1,9 +1,8 @@
-from typing import Union, List, Tuple, TYPE_CHECKING, Set
+from typing import Union, List, Tuple, TYPE_CHECKING, Set, Iterable
 
-from mewpy.util.history import recorder
-from mewpy.util.constants import ModelConstants
-from mewpy.mew.algebra import Symbolic
 from mewpy.mew.lp import Notification
+from mewpy.util.constants import ModelConstants
+from mewpy.util.history import recorder
 
 if TYPE_CHECKING:
     from .variable import Variable
@@ -15,28 +14,28 @@ if TYPE_CHECKING:
     from .target import Target
 
 
-# TODO: methods stubs and type hinting
-# TODO: Coefficient can be further integrated with the variables that use this
-#  object. For that, coefficient composition pattern may be applied
 class Coefficient:
 
     def __init__(self,
                  variable: 'Variable',
-                 coefficients: Union[Set[Union[int, float]], List[Union[int, float]], Tuple[Union[int, float]]] = None,
-                 active: Union[int, float] = None):
+                 coefficients: Iterable = None,
+                 default: Union[int, float] = None):
 
         """
+        A Coefficient object represents variable coefficients or bounds.
+        Some variables can vary between two states, such as a gene that can be active or inactive,
+        or a reaction that can take fluxes between an upper and lower bound.
+        However, some variables can take continuous values, such as a metabolite concentration
+        or a target gene expression.
 
-        A coefficient handles multiple coefficients and bounds for a given variable of any type.
-        Coefficient object holds many attributes regularly associated with variables,
-        such as bounds, coefficients, active coefficient, among others. These attributes are dynamically generated based
-        on the coefficients provided as input.
+        A coefficient is particularly useful to store all coefficients of a variable in a single object.
 
-        A coefficient is particularly useful for variables that can take multiple states
+        Coefficients vary between 0 and 1 by default. The default coefficient sets the default value of the variable.
+        If the default coefficient is not set, the minimum coefficient is set as default.
 
         :param variable: variable to which the coefficient belongs to
         :param coefficients: all coefficients that the variable can take
-        :param active: the active coefficient
+        :param default: the default coefficient
         """
 
         # variable is a must
@@ -52,37 +51,42 @@ class Coefficient:
         # all coefficients are recorded under data.
         self._data = list(coefficients)
 
-        # the active coefficient defines the current level/bound that a variable can take in a linear problem.
-        # by default it is set to the minimum possible
-        if active is None:
-            active = min(coefficients)
+        # the default coefficient defines the current level/bound that a variable can take in a linear problem.
+        # it is set to the minimum possible by default.
+        if default is None:
+            default = min(coefficients)
 
         else:
 
-            if active not in self._data:
-                raise ValueError(f'active coefficient {active} is not available in coefficients')
+            if default not in self._data:
+                raise ValueError(f'default coefficient {default} is not available in coefficients')
 
-        self._active_coefficient = active
+        self._default_coefficient = default
 
     # -----------------------------------------------------------------------------
     # Built-in
     # -----------------------------------------------------------------------------
-
     def __str__(self):
         return str(self.coefficients)
 
     # -----------------------------------------------------------------------------
     # Polymorphic constructors
     # -----------------------------------------------------------------------------
-
     @classmethod
     def from_bounds(cls,
                     variable: 'Variable',
-                    lb: Union[int, float] = None,
-                    ub: Union[int, float] = None):
+                    lb: float = None,
+                    ub: float = None):
+        """
+        Creates a coefficient object from a lower and upper bound.
+
+        :param variable: variable to which the coefficient belongs to
+        :param lb: lower bound
+        :param ub: upper bound
+        :return: a coefficient object
+        """
 
         # useful for reactions
-
         if lb is None:
             lb = ModelConstants.REACTION_LOWER_BOUND
 
@@ -97,41 +101,67 @@ class Coefficient:
     # -----------------------------------------------------------------------------
 
     @property
-    def coefficients(self) -> List[Union[int, float]]:
-
+    def coefficients(self) -> Union[List[int], List[float]]:
+        """
+        All coefficients that the variable can take
+        :return: list of coefficients
+        """
         return self._data.copy()
 
     @property
-    def active_coefficient(self) -> float:
-        return float(self._active_coefficient)
+    def default_coefficient(self) -> float:
+        """
+        The default coefficient defines the current level/bound that a variable can take in a linear problem.
+        :return: default coefficient as a float
+        """
+        return float(self._default_coefficient)
 
     @property
     def is_active(self) -> bool:
-        return self.active_coefficient > ModelConstants.TOLERANCE
+        """
+        Checks if the default coefficient is higher than the minimum coefficient
+        :return: True if the default coefficient is higher than the minimum coefficient
+        """
+        return self.default_coefficient > self.minimum_coefficient
 
     @property
     def minimum_coefficient(self) -> Union[int, float]:
-
+        """
+        The minimum coefficient is the minimum value that the variable can take.
+        :return: minimum coefficient as a float
+        """
         return min(self._data)
 
     @property
     def maximum_coefficient(self) -> Union[int, float]:
-
+        """
+        The maximum coefficient is the maximum value that the variable can take.
+        :return: maximum coefficient as a float
+        """
         return max(self._data)
 
     @property
     def lower_bound(self) -> Union[int, float]:
-
+        """
+        The lower bound is the minimum coefficient
+        :return: lower bound as a float
+        """
         return self.minimum_coefficient
 
     @property
     def upper_bound(self) -> Union[int, float]:
-
+        """
+        The upper bound is the maximum coefficient
+        :return: upper bound as a float
+        """
         return self.maximum_coefficient
 
     @property
     def bounds(self) -> Tuple[Union[int, float], Union[int, float]]:
-
+        """
+        The bounds are the minimum and maximum coefficients
+        :return: bounds as a tuple of floats
+        """
         return self.minimum_coefficient, self.maximum_coefficient
 
     # -----------------------------------------------------------------------------
@@ -140,44 +170,60 @@ class Coefficient:
 
     @property
     def variable(self) -> Union['Variable', 'Gene', 'Interaction', 'Metabolite', 'Reaction', 'Regulator', 'Target']:
+        """
+        The variable to which the coefficient belongs to
+        :return: variable
+        """
         return self._variable
 
     @property
     def id(self):
+        """
+        The id of the coefficient aka the id of the variable
+        :return: id
+        """
         return self.variable.id
 
     @property
     def model(self):
+        """
+        The model to which the coefficient belongs to
+        :return: model
+        """
         return self.variable.model
 
     @property
     def history(self):
+        """
+        The history of the coefficient aka the history of the variable
+        :return: history
+        """
         return self.variable.history
 
     # -----------------------------------------------------------------------------
     # Operations/Manipulations
     # -----------------------------------------------------------------------------
-
-    @active_coefficient.setter
+    @default_coefficient.setter
     @recorder
-    def active_coefficient(self, value: Union[int, float]):
+    def default_coefficient(self, value: Union[int, float]):
 
         if value not in self._data:
             raise ValueError(f'{value} is not available for this coefficient object')
 
-        self._active_coefficient = value
+        self._default_coefficient = value
 
         self.notify()
 
     def _setter(self,
-                coefficients: Union[Set[Union[int, float]], List[Union[int, float]], Tuple[Union[int, float]]],
+                coefficients: Iterable,
                 active=None):
 
         """
+        It sets new coefficients and updates the default coefficient if necessary.
         Internal use only
 
         :param coefficients: coefficients to be set
-        :param active: the active coefficient
+        :param active: the default coefficient
         :return:
         """
 
@@ -185,31 +231,35 @@ class Coefficient:
 
         if active is None:
 
-            if self.active_coefficient not in self._data:
-                self._active_coefficient = self.minimum_coefficient
+            if self.default_coefficient not in self._data:
+                self._default_coefficient = self.minimum_coefficient
 
         else:
 
             if active in self._data:
-                self._active_coefficient = active
+                self._default_coefficient = active
 
             else:
-                self._active_coefficient = self.minimum_coefficient
+                self._default_coefficient = self.minimum_coefficient
 
         self.notify()
 
     @coefficients.setter
     @recorder
     def coefficients(self, value: Union[Set[Union[int, float]], List[Union[int, float]], Tuple[Union[int, float]]]):
+        """
+        It sets new coefficients and updates the default coefficient if necessary.
+        It can handle the linear problems associated with the variable.
 
+        :param value: coefficients to be set
+        :return:
+        """
         self._setter(value)
 
     def __getitem__(self, item: int) -> Union[int, float]:
-
         return self._data[item]
 
-    def __setitem__(self, key: int, value: Union[int, float], history=True):
-
+    def __setitem__(self, key: int, value: Union[int, float], history: bool = True):
         old_coef = self.__getitem__(key)
 
         self._data[value] = value
@@ -244,22 +294,31 @@ class Coefficient:
 
             return default
 
-    def _add(self, coefficient: Union[int, float], active: bool = False):
-
+    def _add(self, coefficient: Union[int, float], default: bool = False):
         """
+        It adds a new coefficient to the list of coefficients.
         Internal use only
 
-        :param coefficient:
-        :param active:
+        :param coefficient: coefficient to be added
+        :param default: if True, the coefficient will be set as the default coefficient
         :return:
         """
 
         self._data.append(coefficient)
 
-        if active:
-            self._active_coefficient = coefficient
+        if default:
+            self._default_coefficient = coefficient
 
-    def add(self, coefficient: Union[int, float], active: bool = False, history=True):
+    def add(self, coefficient: Union[int, float], default: bool = False, history: bool = True):
+        """
+        It adds a new coefficient to the list of coefficients.
+        It can handle the linear problems associated with the variable.
+
+        :param coefficient: coefficient to be added
+        :param default: if True, the coefficient will be set as the default coefficient
+        :param history: if True, the command will be queued to the history
+        :return:
+        """
 
         if history:
             self.history.queue_command(undo_func=self.remove,
@@ -267,29 +326,36 @@ class Coefficient:
                                                     'history': False},
                                        func=self.add,
                                        kwargs={'coefficient': coefficient,
-                                               'active': active,
+                                               'default': default,
                                                'history': False})
 
-        self._add(coefficient=coefficient, active=active)
+        self._add(coefficient=coefficient, default=default)
 
         self.notify()
 
-    def remove(self, coefficient: Union[int, float], history=True) -> Union[int, float]:
+    def remove(self, coefficient: Union[int, float], history: bool = True) -> Union[int, float]:
+        """
+        It removes a coefficient from the list of coefficients.
+        It can handle the linear problems associated with the variable.
 
+        :param coefficient: coefficient to be removed
+        :param history: if True, the command will be queued to the history
+        :return: the removed coefficient
+        """
         removed = self._data.remove(coefficient)
 
         is_active = False
 
-        if coefficient == self._active_coefficient:
+        if coefficient == self._default_coefficient:
             is_active = True
 
         if is_active:
-            self._active_coefficient = self.minimum_coefficient
+            self._default_coefficient = self.minimum_coefficient
 
         if history:
             self.history.queue_command(undo_func=self.add,
                                        undo_kwargs={'coefficient': removed,
-                                                    'active': is_active,
+                                                    'default': is_active,
                                                     'history': False},
                                        func=self.remove,
                                        kwargs={'coefficient': coefficient,
@@ -301,67 +367,85 @@ class Coefficient:
 
     def extend(self,
                coefficients: Union[Set[Union[int, float]], List[Union[int, float]], Tuple[Union[int, float]]],
-               active_coefficient: float = None,
-               history=True):
+               default: float = None,
+               history: bool = True):
+        """
+        It extends the list of coefficients with a new list of coefficients.
+        It can handle the linear problems associated with the variable.
 
+        :param coefficients: coefficients to be added
+        :param default: if not None, the coefficient will be set as the default coefficient
+        :param history: if True, the command will be queued to the history
+        :return:
+        """
         old_coefficients = self.coefficients
-        old_active = self.active_coefficient
+        old_default = self.default_coefficient
 
         for coefficient in coefficients:
 
-            active = False
+            is_default = False
 
-            if coefficient == active_coefficient:
-                active = True
+            if coefficient == default:
+                is_default = True
 
-            self._add(coefficient, active=active)
+            self._add(coefficient, default=is_default)
 
         if history:
             self.history.queue_command(undo_func=self._setter,
                                        undo_kwargs={'coefficients': old_coefficients,
-                                                    'active': old_active},
+                                                    'default': old_default},
                                        func=self.extend,
                                        kwargs={'coefficients': coefficients,
                                                'history': False})
 
         self.notify()
 
-    def ko(self, minimum_coefficient: Union[int, float] = None, history=True):
+    def ko(self, history: bool = True):
+        """
+        It sets the minimum coefficient as the only possible coefficient that the variable can take.
+        It can handle the linear problems associated with the variable.
 
-        if not minimum_coefficient:
-            minimum_coefficient = self.minimum_coefficient
+        :param history: if True, the command will be queued to the history
+        :return:
+        """
+        coefficient = self.minimum_coefficient
 
         old_coefficients = self.coefficients
-        old_active = self.active_coefficient
+        old_default = self.default_coefficient
 
-        self._data = [minimum_coefficient]
-        self._active_coefficient = minimum_coefficient
+        self._data = [coefficient]
+        self._default_coefficient = coefficient
 
         if history:
             self.history.queue_command(undo_func=self._setter,
                                        undo_kwargs={'coefficients': old_coefficients,
-                                                    'active': old_active},
+                                                    'default': old_default},
                                        func=self.ko,
-                                       kwargs={'minimum_coefficient': minimum_coefficient,
+                                       kwargs={'coefficient': coefficient,
                                                'history': False})
 
         self.notify()
 
-    def activate(self, maximum_coefficient: Union[int, float] = None, history=True):
+    def activate(self, history: bool = True):
+        """
+        It sets the maximum coefficient as the only possible coefficient that the variable can take.
+        It can handle the linear problems associated with the variable.
 
-        if not maximum_coefficient:
-            maximum_coefficient = self.maximum_coefficient
+        :param history: if True, the command will be queued to the history
+        :return:
+        """
+        maximum_coefficient = self.maximum_coefficient
 
         old_coefficients = self.coefficients
-        old_active = self.active_coefficient
+        old_default = self.default_coefficient
 
         self._data = [maximum_coefficient]
-        self._active_coefficient = maximum_coefficient
+        self._default_coefficient = maximum_coefficient
 
         if history:
             self.history.queue_command(undo_func=self._setter,
                                        undo_kwargs={'coefficients': old_coefficients,
-                                                    'active': old_active,
+                                                    'default': old_default,
                                                     'history': False},
                                        func=self.activate,
                                        kwargs={'maximum_coefficient': maximum_coefficient,
@@ -372,8 +456,11 @@ class Coefficient:
     # -----------------------------------------------------------------------------
     # Simulators interface
     # -----------------------------------------------------------------------------
-
     def notify(self):
+        """
+        It notifies the variable coefficient change to the simulators.
+        :return:
+        """
 
         if self.model:
 

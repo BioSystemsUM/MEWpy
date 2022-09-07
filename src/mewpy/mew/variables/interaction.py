@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     from mewpy.model import Model, MetabolicModel, RegulatoryModel
 
 
-# TODO: methods stubs
 class Interaction(Variable, variable_type='interaction', register=True, constructor=True, checker=True):
 
     def __init__(self,
@@ -38,7 +37,7 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
 
         The set of regulators is inferred from the regulatory events.
         Also, the regulatory events are used to generate a regulatory table,
-        namely the possible coefficients of the target for the active (or not) coefficients of the regulators.
+        namely the possible coefficients of the target for the default (or not) coefficients of the regulators.
 
         :param identifier: the interaction identifier
         :param target: the target variable that is regulated by the regulators/expressions logic
@@ -128,8 +127,8 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
         """
         Setting a dictionary comprehending coefficient-expression key-value pairs
         to replace the current regulatory events.
-        This regulatory events' setter performs add and remove regulatory event operations that connect to the linear
-        problems associated to this interaction
+        This setter adds and removes regulatory events.
+        It also handles the linear problems associated to this interaction
         """
 
         for coefficient, expression in self.regulatory_events.items():
@@ -144,8 +143,8 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
     def target(self, value: 'Target'):
         """
         Setting a new Target variable.
-        This target setter performs add and remove target that connect to the linear
-        problems associated to this interaction
+        This setter adds and removes target variable.
+        It also handles the linear problems associated to this interaction
         """
         self.remove_target(remove_from_model=True, history=False)
         self.add_target(value, history=False)
@@ -162,7 +161,16 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
                 for expression in self.yield_expressions()
                 for reg_id, regulator in expression.variables.items()}
 
-    def _compute_regulatory_table(self, active_states=True):
+    def _compute_regulatory_table(self, active_states: bool = True) -> pd.DataFrame:
+        """
+        It computes the regulatory table for the current interaction.
+        The regulatory table is a pandas DataFrame with the possible coefficients
+        of the target variable for the default (or not) coefficients of the regulators.
+
+        :param active_states: if True, it computes the regulatory table for the default states
+        of the regulators. Otherwise, it computes the regulatory table for the all states
+        :return: regulatory table as a pandas DataFrame
+        """
 
         truth_tables = []
 
@@ -186,10 +194,11 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
         It calculates the truth table for this interaction based on the regulatory events.
         The truth table is composed by the combination of values taken by empty, numeric and symbolic variables
         available in the regulatory events of this interaction.
+        That is, the regulatory table is a pandas DataFrame with the possible coefficients
+        of the target variable for the default (or not) coefficients of the regulators.
 
         :return: It returns a pandas DataFrame with the truth table
         """
-
         return self._compute_regulatory_table(active_states=True)
 
     # -----------------------------------------------------------------------------
@@ -219,7 +228,7 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
     @classmethod
     def from_string(cls,
                     identifier: Any,
-                    stringify_rule: str,
+                    rule: str,
                     target: 'Target',
                     coefficient: Union[float, int] = 1.0,
                     model: Union['Model', 'MetabolicModel', 'RegulatoryModel'] = None,
@@ -231,15 +240,17 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
         A regulatory interaction can be assembled from a string object encoding an algebra expression
 
         :param identifier: The interaction identifier
+        :param rule: A string object encoding an algebra expression
         :param target: The target variable that is regulated by the regulators/expressions logic
-        :param stringify_rule: A string object encoding an algebra expression
         :param coefficient: the coefficient that should be taken by the target
         whether this expression is evaluated positively
         :param model: If a model is provided, this interaction will be associated to the model
+        :param kwargs: Additional arguments
+        :return: A new interaction object
         """
         try:
 
-            symbolic = parse_expression(stringify_rule)
+            symbolic = parse_expression(rule)
 
             regulators = variables_from_symbolic(symbolic=symbolic, types=('regulator',), model=model)
 
@@ -247,7 +258,7 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
 
         except SyntaxError as exc:
 
-            expression_warning(f'{stringify_rule} cannot be parsed')
+            expression_warning(f'{rule} cannot be parsed')
 
             raise exc
 
@@ -275,11 +286,13 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
         A regulatory interaction can be assembled from an expression object encoding an algebra expression
 
         :param identifier: The interaction identifier
-        :param target: The target variable that is regulated by the regulators/expressions logic
         :param expression: An expression object encoding an algebra expression
+        :param target: The target variable that is regulated by the regulators/expressions logic
         :param coefficient: the coefficient that should be taken by the target
         whether this expression is evaluated positively
         :param model: If a model is provided, this interaction will be associated to the model
+        :param kwargs: Additional arguments
+        :return: A new interaction object
         """
 
         if not isinstance(expression, Expression):
@@ -304,6 +317,8 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
         It performs an update operation to this interaction.
         The update operation is similar to a dictionary update.
 
+        It also handles the linear problems associated to this interaction
+
         Note that, some update operations are not registered in history.
         It is strongly advisable to use update outside history context manager
 
@@ -327,6 +342,8 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
         It adds a new target to this regulatory interaction.
         If a target is already associated with this interaction, the current target will be removed and replaced by the
         new target.
+
+        It also handles the linear problems associated to this interaction
 
         This operation can be reverted using the model history
         :param target: the target variable that is regulated by the regulators/expressions logic
@@ -363,6 +380,8 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
         """
         It removes the current target of this regulatory interaction.
 
+        It also handles the linear problems associated to this interaction
+
         This operation can be reverted using the model history
         :param remove_from_model: Whether this operation should be reflected in the model too.
         It is usually advisable to remove a target from the interaction and model at the same time
@@ -398,10 +417,17 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
                              expression: Expression,
                              history=True):
         """
-        :param coefficient:
-        :param expression:
-        :param history:
-        :return:
+        It adds a new regulatory event to this interaction.
+        If a regulatory event with the same coefficient is already associated with this interaction, the current
+        regulatory event will be removed and replaced by the new regulatory event.
+
+        It also handles the linear problems associated to this interaction
+
+        This operation can be reverted using the model history
+        :param coefficient: the coefficient that should be taken by the target for this expression
+        :param expression: An expression object encoding an algebra expression
+        :param history: Whether to register this operation in the model history
+        :return: None
         """
 
         if not isinstance(expression, Expression):
@@ -446,7 +472,12 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
                                 remove_orphans=True,
                                 history=True):
         """
+        It removes a regulatory event from this interaction.
+        If the expression is not associated with the coefficient, nothing will happen.
 
+        It also handles the linear problems associated to this interaction
+
+        This operation can be reverted using the model history
         :param coefficient:
         :param expression:
         :param remove_orphans:

@@ -400,7 +400,7 @@ class RegulatorySBML(Engine):
 
                 coefficients = {minimum_level, maximum_level}
 
-            # finding the active coefficient
+            # finding the default coefficient
             if qual_species.isSetInitialLevel():
                 active_coefficient = float(qual_species.getInitialLevel())
 
@@ -410,7 +410,7 @@ class RegulatorySBML(Engine):
 
                 if active_coefficient is None:
                     self.warnings.append(partial(sbml_warning, f'{identifier} initial level was not found. '
-                                                               f'Setting active/initial coefficient to the '
+                                                               f'Setting default/initial coefficient to the '
                                                                f'minimum value'))
 
                     active_coefficient = 0.0
@@ -828,7 +828,7 @@ class RegulatorySBML(Engine):
             qual_species.setConstant(False)
             qual_species.setName(target.name)
 
-            qual_species.setInitialLevel(int(ceil(target.coefficient.active_coefficient)))
+            qual_species.setInitialLevel(int(ceil(target.coefficient.default_coefficient)))
             qual_species.setMaxLevel(int(ceil(target.coefficient.maximum_coefficient)))
 
             processed_regulators.append(target.id)
@@ -862,7 +862,7 @@ class RegulatorySBML(Engine):
                 qual_species.setConstant(False)
                 qual_species.setName(regulator.name)
 
-                qual_species.setInitialLevel(int(ceil(regulator.coefficient.active_coefficient)))
+                qual_species.setInitialLevel(int(ceil(regulator.coefficient.default_coefficient)))
                 qual_species.setMaxLevel(int(ceil(regulator.coefficient.maximum_coefficient)))
 
         # -----------------------------------------------------------------------------

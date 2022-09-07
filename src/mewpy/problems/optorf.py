@@ -143,7 +143,7 @@ class OptORFProblem(AbstractKOProblem):
                         break
 
             if is_empty:
-                target_val = interaction.target.coefficient.active_coefficient
+                target_val = interaction.target.coefficient.default_coefficient
 
             elif active_coefficient is not None:
                 target_val = active_coefficient

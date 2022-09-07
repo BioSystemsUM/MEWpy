@@ -11,7 +11,6 @@ if TYPE_CHECKING:
     from .regulator import Regulator
 
 
-# TODO: methods stubs
 class Target(Variable, variable_type='target', register=True, constructor=True, checker=True):
 
     def __init__(self,
@@ -22,16 +21,20 @@ class Target(Variable, variable_type='target', register=True, constructor=True, 
                  **kwargs):
 
         """
-        A target is commonly associated with one and only one interaction but
-        can usually be available as gene and regulator too.
+        A target gene is associated with a single interaction but can be regulated by multiple regulators.
+        The regulatory interaction establishes a relationship between a target gene and regulators.
+        A target gene holds the coefficients that it can take. While 0 and 1 are added by default,
+        these coefficients can be changed later.
 
-        It holds information regarding the coefficients that can take and the interaction that is modelling these
-        coefficients
+        A target gene can also be represented as a metabolic gene in Metabolic-Regulatory models, as it
+        can be inferred from the metabolic rules defining metabolic interactions.
+        In regulatory models, a target gene can also be represented as a regulator gene, as it can be inferred
+        from the regulatory rules defining regulatory interactions.
 
         :param identifier: identifier, e.g. b0001
         :param coefficients: the set of coefficients that this target can take.
         These coefficients can be expanded later. 0 and 1 are added by default
-        :param active_coefficient: the active coefficient
+        :param active_coefficient: the default coefficient
         :param interactions: the  interaction to which the target is associated with
         """
 
@@ -45,7 +48,7 @@ class Target(Variable, variable_type='target', register=True, constructor=True, 
         if not interaction:
             interaction = None
 
-        self._coefficient = Coefficient(variable=self, coefficients=coefficients, active=active_coefficient)
+        self._coefficient = Coefficient(variable=self, coefficients=coefficients, default=active_coefficient)
         self._interaction = interaction
 
         super().__init__(identifier,
@@ -54,7 +57,6 @@ class Target(Variable, variable_type='target', register=True, constructor=True, 
     # -----------------------------------------------------------------------------
     # Variable type manager
     # -----------------------------------------------------------------------------
-
     @property
     def types(self):
 
@@ -84,7 +86,10 @@ class Target(Variable, variable_type='target', register=True, constructor=True, 
     @serialize('coefficient', 'coefficients', '_coefficient')
     @property
     def coefficient(self) -> Coefficient:
-
+        """
+        The coefficient of the target gene.
+        :return: the coefficient
+        """
         if hasattr(self, '_bounds'):
 
             # if it is a reaction, the bounds coefficient must be returned
@@ -102,6 +107,10 @@ class Target(Variable, variable_type='target', register=True, constructor=True, 
     @serialize('interaction', 'interaction', '_interaction')
     @property
     def interaction(self) -> 'Interaction':
+        """
+        The interaction to which the target is associated with.
+        :return: the interaction
+        """
         return self._interaction
 
     # -----------------------------------------------------------------------------
@@ -111,7 +120,14 @@ class Target(Variable, variable_type='target', register=True, constructor=True, 
     @interaction.setter
     @recorder
     def interaction(self, value: 'Interaction'):
+        """
+        The interaction setter.
+        It sets the interaction and adds the target to the interaction.
 
+        It also handles the linear problems associated with the interaction.
+        :param value: the interaction to which the target is associated with
+        :return:
+        """
         if not value:
             value = None
 
@@ -122,10 +138,12 @@ class Target(Variable, variable_type='target', register=True, constructor=True, 
     # -----------------------------------------------------------------------------
     # Dynamic attributes
     # -----------------------------------------------------------------------------
-
     @property
     def regulators(self) -> Dict[str, 'Regulator']:
-
+        """
+        The regulators that regulate the target gene.
+        :return: the regulators as a dictionary
+        """
         if self.interaction:
             return self.interaction.regulators.copy()
 
@@ -134,31 +152,51 @@ class Target(Variable, variable_type='target', register=True, constructor=True, 
     # -----------------------------------------------------------------------------
     # Generators
     # -----------------------------------------------------------------------------
-
     def yield_regulators(self) -> Generator['Regulator', None, None]:
+        """
+        A generator that yields the regulators that regulate the target gene.
+        :return:
+        """
         return generator(self.regulators)
 
     # -----------------------------------------------------------------------------
     # Operations/Manipulations
     # -----------------------------------------------------------------------------
-
     def ko(self, minimum_coefficient: Union[int, float] = 0.0, history=True):
-
-        return self.coefficient.ko(minimum_coefficient=minimum_coefficient, history=history)
+        """
+        Knock-out the target gene.
+        :param minimum_coefficient: the minimum coefficient
+        :param history: whether to record the operation
+        :return:
+        """
+        return self.coefficient.ko(coefficient=minimum_coefficient, history=history)
 
     def update(self,
                coefficients: Union[Set[Union[int, float]], List[Union[int, float]], Tuple[Union[int, float]]] = None,
                active_coefficient: Union[int, float] = None,
                interaction: 'Interaction' = None,
                **kwargs):
+        """
+        It updates the target gene with relevant information.
 
+        It also handles the linear problems associated to the interaction.
+
+        Note that, some update operations are not registered in history.
+        It is strongly advisable to use update outside history context manager
+
+        :param coefficients: the set of coefficients that this target can take.
+        :param active_coefficient: the default coefficient
+        :param interaction: the  interaction to which the target is associated with
+        :param kwargs: additional arguments
+        :return:
+        """
         super(Target, self).update(**kwargs)
 
         if coefficients is not None:
             self.coefficient.coefficients = coefficients
 
         if active_coefficient is not None:
-            self.coefficient.active_coefficient = active_coefficient
+            self.coefficient.default_coefficient = active_coefficient
 
         if interaction is not None:
             self.interaction = interaction

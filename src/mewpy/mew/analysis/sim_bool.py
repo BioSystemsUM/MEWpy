@@ -52,7 +52,7 @@ class SimBool:
 
         if self.model.is_regulatory():
 
-            reg_state = {reg.id: reg.coefficient.active_coefficient
+            reg_state = {reg.id: reg.coefficient.default_coefficient
                          for reg in self.model.yield_regulators()}
 
             # update with the most recent state

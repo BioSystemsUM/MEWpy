@@ -72,7 +72,7 @@ def single_regulator_deletion(model: Union['Model', 'MetabolicModel', 'Regulator
     if not initial_state:
         initial_state = {}
 
-    reg_state = {reg.id: reg.coefficient.active_coefficient
+    reg_state = {reg.id: reg.coefficient.default_coefficient
                  for reg in model.yield_regulators()}
 
     reg_state.update(initial_state)

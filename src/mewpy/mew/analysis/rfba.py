@@ -68,7 +68,7 @@ class RFBA(MetabolicLinearizer):
     def initial_state(self):
 
         if self.model.is_regulatory():
-            return {regulator.id: regulator.coefficient.active_coefficient
+            return {regulator.id: regulator.coefficient.default_coefficient
                     for regulator in self.model.yield_regulators()}
 
         return {}
@@ -119,7 +119,7 @@ class RFBA(MetabolicLinearizer):
                             break
 
                 if is_empty:
-                    target_val = interaction.target.coefficient.active_coefficient
+                    target_val = interaction.target.coefficient.default_coefficient
 
                 elif active_coefficient is not None:
                     target_val = active_coefficient
@@ -181,7 +181,7 @@ class RFBA(MetabolicLinearizer):
 
         # Reactions and metabolites inactivated by the genes, reactions and metabolites
         # in the initial state or regulatory state simulation
-        metabolic_state = {gene.id: gene.coefficient.active_coefficient
+        metabolic_state = {gene.id: gene.coefficient.default_coefficient
                            for gene in self.model.yield_genes()}
         metabolic_regulatory_state = {**metabolic_state, **regulatory_state}
 
@@ -269,7 +269,7 @@ class RFBA(MetabolicLinearizer):
 
         # Reactions and metabolites inactivated by the genes, reactions and metabolites
         # in the initial state or regulatory state simulation
-        metabolic_state = {gene.id: gene.coefficient.active_coefficient
+        metabolic_state = {gene.id: gene.coefficient.default_coefficient
                            for gene in self.model.yield_genes()}
         metabolic_regulatory_state = {**metabolic_state, **regulatory_state}
 

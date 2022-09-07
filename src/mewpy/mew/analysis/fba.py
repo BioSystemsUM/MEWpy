@@ -66,7 +66,7 @@ class FBA(MetabolicLinearizer):
 
             variable = notification.content.id
             lb, ub = notification.content.bounds
-            active_coefficient = notification.content.active_coefficient
+            active_coefficient = notification.content.default_coefficient
 
             if variable in self._cols:
 
@@ -127,7 +127,7 @@ class FBA(MetabolicLinearizer):
 
         rxns, lbs, ubs = [], [], []
 
-        gene_state = {gene.id: gene.coefficient.active_coefficient for gene in self.model.yield_genes()}
+        gene_state = {gene.id: gene.coefficient.default_coefficient for gene in self.model.yield_genes()}
 
         if self.model.is_metabolic():
 
@@ -160,7 +160,7 @@ class FBA(MetabolicLinearizer):
 
         rxns, rxn_lbs, rxn_ubs = [], [], []
 
-        gene_state = {gene.id: gene.coefficient.active_coefficient for gene in self.model.yield_genes()}
+        gene_state = {gene.id: gene.coefficient.default_coefficient for gene in self.model.yield_genes()}
         gene_state[variable] = lb
 
         # Either the gene is not available in the model or it is not a gene. The later can occur if a multi type model

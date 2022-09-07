@@ -275,7 +275,7 @@ class Expression:
         :param values: A dictionary of values that the variables identifiers, aka symbols names,
         must take during expression evaluation. If the values dictionary is defined,
         only one solution will be calculated for the truth table
-        :param active_states: A boolean value (True by default) whether only the mewpy variables active
+        :param active_states: A boolean value (True by default) whether only the mewpy variables default
         states/coefficients should be used for the truth table calculation. If so, only one solution will be calculated
         for the truth table
         :param coefficient: If a coefficient is provided the coefficient value is returned
@@ -311,7 +311,7 @@ class Expression:
 
         else:
             if active_states:
-                values = {key: variable.coefficient.active_coefficient
+                values = {key: variable.coefficient.default_coefficient
                           for key, variable in self._variables.items()}
 
                 values['result'] = self.evaluate(values=values,

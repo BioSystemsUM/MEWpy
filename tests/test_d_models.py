@@ -135,8 +135,8 @@ class TestMewModel(unittest.TestCase):
 
         rule = 'b0002 and (b0003 or b0004)'
 
-        reaction2 = Reaction.from_gpr_string(rule,
-                                             identifier='R0002',
+        reaction2 = Reaction.from_gpr_string(identifier='R0002',
+                                             rule=rule,
                                              bounds=(0.0, 999999),
                                              stoichiometry={metabolite1: -1, metabolite2: 1})
 
@@ -170,7 +170,7 @@ class TestMewModel(unittest.TestCase):
         rule = '((NOT (o2(e)>0)) AND (NOT (no3(e)>0)) AND (NOT (no2(e)>0)) AND (NOT (4tmao(e)>0)) AND (NOT (dmso(' \
                'e)>0)) AND (for(e)>0)) '
 
-        interaction2 = Interaction.from_string('I_b0002', stringify_rule=rule, target=regulator)
+        interaction2 = Interaction.from_string('I_b0002', rule=rule, target=regulator)
 
         model.add([interaction1, interaction2])
 

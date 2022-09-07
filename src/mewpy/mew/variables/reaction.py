@@ -16,7 +16,6 @@ if TYPE_CHECKING:
     from mewpy.model import Model, MetabolicModel, RegulatoryModel
 
 
-# TODO: methods stubs
 class Reaction(Variable, variable_type='reaction', register=True, constructor=True, checker=True):
 
     def __init__(self,
@@ -27,8 +26,8 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
                  **kwargs):
 
         """
-        A set of reactions is the basis for all metabolic models.
-        This reaction object holds information for bounds, metabolites, stoichiometry and
+        Reactions are the primary variables of metabolic models.
+        A reaction holds information for bounds, metabolites, stoichiometry and
         gene-protein-reaction rules (the associated between reactions, enzymes/proteins and genes)
 
         A reaction usually contains the stoichiometry of the metabolites that take part in the reaction.
@@ -37,8 +36,6 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
 
         Dynamic information can be obtained from the previous attributes, such as metabolites, reactants, products,
         genes, boundary, reversibility, charge and mass balance, equation, compartments, etc.
-
-        A reaction is the main object for metabolic models and thus the object that offers more manipulation solutions.
 
         :param identifier: identifier, e.g. PYK
         :param bounds: tuple having both lower and upper bounds, respectively the minimum and maximum coefficient
@@ -80,7 +77,6 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     # -----------------------------------------------------------------------------
     # Variable type manager
     # -----------------------------------------------------------------------------
-
     @property
     def types(self):
 
@@ -94,42 +90,69 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     # -----------------------------------------------------------------------------
     # Built-in
     # -----------------------------------------------------------------------------
-
     def __str__(self):
         return f'{self.id}: {self.equation}'
 
     # -----------------------------------------------------------------------------
     # Static attributes
     # -----------------------------------------------------------------------------
-
     @serialize('stoichiometry', 'stoichiometry', '_stoichiometry')
     @property
     def stoichiometry(self) -> Dict['Metabolite', Union[int, float]]:
+        """
+        Stoichiometry of the reaction. A dictionary of metabolites and their corresponding stoichiometric value
+        :return: stoichiometry as a dictionary
+        """
         return self._stoichiometry.copy()
 
     @serialize('coefficient', 'bounds', '_bounds')
     @property
     def coefficient(self) -> Coefficient:
+        """
+        Coefficient of the reaction. A coefficient object that holds the minimum and maximum bounds of the reaction
+        :return: coefficient object
+        """
         return self._bounds
 
     @serialize('gpr', 'gpr', '_gpr')
     @property
     def gpr(self) -> Expression:
+        """
+        Gene-protein-reaction rule of the reaction. An expression object that holds the boolean logic of the associated
+        genes. Genes objects must be associated with the expression object.
+        :return: expression object
+        """
         return self._gpr
 
     # -----------------------------------------------------------------------------
     # Static attributes setters
     # -----------------------------------------------------------------------------
-
     @stoichiometry.setter
     @recorder
     def stoichiometry(self, value: Dict['Metabolite', Union[int, float]]):
+        """
+        The setter for the stoichiometry of the reaction.
+        It accepts a dictionary of metabolites and their corresponding stoichiometric value.
+        This setter replaces the current stoichiometry with a new one.
+        It also handles the linear problems associated to this reaction.
+        :param value: stoichiometry as a dictionary
+        :return: stoichiometry as a dictionary
+        """
 
         self.replace_stoichiometry(value, history=False)
 
     @gpr.setter
     @recorder
     def gpr(self, value: Expression):
+        """
+        The setter for the gpr of the reaction.
+        It accepts an expression object that holds the boolean logic of the associated genes.
+        Genes objects must be associated with the expression object.
+        This setter replaces the current gpr with a new one.
+        It also handles the linear problems associated to this reaction.
+        :param value: expression object
+        :return:
+        """
 
         self.remove_gpr(history=False)
         self.add_gpr(value, history=False)
@@ -137,46 +160,80 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     # -----------------------------------------------------------------------------
     # Dynamic attributes
     # -----------------------------------------------------------------------------
-
     @property
     def metabolites(self) -> Dict[str, 'Metabolite']:
+        """
+        Metabolites of the reaction
+        :return: dictionary of metabolites
+        """
         return {met.id: met for met in self._stoichiometry}
 
     @property
     def products(self) -> Dict[str, 'Metabolite']:
+        """
+        Products of the reaction
+        :return: dictionary of products
+        """
         return {met.id: met for met, st in self._stoichiometry.items()
                 if st > 0.0}
 
     @property
     def reactants(self) -> Dict[str, 'Metabolite']:
+        """
+        Reactants of the reaction
+        :return: dictionary of reactants
+        """
         return {met.id: met for met, st in self._stoichiometry.items()
                 if st < 0.0}
 
     @property
     def compartments(self) -> set:
-
+        """
+        Compartments of the reaction
+        :return: set of compartments
+        """
         return {met.compartment
                 for met in self.yield_metabolites()
                 if met.compartment is not None}
 
     @property
     def bounds(self) -> Tuple[Union[int, float], Union[int, float]]:
+        """
+        Bounds of the reaction
+        :return: tuple of bounds
+        """
         return self.coefficient.bounds
 
     @property
     def lower_bound(self) -> Union[int, float]:
+        """
+        Lower bound of the reaction
+        :return: lower bound as a float
+        """
         return self.coefficient.lower_bound
 
     @property
     def upper_bound(self) -> Union[int, float]:
+        """
+        Upper bound of the reaction
+        :return: upper bound as a float
+        """
         return self.coefficient.upper_bound
 
     @property
     def reversibility(self) -> bool:
+        """
+        Reversibility of the reaction
+        :return: reversibility as a boolean
+        """
         return self.lower_bound < - ModelConstants.TOLERANCE and self.upper_bound > ModelConstants.TOLERANCE
 
     @property
     def equation(self) -> str:
+        """
+        Equation of the reaction
+        :return: equation as a string
+        """
 
         equation = ''
 
@@ -202,24 +259,43 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
 
     @property
     def genes(self) -> Dict[str, 'Gene']:
-
+        """
+        Genes of the reaction
+        :return: dictionary of genes
+        """
         return self.gpr.variables.copy()
 
     @property
     def gene_protein_reaction_rule(self) -> str:
+        """
+        Gene-protein-reaction rule of the reaction
+        :return: gene-protein-reaction rule as a string
+        """
         return self.gpr.to_string()
 
     @property
     def boundary(self) -> bool:
+        """
+        Boundary of the reaction
+        :return: boundary as a boolean
+        """
         return not (self.reactants and self.products)
 
     @property
     def charge_balance(self) -> Dict[str, Union[int, float]]:
+        """
+        Charge balance of the reaction
+        :return: charge balance as a dictionary
+        """
         return {'reactants': sum([self._stoichiometry[met] * met.charge for met in self.yield_reactants()]),
                 'products': sum([self._stoichiometry[met] * met.charge for met in self.yield_products()])}
 
     @property
     def mass_balance(self) -> Dict[str, Union[int, float]]:
+        """
+        Mass balance of the reaction
+        :return: mass balance as a dictionary
+        """
 
         balance = {}
 
@@ -235,10 +311,17 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     # -----------------------------------------------------------------------------
     # Dynamic attributes setters
     # -----------------------------------------------------------------------------
-
     @bounds.setter
     @recorder
     def bounds(self, value: Tuple[Union[float, int], Union[float, int]]):
+        """
+        The setter for the bounds of the reaction.
+        It accepts a tuple of lower and upper bounds.
+        This setter replaces the current bounds with a new one.
+        It also handles the linear problems associated to this reaction.
+        :param value: tuple of lower and upper bounds
+        :return:
+        """
 
         if not value:
             value = (ModelConstants.REACTION_LOWER_BOUND, ModelConstants.REACTION_UPPER_BOUND)
@@ -248,6 +331,14 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     @lower_bound.setter
     @recorder
     def lower_bound(self, value: Union[float, int]):
+        """
+        The setter for the lower bound of the reaction.
+        It accepts a float or an integer.
+        This setter replaces the current lower bound with a new one.
+        It also handles the linear problems associated to this reaction.
+        :param value: lower bound
+        :return:
+        """
 
         if not value:
             value = ModelConstants.REACTION_LOWER_BOUND
@@ -259,6 +350,14 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     @upper_bound.setter
     @recorder
     def upper_bound(self, value: Union[float, int]):
+        """
+        The setter for the upper bound of the reaction.
+        It accepts a float or an integer.
+        This setter replaces the current upper bound with a new one.
+        It also handles the linear problems associated to this reaction.
+        :param value: upper bound
+        :return:
+        """
 
         if not value:
             value = ModelConstants.REACTION_UPPER_BOUND
@@ -270,36 +369,59 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     # -----------------------------------------------------------------------------
     # Generators
     # -----------------------------------------------------------------------------
-
     def yield_genes(self) -> Generator['Gene', None, None]:
-
+        """
+        Generator of genes of the reaction
+        :return: generator of genes
+        """
         return generator(self.genes)
 
     def yield_metabolites(self) -> Generator['Metabolite', None, None]:
-
+        """
+        Generator of metabolites of the reaction
+        :return: generator of metabolites
+        """
         return generator(self.metabolites)
 
     def yield_reactants(self) -> Generator['Metabolite', None, None]:
-
+        """
+        Generator of reactants of the reaction
+        :return: generator of reactants
+        """
         return generator(self.reactants)
 
     def yield_products(self) -> Generator['Metabolite', None, None]:
-
+        """
+        Generator of products of the reaction
+        :return: generator of products
+        """
         return generator(self.products)
 
     # -----------------------------------------------------------------------------
     # Polymorphic constructors
     # -----------------------------------------------------------------------------
-
     @classmethod
     def from_stoichiometry(cls,
-                           stoichiometry: Dict['Metabolite', Union[float, int]],
                            identifier: Any,
+                           stoichiometry: Dict['Metabolite', Union[float, int]],
                            bounds: Tuple[Union[float, int], Union[float, int]] = None,
                            gpr: Expression = None,
                            model: Union['Model', 'MetabolicModel', 'RegulatoryModel'] = None,
                            **kwargs) -> 'Reaction':
+        """
+        A reaction is defined by its stoichiometry, establishing the relationship between the metabolites and the
+        reaction. The stoichiometry is a dictionary of metabolites and their stoichiometric coefficients.
 
+        A reaction can be created from a stoichiometry dictionary.
+
+        :param identifier: identifier of the reaction
+        :param stoichiometry: stoichiometry dictionary
+        :param bounds: tuple of lower and upper bounds
+        :param gpr: gene-protein-reaction rule
+        :param model: model of the reaction
+        :param kwargs: additional arguments
+        :return: a new reaction object
+        """
         instance = cls(identifier=identifier,
                        bounds=bounds,
                        stoichiometry=stoichiometry,
@@ -311,16 +433,29 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
 
     @classmethod
     def from_gpr_string(cls,
-                        gpr_string: str,
                         identifier: Any,
+                        rule: str,
                         bounds: Tuple[Union[float, int], Union[float, int]] = None,
                         stoichiometry: Dict['Metabolite', Union[float, int]] = None,
                         model: Union['Model', 'MetabolicModel', 'RegulatoryModel'] = None,
                         **kwargs) -> 'Reaction':
+        """
+        A reaction is regularly associated with genes. The GPR rule is a boolean expression that relates the genes
+        to the reaction. The GPR rule is a string that can be parsed into a boolean expression.
 
+        A reaction can be created from a gene-protein-reaction rule string.
+
+        :param identifier: identifier of the reaction
+        :param rule: gene-protein-reaction rule string
+        :param bounds: tuple of lower and upper bounds
+        :param stoichiometry: stoichiometry dictionary
+        :param model: model of the reaction
+        :param kwargs: additional arguments
+        :return: a new reaction object
+        """
         try:
 
-            symbolic = parse_expression(gpr_string)
+            symbolic = parse_expression(rule)
 
             genes = variables_from_symbolic(symbolic=symbolic, types=('gene', ), model=model)
 
@@ -328,7 +463,7 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
 
         except SyntaxError as exc:
 
-            expression_warning(f'{gpr_string} cannot be parsed')
+            expression_warning(f'{rule} cannot be parsed')
 
             raise exc
 
@@ -343,13 +478,26 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
 
     @classmethod
     def from_gpr_expression(cls,
-                            gpr: Expression,
                             identifier: Any,
+                            gpr: Expression,
                             bounds: Tuple[Union[float, int], Union[float, int]] = None,
                             stoichiometry: Dict['Metabolite', Union[float, int]] = None,
                             model: Union['Model', 'MetabolicModel', 'RegulatoryModel'] = None,
                             **kwargs) -> 'Reaction':
+        """
+        A reaction is regularly associated with genes. The GPR rule is a boolean expression that relates the genes
+        to the reaction. The GPR rule is a string that can be parsed into a boolean expression.
 
+        A reaction can be created from a gene-protein-reaction expression.
+
+        :param identifier: identifier of the reaction
+        :param gpr: gene-protein-reaction expression
+        :param bounds: tuple of lower and upper bounds
+        :param stoichiometry: stoichiometry dictionary
+        :param model: model of the reaction
+        :param kwargs: additional arguments
+        :return: a new reaction object
+        """
         if not isinstance(gpr, Expression):
             raise TypeError(f'expression must be an {Expression} object')
 
@@ -365,16 +513,36 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     # -----------------------------------------------------------------------------
     # Operations/Manipulations
     # -----------------------------------------------------------------------------
-
     def ko(self, minimum_coefficient: Union[int, float] = 0.0, history=True):
+        """
+        Knockout the reaction by setting the lower and upper bounds to zero.
+        It also handles the linear problems associated to this reaction.
 
-        return self.coefficient.ko(minimum_coefficient=minimum_coefficient, history=history)
+        :param minimum_coefficient: minimum coefficient of the reaction
+        :param history: record the operation
+        :return:
+        """
+        return self.coefficient.ko(coefficient=minimum_coefficient, history=history)
 
     def update(self,
                bounds: Tuple[Union[float, int], Union[float, int]] = None,
                stoichiometry: Dict['Metabolite', Union[float, int]] = None,
                gpr: Expression = None,
                **kwargs):
+        """
+        Update the reaction with new bounds, stoichiometry and gene-protein-reaction rule.
+
+        It also handles the linear problems associated to this reaction.
+
+        Note that, some update operations are not registered in history.
+        It is strongly advisable to use update outside history context manager
+
+        :param bounds: tuple of lower and upper bounds
+        :param stoichiometry: stoichiometry dictionary
+        :param gpr: gene-protein-reaction rule
+        :param kwargs: additional arguments
+        :return:
+        """
 
         super(Reaction, self).update(**kwargs)
 
@@ -391,6 +559,16 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
                               stoichiometry: Dict['Metabolite', Union[float, int]],
                               remove_orphans_from_model: bool = True,
                               history=True):
+        """
+        Replace the stoichiometry of the reaction with a new one.
+
+        It also handles the linear problems associated to this reaction.
+
+        :param stoichiometry: stoichiometry dictionary
+        :param remove_orphans_from_model: whether to remove orphan metabolites from the model
+        :param history: whether to record the operation
+        :return:
+        """
 
         if history:
             self.history.queue_command(undo_func=self.replace_stoichiometry,
@@ -407,7 +585,7 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
 
             return
 
-        self.remove_metabolites(self.yield_metabolites(),
+        self.remove_metabolites(list(self.yield_metabolites()),
                                 remove_orphans_from_model=remove_orphans_from_model,
                                 history=False)
 
@@ -417,7 +595,15 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     def add_metabolites(self,
                         stoichiometry: Dict['Metabolite', Union[float, int]],
                         history=True):
+        """
+        Add metabolites to the reaction.
+        The stoichiometry dictionary is updated with the new metabolites and coefficients.
 
+        It also handles the linear problems associated to this reaction.
+        :param stoichiometry: stoichiometry dictionary
+        :param history: whether to record the operation
+        :return:
+        """
         to_add = []
 
         for metabolite, coefficient in stoichiometry.items():
@@ -453,7 +639,16 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
                            metabolites: List['Metabolite'],
                            remove_orphans_from_model: bool = True,
                            history=True):
+        """
+        Remove metabolites from the reaction.
+        Metabolites and their coefficients are removed from the stoichiometry dictionary.
 
+        It also handles the linear problems associated to this reaction.
+        :param metabolites: list of metabolites
+        :param remove_orphans_from_model: whether to remove orphan metabolites from the model
+        :param history: whether to record the operation
+        :return:
+        """
         if isinstance(metabolites, dict):
             metabolites = list(metabolites.values())
 
@@ -497,7 +692,14 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
                                                'history': history})
 
     def add_gpr(self, gpr: Expression, history=True):
+        """
+        Add a gene-protein-reaction rule to the reaction.
 
+        It also handles the linear problems associated to this reaction.
+        :param gpr: gene-protein-reaction expression object
+        :param history: whether to record the operation
+        :return:
+        """
         if not isinstance(gpr, Expression):
             raise TypeError(f'expression must be an {Expression} object. '
                             f'To set None, provide an empty Expression()')
@@ -533,7 +735,14 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
             self.model.notify(notification)
 
     def remove_gpr(self, remove_orphans: bool = True, history=True):
+        """
+        Remove the gene-protein-reaction rule from the reaction.
 
+        It also handles the linear problems associated to this reaction.
+        :param remove_orphans: whether to remove orphan genes from the model
+        :param history: whether to record the operation
+        :return:
+        """
         if history:
             self.history.queue_command(undo_func=self.add_gpr,
                                        undo_kwargs={'gpr': self.gpr,
