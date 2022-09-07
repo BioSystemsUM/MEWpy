@@ -20,8 +20,12 @@ MEWPY_UB = ModelConstants.REACTION_UPPER_BOUND
 MEWPY_TOL = ModelConstants.TOLERANCE
 
 
-# TODO: missing documentation and typing
 class MetabolicLinearizer(LinearProblem):
+    """
+    A Metabolic Linearizer is a linear problem that can be used to linearize a metabolic model.
+    It assembles a linear problem from reactions (variables) and their stoichiometry (constraints).
+    It is responsible for creating the S matrix and the bounds vectors.
+    """
 
     @abstractmethod
     def build(self):
@@ -158,7 +162,12 @@ class MetabolicLinearizer(LinearProblem):
 
 
 class LogicLinearizer(LinearProblem):
-
+    """
+    A Logic Linearizer is a linear problem that can be used to linearize a boolean algebra-based model.
+    It assembles a linear problem from variables (variables) and their logic (constraints).
+    For a given boolean operator the Linearizer creates the corresponding linear constraints
+    that include the associated variables.
+    """
     @abstractmethod
     def build(self):
 
@@ -738,7 +747,10 @@ class LogicLinearizer(LinearProblem):
 
 
 class GPRLinearizer(LogicLinearizer):
-
+    """
+    Linearizer for GPRs based on the logic linearizer.
+    Consult the logic linearizer documentation for more information.
+    """
     @abstractmethod
     def build(self):
 
@@ -838,7 +850,10 @@ class GPRLinearizer(LogicLinearizer):
 
 
 class InteractionLinearizer(LogicLinearizer):
-
+    """
+    Linearizer for interactions based on the logic linearizer.
+    Consult the logic linearizer documentation for more information.
+    """
     @abstractmethod
     def build(self):
 

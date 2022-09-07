@@ -1,91 +1,22 @@
-from abc import ABCMeta, abstractmethod
-from typing import Union, TYPE_CHECKING, Tuple, Dict, Set, List, Iterable
+from abc import abstractmethod
+from typing import Union, TYPE_CHECKING, Tuple, Dict, Iterable
 
 from numpy import zeros
 
+from mewpy.mew.solution import ModelSolution
 from mewpy.solvers import get_default_solver
 from mewpy.solvers.sglobal import __MEWPY_solvers__ as solvers
 from mewpy.solvers.solution import Solution
 from mewpy.solvers.solver import Solver, VarType
-from mewpy.mew.solution import ModelSolution
-
 from .linear_containers import ConstraintContainer, VariableContainer
-from .notification import Notification
 from .linear_utils import LinkedList, Node, integer_coefficients
+from .notification import Notification
 
 if TYPE_CHECKING:
     from mewpy.model import Model, MetabolicModel, RegulatoryModel
 
 
-class LinearProblemInterface(metaclass=ABCMeta):
-    """
-
-    Interface for a Linear Problem. The following attributes and methods must be implemented to set up alternative
-    problems
-
-    """
-
-    @property
-    @abstractmethod
-    def model(self):
-        return
-
-    @property
-    @abstractmethod
-    def constraints(self):
-        return
-
-    @property
-    @abstractmethod
-    def variables(self):
-        return
-
-    @property
-    @abstractmethod
-    def objective(self):
-        return
-
-    @property
-    @abstractmethod
-    def minimize(self):
-        return
-
-    @property
-    @abstractmethod
-    def solver(self):
-        return
-
-    @abstractmethod
-    def notification(self, notification: Notification):
-        pass
-
-    @abstractmethod
-    def optimize(self):
-        pass
-
-    @abstractmethod
-    def build(self):
-        pass
-
-    @abstractmethod
-    def clean(self):
-        pass
-
-    @abstractmethod
-    def add(self, items):
-        pass
-
-    @abstractmethod
-    def remove(self, items):
-        pass
-
-    @abstractmethod
-    def update(self):
-        pass
-
-
-# TODO: missing documentation and typing
-class LinearProblem(LinearProblemInterface):
+class LinearProblem:
 
     def __init__(self,
                  model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
@@ -93,7 +24,6 @@ class LinearProblem(LinearProblemInterface):
                  build: bool = True,
                  attach: bool = False):
         """
-
         Linear programing base implementation. A mewpy model is converted into a linear problem using reframed/mewpy
         solver interface. Both CPLEX and Gurobi solvers are currently supported. Other solvers may also be supported
         using an additional OptLang solver interface. However, CPLEX and Gurobi are recommended for certain problems.
@@ -104,10 +34,18 @@ class LinearProblem(LinearProblemInterface):
         Each implementation of a linear problem (e.g. FBA, RFBA, SRFBA, etc) is responsible
         for processing the notifications in the correct way.
 
-        A linear problem has one and only one solver object that connect with each other via synchronous updates.
-        That is, alterations to a linear problem are directly reflected in the solver.
+        A linear problem has one and only one solver object.
+        Alterations to a linear problem are promptly forced in the solver by building a new solver instance.
         Alternatively, one can impose temporary constraints during problem optimization
         (see the method for further details)
+
+        Notes for developers:
+        A linear problem object is an observer (observer pattern) of a mew model.
+        A notification with model changes is sent to all observers (linear problems).
+        The linear problem implementation specific for each method processes the notification accordingly.
+        Finally, when the linear problem is updated,
+        all variables and constraints added to the linear problem are implemented and kept in sync with the solver
+        This can avoid consecutive building of the solver, namely a lazy loading
 
         :param model: a mewpy Model, MetabolicModel, RegulatoryModel or all. The model is used to retrieve
         variables and constraints to the linear problem
@@ -115,8 +53,8 @@ class LinearProblem(LinearProblemInterface):
         :param solver: A Solver, CplexSolver, GurobiSolver or OptLangSolver instance.
         Alternatively, the name of the solver is also accepted.
         The solver interface will be used to load and solve a linear problem in a given solver.
-        If none, a new solver is instantiated. An instantiated solver may be used but it will be overwritten
-        if build is true.
+        If none, a new solver is instantiated. An instantiated solver may be used,
+        but it will be overwritten if build is true.
 
         :param build: Whether to build the linear problem upon instantiation. Default: False
         :param attach: Whether to attach the linear problem to the model upon instantiation. Default: False
@@ -162,7 +100,8 @@ class LinearProblem(LinearProblemInterface):
         # a dictionary may be too much to store pending changes, but we only want to hold the latest alterations.
         # Thus, old pending constraints or variables are replaced by the recent ones.
         # This allows the last optimization to be a direct reflection of the model latest state
-        # Note that, adding and removing items from a set can be an overhead
+        # Note that, adding and removing items from a set can be a problem, as sets are not ordered but alterations
+        # should follow a FIFO order.
         self._variables_queue: Dict[str, VariableContainer] = {}
         self._constraints_queue: Dict[str, ConstraintContainer] = {}
 
@@ -176,7 +115,12 @@ class LinearProblem(LinearProblemInterface):
     # Correct solver helper
     # -----------------------------------------------------------------------------
     @staticmethod
-    def mewpy_solver(solver):
+    def mewpy_solver(solver: Union[str, Solver]) -> Solver:
+        """
+        Returns a mewpy solver instance. If a solver is provided, it is checked if it is a mewpy solver.
+        :param solver: Solver, CplexSolver, GurobiSolver or OptLangSolver instance or name of the solver
+        :return: a mewpy solver instance
+        """
 
         if solver is None:
             solver_name = get_default_solver()
@@ -206,7 +150,6 @@ class LinearProblem(LinearProblemInterface):
     # -----------------------------------------------------------------------------
     # Built-in
     # -----------------------------------------------------------------------------
-
     def __str__(self):
         return f"{self.method} for {self.model.id}"
 
@@ -216,12 +159,10 @@ class LinearProblem(LinearProblemInterface):
     # -----------------------------------------------------------------------------
     # Static attributes
     # -----------------------------------------------------------------------------
-
     @property
     def method(self) -> str:
         """
         Name of the method implementation to build and solve the linear problem
-
         :return: the name of the class
         """
 
@@ -230,9 +171,7 @@ class LinearProblem(LinearProblemInterface):
     @property
     def model(self) -> Union['Model', 'MetabolicModel', 'RegulatoryModel']:
         """
-
-        mewpy model of this simulator
-
+        Mew model of this simulator
         :return: a mewpy Model, MetabolicModel, RegulatoryModel or all
         """
 
@@ -242,34 +181,28 @@ class LinearProblem(LinearProblemInterface):
     def solver(self) -> Solver:
         """
         mewpy solver instance for this linear problem. It contains an interface for the concrete solver
-
         :return: A Solver, CplexSolver, GurobiSolver or OptLangSolver instance
         """
-
         return self._solver
 
     @property
     def constraints(self) -> Dict[str, ConstraintContainer]:
         """
-        A copy of the constraints container.
+        A copy of the constraints' container.
         This container holds all ConstraintContainer objects for this linear problem.
         Note that, a constraint container can hold several constraints/rows
-
         :return: copy of the constraints dictionary
         """
-
         return self._constraints.copy()
 
     @property
     def variables(self) -> Dict[str, VariableContainer]:
         """
-        A copy of the variables container.
+        A copy of the variables' container.
         This container holds all VariableContainer objects for this linear problem.
         Note that, a variable container can hold several variables/columns
-
         :return: copy of the variables dictionary
         """
-
         return self._variables.copy()
 
     @property
@@ -279,48 +212,66 @@ class LinearProblem(LinearProblemInterface):
         Values are the corresponding coefficients
         Note that, linear and quadratic objectives can be encoded in the objective dictionary.
         See the set_objective method for further detail
-
         :return: copy of the objective dictionary
         """
-
         return {**self._linear_objective, **self._quadratic_objective}
 
     @property
     def minimize(self) -> bool:
         """
-
         The linear problem objective sense/direction
-
         :return: a boolean whether the linear problem objective sense/direction is minimization
         """
-
         return bool(self._minimize)
 
     # -----------------------------------------------------------------------------
     # Dynamic attributes
     # -----------------------------------------------------------------------------
-
     @property
     def matrix(self):
+        """
+        The linear problem matrix
+        :return: a matrix as numpy array
+        """
         return self._get_matrix()
 
     @property
     def bounds(self):
+        """
+        The linear problem bounds
+        :return: bounds as list of tuples
+        """
         return self.get_bounds(as_list=True)
 
     @property
     def b_bounds(self):
+        """
+        The linear problem b bounds (constraints bounds)
+        :return: b bounds as list of tuples
+        """
         return self.get_bounds(b_bounds=True, as_list=True)
 
     @property
     def shape(self):
+        """
+        The linear problem shape
+        :return: a tuple with the number of rows and columns
+        """
         return int(len(self._rows)), int(len(self._cols))
 
     # -----------------------------------------------------------------------------
     # Observer pattern - Model notification system
     # -----------------------------------------------------------------------------
-
     def notification(self, notification: Notification):
+        """
+        Notification method for the observer pattern. It is called when the model is changed.
+        The notification is processed and the linear problem is updated accordingly.
+
+        A notification contains a message and a payload. The message carries the content of the changes and the payload
+        carries the information about the changes.
+        :param notification: a notification object
+        :return: None
+        """
 
         if notification.content_type == 'coefficients' and notification.action == 'set':
 
@@ -338,7 +289,6 @@ class LinearProblem(LinearProblemInterface):
     # -----------------------------------------------------------------------------
     # Objective
     # -----------------------------------------------------------------------------
-
     def _set_objective(self,
                        linear: Union[str, Dict[str, float]] = None,
                        quadratic: Dict[Tuple[str, str], float] = None,
@@ -409,7 +359,6 @@ class LinearProblem(LinearProblemInterface):
         :param quadratic: a dictionary of quadratic coefficients.
         Note that keys must be a tuple of reaction pairs to be summed up to a quadratic objective function
         :param minimize: whether to solve a minimization problem. This parameter is True by default
-
         :return:
         """
 
@@ -430,10 +379,9 @@ class LinearProblem(LinearProblemInterface):
 
         :return:
         """
-
         # Either the variable is not available in the model or it is not a variable of this lp.
         # The later can occur if a multi type model has for instance an fba simulator attached
-        # but a the bounds of a regulator are changed
+        # but the bounds of a regulator are changed
         if variable not in self._cols and variable not in self._sub_cols:
             return
 
@@ -465,7 +413,6 @@ class LinearProblem(LinearProblemInterface):
     # -----------------------------------------------------------------------------
     # Optimization
     # -----------------------------------------------------------------------------
-
     def optimize(self, *args, **kwargs) -> Union[ModelSolution, Solution]:
         """
 
@@ -493,9 +440,7 @@ class LinearProblem(LinearProblemInterface):
 
     def build_solver(self):
         """
-
-        It creates an new solver instance and adds the current state (variables, constraints) of the linear problem
-
+        It creates a new solver instance and adds the current state (variables, constraints) of the linear problem
         :return:
         """
 
@@ -536,7 +481,10 @@ class LinearProblem(LinearProblemInterface):
                            minimize=self._minimize)
 
     def clean(self):
-
+        """
+        It cleans the linear problem object by removing all variables and constraints
+        :return:
+        """
         self._solver = self.mewpy_solver(self._initial_solver)
         self._cols = LinkedList()
         self._rows = LinkedList()
@@ -552,8 +500,14 @@ class LinearProblem(LinearProblemInterface):
     # -----------------------------------------------------------------------------
     # Operations/Manipulations - add, remove
     # -----------------------------------------------------------------------------
-
-    def stack_container(self, container, addition):
+    def stack_container(self, container: Union[VariableContainer, ConstraintContainer],
+                        addition: bool):
+        """
+        It stacks a container (variable or constraint) to the linear problem object
+        :param container: a variable or constraint container
+        :param addition: a boolean indicating whether the container is added or removed
+        :return:
+        """
 
         if isinstance(container, ConstraintContainer):
             self._constraints_queue[container.name] = (container, addition)
@@ -562,21 +516,35 @@ class LinearProblem(LinearProblemInterface):
             self._variables_queue[container.name] = (container, addition)
 
     def add(self, containers: Union[Iterable[VariableContainer], Iterable[ConstraintContainer]]):
-
+        """
+        It adds a variable or constraint container to the linear problem object
+        :param containers: a variable or constraint container
+        :return:
+        """
         for container in containers:
             self.stack_container(container, addition=True)
 
     def remove(self, containers: Union[Iterable[VariableContainer], Iterable[ConstraintContainer]]):
-
+        """
+        It removes a variable or constraint container to the linear problem object
+        :param containers: a variable or constraint container
+        :return:
+        """
         for container in containers:
             self.stack_container(container, addition=False)
 
     # -----------------------------------------------------------------------------
     # Operations/Manipulations - Update
     # -----------------------------------------------------------------------------
-
     def update(self):
-
+        """
+        It updates the linear problem object by adding/removing variables and constraints
+        Note that linear problems are not updated after each addition/removal of a variable or constraint to the model.
+        This is done to avoid unnecessary updates of the solver. Instead, the update is done when the method
+        `update` is called. This method is called by the simulation methods (e.g. fba, pfba, etc) before the
+        optimization process or in the `build` method.
+        :return:
+        """
         build_problem = False
 
         if self._constraints_queue or self._variables_queue:
@@ -630,9 +598,16 @@ class LinearProblem(LinearProblemInterface):
     # -----------------------------------------------------------------------------
     # Operations/Manipulations - LinearProblem getters
     # -----------------------------------------------------------------------------
-
     def index(self, variable=None, constraint=None, as_list=False, as_int=False, default=None):
-
+        """
+        It returns the index of a variable or constraint
+        :param variable: a variable container
+        :param constraint: a constraint container
+        :param as_list: a boolean indicating whether the index should be returned as a list
+        :param as_int: a boolean indicating whether the index should be returned as an integer
+        :param default: a default value to be returned if the variable or constraint is not found
+        :return: the index of the variable or constraint
+        """
         if variable is None and constraint is None:
             raise ValueError('Please provide a variable or constraint')
 
@@ -755,9 +730,16 @@ class LinearProblem(LinearProblemInterface):
                    constraint=None,
                    b_bounds=False,
                    as_list=False,
-                   as_tuples=False
-                   ):
-
+                   as_tuples=False):
+        """
+        It returns the bounds of a variable or constraint
+        :param variable: a variable container
+        :param constraint: a constraint container
+        :param b_bounds: a boolean indicating whether the bounds of the constraints should be returned
+        :param as_list: a boolean indicating whether the bounds should be returned as a list
+        :param as_tuples: a boolean indicating whether the bounds should be returned as a tuple
+        :return: the bounds of the variable or constraint
+        """
         if variable is not None:
 
             return self._get_variable_bounds(variable=variable)
