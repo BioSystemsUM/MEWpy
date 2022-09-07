@@ -1,8 +1,21 @@
+from typing import TYPE_CHECKING
+
 from mewpy.solvers.solution import Status
 from mewpy.util.constants import ModelConstants
 
+if TYPE_CHECKING:
+    from mewpy.solvers import Solution
 
-def decode_solver_solution(solution, minimize=True, status=False):
+
+def decode_solver_solution(solution: 'Solution', minimize: bool = True) -> float:
+    """
+    It decodes the solution of the solver and returns the objective value.
+
+    :param solution: the solution of the solver
+    :param minimize: whether the problem is a minimization problem
+    :param status: whether the status of the solution should be returned
+    :return: the objective value
+    """
 
     sol_status = solution.status.value
 
@@ -21,8 +34,5 @@ def decode_solver_solution(solution, minimize=True, status=False):
 
     else:
         sol_f_obj = None
-
-    if status:
-        return sol_f_obj, sol_status
 
     return sol_f_obj

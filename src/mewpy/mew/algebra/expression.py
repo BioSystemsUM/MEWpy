@@ -259,7 +259,7 @@ class Expression:
 
     def truth_table(self,
                     values: Dict[str, Union[float, int]] = None,
-                    active_states: bool = True,
+                    default_coefficients: bool = True,
                     coefficient: Union[float, int] = None,
                     operators: Dict[Symbolic, Callable] = None,
                     default: Union[float, int] = 0.0,
@@ -270,12 +270,12 @@ class Expression:
         taken by empty, numeric and symbolic variables available in the algebra expression.
 
         The symbolic expression is evaluated according to the Symbolic operators and values attributed to the symbols
-        in the values dictionary.
+        in the values' dictionary.
 
         :param values: A dictionary of values that the variables identifiers, aka symbols names,
         must take during expression evaluation. If the values dictionary is defined,
         only one solution will be calculated for the truth table
-        :param active_states: A boolean value (True by default) whether only the mewpy variables default
+        :param default_coefficients: A boolean value (True by default) whether only the mewpy variables default
         states/coefficients should be used for the truth table calculation. If so, only one solution will be calculated
         for the truth table
         :param coefficient: If a coefficient is provided the coefficient value is returned
@@ -284,7 +284,7 @@ class Expression:
         (e.g. 3 > 2 yield True) can be replaced by custom callable objects such as functions. For instance,
         3 > 2 can be evaluated with max, and thus max(3, 2) yields 3 now.
         :param default: The default value of a given symbol/variable.
-        The default value is used if a given variable/symbol is missing in the values dictionary.
+        The default value is used if a given variable/symbol is missing in the values' dictionary.
         :param decoder: A custom dictionary for decoding the solution (key) into a given output (value).
         Binary output is currently set to 0 or 1 by default
 
@@ -292,7 +292,7 @@ class Expression:
         in the algebra expression as a pandas DataFrame. DataFrame columns should be composed by all
         empty, numeric and symbolic variables in addition to the result columns
         (the result of evaluating the algebra expression). DataFrame rows should stand for the cartesian product of all
-        combination of values values taken by empty, numeric and symbolic variables,
+        combination of values taken by empty, numeric and symbolic variables,
         unless specific parameters are taken.
 
         """
@@ -310,7 +310,7 @@ class Expression:
             truth_table.append(values)
 
         else:
-            if active_states:
+            if default_coefficients:
                 values = {key: variable.coefficient.default_coefficient
                           for key, variable in self._variables.items()}
 

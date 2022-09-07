@@ -1,9 +1,7 @@
 from collections import defaultdict
 from typing import Union, TYPE_CHECKING, List, Dict, Tuple
 
-# TODO: this module depends on pandas dataframes. Should it be set as package requirement?
-# noinspection PyPackageRequirements
-from pandas import DataFrame
+import pandas as pd
 
 from mewpy.util.constants import ModelConstants
 from mewpy.mew.variables import Reaction, Gene
@@ -14,8 +12,16 @@ if TYPE_CHECKING:
     from mewpy.model import Model, MetabolicModel, RegulatoryModel
 
 
-# TODO: missing documentation and typing
-def _fba(method, objective, minimize, constraints, status=False):
+def _fba(method, objective, minimize, constraints):
+    """
+    Performs a FBA simulation.
+    Internal use only.
+    :param method: a FBA-like method
+    :param objective: objective
+    :param minimize: minimize
+    :param constraints: constraints
+    :return: decoded solution
+    """
 
     # noinspection PyProtectedMember
     old_linear_obj = method._linear_objective.copy()
@@ -31,7 +37,7 @@ def _fba(method, objective, minimize, constraints, status=False):
 
     method.set_objective(linear=old_linear_obj, quadratic=old_quadratic_obj, minimize=old_sense)
 
-    return decode_solver_solution(solution=sol, minimize=minimize, status=status)
+    return decode_solver_solution(solution=sol, minimize=minimize)
 
 
 def slim_fba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
@@ -39,14 +45,30 @@ def slim_fba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
              objective: Union[str, Dict[str, Union[float, int]]] = None,
              minimize: bool = False,
              constraints: Dict[str, Tuple[Union[float, int], Union[float, int]]] = None) -> Union[int, float, None]:
+    """
+    A Flux Balance Analysis simulation of a metabolic model.
+    A slim analysis produces a single and simple solution for the model. This method returns the objective value for the
+    FBA simulation.
 
+    Fundamentals of the FBA procedure:
+        - A linear problem based on the mass balance constraints
+        - Reactions are linear variables constrained by their bounds
+        - The objective function is a linear combination of the reactions
+        - The objective function is solved using a linear solver
+
+    :param model: a metabolic model to be simulated
+    :param fba: a FBA instance to be used for the simulation (optional).
+    If not provided, a new instance will be created.
+    :param objective: the objective function to be used for the simulation.
+    If not provided, the default objective is used.
+    :param minimize: whether to minimize the objective function (default: False)
+    :param constraints: additional constraints to be used for the simulation.
+    :return: the objective value for the simulation
+    """
     if not fba:
         fba = FBA(model, build=True, attach=False)
 
-    return _fba(method=fba,
-                objective=objective,
-                minimize=minimize,
-                constraints=constraints)
+    return _fba(method=fba, objective=objective, minimize=minimize, constraints=constraints)
 
 
 def slim_pfba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
@@ -54,13 +76,32 @@ def slim_pfba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
               objective: Union[str, Dict[str, Union[float, int]]] = None,
               minimize: bool = False,
               constraints: Dict[str, Tuple[Union[float, int], Union[float, int]]] = None) -> Union[int, float, None]:
+    """
+    A parsimonious Flux Balance Analysis simulation of a metabolic model.
+    A slim analysis produces a single and simple solution for the model. This method returns the objective value for the
+    pFBA simulation.
+
+    Fundamentals of the pFBA procedure:
+        - A linear problem based on the mass balance constraints
+        - Reactions are linear variables constrained by their bounds
+        - The objective function is a linear combination of the reactions plus the sum of the absolute values of the
+        reactions
+        - The objective function is solved using a linear solver by minimizing the sum of the absolute values of the
+        reactions
+
+    :param model: a metabolic model to be simulated
+    :param pfba: a pFBA instance to be used for the simulation (optional).
+    If not provided, a new instance will be created.
+    :param objective: the objective function to be used for the simulation.
+    If not provided, the default objective is used.
+    :param minimize: Whether to minimize the objective function (default: False)
+    :param constraints: additional constraints to be used for the simulation.
+    :return: the objective value for the simulation
+    """
     if not pfba:
         pfba = pFBA(model, build=True, attach=False)
 
-    return _fba(method=pfba,
-                objective=objective,
-                minimize=minimize,
-                constraints=constraints)
+    return _fba(method=pfba, objective=objective, minimize=minimize, constraints=constraints)
 
 
 def slim_milp_fba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
@@ -70,13 +111,32 @@ def slim_milp_fba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
                   constraints: Dict[str, Tuple[Union[float, int], Union[float, int]]] = None) -> Union[int,
                                                                                                        float,
                                                                                                        None]:
-    if not milp_fba:
-        milp_fba = pFBA(model, build=True, attach=False)
+    """
+    A Mixed-Integer Flux Balance Analysis (milpFBA) simulation of a metabolic model.
+    A slim analysis produces a single and simple solution for the model. This method returns the objective value for the
+    milpFBA simulation.
 
-    return _fba(method=milp_fba,
-                objective=objective,
-                minimize=minimize,
-                constraints=constraints)
+    Fundamentals of the FBA procedure:
+        - A linear problem based on the mass balance constraints plus the GPR constraints (linearized)
+        using mixed-integer variables
+        - Reactions are linear variables constrained by their bounds and the gene variables are constrained by their
+        coefficients
+        - The objective function is a linear combination of the reactions
+        - The objective function is solved using a mixed-integer solver
+
+    :param model: a metabolic model to be simulated
+    :param milp_fba: a milpFBA instance to be used for the simulation (optional).
+    If not provided, a new instance will be created.
+    :param objective: the objective function to be used for the simulation.
+    If not provided, the default objective is used.
+    :param minimize: whether to minimize the objective function (default: False)
+    :param constraints: additional constraints to be used for the simulation.
+    :return: the objective value for the simulation
+    """
+    if not milp_fba:
+        milp_fba = milpFBA(model, build=True, attach=False)
+
+    return _fba(method=milp_fba, objective=objective, minimize=minimize, constraints=constraints)
 
 
 def _inputs_processing(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'] = None,
@@ -86,6 +146,17 @@ def _inputs_processing(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'
                        genes: List[Union[str, Gene]] = None,
                        objective: Union[str, Dict[str, Union[float, int]]] = None,
                        constraints: Dict[str, Tuple[Union[float, int], Union[float, int]]] = None):
+    """
+    A method to process the inputs for the FVA and FVA slim methods.
+    :param model: a metabolic model to be simulated
+    :param method: the method to be used for the simulation
+    :param fraction: the fraction of the optimal solution to be used as the objective function
+    :param reactions: a list of reactions to be used for the simulation
+    :param genes: a list of genes to be used for the simulation
+    :param objective: the objective function to be used for the simulation
+    :param constraints: additional constraints to be used for the simulation
+    :return: the processed inputs
+    """
     methods_map = {'fba': FBA,
                    'milp': milpFBA,
                    'pfba': pFBA}
@@ -142,10 +213,7 @@ def _inputs_processing(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'
     if fraction is not None:
 
         if fraction > 0.0:
-            sol = _fba(method=fba,
-                       objective=objective,
-                       minimize=False,
-                       constraints=constraints)
+            sol = _fba(method=fba, objective=objective, minimize=False, constraints=constraints)
 
             constraints[obj_rxn] = (fraction * sol, ModelConstants.REACTION_UPPER_BOUND)
 
@@ -164,22 +232,25 @@ def fva(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
         reactions: List[Union[str, Reaction]] = None,
         objective: Union[str, Dict[str, Union[float, int]]] = None,
         constraints: Dict[str, Tuple[Union[float, int], Union[float, int]]] = None,
-        to_dict: bool = False) -> Union[Dict[str, List[Union[float, int]]], DataFrame]:
+        to_dict: bool = False) -> Union[Dict[str, List[Union[float, int]]], pd.DataFrame]:
     """
+    Flux Variability Analysis (FVA) of a metabolic model.
+    FVA is a method to determine the minimum and maximum fluxes for each reaction in a metabolic model.
+    It can be used to identify the reactions that are limiting the growth of a cell.
+    In MEWpy, FVA is performed by solving a linear problem for each reaction in the model.
+    The method can be either FBA, MILP-FBA or pFBA.
 
-    Flux Variability Analysis (FVA)
-
-    :param model:
-    :param method:
-    :param fraction:
-    :param reactions:
-    :param objective:
-    :param constraints:
-    :param to_dict:
-
-    :return:
+    :param model: a metabolic model to be simulated
+    :param method: the method to be used for the simulation (default: 'fba').
+    Available methods: 'fba', 'milp', 'pfba'
+    :param fraction: the fraction of the optimal solution to be used as the upper bound for the objective function
+    (default: 1.0)
+    :param reactions: the reactions to be simulated (default: all reactions in the model)
+    :param objective: the objective function to be used for the simulation (default: the default objective)
+    :param constraints: additional constraints to be used for the simulation (default: None)
+    :param to_dict: whether to return the results as a dictionary (default: False)
+    :return: a dictionary or a pandas DataFrame with the minimum and maximum fluxes for each reaction
     """
-
     fba, reactions, _, constraints = _inputs_processing(model=model,
                                                         method=method,
                                                         fraction=fraction,
@@ -199,27 +270,28 @@ def fva(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
         else:
             rxn_objective = rxn.id
 
-        sol = _fba(method=fba,
-                   objective=rxn_objective,
-                   minimize=True,
-                   constraints=constraints)
+        sol = _fba(method=fba, objective=rxn_objective, minimize=True, constraints=constraints)
 
         res[rxn_objective].append(sol)
 
-        sol = _fba(method=fba,
-                   objective=rxn_objective,
-                   minimize=False,
-                   constraints=constraints)
+        sol = _fba(method=fba, objective=rxn_objective, minimize=False, constraints=constraints)
 
         res[rxn_objective].append(sol)
 
     if to_dict:
         return res
 
-    return DataFrame.from_dict(data=res, orient='index', columns=['minimum', 'maximum'])
+    return pd.DataFrame.from_dict(data=res, orient='index', columns=['minimum', 'maximum'])
 
 
 def _milp_gene_deletion(genes, constraints, fba):
+    """
+    A method to perform gene deletions using MILP-FBA.
+    :param genes:
+    :param constraints:
+    :param fba:
+    :return:
+    """
     res = {}
 
     for gene in genes:
@@ -233,11 +305,7 @@ def _milp_gene_deletion(genes, constraints, fba):
 
         constraints[gene_id] = (0.0, 0.0)
 
-        sol, status = _fba(method=fba,
-                           objective=None,
-                           minimize=False,
-                           constraints=constraints,
-                           status=True)
+        sol, status = _fba(method=fba, objective=None, minimize=False, constraints=constraints)
 
         res[gene_id] = [sol, status]
 
@@ -247,6 +315,14 @@ def _milp_gene_deletion(genes, constraints, fba):
 
 
 def _fba_gene_deletion(model, genes, constraints, fba):
+    """
+    A method to perform gene deletions using FBA.
+    :param model:
+    :param genes:
+    :param constraints:
+    :param fba:
+    :return:
+    """
     values = {gene.id: 1.0 for gene in model.yield_genes()}
 
     res = {}
@@ -273,11 +349,7 @@ def _fba_gene_deletion(model, genes, constraints, fba):
                     constraints[rxn.id] = (0.0, 0.0)
                     to_remove.append(rxn.id)
 
-        sol, status = _fba(method=fba,
-                           objective=None,
-                           minimize=False,
-                           constraints=constraints,
-                           status=True)
+        sol, status = _fba(method=fba, objective=None, minimize=False, constraints=constraints)
 
         res[gene_obj.id] = [sol, status]
 
@@ -292,19 +364,23 @@ def single_gene_deletion(model: Union['Model', 'MetabolicModel', 'RegulatoryMode
                          genes: List[Union[str, Gene]] = None,
                          objective: Union[str, Dict[str, Union[float, int]]] = None,
                          constraints: Dict[str, Tuple[Union[float, int], Union[float, int]]] = None,
-                         to_dict: bool = False) -> Union[Dict[str, List[Union[float, int]]], DataFrame]:
+                         to_dict: bool = False) -> Union[Dict[str, List[Union[float, int]]], pd.DataFrame]:
     """
+    Single gene deletion analysis of a metabolic model.
+    Single gene deletion analysis is a method to determine the effect of deleting each gene in a metabolic model.
+    It can be used to identify the genes that are essential for the growth of a cell.
+    In MEWpy, single gene deletion analysis is performed by solving a linear problem for each gene in the model.
+    A gene knockout can switch off reactions associated with the gene, only if the gene is essential for the reaction.
+    The methods FBA, MILP-FBA or pFBA can determine if the gene is essential for the growth of a cell.
 
-    Single gene deletions
-
-    :param model:
-    :param method:
-    :param genes:
-    :param objective:
-    :param constraints:
-    :param to_dict:
-
-    :return:
+    :param model: a metabolic model to be simulated
+    :param method: the method to be used for the simulation (default: 'fba').
+    Available methods: 'fba', 'milp', 'pfba'
+    :param genes: the genes to be simulated (default: all genes in the model)
+    :param objective: the objective function to be used for the simulation (default: the default objective)
+    :param constraints: additional constraints to be used for the simulation (default: None)
+    :param to_dict: whether to return the results as a dictionary (default: False)
+    :return: a dictionary or a pandas DataFrame with the fluxes for each gene
     """
     fba, _, genes, constraints = _inputs_processing(model=model,
                                                     method=method,
@@ -325,7 +401,7 @@ def single_gene_deletion(model: Union['Model', 'MetabolicModel', 'RegulatoryMode
     if to_dict:
         return res
 
-    return DataFrame.from_dict(data=res, orient='index', columns=['growth', 'status'])
+    return pd.DataFrame.from_dict(data=res, orient='index', columns=['growth', 'status'])
 
 
 def single_reaction_deletion(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
@@ -333,19 +409,22 @@ def single_reaction_deletion(model: Union['Model', 'MetabolicModel', 'Regulatory
                              reactions: List[Union[str, Reaction]] = None,
                              objective: Union[str, Dict[str, Union[float, int]]] = None,
                              constraints: Dict[str, Tuple[Union[float, int], Union[float, int]]] = None,
-                             to_dict: bool = False) -> Union[Dict[str, List[Union[float, int]]], DataFrame]:
+                             to_dict: bool = False) -> Union[Dict[str, List[Union[float, int]]], pd.DataFrame]:
     """
+    Single reaction deletion analysis of a metabolic model.
+    Single reaction deletion analysis is a method to determine the effect of deleting each reaction in a metabolic model.
+    It can be used to identify the reactions that are essential for the growth of a cell.
+    In MEWpy, single reaction deletion analysis is performed by solving a linear problem for each reaction in the model.
+    The methods FBA, MILP-FBA or pFBA can determine if the reaction is essential for the growth of a cell.
 
-    Single reaction deletions
-
-    :param model:
-    :param method:
-    :param reactions:
-    :param objective:
-    :param constraints:
-    :param to_dict:
-
-    :return:
+    :param model: a metabolic model to be simulated
+    :param method: the method to be used for the simulation (default: 'fba').
+    Available methods: 'fba', 'milp', 'pfba'
+    :param reactions: the reactions to be simulated (default: all reactions in the model)
+    :param objective: the objective function to be used for the simulation (default: the default objective)
+    :param constraints: additional constraints to be used for the simulation (default: None)
+    :param to_dict: whether to return the results as a dictionary (default: False)
+    :return: a dictionary or a pandas DataFrame with the fluxes for each reaction
     """
     fba, reactions, _, constraints = _inputs_processing(model=model,
                                                         method=method,
@@ -368,11 +447,7 @@ def single_reaction_deletion(model: Union['Model', 'MetabolicModel', 'Regulatory
 
         constraints[rxn_id] = (0.0, 0.0)
 
-        sol, status = _fba(method=fba,
-                           objective=None,
-                           minimize=False,
-                           constraints=constraints,
-                           status=True)
+        sol, status = _fba(method=fba, objective=None, minimize=False, constraints=constraints)
 
         res[rxn_id] = [sol, status]
 
@@ -381,4 +456,4 @@ def single_reaction_deletion(model: Union['Model', 'MetabolicModel', 'Regulatory
     if to_dict:
         return res
 
-    return DataFrame.from_dict(data=res, orient='index', columns=['growth', 'status'])
+    return pd.DataFrame.from_dict(data=res, orient='index', columns=['growth', 'status'])

@@ -1,8 +1,7 @@
 from collections import defaultdict
 from typing import Union, TYPE_CHECKING, List, Dict, Tuple
 
-# TODO: this module depends on pandas dataframes. Should it be set as package requirement?
-from pandas import DataFrame
+import pandas as pd
 
 from mewpy.util.constants import ModelConstants
 from mewpy.mew.variables import Regulator, Reaction, Gene
@@ -14,8 +13,7 @@ if TYPE_CHECKING:
     from mewpy.model import Model, MetabolicModel, RegulatoryModel
 
 
-# TODO: missing documentation and typing
-def _rfba(method, objective, minimize, initial_state, constraints, status=False):
+def _rfba(method, objective, minimize, initial_state, constraints):
 
     # noinspection PyProtectedMember
     old_linear_obj = method._linear_objective.copy()
@@ -32,7 +30,7 @@ def _rfba(method, objective, minimize, initial_state, constraints, status=False)
 
     method.set_objective(linear=old_linear_obj, quadratic=old_quadratic_obj, minimize=old_sense)
 
-    return decode_solver_solution(solution=sol, minimize=minimize, status=status)
+    return decode_solver_solution(solution=sol, minimize=minimize)
 
 
 def slim_rfba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
@@ -41,14 +39,30 @@ def slim_rfba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
               minimize: bool = False,
               initial_state: Dict[str, Union[float, int]] = None,
               constraints: Dict[str, Tuple[Union[float, int], Union[float, int]]] = None) -> Union[int, float, None]:
+    """
+    A Regulatory Flux Balance Analysis (RFBA) simulation of an integrated Metabolic-Regulatory model.
+    A slim analysis produces a single and simple solution for the model. This method returns the objective value of
+    the RFBA simulation.
 
+    Fundamentals of the RFBA procedure:
+        - A linear problem based on reactions
+        - A synchronous simulation of the metabolic (GPRs) and regulatory networks is performed to obtain the
+        metabolic state (boundaries of the reactions) and the regulatory state (boundaries of the regulators)
+        - The metabolic state is used to constrain the reactions of the model
+        - A FBA simulation is performed to obtain the fluxes of the model
+
+    :param model: an integrated metabolic-regulatory model to be simulated
+    :param rfba: a RFBA object to be used for the simulation. If None, a new RFBA object is created and used
+    :param objective: the objective of the simulation. If None, the default objective is used
+    :param minimize: if True, the objective is minimized. If False, the objective is maximized
+    :param initial_state: the initial state of the model. If None, the default initial state is used
+    :param constraints: the constraints of the model. If None, the default constraints are used
+    :return: the objective value of the simulation
+    """
     if not rfba:
         rfba = RFBA(model, build=True, attach=False)
 
-    return _rfba(method=rfba,
-                 objective=objective,
-                 minimize=minimize,
-                 initial_state=initial_state,
+    return _rfba(method=rfba, objective=objective, minimize=minimize, initial_state=initial_state,
                  constraints=constraints)
 
 
@@ -58,13 +72,28 @@ def slim_srfba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
                minimize: bool = False,
                initial_state: Dict[str, Union[float, int]] = None,
                constraints: Dict[str, Tuple[Union[float, int], Union[float, int]]] = None) -> Union[int, float, None]:
+    """
+    A Synchronous Regulatory Flux Balance Analysis (SRFBA) simulation of an integrated Metabolic-Regulatory model.
+    A slim analysis produces a single and simple solution for the model. This method returns the objective value of
+    the SRFBA simulation.
+
+    Fundamentals of the SRFBA procedure:
+        - A linear problem based on reactions, GPRs, and regulatory interactions using mixed-integer constraints
+        - Reactions, genes, and regulators are constrained by the bounds or coefficients
+        - SRFBA is solved using a mixed-integer solver
+
+    :param model: an integrated metabolic-regulatory model to be simulated
+    :param srfba: a SRFBA object to be used for the simulation. If None, a new SRFBA object is created and used
+    :param objective: the objective of the simulation. If None, the default objective is used
+    :param minimize: if True, the objective is minimized. If False, the objective is maximized
+    :param initial_state: the initial state of the model. If None, the default initial state is used
+    :param constraints: the constraints of the model. If None, the default constraints are used
+    :return: the objective value of the simulation
+    """
     if not srfba:
         srfba = SRFBA(model, build=True, attach=False)
 
-    return _rfba(method=srfba,
-                 objective=objective,
-                 minimize=minimize,
-                 initial_state=initial_state,
+    return _rfba(method=srfba, objective=objective, minimize=minimize, initial_state=initial_state,
                  constraints=constraints)
 
 
@@ -77,6 +106,19 @@ def _inputs_processing(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'
                        objective: Union[str, Dict[str, Union[float, int]]] = None,
                        initial_state: Dict[str, Union[float, int]] = None,
                        constraints: Dict[str, Tuple[Union[float, int], Union[float, int]]] = None):
+    """
+    Processes the inputs of the analysis methods.
+    :param model: an integrated metabolic-regulatory model to be simulated
+    :param method: the method to be used for the simulation
+    :param fraction: the fraction of the objective to be used for the simulation
+    :param reactions: the reactions to be simulated
+    :param genes: the genes to be simulated
+    :param regulators: the regulators to be simulated
+    :param objective: the objective of the simulation. If None, the default objective is used
+    :param initial_state: the initial state of the model. If None, the default initial state is used
+    :param constraints: the constraints of the model. If None, the default constraints are used
+    :return: processed inputs
+    """
     methods_map = {'rfba': RFBA,
                    'srfba': SRFBA}
 
@@ -135,12 +177,8 @@ def _inputs_processing(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'
     if fraction is not None:
 
         if fraction > 0.0:
-            sol = _rfba(method=rfba,
-                        objective=objective,
-                        minimize=False,
-                        initial_state=initial_state,
-                        constraints=constraints,
-                        status=False)
+            sol = _rfba(method=rfba, objective=objective, minimize=False, initial_state=initial_state,
+                        constraints=constraints)
 
             if sol is None:
                 sol = 0.0
@@ -166,23 +204,31 @@ def ifva(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
          objective: Union[str, Dict[str, Union[float, int]]] = None,
          initial_state: Dict[str, Union[float, int]] = None,
          constraints: Dict[str, Tuple[Union[float, int], Union[float, int]]] = None,
-         to_dict: bool = False) -> Union[Dict[str, List[Union[float, int]]], DataFrame]:
+         to_dict: bool = False) -> Union[Dict[str, List[Union[float, int]]], pd.DataFrame]:
     """
+    Integrated Flux Variability Analysis (iFVA) of an integrated Metabolic-Regulatory model.
+    iFVA is a flux variability analysis method that considers:
+        - Metabolites
+        - Reactions
+        - Genes
+        - Regulatory interactions
+        - Target genes
+        - Regulators
+    It can be used to identify the reactions, genes, and regulators that are limiting the growth of a cell.
+    In MEWpy, FVA is performed by solving a linear problem for each reaction in the model.
+    The method can be either RFBA or SRFBA.
 
-    Integrated Flux Variability Analysis (iFVA)
-
-    :param model:
-    :param method:
-    :param fraction:
-    :param reactions:
-    :param objective:
-    :param initial_state:
-    :param constraints:
-    :param to_dict:
-
-    :return:
+    :param model: an integrated metabolic-regulatory model to be simulated
+    :param method: the method to be used for the simulation. Available methods: 'rfba', 'srfba'. Default: 'srfba'
+    :param fraction: the fraction of the optimal solution to be used as the upper bound for the objective function
+    (default: 1.0)
+    :param reactions: the reactions to be simulated. If None, all reactions are simulated (default: None)
+    :param objective: the objective of the simulation. If None, the default objective is used (default: None)
+    :param initial_state: the initial state of the model. If None, the default initial state is used (default: None)
+    :param constraints: additional constraints to be added to the model. If None, no additional constraints are added
+    :param to_dict: if True, the results are returned as a dictionary. If False, the results are returned as a DataFrame
+    :return: a dictionary or a DataFrame with the results of the simulation
     """
-
     rfba, reactions, _, _, initial_state, constraints = _inputs_processing(model=model,
                                                                            method=method,
                                                                            fraction=fraction,
@@ -204,18 +250,12 @@ def ifva(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
         else:
             rxn_objective = rxn.id
 
-        sol = _rfba(method=rfba,
-                    objective=rxn_objective,
-                    minimize=True,
-                    initial_state=initial_state,
+        sol = _rfba(method=rfba, objective=rxn_objective, minimize=True, initial_state=initial_state,
                     constraints=constraints)
 
         res[rxn_objective].append(sol)
 
-        sol = _rfba(method=rfba,
-                    objective=rxn_objective,
-                    minimize=False,
-                    initial_state=initial_state,
+        sol = _rfba(method=rfba, objective=rxn_objective, minimize=False, initial_state=initial_state,
                     constraints=constraints)
 
         res[rxn_objective].append(sol)
@@ -223,7 +263,7 @@ def ifva(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
     if to_dict:
         return res
 
-    return DataFrame.from_dict(data=res, orient='index', columns=['minimum', 'maximum'])
+    return pd.DataFrame.from_dict(data=res, orient='index', columns=['minimum', 'maximum'])
 
 
 def isingle_gene_deletion(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
@@ -232,20 +272,24 @@ def isingle_gene_deletion(model: Union['Model', 'MetabolicModel', 'RegulatoryMod
                           objective: Union[str, Dict[str, Union[float, int]]] = None,
                           initial_state: Dict[str, Union[float, int]] = None,
                           constraints: Dict[str, Tuple[Union[float, int], Union[float, int]]] = None,
-                          to_dict: bool = False) -> Union[Dict[str, List[Union[float, int]]], DataFrame]:
+                          to_dict: bool = False) -> Union[Dict[str, List[Union[float, int]]], pd.DataFrame]:
     """
+    Integrated single gene deletion analysis of an integrated Metabolic-Regulatory model.
+    Integrated single gene deletion analysis is a method to determine the effect of deleting each gene
+    in a model.
+    It can be used to identify the genes that are essential for the growth of a cell.
+    In MEWpy, single gene deletion analysis is performed by solving a linear problem for each gene in the model.
+    A gene knockout can switch off reactions associated with the gene, only if the gene is essential for the reaction.
+    The methods RFBA and SRFBA can determine if the gene is essential for the growth of a cell.
 
-    Integrated single gene deletions
-
-    :param model:
-    :param method:
-    :param genes:
-    :param objective:
-    :param initial_state:
-    :param constraints:
-    :param to_dict:
-
-    :return:
+    :param model: an integrated metabolic-regulatory model to be simulated
+    :param method: the method to be used for the simulation. Available methods: 'rfba', 'srfba'. Default: 'srfba'
+    :param genes: the genes to be simulated. If None, all genes are simulated (default: None)
+    :param objective: the objective of the simulation. If None, the default objective is used (default: None)
+    :param initial_state: the initial state of the model. If None, the default initial state is used (default: None)
+    :param constraints: additional constraints to be added to the model. If None, no additional constraints are added
+    :param to_dict: if True, the results are returned as a dictionary. If False, the results are returned as a DataFrame
+    :return: a dictionary or a DataFrame with the results of the simulation
     """
     rfba, _, genes, _, initial_state, constraints = _inputs_processing(model=model,
                                                                        method=method,
@@ -270,12 +314,8 @@ def isingle_gene_deletion(model: Union['Model', 'MetabolicModel', 'RegulatoryMod
 
         initial_state[gene_id] = 0.0
 
-        sol, status = _rfba(method=rfba,
-                            objective=None,
-                            minimize=False,
-                            initial_state=initial_state,
-                            constraints=constraints,
-                            status=True)
+        sol, status = _rfba(method=rfba, objective=None, minimize=False, initial_state=initial_state,
+                            constraints=constraints)
 
         res[gene_id] = [sol, status]
 
@@ -284,7 +324,7 @@ def isingle_gene_deletion(model: Union['Model', 'MetabolicModel', 'RegulatoryMod
     if to_dict:
         return res
 
-    return DataFrame.from_dict(data=res, orient='index', columns=['growth', 'status'])
+    return pd.DataFrame.from_dict(data=res, orient='index', columns=['growth', 'status'])
 
 
 def isingle_reaction_deletion(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
@@ -293,20 +333,23 @@ def isingle_reaction_deletion(model: Union['Model', 'MetabolicModel', 'Regulator
                               objective: Union[str, Dict[str, Union[float, int]]] = None,
                               initial_state: Dict[str, Union[float, int]] = None,
                               constraints: Dict[str, Tuple[Union[float, int], Union[float, int]]] = None,
-                              to_dict: bool = False) -> Union[Dict[str, List[Union[float, int]]], DataFrame]:
+                              to_dict: bool = False) -> Union[Dict[str, List[Union[float, int]]], pd.DataFrame]:
     """
+    Integrated single reaction deletion analysis of an integrated Metabolic-Regulatory model.
+    Integrated single reaction deletion analysis is a method to determine the effect of deleting each reaction
+    in a model.
+    It can be used to identify the reactions that are essential for the growth of a cell.
+    In MEWpy, single reaction deletion analysis is performed by solving a linear problem for each reaction in the model.
+    The methods RFBA and SRFBA can determine if the reaction is essential for the growth of a cell.
 
-    Integrated single reaction deletions
-
-    :param model:
-    :param method:
-    :param reactions:
-    :param objective:
-    :param initial_state:
-    :param constraints:
-    :param to_dict:
-
-    :return:
+    :param model: an integrated metabolic-regulatory model to be simulated
+    :param method: the method to be used for the simulation. Available methods: 'rfba', 'srfba'. Default: 'srfba'
+    :param reactions: the reactions to be simulated. If None, all reactions are simulated (default: None)
+    :param objective: the objective of the simulation. If None, the default objective is used (default: None)
+    :param initial_state: the initial state of the model. If None, the default initial state is used (default: None)
+    :param constraints: additional constraints to be added to the model. If None, no additional constraints are added
+    :param to_dict: if True, the results are returned as a dictionary. If False, the results are returned as a DataFrame
+    :return: a dictionary or a DataFrame with the results of the simulation
     """
 
     rfba, reactions, _, _, initial_state, constraints = _inputs_processing(model=model,
@@ -332,12 +375,8 @@ def isingle_reaction_deletion(model: Union['Model', 'MetabolicModel', 'Regulator
 
         constraints[rxn_id] = (0.0, 0.0)
 
-        sol, status = _rfba(method=rfba,
-                            objective=None,
-                            minimize=False,
-                            initial_state=initial_state,
-                            constraints=constraints,
-                            status=True)
+        sol, status = _rfba(method=rfba, objective=None, minimize=False, initial_state=initial_state,
+                            constraints=constraints)
 
         res[rxn_id] = [sol, status]
 
@@ -346,7 +385,7 @@ def isingle_reaction_deletion(model: Union['Model', 'MetabolicModel', 'Regulator
     if to_dict:
         return res
 
-    return DataFrame.from_dict(data=res, orient='index', columns=['growth', 'status'])
+    return pd.DataFrame.from_dict(data=res, orient='index', columns=['growth', 'status'])
 
 
 def isingle_regulator_deletion(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
@@ -355,20 +394,25 @@ def isingle_regulator_deletion(model: Union['Model', 'MetabolicModel', 'Regulato
                                objective: Union[str, Dict[str, Union[float, int]]] = None,
                                initial_state: Dict[str, Union[float, int]] = None,
                                constraints: Dict[str, Tuple[Union[float, int], Union[float, int]]] = None,
-                               to_dict: bool = False) -> Union[Dict[str, List[Union[float, int]]], DataFrame]:
+                               to_dict: bool = False) -> Union[Dict[str, List[Union[float, int]]], pd.DataFrame]:
     """
+    Integrated single regulator deletion analysis of a regulatory model.
+    Integrated single regulator deletion analysis is a method to determine the effect of deleting each regulator
+    in a regulatory model.
+    It can be used to identify the regulators that are essential for the growth of a cell.
+    In MEWpy, single regulator deletion analysis is performed by solving a linear problem for each regulator in the model.
+    A regulator knockout can switch off reactions associated with the regulator,
+    only if the regulator is essential for the interactions and gprs.
+    The methods RFBA and SRFBA can determine if the regulator is essential for the growth of a cell.
 
-    Integrated single regulator deletions
-
-    :param model:
-    :param method:
-    :param regulators:
-    :param objective:
-    :param initial_state:
-    :param constraints:
-    :param to_dict:
-
-    :return:
+    :param model: an integrated metabolic-regulatory model to be simulated
+    :param method: the method to be used for the simulation. Available methods: 'rfba', 'srfba'. Default: 'srfba'
+    :param regulators: the regulators to be simulated. If None, all regulators are simulated (default: None)
+    :param objective: the objective of the simulation. If None, the default objective is used (default: None)
+    :param initial_state: the initial state of the model. If None, the default initial state is used (default: None)
+    :param constraints: additional constraints to be added to the model. If None, no additional constraints are added
+    :param to_dict: if True, the results are returned as a dictionary. If False, the results are returned as a DataFrame
+    :return: a dictionary or a DataFrame with the results of the simulation
     """
     rfba, _, _, regulators, initial_state, constraints = _inputs_processing(model=model,
                                                                             method=method,
@@ -393,12 +437,8 @@ def isingle_regulator_deletion(model: Union['Model', 'MetabolicModel', 'Regulato
 
         initial_state[regulator_id] = 0.0
 
-        sol, status = _rfba(method=rfba,
-                            objective=None,
-                            minimize=False,
-                            initial_state=initial_state,
-                            constraints=constraints,
-                            status=True)
+        sol, status = _rfba(method=rfba, objective=None, minimize=False, initial_state=initial_state,
+                            constraints=constraints)
 
         res[regulator_id] = [sol, status]
 
@@ -407,4 +447,4 @@ def isingle_regulator_deletion(model: Union['Model', 'MetabolicModel', 'Regulato
     if to_dict:
         return res
 
-    return DataFrame.from_dict(data=res, orient='index', columns=['growth', 'status'])
+    return pd.DataFrame.from_dict(data=res, orient='index', columns=['growth', 'status'])

@@ -1,13 +1,12 @@
-from typing import Union
+from typing import Union, Dict, Tuple, List, Optional
 
+from mewpy.mew.lp import Notification, ConstraintContainer, VariableContainer, MetabolicLinearizer, GPRLinearizer
+from mewpy.mew.solution import ModelSolution
 from mewpy.model import Model, MetabolicModel, RegulatoryModel
 from mewpy.solvers.solution import Solution, Status
 from mewpy.solvers.solver import VarType, Solver
-from mewpy.mew.lp import Notification, ConstraintContainer, VariableContainer, MetabolicLinearizer, GPRLinearizer
-from mewpy.mew.solution import ModelSolution
 
 
-# TODO: missing documentation and typing
 class FBA(MetabolicLinearizer):
 
     def __init__(self,
@@ -26,26 +25,29 @@ class FBA(MetabolicLinearizer):
         :param solver: A Solver, CplexSolver, GurobiSolver or OptLangSolver instance.
         Alternatively, the name of the solver is also accepted.
         The solver interface will be used to load and solve a linear problem in a given solver.
-        If none, a new solver is instantiated. An instantiated solver may be used but it will be overwritten
-        if build is true.
+        If none, a new solver is instantiated. An instantiated solver may be used,
+        but it will be overwritten if build is true.
 
         :param build: Whether to build the linear problem upon instantiation. Default: False
         :param attach: Whether to attach the linear problem to the model upon instantiation. Default: False
         """
-
         super().__init__(model=model,
                          solver=solver,
                          build=build,
                          attach=attach)
 
     def build(self):
-
+        """
+        It builds the linear problem from the model. The linear problem is built from the model
+        variables and constraints. The linear problem is then loaded into the solver.
+        :return:
+        """
         if self._variables or self._constraints:
             self.clean()
 
         if self.model.is_metabolic():
-            self.metabolite_reaction_lookup(reactions=self.model.yield_reactions(),
-                                            metabolites=self.model.yield_metabolites())
+            self.metabolite_reaction_lookup(reactions=list(self.model.yield_reactions()),
+                                            metabolites=list(self.model.yield_metabolites()))
 
             self.constraints_from_gprs(inplace=True)
 
@@ -55,6 +57,15 @@ class FBA(MetabolicLinearizer):
                                minimize=False)
 
     def notification(self, notification: Notification):
+        """
+        It handles the notifications received from the model and variables.
+        The notifications are used to update the linear problem. The linear problem is then loaded into the solver.
+        A notification contains a message and a payload. The message carries the content of the changes and the payload
+        carries the information about the changes.
+
+        :param notification: A Notification instance.
+        :return:
+        """
 
         if notification.content_type == 'coefficients' and notification.action == 'set':
 
@@ -66,7 +77,7 @@ class FBA(MetabolicLinearizer):
 
             variable = notification.content.id
             lb, ub = notification.content.bounds
-            active_coefficient = notification.content.default_coefficient
+            default_coefficient = notification.content.default_coefficient
 
             if variable in self._cols:
 
@@ -79,22 +90,45 @@ class FBA(MetabolicLinearizer):
                 # the variable is a gene, so new constraints must be inferred
                 # from the gene coefficients and gprs evaluation
 
-                return self.constraints_from_gene(variable=variable, lb=active_coefficient, ub=ub, inplace=True)
+                return self.constraints_from_gene(variable=variable, lb=default_coefficient, ub=ub, inplace=True)
 
         else:
             return super(FBA, self).notification(notification)
 
     def optimize(self,
-                 objective=None,
-                 minimize=False,
-                 constraints=None,
-                 to_solver=False,
-                 get_values=True,
-                 shadow_prices=False,
-                 reduced_costs=False,
-                 pool_size=0,
-                 pool_gap=None) -> Union[ModelSolution, Solution]:
+                 objective: Union[str, Dict[str, float]] = None,
+                 minimize: bool = False,
+                 constraints: Dict[str, Tuple[float, float]] = None,
+                 to_solver: bool = False,
+                 get_values: bool = True,
+                 shadow_prices: bool = False,
+                 reduced_costs: bool = False,
+                 pool_size: int = 0,
+                 pool_gap: float = None) -> Union[ModelSolution, Solution]:
+        """
+        It solves the linear problem. The linear problem is solved using the solver interface.
 
+        The optimize method allows setting temporary changes to the linear problem. The changes are
+        applied to the linear problem reverted to the original state afterward.
+        Objective, constraints and solver parameters can be set temporarily.
+
+        The solution is returned as a ModelSolution instance, unless to_solver is True. In this case,
+        the solution is returned as a SolverSolution instance.
+
+        :param objective: A dictionary with the objective coefficients. The keys are the variable ids and the values
+        are the coefficients. Alternatively, a string with the variable id can be provided.
+        In this case, the coefficient is set to 1.0. Default: None
+        :param minimize: Whether to minimize the objective. Default: False
+        :param constraints: A dictionary with the constraints bounds. The keys are the constraint ids and the values
+        are tuples with the lower and upper bounds. Default: None
+        :param to_solver: Whether to return the solution as a SolverSolution instance. Default: False
+        :param get_values: Whether to retrieve the solution values. Default: True
+        :param shadow_prices: Whether to retrieve the shadow prices. Default: False
+        :param reduced_costs: Whether to retrieve the reduced costs. Default: False
+        :param pool_size: The size of the solution pool. Default: 0
+        :param pool_gap: The gap between the best solution and the worst solution in the pool. Default: None
+        :return: A ModelSolution instance or a SolverSolution instance if to_solver is True.
+        """
         self._set_objective(linear=objective, minimize=minimize)
 
         if constraints:
@@ -123,8 +157,16 @@ class FBA(MetabolicLinearizer):
         return ModelSolution.from_solver(method=self.method, solution=solver_solution, model=self.model,
                                          objective_direction=sense)
 
-    def constraints_from_gprs(self, inplace=False):
+    def constraints_from_gprs(self, inplace: bool = False) -> Tuple[List[str], List[float], List[float]]:
+        """
+        It infers reactions constraints using the associated GPRs.
+        The constraints are inferred from the gprs and added to the linear problem.
+        Thus, one constraint is added to the LP for each reaction variable according to the genes coefficients
+        and GPR rule.
 
+        :param inplace: Whether to add the constraints to the linear problem. Default: False
+        :return: A tuple with the constraints ids, lower bounds and upper bounds.
+        """
         rxns, lbs, ubs = [], [], []
 
         gene_state = {gene.id: gene.coefficient.default_coefficient for gene in self.model.yield_genes()}
@@ -156,15 +198,31 @@ class FBA(MetabolicLinearizer):
 
         return rxns, lbs, ubs
 
-    def constraints_from_gene(self, variable, lb, ub, inplace=False):
+    def constraints_from_gene(self,
+                              variable: str,
+                              lb: float,
+                              ub: float,
+                              inplace: bool = False) -> Optional[Tuple[List[str], List[float], List[float]]]:
+        """
+        It infers reactions constraints using the associated GPRs.
+        In this case, the gene coefficient can be changed directly.
+        The constraints are inferred from the gprs and added to the linear problem.
+        Thus, one constraint is added to the LP for each reaction variable according to the genes coefficients
+        and GPR rule.
 
+        :param variable: The gene id
+        :param lb: The lower bound
+        :param ub: The upper bound
+        :param inplace: Whether to add the constraints to the linear problem. Default: False
+        :return: A tuple with the constraints ids, lower bounds and upper bounds or None if the variable is not a gene.
+        """
         rxns, rxn_lbs, rxn_ubs = [], [], []
 
         gene_state = {gene.id: gene.coefficient.default_coefficient for gene in self.model.yield_genes()}
         gene_state[variable] = lb
 
         # Either the gene is not available in the model or it is not a gene. The later can occur if a multi type model
-        # has an fba simulator attached but a the bounds of a regulator are changed
+        # has a fba simulator attached but the bounds of a regulator are changed
         model_var = self.model.get(variable, None)
 
         if model_var is None:
@@ -236,15 +294,18 @@ class milpFBA(MetabolicLinearizer, GPRLinearizer):
                          attach=attach)
 
     def build(self):
-
+        """
+        It builds the linear problem.
+        :return:
+        """
         if self._variables or self._constraints:
             self.clean()
 
         if self.model.is_metabolic():
-            self.metabolite_reaction_lookup(reactions=self.model.yield_reactions(),
-                                            metabolites=self.model.yield_metabolites())
+            self.metabolite_reaction_lookup(reactions=list(self.model.yield_reactions()),
+                                            metabolites=list(self.model.yield_metabolites()))
 
-            self.add_gprs(self.model.yield_reactions())
+            self.add_gprs(list(self.model.yield_reactions()))
 
             self.update()
 
@@ -252,7 +313,11 @@ class milpFBA(MetabolicLinearizer, GPRLinearizer):
                                minimize=False)
 
     def notification(self, notification: Notification):
-
+        """
+        It handles notifications from the model.
+        :param notification: A notification from the model
+        :return:
+        """
         if notification.content_type == 'coefficients' and notification.action == 'set':
 
             # if the notification is a coefficient object, the whole gpr must be build again,
@@ -267,8 +332,12 @@ class milpFBA(MetabolicLinearizer, GPRLinearizer):
         else:
             return super(milpFBA, self).notification(notification)
 
-    def update_milp_constraints(self, reaction):
-
+    def update_milp_constraints(self, reaction: str):
+        """
+        It updates the constraints associated to a reaction.
+        :param reaction: The reaction id
+        :return:
+        """
         variable = self.model.get(reaction)
 
         if variable.is_reaction():
@@ -325,16 +394,39 @@ class milpFBA(MetabolicLinearizer, GPRLinearizer):
         return solver_solution
 
     def optimize(self,
-                 objective=None,
-                 minimize=False,
-                 constraints=None,
-                 to_solver=False,
-                 get_values=True,
-                 shadow_prices=False,
-                 reduced_costs=False,
-                 pool_size=0,
-                 pool_gap=None):
+                 objective: Union[str, Dict[str, float]] = None,
+                 minimize: bool = False,
+                 constraints: Dict[str, Tuple[float, float]] = None,
+                 to_solver: bool = False,
+                 get_values: bool = True,
+                 shadow_prices: bool = False,
+                 reduced_costs: bool = False,
+                 pool_size: int = 0,
+                 pool_gap: float = None) -> Union[ModelSolution, Solution]:
+        """
+        It solves the linear problem. The linear problem is solved using the solver interface.
 
+        The optimize method allows setting temporary changes to the linear problem. The changes are
+        applied to the linear problem reverted to the original state afterward.
+        Objective, constraints and solver parameters can be set temporarily.
+
+        The solution is returned as a ModelSolution instance, unless to_solver is True. In this case,
+        the solution is returned as a SolverSolution instance.
+
+        :param objective: A dictionary with the objective coefficients. The keys are the variable ids and the values
+        are the coefficients. Alternatively, a string with the variable id can be provided.
+        In this case, the coefficient is set to 1.0. Default: None
+        :param minimize: Whether to minimize the objective. Default: False
+        :param constraints: A dictionary with the constraints bounds. The keys are the constraint ids and the values
+        are tuples with the lower and upper bounds. Default: None
+        :param to_solver: Whether to return the solution as a SolverSolution instance. Default: False
+        :param get_values: Whether to retrieve the solution values. Default: True
+        :param shadow_prices: Whether to retrieve the shadow prices. Default: False
+        :param reduced_costs: Whether to retrieve the reduced costs. Default: False
+        :param pool_size: The size of the solution pool. Default: 0
+        :param pool_gap: The gap between the best solution and the worst solution in the pool. Default: None
+        :return: A ModelSolution instance or a SolverSolution instance if to_solver is True.
+        """
         self._set_objective(linear=objective, minimize=minimize)
 
         if constraints:
@@ -400,29 +492,63 @@ class pFBA(FBA):
         :param build: Whether to build the linear problem upon instantiation. Default: False
         :param attach: Whether to attach the linear problem to the model upon instantiation. Default: False
         """
-
         super().__init__(model=model,
                          solver=solver,
                          build=build,
                          attach=attach)
 
     def build(self):
-
+        """
+        It builds the linear problem. The linear problem is built using the model interface.
+        The pFBA linear problem is similar to the FBA linear problem.
+        :return:
+        """
         super(pFBA, self).build()
 
     def optimize(self,
-                 objective=None,
-                 minimize=False,
+                 objective: Union[str, Dict[str, float]] = None,
+                 minimize: bool = False,
+                 constraints: Dict[str, Tuple[float, float]] = None,
                  fraction=None,
-                 constraints=None,
                  reactions=None,
-                 to_solver=False,
-                 get_values=True,
-                 shadow_prices=False,
-                 reduced_costs=False,
-                 pool_size=0,
-                 pool_gap=None) -> Union[ModelSolution, Solution]:
+                 to_solver: bool = False,
+                 get_values: bool = True,
+                 shadow_prices: bool = False,
+                 reduced_costs: bool = False,
+                 pool_size: int = 0,
+                 pool_gap: float = None) -> Union[ModelSolution, Solution]:
+        """
+        It solves the linear problem. The linear problem is solved using the solver interface.
 
+        pFBA optimization is similar to FBA optimization. The only difference is that the objective is
+        modified to minimize the sum of the absolute fluxes. The absolute fluxes are added as new variables
+        to the linear problem. The absolute fluxes are constrained to be greater than or equal to the
+        original fluxes. The fraction parameter is used to set the fraction of the original objective
+        that is minimized. The reactions parameter is used to set the reactions that are minimized.
+
+        The optimize method allows setting temporary changes to the linear problem. The changes are
+        applied to the linear problem reverted to the original state afterward.
+        Objective, constraints and solver parameters can be set temporarily.
+
+        The solution is returned as a ModelSolution instance, unless to_solver is True. In this case,
+        the solution is returned as a SolverSolution instance.
+
+        :param objective: A dictionary with the objective coefficients. The keys are the variable ids and the values
+        are the coefficients. Alternatively, a string with the variable id can be provided.
+        In this case, the coefficient is set to 1.0. Default: None
+        :param minimize: Whether to minimize the objective. Default: False
+        :param constraints: A dictionary with the constraints bounds. The keys are the constraint ids and the values
+        are tuples with the lower and upper bounds. Default: None
+        :param fraction: The fraction of the original objective that is minimized. Default: None
+        :param reactions: The reactions that are minimized. Default: None
+        :param to_solver: Whether to return the solution as a SolverSolution instance. Default: False
+        :param get_values: Whether to retrieve the solution values. Default: True
+        :param shadow_prices: Whether to retrieve the shadow prices. Default: False
+        :param reduced_costs: Whether to retrieve the reduced costs. Default: False
+        :param pool_size: The size of the solution pool. Default: 0
+        :param pool_gap: The gap between the best solution and the worst solution in the pool. Default: None
+        :return: A ModelSolution instance or a SolverSolution instance if to_solver is True.
+        """
         self._set_objective(linear=objective, minimize=minimize)
 
         if constraints:

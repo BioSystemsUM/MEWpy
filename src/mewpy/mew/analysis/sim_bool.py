@@ -1,11 +1,10 @@
-from typing import Union
+from typing import Union, Dict, Tuple
 
 from mewpy.solvers.solver import Solver
 from mewpy.mew.solution import ModelSolution
 from mewpy.model import Model, MetabolicModel, RegulatoryModel
 
 
-# TODO: type hinting and documentation
 class SimBool:
 
     def __init__(self,
@@ -15,6 +14,8 @@ class SimBool:
                  attach: bool = True):
         """
         Simulation of a Boolean network (SimBool) for a regulatory model.
+        This is not a LinearProblem but follows the same interface so it can be used in the same way as a LinearProblem
+        This is a synchronous Boolean simulation, meaning that the regulatory events are evaluated one by one.
 
         :param model: a mewpy Model, MetabolicModel, RegulatoryModel or all. The model is used to retrieve
         variables and constraints to the linear problem
@@ -35,14 +36,23 @@ class SimBool:
 
         pass
 
-    def optimize(self, initial_state=None, to_dict=False):
+    def optimize(self,
+                 initial_state: Union[Dict[str, float], Dict[str, Tuple]] = None,
+                 to_dict: bool = False) -> Union[ModelSolution, Dict]:
+        """
+        Simulate the model and return the solution.
 
+        :param initial_state: A dictionary with the initial state of the model. The keys are the variables and the values
+        are the initial values.
+        :param to_dict: Whether to return the solution as a dictionary or a ModelSolution instance. Default: False
+        :return: A ModelSolution instance or a dictionary with the solution
+        """
         res = {}
 
         # solving regulatory rule by regulatory rule (synchronously though, as asynchronously would take too much time)
         # Each target has one and only one regulatory interaction
         # The regulatory model object only supports this strategy, though this can easily be altered. If so,
-        # this solve method must be changed too
+        # the solve method must be changed too
 
         if not initial_state:
             initial_state = {}

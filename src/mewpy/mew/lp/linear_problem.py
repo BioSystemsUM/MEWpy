@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Union, TYPE_CHECKING, Tuple, Dict, Set, List
+from typing import Union, TYPE_CHECKING, Tuple, Dict, Set, List, Iterable
 
 from numpy import zeros
 
@@ -340,8 +340,8 @@ class LinearProblem(LinearProblemInterface):
     # -----------------------------------------------------------------------------
 
     def _set_objective(self,
-                       linear: Union[str, Dict[str, Union[float, int]]] = None,
-                       quadratic: Dict[Tuple[str, str], Union[float, int]] = None,
+                       linear: Union[str, Dict[str, float]] = None,
+                       quadratic: Dict[Tuple[str, str], float] = None,
                        minimize: bool = True):
         """
 
@@ -561,16 +561,12 @@ class LinearProblem(LinearProblemInterface):
         if isinstance(container, VariableContainer):
             self._variables_queue[container.name] = (container, addition)
 
-    def add(self, containers: Union[List[Union[VariableContainer, ConstraintContainer]],
-                                    Set[Union[VariableContainer, ConstraintContainer]],
-                                    Tuple[Union[VariableContainer, ConstraintContainer]]]):
+    def add(self, containers: Union[Iterable[VariableContainer], Iterable[ConstraintContainer]]):
 
         for container in containers:
             self.stack_container(container, addition=True)
 
-    def remove(self, containers: Union[List[Union[VariableContainer, ConstraintContainer]],
-                                       Set[Union[VariableContainer, ConstraintContainer]],
-                                       Tuple[Union[VariableContainer, ConstraintContainer]]]):
+    def remove(self, containers: Union[Iterable[VariableContainer], Iterable[ConstraintContainer]]):
 
         for container in containers:
             self.stack_container(container, addition=False)
