@@ -1,4 +1,4 @@
-from typing import Any, Union, Type, TYPE_CHECKING, List, Set, Dict
+from typing import Any, Union, Type, TYPE_CHECKING, List, Set, Dict, Iterable
 
 from mewpy.util.history import HistoryManager, recorder
 from mewpy.util.serialization import serialize, Serializer
@@ -209,9 +209,9 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
     # -----------------------------------------------------------------------------
 
     @classmethod
-    def from_types(cls, types: List[str], **kwargs) -> Union['Model',
-                                                             'MetabolicModel',
-                                                             'RegulatoryModel']:
+    def from_types(cls, types: Iterable[str], **kwargs) -> Union['Model',
+                                                                 'MetabolicModel',
+                                                                 'RegulatoryModel']:
         ModelType = cls.factory(*types)
         return ModelType(**kwargs)
 

@@ -30,7 +30,6 @@ if TYPE_CHECKING:
 
 
 class RegulatorySBML(Engine):
-
     def __init__(self, io, config, model=None):
 
         super().__init__(io, config, model)
@@ -965,6 +964,11 @@ class RegulatorySBML(Engine):
 
 
 class MetabolicSBML(Engine):
+    """
+    SBML engine for metabolic models.
+    Credits to the cobrapy team (https://github.com/opencobra/cobrapy), as this SBML engine is heavily inspired in their
+    SBML parser.
+    """
 
     def __init__(self, io, config, model=None):
         super().__init__(io, config, model)

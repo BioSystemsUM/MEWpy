@@ -13,7 +13,6 @@ if TYPE_CHECKING:
 
 
 class CobrapyModel(Engine):
-
     def __init__(self, io, config, model=None):
 
         """

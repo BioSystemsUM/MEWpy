@@ -21,26 +21,10 @@ if TYPE_CHECKING:
     from io import TextIOWrapper
 
     from mewpy.model import Model, RegulatoryModel, MetabolicModel
-
-    try:
-        # noinspection PyPackageRequirements
-        from cobra import Model as Cobra_Model
-
-    except ImportError:
-        Cobra_Model = None
-
-    try:
-        # noinspection PyPackageRequirements
-        from reframed import CBModel as Reframed_Model
-
-    except ImportError:
-
-        Reframed_Model = None
+    from cobra import Model as Cobra_Model
+    from reframed import CBModel as Reframed_Model
 
 
-# TODO: NOTE: The following load functions were in the sbml module.
-#  I moved them here, so that the sbml file can be removed and thus not being confused with the sbml module under
-#  the engines sub-package
 def load_sbml_container(filename, flavor='reframed'):
     if flavor == 'reframed':
         from reframed.io.sbml import load_cbmodel
@@ -85,7 +69,6 @@ def load_gecko_simulator(filename, flavor='reframed', envcond=None):
 # or multiple readers/writers using the director
 def read_model(*readers: Reader,
                warnings: bool = True) -> Union['Model', 'RegulatoryModel', 'MetabolicModel']:
-
     """
     Reading a mewpy model encoded into one or more file types (e.g. sbml, csv, cobrapy, reframed, json, etc).
     It can return a metabolic, regulatory or metabolic-regulatory model from multiple files.
@@ -114,7 +97,6 @@ def read_sbml(io: Union[str, 'TextIOWrapper'],
               metabolic: bool = True,
               regulatory: bool = True,
               warnings: bool = True) -> Union['Model', 'RegulatoryModel', 'MetabolicModel']:
-
     """
     Reading a mewpy model encoded into a SBML file.
     It can return a metabolic, regulatory or metabolic-regulatory model from the SBML file according to the metabolic
@@ -158,7 +140,6 @@ def read_csv(io: Union[str, 'TextIOWrapper'],
              target_regulator: bool = False,
              warnings: bool = True,
              **kwargs) -> Union['Model', 'RegulatoryModel']:
-
     """
     Reading a mewpy regulatory model encoded into a CSV file.
     It can only return a regulatory model from the CSV file.
@@ -213,7 +194,6 @@ def read_cbmodel(io: Union['Cobra_Model', 'Reframed_Model'],
                  cobrapy: bool = True,
                  reframed: bool = False,
                  warnings: bool = True) -> Union['Model', 'MetabolicModel']:
-
     """
     Reading a mewpy metabolic model encoded into a Constraint-Based metabolic model from Cobrapy or Reframed.
     It can only return a metabolic model from the cobra model.
@@ -253,7 +233,6 @@ def read_cbmodel(io: Union['Cobra_Model', 'Reframed_Model'],
 
 def read_json(io: Union[str, 'TextIOWrapper'],
               warnings: bool = True) -> Union['Model', 'MetabolicModel', 'RegulatoryModel']:
-
     """
     Reading a mewpy model encoded into a JSON file.
     It can return a metabolic, regulatory or metabolic-regulatory model from the JSON file according to the JSON file.
@@ -275,7 +254,6 @@ def read_json(io: Union[str, 'TextIOWrapper'],
 
 def write_model(*writers: Writer,
                 warnings=True) -> Union['Model', 'RegulatoryModel', 'MetabolicModel']:
-
     """
     Writing a mewpy model into one or more file types (e.g. sbml, csv, cobrapy, reframed, json, etc).
     It can write a metabolic, regulatory or metabolic-regulatory model to multiple files.

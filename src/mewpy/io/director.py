@@ -15,13 +15,10 @@ class Director:
 
     def __init__(self, *builders: Union['Builder', 'Reader', 'Writer']):
         """
-
         Director is responsible for managing builders. It gives instructions to the builders on how to read or write
         a multi-type model properly
 
         To understand how reading and writing are proceeded, see the read and write methods
-
-        :type builders: Union['Builder', 'Reader', 'Writer']
 
         :param builders: builders for reading models, files or IOs. builders for writing files using mewpy models
         """
@@ -29,19 +26,17 @@ class Director:
 
     @property
     def builders(self) -> Tuple[Union['Builder', 'Reader', 'Writer']]:
-
         """
         Returns the builders associated with this director
+        :return: tuple of builders
         """
-
         return self._builders
 
     def read(self) -> Union['Model', 'RegulatoryModel', 'MetabolicModel']:
-
         """
         Reading a mewpy model, namely metabolic, regulatory or both encoded into one or more file types.
         Reading is performed step-wise according to the builders order.
-
+        :return: mew metabolic, regulatory or both model
         """
 
         types = set()
@@ -118,9 +113,8 @@ class Director:
         """
         Writing a mewpy model, namely metabolic, regulatory or both to one or more file types.
         Writing is performed step-wise according to the builders order.
-
+        :return:
         """
-
         for builder in self.builders:
 
             engine = builder.engine
@@ -140,12 +134,10 @@ class Director:
             engine.clean()
 
     def warn(self):
-
         """
         Launch warnings stored in the builders.
-
+        :return:
         """
-
         # warnings and even small errors are all collected with partial pattern and then launched, as printing to the
         # console takes time
 

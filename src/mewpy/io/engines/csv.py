@@ -2,15 +2,8 @@ import os
 from functools import partial
 from typing import Union, TYPE_CHECKING
 
-from numpy import nan
-
-try:
-    # noinspection PyPackageRequirements
-    from pandas import read_csv
-
-except ImportError:
-
-    read_csv = False
+import numpy as np
+import pandas as pd
 
 from mewpy.model import RegulatoryModel
 from mewpy.mew.algebra import Expression, And, Symbol, NoneAtom
@@ -24,7 +17,6 @@ if TYPE_CHECKING:
 
 
 class RegulatoryCSV(Engine):
-
     def __init__(self, io, config, model=None):
         """
         Engine for CSV and TXT Boolean-based Regulatory files
@@ -57,12 +49,9 @@ class RegulatoryCSV(Engine):
         names = {id_col: 'ids', rule_col: 'rules'}
         names.update({j: 'aliases_' + str(i + 1) for i, j in enumerate(aliases_cols)})
 
-        if read_csv is False:
-            raise RuntimeError('pandas must be installed to read csv files')
-
         try:
 
-            df = read_csv(self.io, sep=sep, header=header)
+            df = pd.read_csv(self.io, sep=sep, header=header)
 
         except BaseException as exc:
 
@@ -88,7 +77,7 @@ class RegulatoryCSV(Engine):
 
         else:
 
-            df = df.replace(nan, '', regex=True)
+            df = df.replace(np.nan, '', regex=True)
 
         self.dto.data_frame = df
 
@@ -319,12 +308,9 @@ class CoExpressionCSV(Engine):
 
         names = {target_col: 'targets', activating_regs: 'activating', repressing_regs: 'repressing'}
 
-        if read_csv is False:
-            raise RuntimeError('pandas must be installed to read csv files')
-
         try:
 
-            df = read_csv(self.io, sep, header=header)
+            df = pd.read_csv(self.io, sep, header=header)
 
         except BaseException as exc:
 
@@ -350,7 +336,7 @@ class CoExpressionCSV(Engine):
 
         else:
 
-            df = df.replace(nan, '', regex=True)
+            df = df.replace(np.nan, '', regex=True)
 
         self.dto.data_frame = df
 
@@ -384,11 +370,9 @@ class CoExpressionCSV(Engine):
         self.build_data_frame()
 
         for target in self.dto.data_frame.index:
-
             # -----------------------------------------------------------------------------
             # Target
             # -----------------------------------------------------------------------------
-
             target_id = target.replace(' ', '')
 
             target_aliases = self.dto.data_frame.loc[target, self.dto.aliases_columns]
@@ -550,9 +534,7 @@ class TargetRegulatorCSV(Engine):
     def __init__(self, io, config, model=None):
         """
         Engine for CSV and TXT Target-Regulator interactions based csv
-
         """
-
         super().__init__(io, config, model)
 
     @property
@@ -579,12 +561,9 @@ class TargetRegulatorCSV(Engine):
 
         names = {target_col: 'targets', regulator_col: 'regulator'}
 
-        if read_csv is False:
-            raise RuntimeError('pandas must be installed to read csv files')
-
         try:
 
-            df = read_csv(self.io, sep, header=header)
+            df = pd.read_csv(self.io, sep, header=header)
 
         except BaseException as exc:
 
@@ -610,7 +589,7 @@ class TargetRegulatorCSV(Engine):
 
         else:
 
-            df = df.replace(nan, '', regex=True)
+            df = df.replace(np.nan, '', regex=True)
 
         self.dto.data_frame = df
 
@@ -646,11 +625,9 @@ class TargetRegulatorCSV(Engine):
         targets = self.dto.data_frame.index.unique()
 
         for target in targets:
-
             # -----------------------------------------------------------------------------
             # Target
             # -----------------------------------------------------------------------------
-
             target_id = target.replace(' ', '')
 
             target_aliases = self.dto.data_frame.loc[target, self.dto.aliases_columns]
@@ -812,10 +789,7 @@ def read_gene_expression_dataset(path,
     if gene_col is None:
         gene_col = 0
 
-    if read_csv is False:
-        raise RuntimeError('pandas must be installed to read csv files')
-
-    df = read_csv(path, sep=sep, header=header)
+    df = pd.read_csv(path, sep=sep, header=header)
 
     df.index = df.iloc[:, gene_col]
 
@@ -841,10 +815,7 @@ def read_coregflux_influence_matrix(path,
     if gene_col is None:
         gene_col = 0
 
-    if read_csv is False:
-        raise RuntimeError('pandas must be installed to read csv files')
-
-    df = read_csv(path, sep=sep, header=header)
+    df = pd.read_csv(path, sep=sep, header=header)
 
     df.index = df.iloc[:, gene_col]
 

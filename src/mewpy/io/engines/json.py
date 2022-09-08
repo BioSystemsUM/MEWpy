@@ -12,13 +12,11 @@ if TYPE_CHECKING:
 
 
 class JSON(Engine):
-
     def __init__(self, io, config, model=None):
 
         """
         Engine for JSON files
         """
-
         super().__init__(io, config, model)
 
     @property

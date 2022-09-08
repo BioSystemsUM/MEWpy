@@ -3,20 +3,8 @@ from typing import Any, Dict, Union, TYPE_CHECKING, Tuple, Set
 
 from pandas import DataFrame
 
-try:
-    # noinspection PyPackageRequirements
-    from cobra import Model as Cobra_Model
-
-except ImportError:
-    Cobra_Model = str
-
-try:
-    # noinspection PyPackageRequirements
-    from reframed import CBModel as Reframed_Model
-
-except ImportError:
-
-    Reframed_Model = str
+from cobra import Model as Cobra_Model
+from reframed import CBModel as Reframed_Model
 
 from mewpy.mew.algebra import Symbolic, NoneAtom
 from mewpy.mew.variables import Variable
@@ -28,25 +16,21 @@ if TYPE_CHECKING:
 
 @dataclass
 class History:
-
     """
     Data transfer object for history.
     History encoded into a sbml model
     """
-
     data: str = None
     creators: str = None
 
 
 @dataclass
 class FunctionTerm:
-
     """
     Data transfer object for function terms.
     Function term holds the symbolic expression of a given interaction between a target and a set of regulators.
     It also holds the resulting coefficient of this interaction
     """
-
     id: str = None
     symbolic: Symbolic = field(default_factory=NoneAtom)
     coefficient: int = 0
@@ -54,25 +38,21 @@ class FunctionTerm:
 
 @dataclass
 class CompartmentRecord:
-
     """
     Data transfer object for compartments.
     """
-
     id: str = 'e'
     name: str = 'external'
 
 
 @dataclass
 class VariableRecord:
-
     """
     Data transfer object for variables encoded into files.
     Variable record holds information regarding any multi-type variable, namely metabolic or regulatory.
     It can be extended to more types.
     It stores the many attributes that these variables can have encoded into multiple file types.
     """
-
     # ids, names, types, etc
     id: Any = field(default_factory=str)
     name: str = field(default_factory=str)
@@ -105,13 +85,11 @@ class VariableRecord:
     interactions: Dict[str, 'VariableRecord'] = field(default_factory=dict)
     function_terms: Dict[str, 'FunctionTerm'] = field(default_factory=dict)
 
-    # TODO: it should be improved for further automation, so that one can just type to_variable(). For now,
-    #  one still has to pass the correct attributes at each reading/model building
     def to_variable(self,
                     model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
                     types: Set[str],
                     **attributes) -> Tuple[Union['Gene', 'Interaction', 'Metabolite', 'Reaction', 'Regulator',
-                                                 'Target'], str]:
+                                                 'Target', Variable], str]:
 
         try:
 
@@ -162,7 +140,6 @@ class DataTransferObject:
     It can be extended to more types.
     It stores the many attributes that these models can have encoded into multiple file types.
     """
-
     # cobra model
     cobra_model: Cobra_Model = None
 
