@@ -1,30 +1,38 @@
-from typing import Union
+from typing import Union, Dict, Iterable, Tuple
 from io import TextIOWrapper
 
-try:
-    # noinspection PyPackageRequirements
-    from cobra import Model as Cobra_Model
-
-except ImportError:
-    Cobra_Model = str
-
-try:
-    # noinspection PyPackageRequirements
-    from reframed import CBModel as Reframed_Model
-
-except ImportError:
-
-    Reframed_Model = str
-
+from cobra import Model as Cobra_Model
+from reframed import CBModel as Reframed_Model
 from ..io import Reader, Engines, read_model
 from .problem import AbstractKOProblem
 
 
-# TODO: should it be in io?
 def load_optorf(regulatory_model: Union[str, TextIOWrapper, Reader],
                 metabolic_model: Union[str, TextIOWrapper, Cobra_Model, Reframed_Model, Reader],
                 config: dict = None,
                 warnings: bool = False):
+    """
+    The standard method to load an OptORF problem.
+    A OptORF problem is a KO strain optimization problem
+    that can be created from an integrated Metabolic-Regulatory model.
+
+    The integrated model can be assembled from a metabolic model in the following formats:
+        - SBML
+        - JSON
+        - Cobrapy model
+        - Reframed model
+
+    and a regulatory model in the following formats:
+        - SBML-qual
+        - JSON
+        - CSV regulatory network
+
+    :param regulatory_model: the regulatory model or a reader for parsing it
+    :param metabolic_model: the metabolic model or a reader for parsing it
+    :param config: A configuration dictionary with information for parsing the models
+    :param warnings: if True, warnings will be printed
+    :return: an integrated model for OptORF
+    """
     if not config:
         config = {}
 
@@ -91,10 +99,6 @@ class OptORFProblem(AbstractKOProblem):
         For more details consult: https://doi.org/10.1186/1752-0509-4-53
 
         """
-
-        # TODO: this is the main disadvantage of the new model integration.
-        #  Integrated models (metabolic-regulatory) are only available with conversion to mewpy models.
-        #  However, one can easily converted a reframed or cobra model to mewpy with the IO read that I implemented.
         if isinstance(model, (Cobra_Model, Reframed_Model)):
 
             raise ValueError(f'OptORF is not available for a model of type {type(model)}.'
@@ -108,7 +112,12 @@ class OptORFProblem(AbstractKOProblem):
         self._initial_state = {}
 
     def _build_target_list(self):
-
+        """
+        Build the target list and initial state for the OptORF problem.
+        The target list is the list of regulators in the regulatory layer.
+        The initial state is the state of the model before any gene deletion.
+        :return:
+        """
         # Target list is the combination of genes and regulators available into the mewpy integrated model
 
         regulators = [regulator.id for regulator in self.model.yield_regulators()
@@ -118,8 +127,12 @@ class OptORFProblem(AbstractKOProblem):
 
         self._initial_state = {trg: 1 for trg in self._trg_list}
 
-    def _sim_bool(self, state):
-
+    def _sim_bool(self, state: Dict[str, int]) -> Dict[str, int]:
+        """
+        Simulate the model with a boolean state.
+        :param state: a boolean state
+        :return: the simulated state
+        """
         # see RFBA implementation for details
 
         result = {}
@@ -155,8 +168,12 @@ class OptORFProblem(AbstractKOProblem):
 
         return result
 
-    def _decode_metabolic_state(self, state):
-
+    def _decode_metabolic_state(self, state: Dict[str, int]) -> Dict[str, Tuple[float, float]]:
+        """
+        Decode a metabolic state from the regulatory state.
+        :param state: a regulatory state
+        :return: a metabolic state (reactions constraints)
+        """
         # see RFBA implementation for details
 
         constraints = {}
@@ -176,37 +193,26 @@ class OptORFProblem(AbstractKOProblem):
 
         return constraints
 
-    def decode(self, candidate):
+    def decode(self, candidate: Iterable[int]) -> Dict[str, Tuple[float, float]]:
 
         """
+        OptORF candidate decode.
+        From a candidate aka a set of regulators to be knocked out, it runs a synchronous boolean simulation of the
+        regulatory layer. The regulatory state is used to infer the metabolic state, namely metabolic reactions affected
+        by the KOs. A second synchronous boolean simulation of the GPRs is performed with the regulatory state.
+        Finally, the metabolic state aka constraints are decoded from the inactive reactions.
 
-        OptORF candidate decode
-
-        :param candidate:
-        :return:
+        :param candidate: a candidate (a set of regulators to be knocked out)
+        :return: a metabolic state (a set of constraints)
         """
-
-        # TODO: fix this implementation. initial state should be a new copy
-        # initial_state = self._initial_state.copy()
-        #
-        # for t_idx in candidate:
-        #
-        #     initial_state[self.target_list[t_idx]] = 0
-        #
-        # # simulation of the regulatory network to determine the affected metabolic state
-        # state = self._sim_bool(initial_state)
-        #
-        # # find the affected reactions
-        # constraints = self._decode_metabolic_state(state)
-        #
-        # return constraints
+        initial_state = self._initial_state.copy()
 
         for t_idx in candidate:
 
-            self._initial_state[self.target_list[t_idx]] = 0
+            initial_state[self.target_list[t_idx]] = 0
 
         # simulation of the regulatory network to determine the affected metabolic state
-        state = self._sim_bool(self._initial_state)
+        state = self._sim_bool(initial_state)
 
         # find the affected reactions
         constraints = self._decode_metabolic_state(state)
