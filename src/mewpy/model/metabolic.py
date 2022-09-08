@@ -11,9 +11,36 @@ if TYPE_CHECKING:
     from mewpy.mew.variables import Gene, Metabolite, Reaction
 
 
-# TODO: methods stubs
 class MetabolicModel(Model, model_type='metabolic', register=True, constructor=True, checker=True):
+    """
+    A mew metabolic model consists of a classic Genome-Scale Metabolic (GEM) model,
+    containing reactions, metabolites and genes.
 
+    GEM models are systems biology tools used to predict the phenotype of an organism or cellular community
+    in range of environmental and genetic conditions.
+    To perform phenotype prediction, a Mew metabolic model can be attached to several simulation methods:
+        - FBA
+        - pFBA
+        - FVA
+        - ...
+    Thus, a mew metabolic model can be associated with a given objective function for the analysis of the model.
+
+    The metabolic model can be loaded with compartments, although these can be inferred from the available
+    metabolites.
+
+    A mew metabolic model can hold additional information as follows:
+        - demand reactions
+        - exchange reactions
+        - sink reactions
+        - GPRs
+        - External compartment
+
+    The metabolic model, as with other models, provides a clean interface for manipulation with the add, remove and
+    update methods. One can perform the following operations:
+        - Add reactions, metabolites and genes
+        - Remove reactions, metabolites and genes
+        - Update the objective function
+    """
     def __init__(self,
                  identifier: Any,
                  compartments: Dict[str, str] = None,
@@ -24,15 +51,33 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
                  **kwargs):
 
         """
-        A metabolic model contains essentially reactions, metabolites and genes.
-        The metabolic model can be also also associated with a given objective for the simulation/analysis.
+        A mew metabolic model consists of a classic Genome-Scale Metabolic (GEM) model,
+        containing reactions, metabolites and genes.
+
+        GEM models are systems biology tools used to predict the phenotype of an organism or cellular community
+        in range of environmental and genetic conditions.
+        To perform phenotype prediction, a Mew metabolic model can be attached to several simulation methods:
+            - FBA
+            - pFBA
+            - FVA
+            - ...
+        Thus, a mew metabolic model can be associated with a given objective function for the analysis of the model.
+
         The metabolic model can be loaded with compartments, although these can be inferred from the available
         metabolites.
 
-        Other information is retrieved from these attributes, namely demand, exchange and sink reactions as well as gprs
+        A mew metabolic model can hold additional information as follows:
+            - demand reactions
+            - exchange reactions
+            - sink reactions
+            - GPRs
+            - External compartment
 
         The metabolic model, as with other models, provides a clean interface for manipulation with the add, remove and
-        update methods.
+        update methods. One can perform the following operations:
+            - Add reactions, metabolites and genes
+            - Remove reactions, metabolites and genes
+            - Update the objective function
 
         :param identifier: identifier, e.g. iMC1010
         :param compartments: a dictionary with additional compartments not encoded in the metabolites
@@ -42,7 +87,6 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
         the simulations together with the respective coefficients
         :param reactions: a dictionary with Reaction objects. See variables.Reaction for more info
         """
-
         # compartments attribute can be shared across the children, thus name mangling
         self.__compartments = {}
         self._genes = {}
@@ -63,12 +107,13 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
     # -----------------------------------------------------------------------------
     # Model type manager
     # -----------------------------------------------------------------------------
-
     @serialize('types', None)
     @property
     def types(self):
-
-        # noinspection PyUnresolvedReferences
+        """
+        Returns the types of the model
+        :return: a set with the types of the model
+        """
         _types = {MetabolicModel.model_type}
 
         _types.update(super(MetabolicModel, self).types)
@@ -78,29 +123,64 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
     # -----------------------------------------------------------------------------
     # Static attributes
     # -----------------------------------------------------------------------------
-
     @serialize('genes', 'genes', '_genes')
     @property
     def genes(self) -> Dict[str, 'Gene']:
+        """
+        It returns a dictionary with the genes of the model. The key is the gene identifier and the value is the
+        `Gene` object. To retrieve an iterator with the genes use `yield_genes` method.
+        Note that the genes attribute retrieves a copy of the genes' container.
+        To update the genes container set new `genes` or use `add` and `remove` methods.
+        :return: a dictionary with the genes of the model
+        """
         return self._genes.copy()
 
     @serialize('metabolites', 'metabolites', '_metabolites')
     @property
     def metabolites(self) -> Dict[str, 'Metabolite']:
+        """
+        It returns a dictionary with the metabolites of the model. The key is the metabolite identifier and the value is
+        the `Metabolite` object. To retrieve an iterator with the metabolites use `yield_metabolites` method.
+        Note that the metabolites attribute retrieves a copy of the metabolites' container.
+        To update the metabolites container set new `metabolites` or use `add` and `remove` methods.
+        :return: a dictionary with the metabolites of the model
+        """
         return self._metabolites.copy()
 
     @serialize('objective', 'objective', '_objective')
     @property
     def objective(self) -> Dict['Reaction', Union[float, int]]:
+        """
+        It returns a dictionary with the objective functions of the model.
+        The key is the `Reaction` object and the value is the respective coefficient.
+        Note that the objective attribute retrieves a copy of the objective's container.
+        To update the objective container set a new `objective` or use `update` method.
+        :return: a dictionary with the objective functions of the model
+        """
         return self._objective.copy()
 
     @serialize('reactions', 'reactions', '_reactions')
     @property
     def reactions(self) -> Dict[str, 'Reaction']:
+        """
+        It returns a dictionary with the reactions of the model. The key is the reaction identifier and the value is
+        the `Reaction` object. To retrieve an iterator with the reactions use `yield_reactions` method.
+        Note that the reactions attribute retrieves a copy of the reactions' container.
+        To update the reactions container set new `reactions` or use `add` and `remove` methods.
+        :return: a dictionary with the reactions of the model
+        """
         return self._reactions.copy()
 
     @property
     def compartments(self) -> Dict[str, str]:
+        """
+        It returns a dictionary with the compartments of the model. The key is the compartment identifier a
+        nd the value is the compartment name.
+        To retrieve an iterator with the compartments use `yield_compartments` method.
+        Note that the compartments attribute retrieves a copy of the compartments' container.
+        To update the compartments container set new `compartments`.
+        :return:
+        """
 
         compartments = {met.compartment: self.__compartments.get(met.compartment, '')
                         for met in self.yield_metabolites()
@@ -115,11 +195,15 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
     # -----------------------------------------------------------------------------
     # Static attributes setters
     # -----------------------------------------------------------------------------
-
     @compartments.setter
     @recorder
     def compartments(self, value: Dict[str, str]):
-
+        """
+        It sets the compartments of the model. The key is the compartment identifier a
+        nd the value is the compartment name.
+        :param value: a dictionary with the compartments of the model
+        :return:
+        """
         if not value:
             value = {}
 
@@ -128,7 +212,11 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
     @genes.setter
     @recorder
     def genes(self, value: Dict[str, 'Gene']):
-
+        """
+        It sets the genes of the model. The key is the gene identifier and the value is the `Gene` object.
+        :param value: a dictionary with the genes of the model
+        :return:
+        """
         if not value:
             value = {}
 
@@ -138,7 +226,12 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
     @metabolites.setter
     @recorder
     def metabolites(self, value: Dict[str, 'Metabolite']):
-
+        """
+        It sets the metabolites of the model. The key is the metabolite identifier and the value is the `Metabolite`
+        object.
+        :param value: a dictionary with the metabolites of the model
+        :return:
+        """
         if not value:
             value = {}
 
@@ -148,7 +241,12 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
     @objective.setter
     @recorder
     def objective(self, value: Dict['Reaction', Union[float, int]]):
-
+        """
+        It sets the objective functions of the model. The key is the `Reaction` object and the value is the respective
+        coefficient.
+        :param value: a dictionary with the objective functions of the model
+        :return:
+        """
         if not value:
             value = {}
 
@@ -183,7 +281,11 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
     @reactions.setter
     @recorder
     def reactions(self, value: Dict[str, 'Reaction']):
-
+        """
+        It sets the reactions of the model. The key is the reaction identifier and the value is the `Reaction` object.
+        :param value: a dictionary with the reactions of the model
+        :return:
+        """
         if not value:
             value = {}
 
@@ -196,7 +298,13 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
 
     @property
     def external_compartment(self) -> Union[str, None]:
-
+        """
+        It returns the external compartment of the model. This compartment usually corresponds
+        to the extracellular space.
+        The external compartment is identified as the compartment having more external metabolites.
+        External metabolites are often associated with boundary reactions.
+        :return: the external compartment of the model
+        """
         if not self.compartments:
             return
 
@@ -223,8 +331,11 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
 
         return external_compartment
 
-    def _get_boundaries(self):
-
+    def _get_boundaries(self) -> Tuple[Dict[str, 'Reaction'], Dict[str, 'Reaction'], Dict[str, 'Reaction']]:
+        """
+        It returns the boundary reactions of the model.
+        :return: a tuple with exchanges, sinks, demands reactions of the model
+        """
         external_compartment = self.external_compartment
 
         if external_compartment is None:
@@ -255,67 +366,106 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
 
     @property
     def demands(self) -> Dict[str, 'Reaction']:
-
+        """
+        It returns the demand reactions of the model.
+        Demand reactions are reactions that consume a metabolite from its compartment.
+        :return: a dictionary with the demand reactions of the model
+        """
         _, _, demands = self._get_boundaries()
-
         return demands
 
     @property
     def exchanges(self) -> Dict[str, 'Reaction']:
-
+        """
+        It returns the exchange reactions of the model.
+        Exchange reactions are reactions define the environmental conditions of a metabolic model.
+        These reactions can provide or consume a metabolite from the extracellular space.
+        :return: a dictionary with the exchange reactions of the model
+        """
         exchanges, _, _ = self._get_boundaries()
-
         return exchanges
 
     @property
     def sinks(self) -> Dict[str, 'Reaction']:
-
+        """
+        It returns the sink reactions of the model.
+        Sink reactions are reactions that either consume or produce a metabolite in its compartment.
+        :return: a dictionary with the sink reactions of the model
+        """
         _, sinks, _ = self._get_boundaries()
-
         return sinks
 
     # -----------------------------------------------------------------------------
     # Generators
     # -----------------------------------------------------------------------------
-
     def yield_compartments(self) -> Generator[str, None, None]:
-
+        """
+        It yields the compartments of the model.
+        :return: a generator with the compartments of the model
+        """
         return generator(self.compartments)
 
     def yield_demands(self) -> Generator['Reaction', None, None]:
-
+        """
+        It yields the demand reactions of the model.
+        :return: a generator with the demand reactions of the model
+        """
         return generator(self.demands)
 
     def yield_exchanges(self) -> Generator['Reaction', None, None]:
-
+        """
+        It yields the exchange reactions of the model.
+        :return: a generator with the exchange reactions of the model
+        """
         return generator(self.exchanges)
 
     def yield_genes(self) -> Generator['Gene', None, None]:
-
+        """
+        It yields the genes of the model.
+        :return: a generator with the genes of the model
+        """
         return generator(self._genes)
 
     def yield_gprs(self) -> Generator['Expression', None, None]:
-
+        """
+        It yields the GPRs of the model.
+        :return: a generator with the GPRs of the model
+        """
         return (value.gpr for value in self._reactions.values())
 
     def yield_metabolites(self) -> Generator['Metabolite', None, None]:
-
+        """
+        It yields the metabolites of the model.
+        :return: a generator with the metabolites of the model
+        """
         return generator(self._metabolites)
 
     def yield_reactions(self) -> Generator['Reaction', None, None]:
-
+        """
+        It yields the reactions of the model.
+        :return: a generator with the reactions of the model
+        """
         return generator(self._reactions)
 
     def yield_sinks(self) -> Generator['Reaction', None, None]:
-
+        """
+        It yields the sink reactions of the model.
+        :return: a generator with the sink reactions of the model
+        """
         return generator(self.sinks)
 
     # -----------------------------------------------------------------------------
     # Operations/Manipulations
     # -----------------------------------------------------------------------------
-
     def get(self, identifier: Any, default=None) -> Union['Gene', 'Metabolite', 'Reaction']:
-
+        """
+        It returns the object associated with the identifier.
+        In case the identifier is not found, it returns the default value.
+        For metabolic models, the identifier can be a gene, a metabolite or a reaction.
+        :param identifier: the identifier of the object
+        :param default: the default value to return in case the identifier is not found
+        :return: the object associated with the identifier
+        """
         if identifier in self._metabolites:
             return self._metabolites[identifier]
 
@@ -335,7 +485,27 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
             *types: str,
             comprehensive: bool = True,
             history=True):
+        """
+        It adds the variables to the model.
 
+        This method accepts a single variable or a list of variables to be added to specific containers in the model.
+        The containers to which the variables will be added are specified by the types.
+
+        For instance, if a variable is simultaneously a metabolite and reaction,
+        it will be added to the metabolites and reaction containers.
+
+        If comprehensive is True, the variables and their related variables will be added to the model too.
+        If history is True, the changes will be recorded in the history.
+
+        This method notifies all simulators with the recent changes.
+
+        :param variables: the variables to be added to the model
+        :param types: the types of the variables setting which containers will store the variables.
+        If none, the variables will be added to the containers according to their type.
+        :param comprehensive: if True, the variables and their related variables will be added to the model too
+        :param history: if True, the changes will be recorded in the history
+        :return:
+        """
         variables = iterable(variables)
 
         if not types:
@@ -405,7 +575,27 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
                                 Set[Union['Gene', 'Metabolite', 'Reaction']]],
                *types: str,
                remove_orphans: bool = False, history=True):
+        """
+        It removes the variables from the model.
 
+        This method accepts a single variable or a list of variables to be removed from specific containers in the model.
+        The containers from which the variables will be removed are specified by the types.
+
+        For instance, if a variable is simultaneously a metabolite and reaction,
+        it will be removed from the metabolites and reaction containers.
+
+        If remove_orphans is True, the variables and their related variables will be removed from the model too.
+        If history is True, the changes will be recorded in the history.
+
+        This method notifies all simulators with the recent changes.
+
+        :param variables: the variables to be removed from the model
+        :param types: the types of the variables setting which containers will remove the variables.
+        If none, the variables will be removed from the containers according to their type.
+        :param remove_orphans: if True, the variables and their related variables will be removed from the model too
+        :param history: if True, the changes will be recorded in the history
+        :return:
+        """
         variables = iterable(variables)
 
         if not types:
@@ -499,7 +689,15 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
                                 Tuple[Union['Gene', 'Metabolite', 'Reaction']],
                                 Set[Union['Gene', 'Metabolite', 'Reaction']]] = None,
                **kwargs):
+        """
+        It updates the model with relevant information, namely the compartments, objective and variables.
 
+        :param compartments: the compartments to be updated
+        :param objective: the objective to be updated
+        :param variables: the variables to be updated
+        :param kwargs: additional arguments
+        :return:
+        """
         if compartments is not None:
             self.compartments = compartments
 
@@ -514,7 +712,6 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
     # -----------------------------------------------------------------------------
     # Helper functions for the operations/Manipulations
     # -----------------------------------------------------------------------------
-
     def _add_reaction(self, reaction, comprehensive=True):
 
         # adding a reaction is regularly a in-depth append method, as both metabolites and genes associated with the

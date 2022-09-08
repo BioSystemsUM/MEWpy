@@ -176,6 +176,8 @@ class Variable(Serializer, metaclass=MetaVariable, factory=True):
     Base methods:
         - factory: the factory for dynamic variable types
         - from_types: creates a variable from a list of types
+        - copy: creates a copy of the variable
+        - deepcopy: creates a deep copy of the variable
         - undo: undoes the last change of the variable
         - redo: redoes the last change of the variable
         - reset: resets the variable to its initial state
@@ -183,6 +185,10 @@ class Variable(Serializer, metaclass=MetaVariable, factory=True):
         - update: updates the variable with a new information
         - from polymorphic constructors: creates a variable from a specific type
         - is polymorphic type checkers: checks if a variable is of a specific type
+
+    Serialization:
+        - to_dict: serializes the variable to a dictionary
+        - from_dict: deserializes the variable from a dictionary
 
     The Variable class holds the registry of all potential variables.
     """
@@ -913,15 +919,16 @@ def variables_from_symbolic(symbolic: 'Symbolic',
     return variables
 
 
-def build_variable(types, kwargs) -> Union['Variable',
-                                           'Gene',
-                                           'Interaction',
-                                           'Metabolite',
-                                           'Reaction',
-                                           'Regulator',
-                                           'Target']:
+def build_variable(types: Iterable[str], kwargs: Dict[str, Any]) -> Union['Variable',
+                                                                          'Gene',
+                                                                          'Interaction',
+                                                                          'Metabolite',
+                                                                          'Reaction',
+                                                                          'Regulator',
+                                                                          'Target']:
     """
-    It builds a variable from the given types and keyword arguments.
+    It builds a variable from the given types and keyword arguments. Check the `Variable.from_types()` method for more
+    details.
     :param types: the types of the variable
     :param kwargs: the keyword arguments to build the variable
     :return: a new variable of the given types
