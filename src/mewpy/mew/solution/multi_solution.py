@@ -1,14 +1,25 @@
-# TODO: this module largely depends on pandas dataframes. Should it be set as package requirement?
-# noinspection PyPackageRequirements
-from pandas import concat
+from typing import TYPE_CHECKING, List, Dict, Iterable, Union
+
+import pandas as pd
+
+if TYPE_CHECKING:
+    from .model_solution import ModelSolution
 
 
-# TODO: methods stubs and type hinting
-# TODO: maybe the following solution objects should inherit from the same multisolution object!
 class MultiSolution:
-
-    def __init__(self, *solutions):
-
+    """
+    A MultiSolution object is a collection of Solution objects.
+    It can be used to compare different simulation methods or to compare the same method with different parameters.
+    A MultiSolution object can be created by passing a list of Solution objects to the constructor.
+    This object can be exported into a pandas DataFrame or Summary-like object
+    using the to_frame(), to_summary() methods, respectively.
+    """
+    def __init__(self, *solutions: 'ModelSolution'):
+        """
+        A MultiSolution object is a collection of Solution objects.
+        It can be used to compare different simulation methods or to compare the same method with different parameters.
+        :param solutions: a list of Solution objects
+        """
         if not solutions:
             _solutions = {}
         else:
@@ -21,10 +32,18 @@ class MultiSolution:
         self._solutions = _solutions
 
     @property
-    def solutions(self):
+    def solutions(self) -> Dict[str, 'ModelSolution']:
+        """
+        Returns a dict of Solution objects by the method name
+        :return: a dict of Solution objects by the method name
+        """
         return self._solutions
 
-    def to_frame(self):
+    def to_frame(self) -> pd.DataFrame:
+        """
+        Returns a pandas DataFrame with the results of the MultiSolution object
+        :return: pandas DataFrame by the method name
+        """
         frames = []
         columns = []
 
@@ -32,12 +51,15 @@ class MultiSolution:
             frames.append(solution.to_frame().frame)
             columns.append(method)
 
-        df = concat(frames, axis=1, join='outer', keys=columns)
+        df = pd.concat(frames, axis=1, join='outer', keys=columns)
 
         return df
 
-    def to_summary(self):
-
+    def to_summary(self) -> pd.DataFrame:
+        """
+        Returns a pandas DataFrame with the summary of the MultiSolution object
+        :return: pandas DataFrame by the method name
+        """
         frames = []
         columns = []
 
@@ -45,7 +67,7 @@ class MultiSolution:
             frames.append(solution.to_summary().frame)
             columns.append(method)
 
-        df = concat(frames, axis=1, join='outer', keys=columns)
+        df = pd.concat(frames, axis=1, join='outer', keys=columns)
 
         return df
 
@@ -58,9 +80,19 @@ class MultiSolution:
 
 # TODO: methods stubs and type hinting
 class DynamicSolution:
-
-    def __init__(self, *solutions, time=None):
-
+    """
+    A DynamicSolution object is a collection of Solution objects.
+    It is similar to the MultiSolution object, but it is used to store the results of a dynamic simulation using the
+    time point rather than the method name.
+    """
+    def __init__(self, *solutions: 'ModelSolution', time: Iterable = None):
+        """
+        A DynamicSolution object is a collection of Solution objects.
+        It is similar to the MultiSolution object, but it is used to store the results of a dynamic simulation using the
+        time point rather than the method name.
+        :param solutions: a list of Solution objects
+        :param time: a linear space of time points
+        """
         if not solutions:
             _solutions = {}
             time = []
@@ -82,10 +114,18 @@ class DynamicSolution:
         self._time = time
 
     @property
-    def solutions(self):
+    def solutions(self) -> Dict[str, 'ModelSolution']:
+        """
+        Returns a dict of Solution objects by the time point
+        :return: a dict of Solution objects by the time point
+        """
         return self._solutions
 
-    def to_frame(self):
+    def to_frame(self) -> pd.DataFrame:
+        """
+        Returns a pandas DataFrame with the results of the DynamicSolution object
+        :return: pandas DataFrame by the time point
+        """
         frames = []
         columns = []
 
@@ -93,12 +133,15 @@ class DynamicSolution:
             frames.append(solution.to_frame().frame)
             columns.append(time)
 
-        df = concat(frames, axis=1, join='outer', keys=columns)
+        df = pd.concat(frames, axis=1, join='outer', keys=columns)
 
         return df
 
-    def to_summary(self):
-
+    def to_summary(self) -> pd.DataFrame:
+        """
+        Returns a pandas DataFrame with the summary of the DynamicSolution object
+        :return: pandas DataFrame by the time point
+        """
         frames = []
         columns = []
 
@@ -106,7 +149,7 @@ class DynamicSolution:
             frames.append(solution.to_summary().frame)
             columns.append(time)
 
-        df = concat(frames, axis=1, join='outer', keys=columns)
+        df = pd.concat(frames, axis=1, join='outer', keys=columns)
 
         return df
 
@@ -119,9 +162,19 @@ class DynamicSolution:
 
 # TODO: methods stubs and type hinting
 class KOSolution:
-
-    def __init__(self, solutions, kos=None):
-
+    """
+    A KOSolution object is a collection of Solution objects.
+    It is similar to the MultiSolution object, but it is used to store the results of a KO simulations.
+    """
+    def __init__(self,
+                 solutions: Union[List['ModelSolution'], Dict[str, 'ModelSolution']],
+                 kos: List[str] = None):
+        """
+        A KOSolution object is a collection of Solution objects.
+        It is similar to the MultiSolution object, but it is used to store the results of a KO simulations.
+        :param solutions: a list of Solution objects or a dict of Solution objects by the KO name
+        :param kos: a list of KO names
+        """
         if not solutions:
             _solutions = {}
             kos = []
@@ -153,10 +206,18 @@ class KOSolution:
         self._time = kos
 
     @property
-    def solutions(self):
+    def solutions(self) -> Dict[str, 'ModelSolution']:
+        """
+        Returns a dict of Solution objects by the KO name
+        :return: a dict of Solution objects by the KO name
+        """
         return self._solutions
 
-    def to_frame(self):
+    def to_frame(self) -> pd.DataFrame:
+        """
+        Returns a pandas DataFrame with the results of the KOSolution object
+        :return: pandas DataFrame by the KO name
+        """
         frames = []
         columns = []
 
@@ -164,12 +225,15 @@ class KOSolution:
             frames.append(solution.to_frame().frame)
             columns.append(ko)
 
-        df = concat(frames, axis=1, join='outer', keys=columns)
+        df = pd.concat(frames, axis=1, join='outer', keys=columns)
 
         return df
 
-    def to_summary(self):
-
+    def to_summary(self) -> pd.DataFrame:
+        """
+        Returns a pandas DataFrame with the summary of the KOSolution object
+        :return: pandas DataFrame by the KO name
+        """
         frames = []
         columns = []
 
@@ -177,7 +241,7 @@ class KOSolution:
             frames.append(solution.to_summary().frame)
             columns.append(ko)
 
-        df = concat(frames, axis=1, join='outer', keys=columns)
+        df = pd.concat(frames, axis=1, join='outer', keys=columns)
 
         return df
 
