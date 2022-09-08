@@ -1,6 +1,7 @@
 """odespy ODE Solver
 """
 from .ode import ODEMethod, SolverConfigurations, ODESolver
+import numpy as np
 import odespy
 
 methods = {
@@ -46,15 +47,24 @@ class ODESpySolver(ODESolver):
         :return: an instance of odeSolver
 
         """
-        if self.method == ODEMethod.AdamsBashforth2:
-            solver = methods[self.method](self.func, method='bdf')
-        else:
-            solver = methods[self.method](self.func)
+        def f(u, t):
+            return self.func(t, u)
 
+        try:
+            if self.method == ODEMethod.AdamsBashforth2:
+                solver = methods[self.method](f, method='bdf')
+            else:
+                solver = methods[self.method](f)
+            
             # update default parameters
-        solver.nsteps = SolverConfigurations.N_STEPS
-        solver.atol = SolverConfigurations.ABSOLUTE_TOL
-        solver.rtol = SolverConfigurations.RELATIVE_TOL
-        solver.set_initial_condition(y0)
-        sol, _ = solver.solve()
-        return sol
+            time_points = np.linspace(t_span[0], t_span[1], num=SolverConfigurations.N_STEPS, endpoint=True)
+            print(time_points)
+            solver.atol = SolverConfigurations.ABSOLUTE_TOL
+            solver.rtol = SolverConfigurations.RELATIVE_TOL
+            solver.set_initial_condition(y0)
+            y, t = solver.solve(time_points)
+            C = [c[-1] for c in y]
+            return C, t, y
+        except Exception as e:
+            print(e)
+            raise(Exception)

@@ -7,7 +7,7 @@ with open('README.rst') as readme_file:
     readme = readme_file.read()
 
 requirements = ['cobra', 'inspyred', 'jmetalpy',
-                'reframed', 'networkx', 'matplotlib<3.3',
+                'reframed', 'networkx', 'matplotlib',
                 'joblib', 'tdqm']
 
 setup_requirements = requirements + ['pytest-runner']
