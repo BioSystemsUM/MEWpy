@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from mewpy.model import Model, MetabolicModel, RegulatoryModel
     from mewpy.mew.variables import Variable, Gene, Interaction, Metabolite, Reaction, Regulator, Target
 
+
 sys.setrecursionlimit(50000)
 
 
@@ -560,6 +561,17 @@ class Serializer:
                                                             'Reaction',
                                                             'Regulator',
                                                             'Target']]:
+        """
+        It is possible to export a variable or a model to a dictionary.
+        The object can be exported to a json or a pickle format. The json format is the default.
+        The json format contains the conversion of all objects to Python primitive types.
+        The pickle format contains the conversion to binary code.
+        To export model and variables together set variables to True.
+
+        :param serialization_format: the format of the exported dictionary. It can be either 'json' or 'pickle'.
+        :param variables: if True, the variables are exported as well. Otherwise, only the model is exported.
+        :return: a dictionary containing the model or the variable.
+        """
 
         is_model = False
         if hasattr(self, 'containers'):
@@ -581,7 +593,7 @@ class Serializer:
 
             return self._variable_serializer()
 
-        return {}
+        raise ValueError('The serialization format must be either json or pickle.')
 
     @classmethod
     def from_dict(cls: Union[Type['Serializer'], Type['Variable'], Type['Model']],
@@ -601,6 +613,17 @@ class Serializer:
                                                     'Target',
                                                     'MetabolicModel',
                                                     'RegulatoryModel']:
+        """
+        It is possible to create a new variable or model from a dictionary.
+        The dictionary must be in the same format as the one returned by the to_dict method.
+        That is, the dictionary might have the name of the containers/attributes with the primitive Python types or
+        Variables objects.
+
+        :param obj: dictionary with the information to create the variable or model
+        :param serialization_format: format of the dictionary
+        :param variables: if True, the dictionary must contain the information of the variables as well
+        :return: a new variable or model
+        """
 
         is_model = False
         if hasattr(cls, 'containers'):
@@ -620,7 +643,7 @@ class Serializer:
 
             return cls._variable_deserializer(obj)
 
-        return
+        raise ValueError('The serialization format must be either json or pickle')
 
     # -----------------------------------------------------------------------------
     # Copy leveraging serialization
@@ -647,7 +670,11 @@ class Serializer:
                             'Target',
                             'MetabolicModel',
                             'RegulatoryModel']:
-
+        """
+        It creates a copy of the variable or model. This is a shallow copy, meaning that the attributes and containers
+        are copied by reference. If you want to create a deep copy, use the deepcopy method.
+        :return: a new variable or model
+        """
         return self.__copy__()
 
     def __deepcopy__(self) -> Union['Gene',
@@ -671,5 +698,10 @@ class Serializer:
                                 'Target',
                                 'MetabolicModel',
                                 'RegulatoryModel']:
-
+        """
+        It creates a deep copy of the variable or model.
+        This means that the attributes and containers are copied by value.
+        If you want to create a shallow copy, use the copy method.
+        :return: a new variable or model
+        """
         return self.__deepcopy__()
