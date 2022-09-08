@@ -203,4 +203,4 @@ def optorf_optimization():
 
 if __name__ == '__main__':
     integrated_analysis()
-    # optorf_optimization()
+    optorf_optimization()

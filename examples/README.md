@@ -16,7 +16,7 @@ This folder contains examples on how MEWpy can be used to perform phenotype simu
 
 - [load.py](scripts/): Examples on how to load models and get a model specific phenotype simulator.
 - [geneopt.py](scripts/): Examples on how to run CSO thar modify genes expression.
-- [gpr_eval.py](scripts/): Examples om how to evaluate GPRs.
+- [gpr_eval.py](scripts/): Examples on how to evaluate GPRs.
 - [geckosimulation.py](scripts/): Examples on how to run phenotype simulations on GECKO models.
 - [cobra_geckoopt.py](scripts/): Examples on how to run CSOs using the original GECKO model.
 - [geckoopt.py](scripts/): Examples on how to run CSOs using the original the REFRAME based GECKO model.
@@ -27,6 +27,7 @@ This folder contains examples on how MEWpy can be used to perform phenotype simu
 - [rfba.py](scripts/): rFBA example.
 - [srfba.py](scripts/): srFBA example.
 - [optorf.py](scripts/): OptORF examples.
+- [integrated_analysis.py](scripts/): Examples on how to perform integrated analysis using MEWpy.
 
 
 More information can be found in the MEWpy documentation https://mewpy.readthedocs.io.
