@@ -14,7 +14,6 @@ if TYPE_CHECKING:
 
 
 def _rfba(method, objective, minimize, initial_state, constraints):
-
     # noinspection PyProtectedMember
     old_linear_obj = method._linear_objective.copy()
     # noinspection PyProtectedMember
@@ -62,8 +61,9 @@ def slim_rfba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
     if not rfba:
         rfba = RFBA(model, build=True, attach=False)
 
-    return _rfba(method=rfba, objective=objective, minimize=minimize, initial_state=initial_state,
-                 constraints=constraints)
+    sol, _ = _rfba(method=rfba, objective=objective, minimize=minimize, initial_state=initial_state,
+                   constraints=constraints)
+    return sol
 
 
 def slim_srfba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
@@ -93,8 +93,9 @@ def slim_srfba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
     if not srfba:
         srfba = SRFBA(model, build=True, attach=False)
 
-    return _rfba(method=srfba, objective=objective, minimize=minimize, initial_state=initial_state,
-                 constraints=constraints)
+    sol, _ = _rfba(method=srfba, objective=objective, minimize=minimize, initial_state=initial_state,
+                   constraints=constraints)
+    return sol
 
 
 def _inputs_processing(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'] = None,
@@ -177,8 +178,8 @@ def _inputs_processing(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'
     if fraction is not None:
 
         if fraction > 0.0:
-            sol = _rfba(method=rfba, objective=objective, minimize=False, initial_state=initial_state,
-                        constraints=constraints)
+            sol, _ = _rfba(method=rfba, objective=objective, minimize=False, initial_state=initial_state,
+                           constraints=constraints)
 
             if sol is None:
                 sol = 0.0
@@ -250,13 +251,13 @@ def ifva(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
         else:
             rxn_objective = rxn.id
 
-        sol = _rfba(method=rfba, objective=rxn_objective, minimize=True, initial_state=initial_state,
-                    constraints=constraints)
+        sol, _ = _rfba(method=rfba, objective=rxn_objective, minimize=True, initial_state=initial_state,
+                       constraints=constraints)
 
         res[rxn_objective].append(sol)
 
-        sol = _rfba(method=rfba, objective=rxn_objective, minimize=False, initial_state=initial_state,
-                    constraints=constraints)
+        sol, _ = _rfba(method=rfba, objective=rxn_objective, minimize=False, initial_state=initial_state,
+                       constraints=constraints)
 
         res[rxn_objective].append(sol)
 

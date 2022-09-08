@@ -68,7 +68,8 @@ def slim_fba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
     if not fba:
         fba = FBA(model, build=True, attach=False)
 
-    return _fba(method=fba, objective=objective, minimize=minimize, constraints=constraints)
+    sol, _ = _fba(method=fba, objective=objective, minimize=minimize, constraints=constraints)
+    return sol
 
 
 def slim_pfba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
@@ -101,7 +102,8 @@ def slim_pfba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
     if not pfba:
         pfba = pFBA(model, build=True, attach=False)
 
-    return _fba(method=pfba, objective=objective, minimize=minimize, constraints=constraints)
+    sol, _ = _fba(method=pfba, objective=objective, minimize=minimize, constraints=constraints)
+    return sol
 
 
 def slim_milp_fba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
@@ -136,7 +138,8 @@ def slim_milp_fba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
     if not milp_fba:
         milp_fba = milpFBA(model, build=True, attach=False)
 
-    return _fba(method=milp_fba, objective=objective, minimize=minimize, constraints=constraints)
+    sol, _ = _fba(method=milp_fba, objective=objective, minimize=minimize, constraints=constraints)
+    return sol
 
 
 def _inputs_processing(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'] = None,
@@ -213,7 +216,7 @@ def _inputs_processing(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'
     if fraction is not None:
 
         if fraction > 0.0:
-            sol = _fba(method=fba, objective=objective, minimize=False, constraints=constraints)
+            sol, _ = _fba(method=fba, objective=objective, minimize=False, constraints=constraints)
 
             constraints[obj_rxn] = (fraction * sol, ModelConstants.REACTION_UPPER_BOUND)
 
@@ -270,11 +273,11 @@ def fva(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
         else:
             rxn_objective = rxn.id
 
-        sol = _fba(method=fba, objective=rxn_objective, minimize=True, constraints=constraints)
+        sol, _ = _fba(method=fba, objective=rxn_objective, minimize=True, constraints=constraints)
 
         res[rxn_objective].append(sol)
 
-        sol = _fba(method=fba, objective=rxn_objective, minimize=False, constraints=constraints)
+        sol, _ = _fba(method=fba, objective=rxn_objective, minimize=False, constraints=constraints)
 
         res[rxn_objective].append(sol)
 

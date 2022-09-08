@@ -60,7 +60,8 @@ def slim_milp_bool(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
     if get_values:
         return sol.values
 
-    return decode_solver_solution(solution=sol, minimize=minimize)
+    sol, _ = decode_solver_solution(solution=sol, minimize=minimize)
+    return sol
 
 
 def slim_sim_bool(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
