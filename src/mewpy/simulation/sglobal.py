@@ -7,7 +7,6 @@ class MEWPYSimSolvers(Singleton):
         self._mewpy_sim_solvers = []
 
     def build(self):
-        print("Building LP solvers list")
         try:
             import gurobipy
             self._mewpy_sim_solvers.append('gurobi')

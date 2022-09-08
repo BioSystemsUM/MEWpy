@@ -39,11 +39,11 @@ class ODEMethod(Enum):
 class SolverConfigurations:
     ABSOLUTE_TOL = 1e-9
     RELATIVE_TOL = 1e-6
-    N_STEPS = 10000
+    N_STEPS = 20
 
 
 class KineticConfigurations:
-    SOLVER_METHOD = ODEMethod.Radau
+    SOLVER_METHOD = ODEMethod.LSODA
     STEADY_STATE_TIME = 1e9
     SOLVER_TIMEOUT = 6000
 
