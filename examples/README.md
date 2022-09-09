@@ -24,10 +24,8 @@ This folder contains examples on how MEWpy can be used to perform phenotype simu
 - [smoment.py](scripts/): Examples on how to run CSOs using sMOMENT and AUTOPACMEN GECKO like models for E.coli.
 - [kinetic.py](scripts/): Example on how to use MEWpy for strain design using a kinetic model.
 - [optram.py](scripts/): OptRAM example.
-- [rfba.py](scripts/): rFBA example.
-- [srfba.py](scripts/): srFBA example.
-- [optorf.py](scripts/): OptORF examples.
 - [integrated_analysis.py](scripts/): Examples on how to perform integrated analysis using MEWpy.
+- [optorf.py](scripts/): OptORF examples.
 
 
 More information can be found in the MEWpy documentation https://mewpy.readthedocs.io.

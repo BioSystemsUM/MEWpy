@@ -1,17 +1,13 @@
 import os
 from pathlib import Path
 
+from mewpy.io import read_model, Engines, Reader
 from mewpy.mew.analysis import (FBA, pFBA, fva, single_reaction_deletion, single_gene_deletion, SRFBA, RFBA, ifva,
                                 isingle_reaction_deletion, isingle_gene_deletion, isingle_regulator_deletion)
-from mewpy.io import read_model, Engines, Reader
-from mewpy.optimization import EA
-from mewpy.optimization.evaluation import BPCY, WYIELD
-from mewpy.problems import OptORFProblem
 from mewpy.simulation import get_simulator
-from mewpy.util.io import population_to_csv
 
 
-def read():
+def read_ecoli_core():
     """
     Reads the model from the given file.
     :return: the model
@@ -43,12 +39,12 @@ def read():
     return model
 
 
-def integrated_analysis():
+def ecoli_core_integrated_analysis():
     """
-    Performs an integrated analysis of the model.
+    Performs an integrated analysis of the E. coli core integrated model.
     :return:
     """
-    model = read()
+    model = read_ecoli_core()
 
     # Biomass reaction identifier. The model objective function is set to be the biomass reaction, as regular practice.
     _BIOMASS_ID = 'Biomass_Ecoli_core'
@@ -79,10 +75,6 @@ def integrated_analysis():
     _GLC = 'EX_glc__D_e'
     model.get(_GLC).bounds = (-10.0, 100000.0)
 
-    # -----------------------------------------
-    # Flux Analysis using MEWpy simulator
-    # -----------------------------------------
-
     # The MEWpy simulator can be easily created using get_simulator function
     simulator = get_simulator(model)
 
@@ -95,10 +87,6 @@ def integrated_analysis():
 
     # pFBA (default method of the simulator)
     sol = simulator.simulate(method='pFBA')
-
-    # -----------------------------------------
-    # Additional Flux Analysis
-    # -----------------------------------------
 
     # FBA
     simulator = FBA(model)
@@ -121,10 +109,6 @@ def integrated_analysis():
     # simulating FVA
     fva_sol = fva(model=model, method='pfba', fraction=0.9, reactions=list(model.reactions.keys())[0:10])
 
-    # -----------------------------------------
-    # End of the Additional Flux Analysis
-    # -----------------------------------------
-
     # simulating Steady-State Regulatory FBA
     simulator = SRFBA(model)
     sol = simulator.optimize()
@@ -135,10 +119,6 @@ def integrated_analysis():
     sol = simulator.optimize()
     # simulating Dynamic Regulatory FBA
     sol = simulator.optimize(dynamic=True)
-
-    # -----------------------------------------
-    # Additional Integrated Flux Analysis
-    # -----------------------------------------
 
     # Integrated reaction deletion using SRFBA
     sol = isingle_reaction_deletion(model, method='srfba', reactions=list(model.reactions.keys())[0:10])
@@ -152,55 +132,6 @@ def integrated_analysis():
     # Integrated FVA using SRFBA
     sol = ifva(model, method='srfba', reactions=list(model.reactions.keys())[0:10])
 
-    # -----------------------------------------
-    # End of the Additional Integrated Flux Analysis
-    # -----------------------------------------
-
-
-def optorf_optimization():
-    """
-    OptORF optimization
-    :return:
-    """
-    model = read()
-
-    # Biomass reaction identifier. The model objective function is set to be the biomass reaction, as regular practice.
-    _BIOMASS_ID = 'Biomass_Ecoli_core'
-    model.objective = {_BIOMASS_ID: 1}
-
-    # glucose-exchange reaction identifier. Glucose is the main carbon source for E. coli.
-    # Thus, the glucose exchange reaction bounds are set to -10 and 100000.0
-    _GLC = 'EX_glc__D_e'
-    model.get(_GLC).bounds = (-10.0, 100000.0)
-
-    # setting each metabolic gene state/coefficient to 1 (active state)
-    for gene in model.yield_genes():
-        gene.coefficient.coefficients = (1,)
-
-    # Succinate is a compound of interest that can be synthesized by E. coli.
-    # In this case, it will be the target product for the optimization
-    _SUC = 'EX_succ_e'
-
-    # The evaluators Biomass-Product Coupled Yield and Weighted Yield will be used as evaluation metrics
-    # of each set of candidates
-    evaluator_1 = BPCY(_BIOMASS_ID, _SUC)
-    evaluator_2 = WYIELD(_BIOMASS_ID, _SUC)
-
-    # A OptORFProblem problem is created.
-    # The OptORF approach is based on gene and regulator deletion to identify optimization strategies.
-    # This problem uses a RFBA-like flux analysis to simulate a model constraints derived
-    # from the gene and regulator deletions
-    problem = OptORFProblem(model, [evaluator_1, evaluator_2], candidate_max_size=6)
-
-    # setting up the Evolutionary Algorithm runner with multiprocessing and maximum of 10 generations
-    ea = EA(problem, max_generations=10, mp=True)
-    final_pop = ea.run()
-
-    # saving the results
-    filename = f'OPTORF_{_SUC}_KO.csv'
-    population_to_csv(problem, final_pop, filename, simplify=False)
-
 
 if __name__ == '__main__':
-    integrated_analysis()
-    optorf_optimization()
+    ecoli_core_integrated_analysis()
