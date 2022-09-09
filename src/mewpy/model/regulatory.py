@@ -347,11 +347,11 @@ class RegulatoryModel(Model, model_type='regulatory', register=True, constructor
                 self._add_target(var)
                 var_types.remove('target')
 
-            elif 'regulator' in var_types:
+            if 'regulator' in var_types:
                 self._add_regulator(var)
                 var_types.remove('regulator')
 
-            elif 'interaction' in var_types:
+            if 'interaction' in var_types:
                 self._add_interaction(var, comprehensive=comprehensive)
                 interactions.append(var)
                 var_types.remove('interaction')
@@ -431,11 +431,11 @@ class RegulatoryModel(Model, model_type='regulatory', register=True, constructor
                 self._remove_target(var)
                 var_types.remove('target')
 
-            elif 'regulator' in var_types:
+            if 'regulator' in var_types:
                 self._remove_regulator(var)
                 var_types.remove('regulator')
 
-            elif 'interaction' in var_types:
+            if 'interaction' in var_types:
                 self._remove_interaction(var, remove_orphans=remove_orphans)
                 interactions.append(var)
                 var_types.remove('interaction')

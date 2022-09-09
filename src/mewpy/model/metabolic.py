@@ -527,11 +527,11 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
                 self._add_gene(var)
                 var_types.remove('gene')
 
-            elif 'metabolite' in var_types:
+            if 'metabolite' in var_types:
                 self._add_metabolite(var)
                 var_types.remove('metabolite')
 
-            elif 'reaction' in var_types:
+            if 'reaction' in var_types:
                 self._add_reaction(var, comprehensive=comprehensive)
                 reactions.append(var)
                 var_types.remove('reaction')
@@ -618,12 +618,12 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
                 self._remove_gene(var)
                 var_types.remove('gene')
 
-            elif 'metabolite' in var_types:
+            if 'metabolite' in var_types:
                 metabolites.append(var)
                 self._remove_metabolite(var)
                 var_types.remove('metabolite')
 
-            elif 'reaction' in var_types:
+            if 'reaction' in var_types:
                 reactions.append(var)
                 self._remove_reaction(var)
                 var_types.remove('reaction')

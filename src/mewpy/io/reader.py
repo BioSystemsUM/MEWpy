@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Type, Union, TYPE_CHECKING
 
 from .builder import Builder
@@ -31,8 +32,8 @@ class Reader(Builder):
     readers into a single model
     """
     def __init__(self,
-                 engine: Type['Engine'],
-                 io: Union[str, 'TextIOWrapper', 'Cobra_Model', 'Reframed_Model'],
+                 engine: Union[Type['Engine'], Engines],
+                 io: Union[str, Path, 'TextIOWrapper', 'Cobra_Model', 'Reframed_Model'],
                  sep: str = ',',
                  id_col: int = 0,
                  target_col: int = 0,
@@ -74,6 +75,9 @@ class Reader(Builder):
 
         if not io:
             raise ValueError('Nothing to read. Please provide a path, file handler or model')
+
+        if isinstance(io, Path):
+            io = str(io)
 
         if not isinstance(engine, Engines):
 

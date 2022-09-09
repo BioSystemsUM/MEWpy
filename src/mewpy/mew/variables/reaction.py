@@ -7,7 +7,6 @@ from mewpy.util.serialization import serialize
 from mewpy.util.history import recorder
 from mewpy.util.constants import ModelConstants
 from mewpy.io.engines.engines_utils import expression_warning
-from .coefficient import Coefficient
 from .variable import Variable, variables_from_symbolic
 
 if TYPE_CHECKING:
@@ -16,12 +15,20 @@ if TYPE_CHECKING:
     from mewpy.model import Model, MetabolicModel, RegulatoryModel
 
 
+def _bounds_setter(instance, old_bounds):
+    instance._bounds = tuple(old_bounds)
+
+    if instance.model:
+        notification = Notification(content=instance, content_type='bounds', action='set')
+        instance.model.notify(notification)
+
+
 class Reaction(Variable, variable_type='reaction', register=True, constructor=True, checker=True):
 
     def __init__(self,
                  identifier: Any,
-                 bounds: Tuple[Union[float, int], Union[float, int]] = None,
-                 stoichiometry: Dict['Metabolite', Union[float, int]] = None,
+                 bounds: Tuple[float, float] = None,
+                 stoichiometry: Dict['Metabolite', float] = None,
                  gpr: Expression = None,
                  **kwargs):
 
@@ -47,10 +54,10 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
 
         # the coefficient bounds initializer sets minimum and maximum bounds of MEWPY_LB and MEWPY_UB
         if not bounds:
-            lb, ub = ModelConstants.REACTION_LOWER_BOUND, ModelConstants.REACTION_UPPER_BOUND
+            bounds = ModelConstants.REACTION_LOWER_BOUND, ModelConstants.REACTION_UPPER_BOUND
 
         else:
-            lb, ub = bounds
+            bounds = tuple(bounds)
 
         if not gpr:
             gpr = Expression()
@@ -58,7 +65,7 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         if not stoichiometry:
             stoichiometry = {}
 
-        self._bounds = Coefficient.from_bounds(variable=self, lb=lb, ub=ub)
+        self._bounds = bounds
         self._gpr = Expression()
         self._stoichiometry = {}
 
@@ -70,9 +77,6 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         # The gpr must be an expression object. The expression object properties are used to check whether the genes
         # container is correct.
         self.add_gpr(gpr, history=False)
-
-        # There is an alternative constructor for building a reaction with a stringify-like gpr rule.
-        # Parsing takes the hard job to infer the correct relation between genes
 
     # -----------------------------------------------------------------------------
     # Variable type manager
@@ -96,6 +100,15 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     # -----------------------------------------------------------------------------
     # Static attributes
     # -----------------------------------------------------------------------------
+    @serialize('bounds', 'bounds', '_bounds')
+    @property
+    def bounds(self) -> Tuple[float, float]:
+        """
+        Bounds of the reaction. The lower and upper bounds of the reaction
+        :return: bounds tuple
+        """
+        return self._bounds
+
     @serialize('stoichiometry', 'stoichiometry', '_stoichiometry')
     @property
     def stoichiometry(self) -> Dict['Metabolite', Union[int, float]]:
@@ -104,15 +117,6 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         :return: stoichiometry as a dictionary
         """
         return self._stoichiometry.copy()
-
-    @serialize('coefficient', 'bounds', '_bounds')
-    @property
-    def coefficient(self) -> Coefficient:
-        """
-        Coefficient of the reaction. A coefficient object that holds the minimum and maximum bounds of the reaction
-        :return: coefficient object
-        """
-        return self._bounds
 
     @serialize('gpr', 'gpr', '_gpr')
     @property
@@ -127,6 +131,27 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     # -----------------------------------------------------------------------------
     # Static attributes setters
     # -----------------------------------------------------------------------------
+    @bounds.setter
+    @recorder
+    def bounds(self, value: Tuple[float, float]):
+        """
+        The setter for the bounds of the reaction.
+        It accepts a tuple of lower and upper bounds.
+        This setter replaces the current bounds with a new one.
+        It also handles the linear problems associated to this reaction.
+        :param value: tuple of lower and upper bounds
+        :return:
+        """
+
+        if not value:
+            value = (ModelConstants.REACTION_LOWER_BOUND, ModelConstants.REACTION_UPPER_BOUND)
+
+        self._bounds = value
+
+        if self.model:
+            notification = Notification(content=self, content_type='bounds', action='set')
+            self.model.notify(notification)
+
     @stoichiometry.setter
     @recorder
     def stoichiometry(self, value: Dict['Metabolite', Union[int, float]]):
@@ -197,20 +222,12 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
                 if met.compartment is not None}
 
     @property
-    def bounds(self) -> Tuple[Union[int, float], Union[int, float]]:
-        """
-        Bounds of the reaction
-        :return: tuple of bounds
-        """
-        return self.coefficient.bounds
-
-    @property
     def lower_bound(self) -> Union[int, float]:
         """
         Lower bound of the reaction
         :return: lower bound as a float
         """
-        return self.coefficient.lower_bound
+        return self.bounds[0]
 
     @property
     def upper_bound(self) -> Union[int, float]:
@@ -218,7 +235,7 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         Upper bound of the reaction
         :return: upper bound as a float
         """
-        return self.coefficient.upper_bound
+        return self.bounds[1]
 
     @property
     def reversibility(self) -> bool:
@@ -311,23 +328,6 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     # -----------------------------------------------------------------------------
     # Dynamic attributes setters
     # -----------------------------------------------------------------------------
-    @bounds.setter
-    @recorder
-    def bounds(self, value: Tuple[Union[float, int], Union[float, int]]):
-        """
-        The setter for the bounds of the reaction.
-        It accepts a tuple of lower and upper bounds.
-        This setter replaces the current bounds with a new one.
-        It also handles the linear problems associated to this reaction.
-        :param value: tuple of lower and upper bounds
-        :return:
-        """
-
-        if not value:
-            value = (ModelConstants.REACTION_LOWER_BOUND, ModelConstants.REACTION_UPPER_BOUND)
-
-        self.coefficient.coefficients = value
-
     @lower_bound.setter
     @recorder
     def lower_bound(self, value: Union[float, int]):
@@ -343,9 +343,13 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         if not value:
             value = ModelConstants.REACTION_LOWER_BOUND
 
-        value = (value,  self.upper_bound)
+        value = (value, self.upper_bound)
 
-        self.coefficient.coefficients = value
+        self._bounds = value
+
+        if self.model:
+            notification = Notification(content=self, content_type='bounds', action='set')
+            self.model.notify(notification)
 
     @upper_bound.setter
     @recorder
@@ -362,9 +366,11 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         if not value:
             value = ModelConstants.REACTION_UPPER_BOUND
 
-        value = (self.lower_bound, value)
+        self._bounds = (self.lower_bound, value)
 
-        self.coefficient.coefficients = value
+        if self.model:
+            notification = Notification(content=self, content_type='bounds', action='set')
+            self.model.notify(notification)
 
     # -----------------------------------------------------------------------------
     # Generators
@@ -457,7 +463,7 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
 
             symbolic = parse_expression(rule)
 
-            genes = variables_from_symbolic(symbolic=symbolic, types=('gene', ), model=model)
+            genes = variables_from_symbolic(symbolic=symbolic, types=('gene',), model=model)
 
             expression = Expression(symbolic=symbolic, variables=genes)
 
@@ -522,7 +528,22 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         :param history: record the operation
         :return:
         """
-        return self.coefficient.ko(coefficient=minimum_coefficient, history=history)
+        old_bounds = tuple(self.bounds)
+
+        self._bounds = (minimum_coefficient, minimum_coefficient)
+
+        if self.model:
+            notification = Notification(content=self, content_type='bounds', action='set')
+            self.model.notify(notification)
+
+        if history:
+            self.history.queue_command(undo_func=_bounds_setter,
+                                       undo_kwargs={'instance': self,
+                                                    'old_bounds': old_bounds},
+                                       func=self.ko,
+                                       kwargs={'minimum_coefficient': minimum_coefficient,
+                                               'history': False})
+        return
 
     def update(self,
                bounds: Tuple[Union[float, int], Union[float, int]] = None,
@@ -569,7 +590,6 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         :param history: whether to record the operation
         :return:
         """
-
         if history:
             self.history.queue_command(undo_func=self.replace_stoichiometry,
                                        undo_kwargs={'stoichiometry': self.stoichiometry,
@@ -607,7 +627,6 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         to_add = []
 
         for metabolite, coefficient in stoichiometry.items():
-
             # noinspection PyProtectedMember
             metabolite._reactions[self.id] = self
 
@@ -620,7 +639,7 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
             # constraints for each metabolite and replace it in the LP
             self.model.add(to_add, 'metabolite', comprehensive=False, history=False)
 
-            notification = Notification(content=(self, ),
+            notification = Notification(content=(self,),
                                         content_type='reactions',
                                         action='add')
 
@@ -676,7 +695,7 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
             if orphan_mets and remove_orphans_from_model:
                 self.model.remove(orphan_mets, 'metabolite', remove_orphans=False, history=False)
 
-            notification = Notification(content=(self, ),
+            notification = Notification(content=(self,),
                                         content_type='reactions',
                                         action='add')
 

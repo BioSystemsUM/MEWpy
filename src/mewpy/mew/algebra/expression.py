@@ -8,7 +8,7 @@ from .parsing import tokenize
 from .symbolic import NoneAtom, Symbolic, Symbol
 
 if TYPE_CHECKING:
-    from mewpy.mew.variables import Gene, Metabolite, Reaction, Regulator, Interaction, Target
+    from mewpy.mew.variables import Gene, Metabolite, Reaction, Regulator, Interaction, Target, Variable
 
 
 class Expression:
@@ -20,7 +20,8 @@ class Expression:
                                             'Metabolite',
                                             'Reaction',
                                             'Regulator',
-                                            'Target']] = None):
+                                            'Target',
+                                            'Variable']] = None):
 
         """
         Expression allows high-level programming of symbolic algebra (logic and math)

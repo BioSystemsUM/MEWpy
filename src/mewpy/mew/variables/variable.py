@@ -458,14 +458,6 @@ class Variable(Serializer, metaclass=MetaVariable, factory=True):
     def __str__(self):
         return self.name
 
-    def __repr__(self):
-        if self.types:
-            types = [v_type.title() for v_type in self.types]
-
-            return ', '.join(types) + f': {self.id}'
-
-        return f'Variable: {self.id}'
-
     # -----------------------------------------------------------------------------
     # Variable type manager
     # -----------------------------------------------------------------------------
