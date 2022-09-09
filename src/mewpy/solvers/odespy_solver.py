@@ -58,7 +58,6 @@ class ODESpySolver(ODESolver):
             
             # update default parameters
             time_points = np.linspace(t_span[0], t_span[1], num=SolverConfigurations.N_STEPS, endpoint=True)
-            print(time_points)
             solver.atol = SolverConfigurations.ABSOLUTE_TOL
             solver.rtol = SolverConfigurations.RELATIVE_TOL
             solver.set_initial_condition(y0)
