@@ -43,7 +43,8 @@ class CobraModelContainer(ModelContainer):
         stoichiometry = {met.id: val for met, val in rxn.metabolites.items()}
         res = {'id': r_id, 'name': rxn.name, 'lb': rxn.lower_bound,
                'ub': rxn.upper_bound, 'stoichiometry': stoichiometry}
-        res['gpr'] = rxn.gene_reaction_rule if rxn.gene_reaction_rule is not None else None
+        res['gpr'] = rxn.gene_reaction_rule
+        res['annotations'] = rxn.annotation
         return AttrDict(res)
 
     @property

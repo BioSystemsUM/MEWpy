@@ -7,7 +7,7 @@ with open('README.rst') as readme_file:
     readme = readme_file.read()
 
 requirements = ['cobra', 'inspyred', 'jmetalpy',
-                'reframed', 'networkx', 'matplotlib<3.3',
+                'reframed', 'networkx', 'matplotlib',
                 'joblib', 'tdqm']
 
 setup_requirements = requirements + ['pytest-runner']
@@ -16,7 +16,7 @@ install_requirements = requirements
 
 setup(
     name='mewpy',
-    version='0.1.18',
+    version='0.1.19',
     python_requires='>=3.6',
     package_dir={'': 'src'},
     packages=find_packages('src'),
