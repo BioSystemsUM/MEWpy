@@ -707,9 +707,16 @@ class ModelSolution:
         :param kwargs: Additional arguments
         :return: A new ModelSolution object
         """
+        minimize = kwargs.pop('minimize', False)
+        if minimize:
+            objective_direction = 'minimize'
+        else:
+            objective_direction = 'maximize'
+
         return cls(method=method,
                    x=solution.values,
                    objective_value=solution.fobj,
+                   objective_direction=objective_direction,
                    status=solution.status.value.lower(),
                    reduced_costs=solution.reduced_costs,
                    shadow_prices=solution.shadow_prices,

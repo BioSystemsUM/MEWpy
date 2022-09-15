@@ -1,54 +1,43 @@
-import warnings
-from typing import Union, Dict, TYPE_CHECKING
+from typing import Union, Dict, TYPE_CHECKING, Any, Sequence, Tuple
 
-import numpy as np
-import pandas as pd
-
-from mewpy.mew.lp import MetabolicLinearizer, Notification
+from mewpy.mew.analysis import FBA
 from mewpy.mew.solution import ModelSolution, KOSolution
-from mewpy.solvers.solution import Solution
+from mewpy.solvers.solution import Solution, Status
 from mewpy.solvers.solver import Solver
 from mewpy.util.constants import ModelConstants
 
 if TYPE_CHECKING:
-    from mewpy.mew.variables import Regulator
+    from mewpy.mew.variables import Regulator, Gene, Target
     from mewpy.model import Model, MetabolicModel, RegulatoryModel
 
-try:
 
-    # noinspection PyPackageRequirements
-    from sklearn.impute import KNNImputer
-    # noinspection PyPackageRequirements
-    from sklearn.preprocessing import quantile_transform
+def _run_and_decode_solver(lp,
+                           additional_constraints: Dict[str, Tuple[float, float]] = None,
+                           **kwargs):
+    if not additional_constraints:
+        additional_constraints = {}
 
-except ImportError as exc:
+    if not kwargs:
+        kwargs = {}
 
-    warnings.warn('The package scikit-learn is not installed. '
-                  'To use PROM analysis, please install scikit-learn (pip install scikit-learn).')
+    if 'constraints' in kwargs:
+        kwargs['constraints'].update(additional_constraints)
 
-    raise exc
-
-try:
-
-    # noinspection PyPackageRequirements
-    from scipy.stats import ks_2samp
-
-except ImportError as exc:
-
-    warnings.warn('The package scipy is not installed. '
-                  'To use PROM analysis, please install scipy (pip install scipy).')
-
-    raise exc
+    solution = lp.solver.solve(**kwargs)
+    if solution.status == Status.OPTIMAL:
+        return solution.fobj
+    else:
+        return
 
 
-class PROM(MetabolicLinearizer):
+class PROM(FBA):
 
     def __init__(self,
                  model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
+                 probabilities: Dict[str, float],
                  solver: Union[str, Solver] = None,
-                 build: bool = True,
-                 attach: bool = True):
-
+                 build: bool = False,
+                 attach: bool = False):
         """
         The Probabilistic Regulation of Metabolism (PROM) algorithm predicts the growth phenotype and the flux response
         after transcriptional perturbation, given a metabolic and regulatory network.
@@ -56,275 +45,46 @@ class PROM(MetabolicLinearizer):
 
         For more detail consult: https://doi.org/10.1073/pnas.1005139107
         :param model: The metabolic and regulatory model to be simulated.
+        :param probabilities: A dictionary with the probabilities of all target-regulator interactions in the model.
         :param solver: The solver to be used. If None, a new instance will be created from the default solver.
         :param build: If True, the linear problem will be built upon initialization.
         If False, the linear problem can be built later by calling the build() method.
         :param attach: If True, the linear problem will be attached to the model.
         """
-        # prom requires regular fba simulations
-        from .fba import FBA
-        self._fba = FBA(model=model, solver=None, build=False, attach=False)
+        self.probabilities = probabilities
+        super().__init__(model=model, solver=solver, build=build, attach=attach)
 
-        super().__init__(model=model,
-                         solver=solver,
-                         build=build,
-                         attach=attach)
-
-    @property
-    def fba(self):
-        return self._fba
-
-    def build(self):
+    def _build(self):
         """
         It builds the PROM problem. It also builds a regular FBA problem to be used for the growth prediction.
         The linear problem is then loaded into the solver.
         :return:
         """
-        self.fba.build()
-
-        if self._variables or self._constraints:
-            self.clean()
-
-    def notification(self, notification: Notification):
-        """
-        It handles the notifications received from the model and variables.
-        The notifications are used to update the linear problem. The linear problem is then loaded into the solver.
-        A notification contains a message and a payload. The message carries the content of the changes and the payload
-        carries the information about the changes.
-
-        :param notification: A Notification instance.
-        :return:
-        """
-        if notification.content_type == 'reactions' and notification.action == 'add':
-
-            return self.build()
-
-        elif notification.content_type == 'reactions' and notification.action == 'remove':
-
-            return self.build()
-
-        elif notification.content_type == 'metabolites' and notification.action == 'add':
-
-            return self.build()
-
-        elif notification.content_type == 'metabolites' and notification.action == 'remove':
-
-            return self.build()
-
-        elif notification.content_type == 'coefficients' and notification.action == 'set':
-
-            return self.build()
-
-        else:
-            return super(PROM, self).notification(notification)
-
-    def fba_optimize(self, constraints=None, objective=None, minimize=None, get_values=True):
-
-        if not constraints:
-            constraints = {}
-
-        old_linear_obj = self.fba._linear_objective.copy()
-        old_quadratic_obj = self.fba._quadratic_objective.copy()
-        old_sense = self.fba.minimize
-
-        tol_bounds = {}
-        for rxn in self.model.yield_reactions():
-
-            if rxn.lower_bound == rxn.upper_bound:
-                tol_bounds[rxn.id] = (rxn.lower_bound - ModelConstants.TOLERANCE, rxn.upper_bound)
-
-        constraints = {**tol_bounds, **constraints}
-
-        sol = self.fba.optimize(objective=objective,
-                                minimize=minimize,
-                                constraints=constraints,
-                                to_solver=True,
-                                get_values=get_values)
-
-        self.fba.set_objective(linear=old_linear_obj, quadratic=old_quadratic_obj, minimize=old_sense)
-
-        if not get_values:
-
-            if sol.fobj is None:
-                return 0
-
-            return sol.fobj
-
-        else:
-
-            if not sol.values:
-                return {rxn: 0 for rxn in self.model.reactions}, 0, sol.status
-
-            values = {key: val if abs(val) > ModelConstants.TOLERANCE else 0
-                      for key, val in sol.values.items()}
-
-            return values, sol.fobj, sol.status
-
-    @staticmethod
-    def knn_imputation_transformation(expression,
-                                      missing_values=None,
-                                      n_neighbors=5,
-                                      weights='uniform',
-                                      metric='nan_euclidean'):
-
-        if missing_values is None:
-            missing_values = np.nan
-
-        if n_neighbors is None:
-            n_neighbors = 5
-
-        if weights is None:
-            weights = 'uniform'
-
-        if metric is None:
-            metric = 'nan_euclidean'
-
-        imputation = KNNImputer(missing_values=missing_values,
-                                n_neighbors=n_neighbors,
-                                weights=weights,
-                                metric=metric)
-
-        return imputation.fit_transform(expression)
-
-    @staticmethod
-    def quantile_transformation(expression,
-                                n_quantiles=None):
-
-        if n_quantiles is None:
-            n_quantiles = expression.shape[1]
-
-        return quantile_transform(expression, n_quantiles=n_quantiles, axis=0, random_state=0)
-
-    @staticmethod
-    def quantile_thresholding(expression, q=0.33):
-
-        threshold = np.quantile(expression, q)
-
-        return threshold
-
-    @staticmethod
-    def binarize(expression, threshold):
-
-        threshold_mask = expression >= threshold
-        expression[threshold_mask] = 1
-        expression[~threshold_mask] = 0
-
-        return expression
-
-    @staticmethod
-    def expression_preprocessing(expression,
-                                 missing_values=None,
-                                 n_neighbors=5,
-                                 weights='uniform',
-                                 metric='nan_euclidean',
-                                 n_quantiles=None,
-                                 q=0.33):
-
-        expression_to_process = np.array(expression.values)
-
-        expression_to_process = PROM.knn_imputation_transformation(expression_to_process,
-                                                                   missing_values=missing_values,
-                                                                   n_neighbors=n_neighbors,
-                                                                   weights=weights,
-                                                                   metric=metric)
-        expression_to_process = PROM.quantile_transformation(expression_to_process, n_quantiles=n_quantiles)
-
-        # binary_expression
-        threshold = PROM.quantile_thresholding(expression_to_process, q=q)
-
-        expression = pd.DataFrame(data=expression_to_process,
-                                  index=expression.index,
-                                  columns=expression.columns)
-
-        binary_expression = expression.copy()
-
-        binary_expression = PROM.binarize(expression=binary_expression, threshold=threshold)
-
-        return expression, binary_expression
-
-    def calculate_probabilities(self, expression, binary_expression):
-
-        missed_interactions = {}
-        interactions_probabilities = {}
-
-        # PROM is based on multiple interactions for the same target. In PROM, interactions are considered to be
-        # one pair target-regulator. However, a given target can be regulated by several regulators, which means
-        # that can exist multiple interactions for the same target. Thus, we have compiled this multiple
-        # interactions into the regulatory events.
-        # Then, here the rational of PROM is reconstructed again, by creating composed keys: target + regulator
-        for interaction in self.model.yield_interactions():
-
-            target = interaction.target
-            regulators = interaction.regulators
-
-            if not regulators or target.id not in expression.index:
-
-                missed_interactions[target.id] = 1
-                interactions_probabilities[target.id] = 1
-
-            else:
-
-                target_expression = expression.loc[target.id]
-                target_binary = binary_expression.loc[target.id]
-
-                for regulator in regulators.values():
-
-                    if regulator.id not in expression.index:
-                        missed_interactions[target.id + regulator.id] = 1
-                        interactions_probabilities[target.id + regulator.id] = 1
-
-                    else:
-
-                        regulator_binary = binary_expression.loc[regulator.id]
-
-                        target_expression_1_regulator = target_expression[regulator_binary == 1]
-                        target_expression_0_regulator = target_expression[regulator_binary == 0]
-
-                        if len(target_expression_1_regulator) > 0 and len(target_expression_0_regulator) > 0:
-
-                            _, p_val = ks_2samp(target_expression_1_regulator, target_expression_0_regulator)
-
-                            if p_val < 0.05:
-                                target_binary_0_regulator = target_binary[regulator_binary == 0]
-
-                                probability = sum(target_binary_0_regulator) / len(target_binary_0_regulator)
-
-                                interactions_probabilities[target.id + regulator.id] = probability
-                                missed_interactions[target.id + regulator.id] = 0
-
-                            else:
-                                missed_interactions[target.id + regulator.id] = 1
-                                interactions_probabilities[target.id + regulator.id] = 1
-
-                        else:
-                            missed_interactions[target.id + regulator.id] = 1
-                            interactions_probabilities[target.id + regulator.id] = 1
-
-        if sum(missed_interactions.values()) > (0.75 * len(missed_interactions)):
-            warnings.warn('Binarization threshold should be changed', Warning, stacklevel=2)
-
-        return interactions_probabilities, missed_interactions
-
-    def _max_rates(self):
+        self._build_mass_constraints()
+        self._linear_objective = {var.id: value for var, value in self.model.objective.items()}
+        self._minimize = False
+
+    def _max_rates(self, solver_kwargs: Dict[str, Any]):
         # wt-type reference
-        reference, _, _ = self.fba_optimize()
-        reference_constraints = {key: (reference[key], reference[key])
+        reference = _run_and_decode_solver(self, **{**solver_kwargs, 'get_values': False})
+        reference_constraints = {key: (reference[key] * 0.99, reference[key])
                                  for key in self._linear_objective}
 
+        # fva of the reaction at fraction of 0.99 (for wild-type growth rate)
         rates = {}
-
-        # fva of the reaction at fraction of 1 (for wild-type growth rate)
         for reaction in self.model.reactions:
-
-            min_rxn = self.fba_optimize(constraints=reference_constraints,
-                                        objective={reaction: 1},
-                                        minimize=True,
-                                        get_values=False)
-
-            max_rxn = self.fba_optimize(constraints=reference_constraints,
-                                        objective={reaction: 1},
-                                        minimize=False,
-                                        get_values=False)
+            min_rxn = _run_and_decode_solver(self,
+                                             additional_constraints=reference_constraints,
+                                             **{**solver_kwargs,
+                                                'get_values': False,
+                                                'linear': {reaction: 1},
+                                                'minimize': True})
+            max_rxn = _run_and_decode_solver(self,
+                                             additional_constraints=reference_constraints,
+                                             **{**solver_kwargs,
+                                                'get_values': False,
+                                                'linear': {reaction: 1},
+                                                'minimize': False})
 
             reference_rate = reference[reaction]
 
@@ -345,10 +105,12 @@ class PROM(MetabolicLinearizer):
         return rates
 
     def _optimize_ko(self,
-                     regulator: 'Regulator',
-                     probabilities: Dict[str, float],
+                     regulator: Union['Gene', 'Regulator'],
                      reference: Dict[str, float],
-                     max_rates: Dict[str, float]):
+                     max_rates: Dict[str, float],
+                     to_solver: bool = False,
+                     solver_kwargs: Dict[str, Any] = None):
+        solver_constrains = solver_kwargs.get('constraints', {})
 
         prom_constraints = {reaction.id: reaction.bounds for reaction in self.model.yield_reactions()}
         state = {gene: 1 for gene in self.model.genes.keys()}
@@ -392,13 +154,15 @@ class PROM(MetabolicLinearizer):
             if not target.is_gene():
                 continue
 
+            target: Union['Target', 'Gene']
+
             # composed key for interactions_probabilities
             target_regulator = target.id + regulator.id
 
-            if target_regulator not in probabilities:
+            if target_regulator not in self.probabilities:
                 continue
 
-            interaction_probability = probabilities[target_regulator]
+            interaction_probability = self.probabilities[target_regulator]
 
             # for each reaction associated with this single target
             for reaction in target.yield_reactions():
@@ -445,63 +209,88 @@ class PROM(MetabolicLinearizer):
 
                 prom_constraints[reaction.id] = (rxn_lb, rxn_ub)
 
-        fba_values, fba_objective_value, fba_status = self.fba_optimize(constraints=prom_constraints,
-                                                                        minimize=False)
+        solution = self.solver.solve(**{**solver_kwargs,
+                                        'get_values': True,
+                                        'constraints': {**solver_constrains, **prom_constraints}})
 
-        return ModelSolution(method=self.method,
-                             x=fba_values,
-                             objective_value=fba_objective_value,
-                             status=fba_status,
-                             objective_direction='maximize',
-                             model=self.model)
+        if to_solver:
+            return solution
 
-    def _optimize(self, probabilities: Dict[str, Union[float, int]]):
+        minimize = solver_kwargs.get('minimize', self._minimize)
+        return ModelSolution.from_solver(method=self.method, solution=solution, model=self.model,
+                                         minimize=minimize)
+
+    def _optimize(self,
+                  regulators: Union[str, Sequence['str']] = None,
+                  to_solver: bool = False,
+                  solver_kwargs: Dict[str, Any] = None) -> Union[Dict[str, Solution], Dict[str, ModelSolution]]:
         # wild-type reference
-        reference, _, _ = self.fba_optimize()
+        reference = _run_and_decode_solver(self, **{**solver_kwargs, 'get_values': False})
 
         # max and min fluxes of the reactions
-        max_rates = self._max_rates()
+        max_rates = self._max_rates(solver_kwargs=solver_kwargs)
 
+        if regulators is None:
+            regulators = list(self.model.yield_regulators())
+
+        if isinstance(regulators, str):
+            regulators = self.model.get(regulators)
+            return self._optimize_ko(regulator=regulators,
+                                     reference=reference,
+                                     max_rates=max_rates,
+                                     to_solver=to_solver,
+                                     solver_kwargs=solver_kwargs)
+
+        # multiple knock out of regulators
         kos = {}
-
-        # knock out of regulators
         for regulator in self.model.yield_regulators():
             ko_solution = self._optimize_ko(regulator=regulator,
-                                            probabilities=probabilities,
                                             reference=reference,
-                                            max_rates=max_rates)
+                                            max_rates=max_rates,
+                                            to_solver=to_solver,
+                                            solver_kwargs=solver_kwargs)
             kos[regulator.id] = ko_solution
         return kos
 
     def optimize(self,
-                 expression=None,
-                 objective=None,
-                 minimize=None,
-                 constraints=None,
-                 to_solver=False,
-                 get_values=True,
-                 shadow_prices=False,
-                 reduced_costs=False,
-                 pool_size=0,
-                 pool_gap=None) -> Union[KOSolution, Solution]:
-
+                 regulators: Union[str, Sequence['str']] = None,
+                 to_solver: bool = False,
+                 solver_kwargs: Dict[str, Any] = None) -> Union[KOSolution, Dict[str, Solution]]:
         """
+        It solves the PROM linear problem. The linear problem is solved using the solver interface.
 
-        :param expression: Gene expression data frame where rows/index must be set with the gene, target and regulator
-        identifiers of the model
-        :param objective:
-        :param minimize:
-        :param constraints:
-        :param to_solver:
-        :param get_values:
-        :param shadow_prices:
-        :param reduced_costs:
-        :param pool_size:
-        :param pool_gap:
-        :return:
+        The optimize method allows setting temporary changes to the linear problem. The changes are
+        applied to the linear problem reverted to the original state afterward.
+        Objective, constraints and solver parameters can be set temporarily.
+        :param regulators: list of regulators to be knocked out. If None, all regulators are knocked out.
+        :param to_solver: Whether to return the solution as a SolverSolution instance. Default: False.
+        Otherwise, a ModelSolution is returned.
+        :param solver_kwargs: Solver parameters to be set temporarily.
+            - linear: A dictionary of linear coefficients to be set temporarily. The keys are the variable names
+            and the values are the coefficients. Default: None
+            - quadratic: A dictionary of quadratic coefficients to be set temporarily. The keys are tuples of
+            variable names and the values are the coefficients. Default: None
+            - minimize: Whether to minimize the objective. Default: False
+            - constraints: A dictionary with the constraints bounds. The keys are the constraint ids and the values
+            are tuples with the lower and upper bounds. Default: None
+            - get_values: Whether to retrieve the solution values. Default: True
+            - shadow_prices: Whether to retrieve the shadow prices. Default: False
+            - reduced_costs: Whether to retrieve the reduced costs. Default: False
+            - pool_size: The size of the solution pool. Default: 0
+            - pool_gap: The gap between the best solution and the worst solution in the pool. Default: None
+        :return: A KOSolution instance or a list of SolverSolution instance if to_solver is True.
         """
-        expression, binary_expression = self.expression_preprocessing(expression=expression)
-        probabilities, _ = self.calculate_probabilities(expression=expression,
-                                                        binary_expression=binary_expression)
-        kos = self._optimize(probabilities=probabilities)
-        return KOSolution(kos)
+        # build solver if out of sync
+        if not self.synchronized:
+            self.build()
+
+        if not solver_kwargs:
+            solver_kwargs = {}
+
+        # concrete optimize
+        solutions = self._optimize(regulators=regulators, to_solver=to_solver, solver_kwargs=solver_kwargs)
+
+        if to_solver:
+            return solutions
+
+        return KOSolution(solutions)

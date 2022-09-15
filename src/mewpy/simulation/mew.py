@@ -371,7 +371,6 @@ class Simulation(MewModelContainer, Simulator):
         self._essential_reactions = []
 
         reactions = self.reactions.copy()
-
         for rxn in tqdm(reactions):
 
             res = self.simulate(constraints={rxn: 0})
@@ -402,32 +401,38 @@ class Simulation(MewModelContainer, Simulator):
         wt_solution = self.simulate()
         wt_growth = wt_solution.objective_value
 
-        values = {gene.id: 1.0 for gene in self.model.yield_genes()}
+        values = {gene.id: max(gene.coefficients) for gene in self.model.yield_genes()}
 
         for gene in tqdm(self.model.yield_genes()):
 
+            gene_coefficient = values.pop(gene.id)
             values[gene.id] = 0.0
 
             constraints = {}
-
             for rxn in gene.yield_reactions():
 
-                if not rxn.gpr.is_none:
+                if rxn.gpr.is_none:
+                    continue
 
-                    res = rxn.gpr.evaluate(values=values)
+                res = rxn.gpr.evaluate(values=values)
 
-                    if not res:
-                        constraints[rxn.id] = 0
+                if not res:
+                    constraints[rxn.id] = (0.0, 0.0)
+
+            if not constraints:
+                values[gene.id] = gene_coefficient
+                continue
 
             res = self.simulate(constraints=constraints)
+            if not res:
+                values[gene.id] = gene_coefficient
+                continue
 
-            values[gene.id] = 1.0
+            if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \
+                    or res.status == SStatus.INFEASIBLE:
+                self._essential_genes.append(gene)
 
-            if res:
-
-                if (res.status == SStatus.OPTIMAL and res.objective_value < wt_growth * min_growth) \
-                        or res.status == SStatus.INFEASIBLE:
-                    self._essential_genes.append(gene)
+            values[gene.id] = gene_coefficient
 
         return self._essential_genes
 
@@ -459,11 +464,11 @@ class Simulation(MewModelContainer, Simulator):
             return
 
         if replace:
-            self.model.add(reaction, 'reaction', comprehensive=comprehensive, history=False)
+            self.model.add(reaction, comprehensive=comprehensive, history=False)
 
         else:
             if reaction.id not in self.model.reactions:
-                self.model.add(reaction, 'reaction', comprehensive=comprehensive, history=False)
+                self.model.add(reaction, comprehensive=comprehensive, history=False)
 
     def remove_reaction(self, reaction: Reaction, remove_orphans: bool = True):
         """
@@ -475,7 +480,7 @@ class Simulation(MewModelContainer, Simulator):
         if not self.model.is_metabolic():
             return
 
-        self.model.remove(reaction, 'reaction', remove_orphans=remove_orphans, history=False)
+        self.model.remove(reaction, remove_orphans=remove_orphans, history=False)
 
     def get_uptake_reactions(self) -> List[str]:
         """
@@ -613,32 +618,18 @@ class Simulation(MewModelContainer, Simulator):
     # -----------------------------------------------------------------------------
     @dispatcher.register(SimulationMethod.FBA)
     def _fba(self, model, objective, minimize, constraints, *args, **kwargs):
-        fba = FBA(model=model,
-                  solver=None,
-                  build=True,
-                  attach=False)
+        fba = FBA(model).build()
 
-        sol = fba.optimize(objective=objective,
-                           minimize=minimize,
-                           constraints=constraints,
-                           to_solver=True,
-                           get_values=True)
+        solver_kwargs = {'linear': objective, 'minimize': minimize, 'constraints': constraints}
+        sol = fba.optimize(solver_kwargs=solver_kwargs, to_solver=True, get_values=True)
         return sol
 
     @dispatcher.register(SimulationMethod.pFBA)
     def _pfba(self, model, objective, minimize, constraints, *args, **kwargs):
+        pfba = pFBA(model).build()
 
-        pfba = pFBA(model=model,
-                    solver=None,
-                    build=True,
-                    attach=False)
-
-        sol = pfba.optimize(objective=objective,
-                            minimize=minimize,
-                            constraints=constraints,
-                            to_solver=True,
-                            get_values=True)
-
+        solver_kwargs = {'linear': objective, 'minimize': minimize, 'constraints': constraints}
+        sol = pfba.optimize(solver_kwargs=solver_kwargs, to_solver=True, get_values=True)
         return sol
 
     @dispatcher.register(SimulationMethod.MOMA)

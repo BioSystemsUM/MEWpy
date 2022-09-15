@@ -1,54 +1,44 @@
-from typing import Union, TYPE_CHECKING
+from typing import Union
 
-from mewpy.mew.algebra import Symbolic
+from mewpy.solvers import get_default_solver
+from mewpy.solvers.sglobal import __MEWPY_solvers__ as solvers
+from mewpy.solvers.solver import Solver
 
-if TYPE_CHECKING:
-    from mewpy.mew.variables import Variable
 
 integer_coefficients = ((0, 0), (1, 1), (0.0, 0.0), (1.0, 1.0), (0, 1), (0.0, 1.0))
 
 
-def bounds_from_symbol(symbol: Union[str, Symbolic],
-                       model=None,
-                       default=None):
-    if default is None:
-        default = (0.0, 1.0)
+def get_solver_instance(solver: Union[str, Solver] = None) -> Solver:
+    """
+    It returns a new empty mewpy solver instance. However, if a solver instance is provided,
+    it only checks if it is a mewpy solver.
+    :param solver: Solver, CplexSolver, GurobiSolver or OptLangSolver instance or name of the solver
+    :return: a mewpy solver instance
+    """
+    if solver is None:
+        solver_name = get_default_solver()
 
-    if not model:
-        return default
+        SolverType = solvers[solver_name]
 
-    if isinstance(symbol, Symbolic):
-        symbol = symbol.name
+        solver = SolverType()
 
-    variable = model.get(symbol, None)
+    elif isinstance(solver, str):
 
-    if variable is None:
-        return default
+        SolverType = solvers.get(solver, None)
 
-    return bounds_from_variable(variable=variable, model=model, default=default)
+        if SolverType is None:
+            raise ValueError(f'{solver} is not listed as valid solver. Check the valid solvers: {solvers}')
 
+        solver = SolverType()
 
-def bounds_from_variable(variable: Union[str, 'Variable'],
-                         model=None,
-                         default=None):
-    if default is None:
-        default = (0, 1)
+    elif isinstance(solver, Solver):
 
-    if isinstance(variable, str):
-
-        if model is None:
-            return default
-
-        variable = model.get(variable, None)
-
-        if variable is None:
-            return default
-
-    if hasattr(variable, 'coefficient'):
-        return variable.coefficient.bounds
+        pass
 
     else:
-        return default
+        raise ValueError(f'Invalid solver {solver}. Check the valid solvers: {solvers}')
+
+    return solver
 
 
 class Node:
