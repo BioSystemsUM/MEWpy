@@ -33,7 +33,7 @@ class FunctionTerm:
     """
     id: str = None
     symbolic: Symbolic = field(default_factory=NoneAtom)
-    coefficient: int = 0
+    coefficient: float = 0
 
 
 @dataclass
@@ -169,7 +169,7 @@ class DataTransferObject:
     types: set = None
 
     # common containers
-    compartments: Dict[str, VariableRecord] = field(default_factory=dict)
+    compartments: Dict[str, CompartmentRecord] = field(default_factory=dict)
     extracellular_reactions: Dict[str, VariableRecord] = field(default_factory=dict)
     variables: Dict[str, VariableRecord] = field(default_factory=dict)
 

@@ -1,9 +1,13 @@
 from enum import Enum
 
-from .csv import RegulatoryCSV, CoExpressionCSV, TargetRegulatorCSV
-from .cobra import CobrapyModel, ReframedModel
+from .boolean_csv import BooleanRegulatoryCSV
+from . co_expression_csv import CoExpressionRegulatoryCSV
+from .target_regulator_csv import TargetRegulatorRegulatoryCSV
+from .cobra_model import CobraModel
+from .reframed_model import ReframedModel
 from .json import JSON
-from .sbml import RegulatorySBML, MetabolicSBML
+from .metabolic_sbml import MetabolicSBML
+from .regulatory_sbml import RegulatorySBML
 
 
 class Engines(Enum):
@@ -12,12 +16,12 @@ class Engines(Enum):
 
     """
 
-    RegulatoryCSV = RegulatoryCSV
-    CoExpressionCSV = CoExpressionCSV
-    TargetRegulatorCSV = TargetRegulatorCSV
+    BooleanRegulatoryCSV = BooleanRegulatoryCSV
+    CoExpressionRegulatoryCSV = CoExpressionRegulatoryCSV
+    TargetRegulatorRegulatoryCSV = TargetRegulatorRegulatoryCSV
     RegulatorySBML = RegulatorySBML
     MetabolicSBML = MetabolicSBML
-    CobrapyModel = CobrapyModel
+    CobraModel = CobraModel
     ReframedModel = ReframedModel
     JSON = JSON
 

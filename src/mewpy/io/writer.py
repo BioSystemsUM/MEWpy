@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Type, Union, TYPE_CHECKING
 
 from .builder import Builder
@@ -30,8 +31,8 @@ class Writer(Builder):
     writers into a single model
     """
     def __init__(self,
-                 engine: Type['Engine'],
-                 io: Union[str, 'CobraModel', 'ReframedModel'],
+                 engine: Union[Type['Engine'], Engines],
+                 io: Union[str, Path, 'CobraModel', 'ReframedModel'],
                  model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
                  config: dict = None):
 
@@ -59,6 +60,9 @@ class Writer(Builder):
 
         if not model:
             raise ValueError('Nothing to write. Please provide a mewpy model')
+
+        if isinstance(io, Path):
+            io = str(io)
 
         if not isinstance(engine, Engines):
 

@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Union, TYPE_CHECKING
 
 from mewpy.simulation import get_container, get_simulator
@@ -7,15 +8,16 @@ from .reader import Reader
 from .writer import Writer
 
 from .engines import (Engines,
-                      RegulatoryCSV,
-                      CoExpressionCSV,
-                      TargetRegulatorCSV,
-                      CobrapyModel,
+                      BooleanRegulatoryCSV,
+                      CoExpressionRegulatoryCSV,
+                      TargetRegulatorRegulatoryCSV,
+                      CobraModel,
                       ReframedModel,
                       JSON,
                       RegulatorySBML,
                       MetabolicSBML)
-from .engines.csv import read_gene_expression_dataset, read_coregflux_influence_matrix
+from .gene_expression import read_gene_expression_dataset, read_coregflux_influence_matrix
+
 
 if TYPE_CHECKING:
     from io import TextIOWrapper
@@ -93,7 +95,7 @@ def read_model(*readers: Reader,
     return model
 
 
-def read_sbml(io: Union[str, 'TextIOWrapper'],
+def read_sbml(io: Union[str, Path, 'TextIOWrapper'],
               metabolic: bool = True,
               regulatory: bool = True,
               warnings: bool = True) -> Union['Model', 'RegulatoryModel', 'MetabolicModel']:
@@ -134,7 +136,7 @@ def read_sbml(io: Union[str, 'TextIOWrapper'],
     return read_model(*readers, warnings=warnings)
 
 
-def read_csv(io: Union[str, 'TextIOWrapper'],
+def read_csv(io: Union[str, Path, 'TextIOWrapper'],
              boolean: bool = True,
              co_expression: bool = False,
              target_regulator: bool = False,
@@ -161,21 +163,21 @@ def read_csv(io: Union[str, 'TextIOWrapper'],
     readers = []
 
     if boolean:
-        boolean_reader = Reader(engine=RegulatoryCSV,
+        boolean_reader = Reader(engine=BooleanRegulatoryCSV,
                                 io=io,
                                 **kwargs)
 
         readers.append(boolean_reader)
 
     if co_expression:
-        regulatory_reader = Reader(engine=CoExpressionCSV,
+        regulatory_reader = Reader(engine=CoExpressionRegulatoryCSV,
                                    io=io,
                                    **kwargs)
 
         readers.append(regulatory_reader)
 
     if target_regulator:
-        regulatory_reader = Reader(engine=TargetRegulatorCSV,
+        regulatory_reader = Reader(engine=TargetRegulatorRegulatoryCSV,
                                    io=io,
                                    **kwargs)
 
@@ -211,7 +213,7 @@ def read_cbmodel(io: Union['Cobra_Model', 'Reframed_Model'],
     readers = []
 
     if cobrapy:
-        boolean_reader = Reader(engine=CobrapyModel,
+        boolean_reader = Reader(engine=CobraModel,
                                 io=io)
 
         readers.append(boolean_reader)
@@ -231,7 +233,7 @@ def read_cbmodel(io: Union['Cobra_Model', 'Reframed_Model'],
     return read_model(*readers, warnings=warnings)
 
 
-def read_json(io: Union[str, 'TextIOWrapper'],
+def read_json(io: Union[str, Path, 'TextIOWrapper'],
               warnings: bool = True) -> Union['Model', 'MetabolicModel', 'RegulatoryModel']:
     """
     Reading a mewpy model encoded into a JSON file.
