@@ -1,7 +1,6 @@
 from typing import Any, Dict, Union, TYPE_CHECKING, Tuple, Generator, List
 
 from mewpy.mew.algebra import Expression, parse_expression
-from mewpy.mew.lp import Notification
 from mewpy.util.utilities import generator
 from mewpy.util.serialization import serialize
 from mewpy.util.history import recorder
@@ -19,8 +18,7 @@ def _bounds_setter(instance, old_bounds):
     instance._bounds = tuple(old_bounds)
 
     if instance.model:
-        notification = Notification(content=instance, content_type='bounds', action='set')
-        instance.model.notify(notification)
+        instance.model.notify()
 
 
 class Reaction(Variable, variable_type='reaction', register=True, constructor=True, checker=True):
@@ -149,8 +147,7 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         self._bounds = value
 
         if self.model:
-            notification = Notification(content=self, content_type='bounds', action='set')
-            self.model.notify(notification)
+            self.model.notify()
 
     @stoichiometry.setter
     @recorder
@@ -348,8 +345,7 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         self._bounds = value
 
         if self.model:
-            notification = Notification(content=self, content_type='bounds', action='set')
-            self.model.notify(notification)
+            self.model.notify()
 
     @upper_bound.setter
     @recorder
@@ -369,8 +365,7 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         self._bounds = (self.lower_bound, value)
 
         if self.model:
-            notification = Notification(content=self, content_type='bounds', action='set')
-            self.model.notify(notification)
+            self.model.notify()
 
     # -----------------------------------------------------------------------------
     # Generators
@@ -533,8 +528,7 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         self._bounds = (minimum_coefficient, minimum_coefficient)
 
         if self.model:
-            notification = Notification(content=self, content_type='bounds', action='set')
-            self.model.notify(notification)
+            self.model.notify()
 
         if history:
             self.history.queue_command(undo_func=_bounds_setter,
@@ -637,13 +631,9 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         if self.model:
             # the add interface will add all metabolites to the simulators. The simulators will retrieve the new
             # constraints for each metabolite and replace it in the LP
-            self.model.add(to_add, 'metabolite', comprehensive=False, history=False)
+            self.model.add(*to_add, comprehensive=False, history=False)
 
-            notification = Notification(content=(self,),
-                                        content_type='reactions',
-                                        action='add')
-
-            self.model.notify(notification)
+            self.model.notify()
 
         if history:
             self.history.queue_command(undo_func=self.remove_metabolites,
@@ -693,13 +683,9 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
             # constraints for each metabolite and replace it in the LP
 
             if orphan_mets and remove_orphans_from_model:
-                self.model.remove(orphan_mets, 'metabolite', remove_orphans=False, history=False)
+                self.model.remove(*orphan_mets, remove_orphans=False, history=False)
 
-            notification = Notification(content=(self,),
-                                        content_type='reactions',
-                                        action='add')
-
-            self.model.notify(notification)
+            self.model.notify()
 
         if history:
             self.history.queue_command(undo_func=self.add_metabolites,
@@ -745,13 +731,9 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         self._gpr = gpr
 
         if self.model:
-            self.model.add(to_add, 'gene', comprehensive=False, history=False)
+            self.model.add(*to_add, comprehensive=False, history=False)
 
-            notification = Notification(content=(self,),
-                                        content_type='gprs',
-                                        action='add')
-
-            self.model.notify(notification)
+            self.model.notify()
 
     def remove_gpr(self, remove_orphans: bool = True, history=True):
         """
@@ -786,10 +768,6 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         if self.model:
 
             if remove_orphans:
-                self.model.remove(to_remove, 'gene', remove_orphans=False, history=False)
+                self.model.remove(*to_remove, remove_orphans=False, history=False)
 
-            notification = Notification(content=(self,),
-                                        content_type='gprs',
-                                        action='add')
-
-            self.model.notify(notification)
+            self.model.notify()

@@ -2,12 +2,11 @@ from typing import Any, Union, Type, TYPE_CHECKING, List, Set, Dict, Iterable, T
 
 from mewpy.util.history import HistoryManager, recorder
 from mewpy.util.serialization import serialize, Serializer
-from mewpy.mew.lp import Notification
 
 # Preventing circular dependencies that only happen due to type checking
 if TYPE_CHECKING:
     from mewpy.model import MetabolicModel, RegulatoryModel
-    from mewpy.mew.variables import Gene, Interaction, Metabolite, Reaction, Regulator, Target
+    from mewpy.mew.variables import Gene, Interaction, Metabolite, Reaction, Regulator, Target, Variable
     from mewpy.mew.lp import LinearProblem
 
 
@@ -344,6 +343,7 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
         :param cls: the class of the model
         :return: the model to be added to the subclass of Model
         """
+
         def from_(identifier, **kwargs):
             return cls(identifier, **kwargs)
 
@@ -358,6 +358,7 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
         :param model_type: the type to check
         :return: the method to be added to the subclass of Model
         """
+
         def is_(self):
             return self.is_a(model_type)
 
@@ -512,8 +513,15 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
         """
         return default
 
-    # add and remove are just registered here to avoid type checking errors
-    def add(self, variables, *types, comprehensive=True, history=True):
+    def add(self,
+            *variables: Union['Gene',
+                              'Interaction',
+                              'Metabolite',
+                              'Reaction',
+                              'Regulator',
+                              'Target'],
+            comprehensive: bool = True,
+            history: bool = True):
         """
         It adds the given variables to the model.
         This method accepts a single variable or a list of variables to be added to specific containers in the model.
@@ -528,18 +536,78 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
         This method notifies all simulators with the recent changes.
 
         :param variables: the variables to be added to the model
-        :param types: the types of the variables setting which containers will store the variables.
-        If none, the variables will be added to the containers according to their type.
         :param comprehensive: if True, the variables and their related variables will be added to the model too
         :param history: if True, the changes will be recorded in the history
         :return:
         """
-        pass
+        if self.is_a('metabolic'):
 
-    def remove(self, variables, *types, remove_orphans=False, history=True):
+            for variable in variables:
+
+                if 'gene' in variable.types:
+                    self._add_variable_to_container(variable, '_genes')
+
+                if 'metabolite' in variable.types:
+                    self._add_variable_to_container(variable, '_metabolites')
+
+                if 'reaction' in variable.types:
+                    if comprehensive:
+
+                        for metabolite in variable.yield_metabolites():
+                            self._add_variable_to_container(metabolite, '_metabolites')
+
+                        for gene in variable.yield_genes():
+                            self._add_variable_to_container(gene, '_genes')
+
+                    self._add_variable_to_container(variable, '_reactions')
+
+        if self.is_a('regulatory'):
+
+            for variable in variables:
+
+                if 'target' in variable.types:
+                    self._add_variable_to_container(variable, '_targets')
+
+                if 'regulator' in variable.types:
+                    self._add_variable_to_container(variable, '_regulators')
+
+                if 'interaction' in variable.types:
+                    if comprehensive:
+
+                        if variable.target is not None:
+                            self._add_variable_to_container(variable.target, '_targets')
+
+                        for regulator in variable.yield_regulators():
+                            self._add_variable_to_container(regulator, '_regulators')
+
+                    self._add_variable_to_container(variable, '_interactions')
+
+        if history:
+            self.history.queue_command(undo_func=self.remove,
+                                       undo_args=variables,
+                                       undo_kwargs={'remove_orphans': True,
+                                                    'history': False},
+                                       func=self.add,
+                                       args=variables,
+                                       kwargs={'comprehensive': comprehensive,
+                                               'history': history})
+
+        self.notify()
+
+    def remove(self,
+               *variables: Union['Gene',
+                                 'Interaction',
+                                 'Metabolite',
+                                 'Reaction',
+                                 'Regulator',
+                                 'Target',
+                                 'Variable'],
+               remove_orphans: bool = False,
+               history: bool = True):
         """
         It removes the given variables from the model.
-        This method accepts a single variable or a list of variables to be removed from specific containers in the model.
+        This method accepts a single variable or a list of variables to be removed from specific containers
+        in the model.
         The containers from which the variables will be removed are specified by the types.
 
         For instance, if a variable is simultaneously a metabolite and regulator,
@@ -550,13 +618,81 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
 
         This method notifies all simulators with the recent changes.
 
-        :param variables:
-        :param types:
-        :param remove_orphans:
-        :param history:
+        :param variables: the variables to be removed from the model
+        :param remove_orphans: if True, the variables and their related variables will be removed from the model too
+        :param history: if True, the changes will be recorded in the history
         :return:
         """
-        pass
+        if self.is_a('metabolic'):
+
+            reactions = set()
+
+            for variable in variables:
+
+                if 'gene' in variable.types:
+                    self._remove_variable_from_container(variable, '_genes')
+
+                if 'metabolite' in variable.types:
+                    self._remove_variable_from_container(variable, '_metabolites')
+
+                if 'reaction' in variable.types:
+                    self._remove_variable_from_container(variable, '_reactions')
+                    reactions.add(variable)
+
+            if remove_orphans:
+                orphan_metabolites = self._get_orphans(to_remove=reactions,
+                                                       first_container='metabolites',
+                                                       second_container='reactions')
+
+                for metabolite in orphan_metabolites:
+                    self._remove_variable_from_container(metabolite, '_metabolites')
+
+                orphan_genes = self._get_orphans(to_remove=reactions,
+                                                 first_container='genes',
+                                                 second_container='reactions')
+
+                for gene in orphan_genes:
+                    self._remove_variable_from_container(gene, '_genes')
+
+        if self.is_a('regulatory'):
+
+            interactions = set()
+
+            for variable in variables:
+
+                if 'target' in variable.types:
+                    self._remove_variable_from_container(variable, '_targets')
+
+                if 'regulator' in variable.types:
+                    self._remove_variable_from_container(variable, '_regulators')
+
+                if 'interaction' in variable.types:
+                    self._remove_variable_from_container(variable, '_interactions')
+                    interactions.add(variable)
+
+            if remove_orphans:
+                for interaction in interactions:
+                    if interaction.target:
+                        self._remove_variable_from_container(interaction.target, '_targets')
+
+                orphan_regulators = self._get_orphans(to_remove=interactions,
+                                                      first_container='regulators',
+                                                      second_container='interactions')
+
+                for regulator in orphan_regulators:
+                    self._remove_variable_from_container(regulator, '_regulators')
+
+        if history:
+            self.history.queue_command(undo_func=self.add,
+                                       undo_args=variables,
+                                       undo_kwargs={'comprehensive': True,
+                                                    'history': False},
+                                       func=self.remove,
+                                       args=variables,
+                                       kwargs={'remove_orphans': remove_orphans,
+                                               'history': history})
+
+        self.notify()
 
     def update(self, name: str = None):
         """
@@ -619,7 +755,6 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
     # -----------------------------------------------------------------------------
     # Simulators observer pattern
     # -----------------------------------------------------------------------------
-
     def attach(self, simulator: 'LinearProblem'):
         """
         It attaches the given simulation method (simulator) to the model.
@@ -644,23 +779,18 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
         """
         self.simulators.remove(simulator)
 
-    def notify(self, notification: Notification):
+    def notify(self):
         """
-        It notifies all simulators with the given notification.
-        A notification contains a message and a payload.
-        The message is the content of the recent changes performed in the model.
-        The payload is the description of the actions to be performed by the simulators.
+        It notifies all simulators with the recent changes in the model.
 
-        :param notification: the notification to be sent to all simulators
         :return:
         """
         for simulator in self.simulators:
-            simulator.notification(notification)
+            simulator.update()
 
     # -----------------------------------------------------------------------------
-    # History manager
+    # History manager command pattern
     # -----------------------------------------------------------------------------
-    # The history manager follows the command pattern
     @property
     def contexts(self) -> List[HistoryManager]:
         """

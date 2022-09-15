@@ -1,5 +1,5 @@
 import abc
-from typing import List, Any, Dict, Callable, Union
+from typing import List, Any, Dict, Callable, Union, Tuple
 
 from .algebra_utils import solution_decode, _walk
 
@@ -37,6 +37,7 @@ class Symbolic:
         self.variables = variables
 
         self._name = None
+        self.mew_variable = None
 
         self.is_boolean = False
         self.is_true = False
@@ -83,6 +84,20 @@ class Symbolic:
             return
 
         self._name = value
+
+    @property
+    def bounds(self) -> Tuple[float, float]:
+        """
+        Returns the bounds of the symbolic object
+        """
+        if self.mew_variable:
+            if hasattr(self.mew_variable, 'bounds'):
+                return self.mew_variable.bounds
+
+            if hasattr(self.mew_variable, 'coefficients'):
+                return min(self.mew_variable.coefficients), max(self.mew_variable.coefficients)
+
+        return 0, 1
 
     def key(self):
         return self.to_string().replace(' ', '')
@@ -774,11 +789,15 @@ class Symbol(AtomNumber, Boolean):
         self.is_symbol = True
 
     def _evaluate(self, values=None, default=0, **kwargs):
-
-        if not values:
+        if values is None:
             values = {}
 
-        value = values.get(self.name, default)
+        if self.name in values:
+            value = values[self.name]
+        elif self.mew_variable:
+            value = max(self.mew_variable.bounds)
+        else:
+            value = default
 
         if not isinstance(value, (int, float, bool, AtomNumber)):
             raise ValueError(f'cannot evaluate {self.name} for {value}')

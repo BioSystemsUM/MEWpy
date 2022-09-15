@@ -1,6 +1,5 @@
 from typing import Any, TYPE_CHECKING
 
-from mewpy.mew.lp import Notification
 
 if TYPE_CHECKING:
     from mewpy.mew.variables import Variable
@@ -22,5 +21,4 @@ def coefficients_setter(instance: 'Variable', value: Any):
         instance._coefficients = tuple(value)
 
     if instance.model:
-        notification = Notification(content=instance, content_type='coefficients', action='set')
-        instance.model.notify(notification)
+        instance.model.notify()

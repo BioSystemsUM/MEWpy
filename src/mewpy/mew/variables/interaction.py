@@ -3,7 +3,6 @@ from typing import Any, TYPE_CHECKING, Dict, Union, Generator, Tuple
 import pandas as pd
 
 from mewpy.mew.algebra import Expression, parse_expression
-from mewpy.mew.lp import Notification
 from mewpy.util.utilities import generator
 from mewpy.util.serialization import serialize
 from mewpy.util.history import recorder
@@ -161,35 +160,8 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
                 for expression in self.yield_expressions()
                 for reg_id, regulator in expression.variables.items()}
 
-    def _compute_regulatory_table(self, active_states: bool = True) -> pd.DataFrame:
-        """
-        It computes the regulatory table for the current interaction.
-        The regulatory table is a pandas DataFrame with the possible coefficients
-        of the target variable for the default (or not) coefficients of the regulators.
-
-        :param active_states: if True, it computes the regulatory table for the default states
-        of the regulators. Otherwise, it computes the regulatory table for the all states
-        :return: regulatory table as a pandas DataFrame
-        """
-
-        truth_tables = []
-
-        for coefficient, expression in self._regulatory_events.items():
-            df = expression.truth_table(active_states=active_states, coefficient=coefficient)
-
-            df.index = [self.target.id if self.target else 'result'] * df.shape[0]
-
-            truth_tables.append(df)
-
-        regulatory_events = pd.concat(truth_tables)
-
-        regulatory_events = regulatory_events[['result'] + [col for col in regulatory_events.columns
-                                                            if col != 'result']]
-
-        return regulatory_events
-
     @property
-    def regulatory_table(self) -> pd.DataFrame:
+    def regulatory_truth_table(self) -> pd.DataFrame:
         """
         It calculates the truth table for this interaction based on the regulatory events.
         The truth table is composed by the combination of values taken by empty, numeric and symbolic variables
@@ -199,7 +171,18 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
 
         :return: It returns a pandas DataFrame with the truth table
         """
-        return self._compute_regulatory_table(active_states=True)
+        truth_tables = []
+
+        for coefficient, expression in self._regulatory_events.items():
+            df = expression.truth_table(coefficients='max', coefficient=coefficient)
+
+            df.index = [self.target.id if self.target else 'result'] * df.shape[0]
+
+            truth_tables.append(df)
+
+        regulatory_events = pd.concat(truth_tables)
+
+        return regulatory_events
 
     # -----------------------------------------------------------------------------
     # Generators
@@ -368,13 +351,9 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
             self.target._interaction = self
 
             if self.model:
-                self.model.add((self.target,), 'target', comprehensive=False, history=False)
+                self.model.add(self.target, comprehensive=False, history=False)
 
-                notification = Notification(content=(self,),
-                                            content_type='interactions',
-                                            action='add')
-
-                self.model.notify(notification)
+                self.model.notify()
 
     def remove_target(self, remove_from_model=True, history=True):
         """
@@ -404,13 +383,9 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
             if self.model:
 
                 if remove_from_model:
-                    self.model.remove((target,), 'target', remove_orphans=False, history=False)
+                    self.model.remove(target, remove_orphans=False, history=False)
 
-                notification = Notification(content=(self,),
-                                            content_type='interactions',
-                                            action='add')
-
-                self.model.notify(notification)
+                self.model.notify()
 
     def add_regulatory_event(self,
                              coefficient: Union[float, int],
@@ -458,13 +433,9 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
         self._regulatory_events[coefficient] = expression
 
         if self.model:
-            self.model.add(to_add, 'regulator', comprehensive=False, history=False)
+            self.model.add(*to_add, comprehensive=False, history=False)
 
-            notification = Notification(content=(self,),
-                                        content_type='interactions',
-                                        action='add')
-
-            self.model.notify(notification)
+            self.model.notify()
 
     def remove_regulatory_event(self,
                                 coefficient: Union[float, int],
@@ -516,10 +487,6 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
         if self.model:
 
             if remove_orphans:
-                self.model.remove(to_remove, 'regulator', remove_orphans=False, history=False)
+                self.model.remove(*to_remove, remove_orphans=False, history=False)
 
-            notification = Notification(content=(self,),
-                                        content_type='interactions',
-                                        action='add')
-
-            self.model.notify(notification)
+            self.model.notify()

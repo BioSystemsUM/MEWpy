@@ -1,5 +1,5 @@
 from itertools import product
-from typing import Dict, Union, TYPE_CHECKING, Callable, Any
+from typing import Dict, Union, TYPE_CHECKING, Callable, Any, Type
 
 import pandas as pd
 
@@ -57,14 +57,17 @@ class Expression:
                                          'Regulator',
                                          'Target']] = variables
 
-        self._check_association()
+        self._link_variables_to_symbols()
 
-    def _check_association(self):
+    def _link_variables_to_symbols(self):
 
         for symbol in self.symbols.values():
 
             if symbol.name not in self._variables:
                 raise ValueError('Expression set with incorrect variables or symbolic expression')
+
+            else:
+                symbol.mew_variable = self._variables[symbol.name]
 
     # -----------------------------------------------------------------------------
     # Static attributes
@@ -105,7 +108,7 @@ class Expression:
 
         self._variables = value
 
-        self._check_association()
+        self._link_variables_to_symbols()
 
     # -----------------------------------------------------------------------------
     # Dynamic attributes
@@ -175,12 +178,12 @@ class Expression:
         return _walk(self.symbolic, reverse)
 
     def __call__(self,
-                 values: Dict[str, Union[float, int]],
-                 coefficient: Union[float, int] = None,
-                 operators: Dict[Symbolic, Callable] = None,
-                 default: Union[float, int] = 0.0,
+                 values: Dict[str, float],
+                 coefficient: float = None,
+                 operators: Union[Dict[Type[Symbolic], Callable], Dict[Type[Symbolic], Any]] = None,
+                 missing_value: float = 0.0,
                  decoder: dict = None,
-                 **kwargs) -> Union[float, int, Any]:
+                 **kwargs) -> Any:
 
         """
         Evaluate a Symbolic algebra expression based on
@@ -191,13 +194,13 @@ class Expression:
 
         :param values: A dictionary of values that the variables identifiers, aka symbols names,
         must take during expression evaluation
-        :param coefficient: If a coefficient is provided the coefficient value is returned
-        in case the Symbolic expression is evaluated to True.
+        :param coefficient: The value to be returned in case the expression is evaluated to True. Otherwise,
+        binary values 0 or 1 are returned.
         :param operators: A dictionary of custom operators. That is, python operators-based evaluation
         (e.g. 3 > 2 yield True) can be replaced by custom callable objects such as functions. For instance,
         3 > 2 can be evaluated with max, and thus max(3, 2) yields 3 now.
-        :param default: The default value of a given symbol/variable.
-        The default value is used if a given variable/symbol is missing in the values dictionary.
+        :param missing_value: If a given variable/symbol is missing in the values' dictionary, the missing
+        value is used.
         :param decoder: A custom dictionary for decoding the solution (key) into a given output (value).
         Binary output is currently set to 0 or 1 by default
         :param kwargs: Additional keyword arguments for Symbolic evaluate method
@@ -207,42 +210,41 @@ class Expression:
         return self.evaluate(values=values,
                              coefficient=coefficient,
                              operators=operators,
-                             default=default,
+                             missing_value=missing_value,
                              decoder=decoder,
                              **kwargs)
 
     def evaluate(self,
-                 values: Dict[str, Union[float, int]],
-                 coefficient: Union[float, int] = None,
-                 operators: Dict[Symbolic, Callable] = None,
-                 default: Union[float, int] = 0.0,
+                 values: Dict[str, float],
+                 coefficient: float = None,
+                 operators: Union[Dict[Type[Symbolic], Callable], Dict[Type[Symbolic], Any]] = None,
+                 missing_value: float = 0.0,
                  decoder: dict = None,
-                 **kwargs):
+                 **kwargs) -> Any:
 
         """
         Evaluate a Symbolic algebra expression based on
         the coefficients/values of the Symbolic symbols - mewpy variables.
 
         The symbolic expression is evaluated according to the Symbolic operators and values attributed to the symbols
-        in the values dictionary.
+        in the values' dictionary.
 
         :param values: A dictionary of values that the variables identifiers, aka symbols names,
         must take during expression evaluation
-        :param coefficient: If a coefficient is provided the coefficient value is returned
-        in case the Symbolic expression is evaluated to True.
+        :param coefficient: The value to be returned in case the expression is evaluated to True. Otherwise,
+        binary values 0 or 1 are returned.
         :param operators: A dictionary of custom operators. That is, python operators-based evaluation
         (e.g. 3 > 2 yield True) can be replaced by custom callable objects such as functions. For instance,
         3 > 2 can be evaluated with max, and thus max(3, 2) yields 3 now.
-        :param default: The default value of a given symbol/variable.
-        The default value is used if a given variable/symbol is missing in the values dictionary.
+        :param missing_value: If a given variable/symbol is missing in the values' dictionary, the missing
+        value is used.
         :param decoder: A custom dictionary for decoding the solution (key) into a given output (value).
         Binary output is currently set to 0 or 1 by default
         :param kwargs: Additional keyword arguments for Symbolic evaluate method
 
         :return: The solution of the Symbolic expression evaluation as int, float or Any type.
         """
-
-        res = self.symbolic.evaluate(values=values, operators=operators, default=default, **kwargs)
+        res = self.symbolic.evaluate(values=values, operators=operators, default=missing_value, **kwargs)
 
         res = solution_decode(res, decoder)
 
@@ -259,13 +261,11 @@ class Expression:
             return res
 
     def truth_table(self,
-                    values: Dict[str, Union[float, int]] = None,
-                    default_coefficients: bool = True,
-                    coefficient: Union[float, int] = None,
-                    operators: Dict[Symbolic, Callable] = None,
-                    default: Union[float, int] = 0.0,
-                    decoder: dict = None) -> pd.DataFrame:
-
+                    values: Dict[str, float] = None,
+                    strategy: str = 'max',
+                    coefficient: float = None,
+                    operators: Union[Dict[Type[Symbolic], Callable], Dict[Type[Symbolic], Any]] = None,
+                    decoder: Dict[Any, Any] = None) -> pd.DataFrame:
         """
         It calculates the truth table for this expression. The truth table is composed by the combination of values
         taken by empty, numeric and symbolic variables available in the algebra expression.
@@ -274,18 +274,16 @@ class Expression:
         in the values' dictionary.
 
         :param values: A dictionary of values that the variables identifiers, aka symbols names,
-        must take during expression evaluation. If the values dictionary is defined,
-        only one solution will be calculated for the truth table
-        :param default_coefficients: A boolean value (True by default) whether only the mewpy variables default
-        states/coefficients should be used for the truth table calculation. If so, only one solution will be calculated
-        for the truth table
-        :param coefficient: If a coefficient is provided the coefficient value is returned
-        in case the Symbolic expression is evaluated to True.
+        can take during expression evaluation. If the values dictionary is not provided,
+        variables' values/states are retrieved from the variables' coefficients using the strategy
+        defined by the strategy's parameter.
+        :param strategy: The truth table can be calculated using the maximum or minimum value
+        in the variables' coefficients. Otherwise, the truth table is calculated using all variables' coefficients.
+        :param coefficient: The value to be returned in case the expression is evaluated to True. Otherwise,
+        binary values 0 or 1 are returned.
         :param operators: A dictionary of custom operators. That is, python operators-based evaluation
         (e.g. 3 > 2 yield True) can be replaced by custom callable objects such as functions. For instance,
         3 > 2 can be evaluated with max, and thus max(3, 2) yields 3 now.
-        :param default: The default value of a given symbol/variable.
-        The default value is used if a given variable/symbol is missing in the values' dictionary.
         :param decoder: A custom dictionary for decoding the solution (key) into a given output (value).
         Binary output is currently set to 0 or 1 by default
 
@@ -295,48 +293,52 @@ class Expression:
         (the result of evaluating the algebra expression). DataFrame rows should stand for the cartesian product of all
         combination of values taken by empty, numeric and symbolic variables,
         unless specific parameters are taken.
-
         """
+        if not values:
+            values = {}
 
         truth_table = []
 
-        if values:
+        if strategy == 'max':
+            state = {key: max(variable.coefficients)
+                     for key, variable in self._variables.items()}
+            state.update(values)
 
-            values['result'] = self.evaluate(values=values,
-                                             coefficient=coefficient,
-                                             operators=operators,
-                                             default=default,
-                                             decoder=decoder)
+            state['result'] = self.evaluate(values=state,
+                                            coefficient=coefficient,
+                                            operators=operators,
+                                            decoder=decoder)
 
-            truth_table.append(values)
+            truth_table.append(state)
+
+        elif strategy == 'min':
+            state = {key: min(variable.coefficients)
+                     for key, variable in self._variables.items()}
+            state.update(values)
+
+            state['result'] = self.evaluate(values=state,
+                                            coefficient=coefficient,
+                                            operators=operators,
+                                            decoder=decoder)
+
+            truth_table.append(state)
+
+        elif strategy == 'all':
+            variables = list(self.variables.keys())
+            all_states = [variable.coefficients for variable in self._variables.values()]
+
+            for state in product(*all_states):
+                state = dict(list(zip(variables, state)))
+                state.update(values)
+
+                state['result'] = self.evaluate(values=state,
+                                                coefficient=coefficient,
+                                                operators=operators,
+                                                decoder=decoder)
+
+                truth_table.append(state)
 
         else:
-            if default_coefficients:
-                values = {key: variable.coefficient.default_coefficient
-                          for key, variable in self._variables.items()}
-
-                values['result'] = self.evaluate(values=values,
-                                                 coefficient=coefficient,
-                                                 operators=operators,
-                                                 default=default,
-                                                 decoder=decoder)
-
-                truth_table.append(values)
-
-            else:
-
-                variables = list(self.variables.keys())
-                coefficients = [variable.coefficient.coefficients for variable in self._variables.values()]
-
-                for combined_coefficients in product(*coefficients):
-                    values = dict(list(zip(variables, combined_coefficients)))
-
-                    values['result'] = self.evaluate(values=values,
-                                                     coefficient=coefficient,
-                                                     operators=operators,
-                                                     default=default,
-                                                     decoder=decoder)
-
-                    truth_table.append(values)
+            raise ValueError('coefficients must be max, min or all')
 
         return pd.DataFrame(truth_table)

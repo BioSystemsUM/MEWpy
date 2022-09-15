@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, Any, Union, Generator, Dict, List, Tuple, Set
 
 from mewpy.model.model import Model
-from mewpy.mew.lp import Notification
 from mewpy.util.history import recorder
 from mewpy.util.serialization import serialize
 from mewpy.util.utilities import iterable, generator
@@ -220,8 +219,8 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
         if not value:
             value = {}
 
-        self.remove(list(self.yield_genes()), 'gene', history=False)
-        self.add(list(value.values()), 'gene', history=False)
+        self.remove(*self.yield_genes(), history=False)
+        self.add(*value.values(), history=False)
 
     @metabolites.setter
     @recorder
@@ -235,8 +234,8 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
         if not value:
             value = {}
 
-        self.remove(list(self.yield_metabolites()), 'metabolite', history=False)
-        self.add(list(value.values()), 'metabolite', history=False)
+        self.remove(*self.yield_metabolites(), history=False)
+        self.add(*value.values(), history=False)
 
     @objective.setter
     @recorder
@@ -269,14 +268,8 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
 
         linear_obj = {var.id: coef for var, coef in self._objective.items()}
 
-        content = {'linear': linear_obj,
-                   'minimize': False}
-
-        notification = Notification(content=content,
-                                    content_type='objectives',
-                                    action='set')
-
-        self.notify(notification)
+        for simulator in self.simulators:
+            simulator.set_objective(linear=linear_obj, minimize=False)
 
     @reactions.setter
     @recorder
@@ -289,8 +282,8 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
         if not value:
             value = {}
 
-        self.remove(list(self.yield_reactions()), 'reaction', history=False)
-        self.add(list(value.values()), 'reaction', history=False)
+        self.remove(*self.yield_reactions(), history=False)
+        self.add(*value.values(), history=False)
 
     # -----------------------------------------------------------------------------
     # Dynamic attributes
@@ -478,210 +471,6 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
         else:
             return super(MetabolicModel, self).get(identifier=identifier, default=default)
 
-    def add(self,
-            variables: Union[List[Union['Gene', 'Metabolite', 'Reaction']],
-                             Tuple[Union['Gene', 'Metabolite', 'Reaction']],
-                             Set[Union['Gene', 'Metabolite', 'Reaction']]],
-            *types: str,
-            comprehensive: bool = True,
-            history=True):
-        """
-        It adds the variables to the model.
-
-        This method accepts a single variable or a list of variables to be added to specific containers in the model.
-        The containers to which the variables will be added are specified by the types.
-
-        For instance, if a variable is simultaneously a metabolite and reaction,
-        it will be added to the metabolites and reaction containers.
-
-        If comprehensive is True, the variables and their related variables will be added to the model too.
-        If history is True, the changes will be recorded in the history.
-
-        This method notifies all simulators with the recent changes.
-
-        :param variables: the variables to be added to the model
-        :param types: the types of the variables setting which containers will store the variables.
-        If none, the variables will be added to the containers according to their type.
-        :param comprehensive: if True, the variables and their related variables will be added to the model too
-        :param history: if True, the changes will be recorded in the history
-        :return:
-        """
-        variables = iterable(variables)
-
-        if not types:
-            types = [var.types for var in variables]
-
-        elif len(types) == len(variables):
-            types = [{_type} if isinstance(_type, str) else set(_type) for _type in types]
-
-        elif len(types) != len(variables):
-            types = [set(types) for var in variables]
-
-        reactions = []
-        new_variables = []
-        new_types = []
-
-        for var_types, var in zip(types, variables):
-
-            if 'gene' in var_types:
-                self._add_gene(var)
-                var_types.remove('gene')
-
-            if 'metabolite' in var_types:
-                self._add_metabolite(var)
-                var_types.remove('metabolite')
-
-            if 'reaction' in var_types:
-                self._add_reaction(var, comprehensive=comprehensive)
-                reactions.append(var)
-                var_types.remove('reaction')
-
-            if var_types:
-                new_types.append(var_types)
-                new_variables.append(var)
-
-        if reactions:
-
-            notification = Notification(content=reactions,
-                                        content_type='reactions',
-                                        action='add')
-
-            self.notify(notification)
-
-            notification = Notification(content=reactions,
-                                        content_type='gprs',
-                                        action='add')
-
-            self.notify(notification)
-
-        if history:
-            self.history.queue_command(undo_func=self.remove,
-                                       undo_kwargs={'variables': variables,
-                                                    'remove_orphans': True,
-                                                    'history': False},
-                                       func=self.add,
-                                       kwargs={'variables': variables,
-                                               'comprehensive': comprehensive,
-                                               'history': history})
-
-        super(MetabolicModel, self).add(new_variables,
-                                        *new_types,
-                                        comprehensive=comprehensive,
-                                        history=False)
-
-    def remove(self,
-               variables: Union[List[Union['Gene', 'Metabolite', 'Reaction']],
-                                Tuple[Union['Gene', 'Metabolite', 'Reaction']],
-                                Set[Union['Gene', 'Metabolite', 'Reaction']]],
-               *types: str,
-               remove_orphans: bool = False, history=True):
-        """
-        It removes the variables from the model.
-
-        This method accepts a single variable or a list of variables to be removed from specific containers in the model.
-        The containers from which the variables will be removed are specified by the types.
-
-        For instance, if a variable is simultaneously a metabolite and reaction,
-        it will be removed from the metabolites and reaction containers.
-
-        If remove_orphans is True, the variables and their related variables will be removed from the model too.
-        If history is True, the changes will be recorded in the history.
-
-        This method notifies all simulators with the recent changes.
-
-        :param variables: the variables to be removed from the model
-        :param types: the types of the variables setting which containers will remove the variables.
-        If none, the variables will be removed from the containers according to their type.
-        :param remove_orphans: if True, the variables and their related variables will be removed from the model too
-        :param history: if True, the changes will be recorded in the history
-        :return:
-        """
-        variables = iterable(variables)
-
-        if not types:
-            types = [var.types for var in variables]
-
-        elif len(types) == len(variables):
-            types = [{_type} if isinstance(_type, str) else set(_type) for _type in types]
-
-        elif len(types) != len(variables):
-            types = [set(types) for var in variables]
-
-        reactions = []
-        metabolites = []
-        new_variables = []
-        new_types = []
-
-        for var_types, var in zip(types, variables):
-
-            if 'gene' in var_types:
-                self._remove_gene(var)
-                var_types.remove('gene')
-
-            if 'metabolite' in var_types:
-                metabolites.append(var)
-                self._remove_metabolite(var)
-                var_types.remove('metabolite')
-
-            if 'reaction' in var_types:
-                reactions.append(var)
-                self._remove_reaction(var)
-                var_types.remove('reaction')
-
-            if var_types:
-                new_types.append(var_types)
-                new_variables.append(var)
-
-        if reactions:
-
-            notification = Notification(content=reactions,
-                                        content_type='reactions',
-                                        action='remove')
-
-            self.notify(notification)
-
-            notification = Notification(content=reactions,
-                                        content_type='gprs',
-                                        action='remove')
-
-            self.notify(notification)
-
-            if remove_orphans:
-                orphan_mets, _ = self._remove_metabolic_orphans(reactions)
-
-                notification = Notification(content=orphan_mets,
-                                            content_type='metabolites',
-                                            action='remove')
-
-                self.notify(notification)
-
-        # metabolites take precedence since linear coefficients are added to linear problems
-        # by the reactions stoichiometry dictionary.
-        # So, if metabolites are being removed as a result of removing reactions and its metabolites
-        # all together from the model, the linear coefficients obtained from the reactions should be the last thing to
-        # persist in the lp.
-        if metabolites:
-            notification = Notification(content=metabolites,
-                                        content_type='metabolites',
-                                        action='remove')
-
-            self.notify(notification)
-
-        if history:
-            self.history.queue_command(undo_func=self.add,
-                                       undo_kwargs={'variables': variables,
-                                                    'comprehensive': True,
-                                                    'history': False},
-                                       func=self.remove,
-                                       kwargs={'variables': variables,
-                                               'remove_orphans': remove_orphans,
-                                               'history': history})
-
-        super(MetabolicModel, self).remove(new_variables,
-                                           *new_types,
-                                           remove_orphans=remove_orphans,
-                                           history=False)
-
     def update(self,
                compartments: Dict[str, str] = None,
                objective: Dict['Reaction', Union[float, int]] = None,
@@ -702,76 +491,9 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
             self.compartments = compartments
 
         if variables is not None:
-            self.add(variables=variables)
+            self.add(*variables)
 
         if objective is not None:
             self.objective = objective
 
         super(MetabolicModel, self).update(**kwargs)
-
-    # -----------------------------------------------------------------------------
-    # Helper functions for the operations/Manipulations
-    # -----------------------------------------------------------------------------
-    def _add_reaction(self, reaction, comprehensive=True):
-
-        # adding a reaction is regularly a in-depth append method, as both metabolites and genes associated with the
-        # reaction are also regularly added to the model. Although, this behaviour can be avoided passing
-        # comprehensive=False
-
-        if reaction.id not in self._reactions:
-
-            if comprehensive:
-
-                for metabolite in reaction.yield_metabolites():
-                    self._add_metabolite(metabolite)
-
-                for gene in reaction.yield_genes():
-                    self._add_gene(gene)
-
-            self._add_variable_to_container(reaction, self._reactions)
-
-    def _add_metabolite(self, metabolite):
-
-        if metabolite.id not in self._metabolites:
-            self._add_variable_to_container(metabolite, self._metabolites)
-
-    def _add_gene(self, gene):
-
-        if gene.id not in self._genes:
-            self._add_variable_to_container(gene, self._genes)
-
-    def _remove_reaction(self, reaction, remove_orphans=False):
-
-        if reaction.id in self._reactions:
-            self._remove_variable_from_container(reaction, self._reactions)
-
-    def _remove_metabolite(self, metabolite):
-
-        if metabolite.id in self._metabolites:
-            self._remove_variable_from_container(metabolite, self._metabolites)
-
-    def _remove_gene(self, gene):
-
-        if gene.id in self._genes:
-            self._remove_variable_from_container(gene, self._genes)
-
-    def _remove_metabolic_orphans(self, reactions):
-
-        orphan_mets = self._get_orphans(to_remove=reactions,
-                                        first_container='metabolites',
-                                        second_container='reactions')
-
-        orphan_genes = self._get_orphans(to_remove=reactions,
-                                         first_container='genes',
-                                         second_container='reactions')
-
-        if orphan_mets:
-
-            for met in orphan_mets:
-                self._remove_metabolite(met)
-
-        if orphan_genes:
-            for gene in orphan_genes:
-                self._remove_gene(gene)
-
-        return orphan_mets, orphan_genes

@@ -1,7 +1,6 @@
 from typing import Any, TYPE_CHECKING, Union, Generator, Dict, List, Tuple, Set
 
 from mewpy.model.model import Model
-from mewpy.mew.lp import Notification
 from mewpy.util.history import recorder
 from mewpy.util.serialization import serialize
 from mewpy.util.utilities import iterable, generator
@@ -10,7 +9,6 @@ if TYPE_CHECKING:
     from mewpy.mew.variables import Interaction, Regulator, Target, Metabolite, Reaction
 
 
-# TODO: methods stubs
 class RegulatoryModel(Model, model_type='regulatory', register=True, constructor=True, checker=True):
     """
     A mew regulatory model can represent a Transcriptional Regulatory Network (TRN), containing
@@ -167,7 +165,6 @@ class RegulatoryModel(Model, model_type='regulatory', register=True, constructor
     # -----------------------------------------------------------------------------
     # Static attributes setters
     # -----------------------------------------------------------------------------
-
     @compartments.setter
     @recorder
     def compartments(self, value: Dict[str, str]):
@@ -195,8 +192,8 @@ class RegulatoryModel(Model, model_type='regulatory', register=True, constructor
         if not value:
             value = {}
 
-        self.remove(list(self.yield_interactions()), 'interaction', history=False)
-        self.add(list(value.values()), 'interaction', history=False)
+        self.remove(*self.yield_interactions(), history=False)
+        self.add(*value.values(), history=False)
 
     @regulators.setter
     @recorder
@@ -210,8 +207,8 @@ class RegulatoryModel(Model, model_type='regulatory', register=True, constructor
         if not value:
             value = {}
 
-        self.remove(list(self.yield_regulators()), 'regulator', history=False)
-        self.add(list(value.values()), 'regulator', history=False)
+        self.remove(*self.yield_regulators(), history=False)
+        self.add(*value.values(), history=False)
 
     @targets.setter
     @recorder
@@ -225,13 +222,12 @@ class RegulatoryModel(Model, model_type='regulatory', register=True, constructor
         if not value:
             value = {}
 
-        self.remove(list(self.yield_targets()), 'target', history=False)
-        self.add(list(value.values()), 'target', history=False)
+        self.remove(*self.yield_targets(), history=False)
+        self.add(*value.values(), history=False)
 
     # -----------------------------------------------------------------------------
     # Dynamic attributes
     # -----------------------------------------------------------------------------
-
     @property
     def environmental_stimuli(self) -> Dict[str, 'Regulator']:
         """
@@ -246,7 +242,6 @@ class RegulatoryModel(Model, model_type='regulatory', register=True, constructor
     # -----------------------------------------------------------------------------
     # Generators
     # -----------------------------------------------------------------------------
-
     def yield_environmental_stimuli(self) -> Generator['Regulator', None, None]:
         """
         It returns an iterator with the environmental stimuli of the model.
@@ -298,178 +293,6 @@ class RegulatoryModel(Model, model_type='regulatory', register=True, constructor
         else:
             return super(RegulatoryModel, self).get(identifier=identifier, default=default)
 
-    def add(self,
-            variables: Union[List[Union['Interaction', 'Regulator', 'Target']],
-                             Tuple[Union['Interaction', 'Regulator', 'Target']],
-                             Set[Union['Interaction', 'Regulator', 'Target']]],
-            *types: str,
-            comprehensive: bool = True,
-            history=True):
-        """
-        It adds the variables to the model.
-
-        This method accepts a single variable or a list of variables to be added to specific containers in the model.
-        The containers to which the variables will be added are specified by the types.
-
-        For instance, if a variable is simultaneously a targets and regulators,
-        it will be added to the targets and regulators containers.
-
-        If comprehensive is True, the variables and their related variables will be added to the model too.
-        If history is True, the changes will be recorded in the history.
-
-        This method notifies all simulators with the recent changes.
-
-        :param variables: the variables to be added to the model
-        :param types: the types of the variables setting which containers will store the variables.
-        If none, the variables will be added to the containers according to their type.
-        :param comprehensive: if True, the variables and their related variables will be added to the model too
-        :param history: if True, the changes will be recorded in the history
-        :return:
-        """
-        variables = iterable(variables)
-
-        if not types:
-            types = [var.types for var in variables]
-
-        elif len(types) == len(variables):
-            types = [{_type} if isinstance(_type, str) else set(_type) for _type in types]
-
-        elif len(types) != len(variables):
-            types = [set(types) for var in variables]
-
-        interactions = []
-        new_variables = []
-        new_types = []
-
-        for var_types, var in zip(types, variables):
-
-            if 'target' in var_types:
-                self._add_target(var)
-                var_types.remove('target')
-
-            if 'regulator' in var_types:
-                self._add_regulator(var)
-                var_types.remove('regulator')
-
-            if 'interaction' in var_types:
-                self._add_interaction(var, comprehensive=comprehensive)
-                interactions.append(var)
-                var_types.remove('interaction')
-
-            if var_types:
-                new_types.append(var_types)
-                new_variables.append(var)
-
-        if interactions:
-            notification = Notification(content=interactions,
-                                        content_type='interactions',
-                                        action='add')
-
-            self.notify(notification)
-
-        if history:
-            self.history.queue_command(undo_func=self.remove,
-                                       undo_kwargs={'variables': variables,
-                                                    'remove_orphans': True,
-                                                    'history': False},
-                                       func=self.add,
-                                       kwargs={'variables': variables,
-                                               'comprehensive': comprehensive,
-                                               'history': history})
-
-        super(RegulatoryModel, self).add(new_variables,
-                                         *new_types,
-                                         comprehensive=comprehensive,
-                                         history=False)
-
-    def remove(self,
-               variables: Union[List[Union['Interaction', 'Regulator', 'Target']],
-                                Tuple[Union['Interaction', 'Regulator', 'Target']],
-                                Set[Union['Interaction', 'Regulator', 'Target']]],
-               *types: str,
-               remove_orphans: bool = False,
-               history=True):
-        """
-        It removes the variables from the model.
-
-        This method accepts a single variable or a list of variables to be removed from specific containers in the model.
-        The containers from which the variables will be removed are specified by the types.
-
-        For instance, if a variable is simultaneously a targets and regulators,
-        it will be removed from the targets and regulators containers.
-
-        If remove_orphans is True, the variables and their related variables will be removed from the model too.
-        If history is True, the changes will be recorded in the history.
-
-        This method notifies all simulators with the recent changes.
-
-        :param variables: the variables to be removed from the model
-        :param types: the types of the variables setting which containers will remove the variables.
-        If none, the variables will be removed from the containers according to their type.
-        :param remove_orphans: if True, the variables and their related variables will be removed from the model too
-        :param history: if True, the changes will be recorded in the history
-        :return:
-        """
-        variables = iterable(variables)
-
-        if not types:
-            types = [var.types for var in variables]
-
-        elif len(types) == len(variables):
-            types = [{_type} if isinstance(_type, str) else set(_type) for _type in types]
-
-        elif len(types) != len(variables):
-            types = [set(types) for var in variables]
-
-        interactions = []
-        new_variables = []
-        new_types = []
-
-        for var_types, var in zip(types, variables):
-
-            if 'target' in var_types:
-                self._remove_target(var)
-                var_types.remove('target')
-
-            if 'regulator' in var_types:
-                self._remove_regulator(var)
-                var_types.remove('regulator')
-
-            if 'interaction' in var_types:
-                self._remove_interaction(var, remove_orphans=remove_orphans)
-                interactions.append(var)
-                var_types.remove('interaction')
-
-            if var_types:
-                new_types.append(var_types)
-                new_variables.append(var)
-
-        if interactions:
-
-            notification = Notification(content=interactions,
-                                        content_type='interactions',
-                                        action='remove')
-
-            self.notify(notification)
-
-            if remove_orphans:
-                self._remove_regulatory_orphans(interactions)
-
-        if history:
-            self.history.queue_command(undo_func=self.add,
-                                       undo_kwargs={'variables': variables,
-                                                    'comprehensive': True,
-                                                    'history': False},
-                                       func=self.remove,
-                                       kwargs={'variables': variables,
-                                               'remove_orphans': remove_orphans,
-                                               'history': history})
-
-        super(RegulatoryModel, self).remove(new_variables,
-                                            *new_types,
-                                            remove_orphans=remove_orphans,
-                                            history=False)
-
     def update(self,
                compartments: Dict[str, str] = None,
                variables: Union[List[Union['Interaction', 'Regulator', 'Target']],
@@ -488,69 +311,6 @@ class RegulatoryModel(Model, model_type='regulatory', register=True, constructor
             self.compartments = compartments
 
         if variables is not None:
-            self.add(variables=variables)
+            self.add(*variables)
 
         super(RegulatoryModel, self).update(**kwargs)
-
-    def _add_interaction(self, interaction, comprehensive=True):
-
-        # adding a interaction is regularly a in-depth append method, as both regulators and target associated with
-        # the interaction are also regularly added to the model. Although, this behaviour can be avoided passing
-        # comprehensive=True
-
-        if interaction.id not in self._interactions:
-
-            if comprehensive:
-
-                for regulator in interaction.yield_regulators():
-                    self._add_regulator(regulator)
-
-                if interaction.target is not None:
-                    self._add_target(interaction.target)
-
-            self._add_variable_to_container(interaction, self._interactions)
-
-    def _add_regulator(self, regulator):
-
-        if regulator.id not in self._regulators:
-            self._add_variable_to_container(regulator, self._regulators)
-
-    def _add_target(self, target):
-
-        if target.id not in self._targets:
-            self._add_variable_to_container(target, self._targets)
-
-    def _remove_interaction(self, interaction, remove_orphans=False):
-
-        if interaction.id in self._interactions:
-            self._remove_variable_from_container(interaction, self._interactions)
-
-    def _remove_regulator(self, regulator):
-
-        if regulator.id in self._regulators:
-            self._remove_variable_from_container(regulator, self._regulators)
-
-    def _remove_target(self, target):
-
-        if target.id in self._targets:
-            self._remove_variable_from_container(target, self._targets)
-
-    def _remove_regulatory_orphans(self, interactions):
-
-        orphan_regs = self._get_orphans(to_remove=interactions,
-                                        first_container='regulators',
-                                        second_container='interactions')
-
-        orphan_targets = self._get_orphans(to_remove=interactions,
-                                           first_container='target',
-                                           second_container='interaction')
-
-        if orphan_regs:
-
-            for regulator in orphan_regs:
-                self._remove_regulator(regulator)
-
-        if orphan_targets:
-
-            for target in orphan_targets:
-                self._remove_target(target)
