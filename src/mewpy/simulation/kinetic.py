@@ -31,7 +31,7 @@ class KineticThread(Process):
     """
 
     def __init__(self, model, initial_concentrations=None, time_steps=None, parameters=None, factors=None):
-        Process.__init__(self, daemon=True)
+        Process.__init__(self, daemon=False)
         self.model = model
         self.parameters = parameters
         self.factors = factors
@@ -131,6 +131,8 @@ class KineticSimulation(SimulationInterface):
                 sstateConc = th.result['concentrations']
                 t = th.result['t']
                 y = th.result['y']
+            except AssertionError as e:
+                raise AssertionError(f"{str(e)}. Installing ray for multiprocessing will solve this issue.")     
             except Exception as e:
                 warnings.warn(str(e))
         else:

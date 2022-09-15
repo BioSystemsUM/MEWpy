@@ -50,6 +50,7 @@ class CBModelContainer(ModelContainer):
         rxn = self.model.reactions[r_id]
         res = {'id': r_id, 'name': rxn.name, 'lb': rxn.lb, 'ub': rxn.ub, 'stoichiometry': rxn.stoichiometry}
         res['gpr'] = str(rxn.gpr) if rxn.gpr is not None else None
+        res['annotations'] = rxn.metadata
         return AttrDict(res)
 
     @property
