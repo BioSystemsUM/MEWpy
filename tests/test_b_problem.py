@@ -1,4 +1,6 @@
 import unittest
+from pathlib import Path
+
 import pytest
 
 MODELS_PATH = 'tests/data/'
@@ -9,8 +11,8 @@ OPTRAM_GENES = MODELS_PATH + 'mgene.csv'
 OPTRAM_TFS = MODELS_PATH + 'TFnames.csv'
 OPTRAM_REGNET = MODELS_PATH + 'regnet.csv'
 
-EC_CORE_MODEL2 = MODELS_PATH + 'e_coli_core.xml'
-EC_CORE_REG_MODEL = MODELS_PATH + 'e_coli_core_trn.csv'
+EC_CORE_MODEL2 = Path(__file__).parent.joinpath('data', 'e_coli_core.xml')
+EC_CORE_REG_MODEL = Path(__file__).parent.joinpath('data', 'e_coli_core_trn.csv')
 
 MIN_GROWTH = 0.1
 
@@ -136,7 +138,7 @@ class TestOptORF(unittest.TestCase):
         from mewpy.io import read_model, Engines, Reader
 
         metabolic_reader = Reader(Engines.MetabolicSBML, EC_CORE_MODEL2)
-        regulatory_reader = Reader(Engines.RegulatoryCSV,
+        regulatory_reader = Reader(Engines.BooleanRegulatoryCSV,
                                    EC_CORE_REG_MODEL,
                                    sep=',',
                                    id_col=1,

@@ -1,10 +1,11 @@
 import unittest
+from pathlib import Path
 
-MODELS_PATH = 'tests/data/'
-EC_CORE_MODEL = MODELS_PATH + 'e_coli_core.xml'
-EC_CORE_REG_MODEL = MODELS_PATH + 'e_coli_core_trn.csv'
-SAMPLE_MODEL = MODELS_PATH + 'SampleNet.xml'
-SAMPLE_REG_MODEL = MODELS_PATH + 'SampleRegNet.csv'
+MODELS_PATH = Path(__file__).parent.joinpath('data')
+EC_CORE_MODEL = MODELS_PATH.joinpath('e_coli_core.xml')
+EC_CORE_REG_MODEL = MODELS_PATH.joinpath('e_coli_core_trn.csv')
+SAMPLE_MODEL = MODELS_PATH.joinpath('SampleNet.xml')
+SAMPLE_REG_MODEL = MODELS_PATH.joinpath('SampleRegNet.csv')
 
 
 class TestMewModel(unittest.TestCase):
@@ -19,7 +20,7 @@ class TestMewModel(unittest.TestCase):
         from mewpy.io import Reader, Engines
 
         self.metabolic_reader = Reader(Engines.MetabolicSBML, EC_CORE_MODEL)
-        self.regulatory_reader = Reader(Engines.RegulatoryCSV,
+        self.regulatory_reader = Reader(Engines.BooleanRegulatoryCSV,
                                         EC_CORE_REG_MODEL,
                                         sep=',',
                                         id_col=1,
@@ -58,13 +59,13 @@ class TestMewModel(unittest.TestCase):
         for symbolic in expr.walk():
             self.assertTrue(isinstance(symbolic, Symbolic))
 
-        active_st = expr.truth_table(active_states=True)
-        full = expr.truth_table(active_states=False)
+        expr.truth_table(strategy='max')
+        expr.truth_table(strategy='all')
 
-        variables.get('b0001').active_coefficient = 1
+        variables.get('b0001').coefficients = (1, )
 
-        active_st = expr.truth_table(active_states=True)
-        full = expr.truth_table(active_states=False)
+        expr.truth_table(strategy='max')
+        expr.truth_table(strategy='all')
 
         rule = 'A and (B or (C and D) or F) and G'
 
@@ -140,7 +141,7 @@ class TestMewModel(unittest.TestCase):
                                              bounds=(0.0, 999999),
                                              stoichiometry={metabolite1: -1, metabolite2: 1})
 
-        model.add([reaction1, reaction2])
+        model.add(reaction1, reaction2)
 
         rxns = {'R0001': reaction1, 'R0002': reaction2}
         mets = {'o2': metabolite1, 'h2o2': metabolite2}
@@ -172,7 +173,7 @@ class TestMewModel(unittest.TestCase):
 
         interaction2 = Interaction.from_string('I_b0002', rule=rule, target=regulator)
 
-        model.add([interaction1, interaction2])
+        model.add(interaction1, interaction2)
 
         self.assertEqual(model.interactions, {'I_b0001': interaction1, 'I_b0002': interaction2})
         self.assertEqual(model.regulators, {**{'b0002': regulator}, **model.interactions['I_b0002'].regulators})
@@ -191,7 +192,7 @@ class TestMewModel(unittest.TestCase):
         self.assertEqual(len(model.metabolites), 72)
         self.assertEqual(len(model.genes), 137)
 
-        regulatory_reader = Reader(Engines.RegulatorySBML, MODELS_PATH + 'e_coli_lac.xml')
+        regulatory_reader = Reader(Engines.RegulatorySBML, MODELS_PATH.joinpath('e_coli_lac.xml'))
         model = read_model(regulatory_reader)
 
         self.assertEqual(len(model.interactions), 27)
@@ -206,7 +207,7 @@ class TestMewModel(unittest.TestCase):
         self.assertEqual(len(model.regulators), 45)
 
         # from sbml + sbml
-        regulatory_reader = Reader(Engines.RegulatorySBML, MODELS_PATH + 'e_coli_lac.xml')
+        regulatory_reader = Reader(Engines.RegulatorySBML, MODELS_PATH.joinpath('e_coli_lac.xml'))
         model = read_model(regulatory_reader, self.metabolic_reader)
 
         self.assertEqual(len(model.interactions), 27)
@@ -228,8 +229,8 @@ class TestMewModel(unittest.TestCase):
 
         # from cobra
         from cobra.io import read_sbml_model
-        cobra_ecoli_core_model = read_sbml_model(EC_CORE_MODEL)
-        metabolic_reader = Reader(Engines.CobrapyModel, cobra_ecoli_core_model)
+        cobra_ecoli_core_model = read_sbml_model(str(EC_CORE_MODEL))
+        metabolic_reader = Reader(Engines.CobraModel, cobra_ecoli_core_model)
 
         model = read_model(metabolic_reader)
         self.assertEqual(len(model.reactions), 95)
@@ -238,7 +239,7 @@ class TestMewModel(unittest.TestCase):
 
         # from reframed
         from reframed import load_cbmodel
-        reframed_ecoli_core_model = load_cbmodel(EC_CORE_MODEL)
+        reframed_ecoli_core_model = load_cbmodel(str(EC_CORE_MODEL))
         metabolic_reader = Reader(Engines.ReframedModel, reframed_ecoli_core_model)
 
         model = read_model(metabolic_reader)
@@ -247,7 +248,7 @@ class TestMewModel(unittest.TestCase):
         self.assertEqual(len(model.genes), 137)
 
         # from json
-        model_reader = Reader(Engines.JSON, MODELS_PATH + 'e_coli_core.json')
+        model_reader = Reader(Engines.JSON, MODELS_PATH.joinpath('e_coli_core.json'))
 
         model = read_model(model_reader)
         self.assertEqual(len(model.interactions), 159)
@@ -267,18 +268,18 @@ class TestMewModel(unittest.TestCase):
 
         # to sbml
         metabolic_writer = Writer(Engines.MetabolicSBML,
-                                  io=MODELS_PATH + 'e_coli_core_write.xml',
+                                  io=MODELS_PATH.joinpath('e_coli_core_write.xml'),
                                   model=model)
 
         regulatory_writer = Writer(Engines.RegulatorySBML,
-                                   io=MODELS_PATH + 'e_coli_lac_write.xml',
+                                   io=MODELS_PATH.joinpath('e_coli_lac_write.xml'),
                                    model=model)
 
         write_model(regulatory_writer, metabolic_writer)
 
         # to json
         model_writer = Writer(Engines.JSON,
-                              io=MODELS_PATH + 'e_coli_core_write.json',
+                              io=MODELS_PATH.joinpath('e_coli_core_write.json'),
                               model=model)
 
         write_model(model_writer)
@@ -306,59 +307,33 @@ class TestMewModel(unittest.TestCase):
         sol = simulator.optimize()
         self.assertGreater(sol.objective_value, 0)
 
-        # milpfba
-        from mewpy.mew.analysis import milpFBA
-        simulator = milpFBA(model)
-        sol = simulator.optimize()
-        self.assertGreater(sol.objective_value, 0)
-
         # deletions
         from mewpy.mew.analysis import single_reaction_deletion, single_gene_deletion
-        reactions_deletion = single_reaction_deletion(model=model,
-                                                      method='pfba',
-                                                      reactions=list(model.reactions.keys())[0:10])
+        reactions_deletion = single_reaction_deletion(model=model, reactions=list(model.reactions.keys())[0:10])
         self.assertGreater(len(reactions_deletion), 0)
 
-        genes_deletion = single_gene_deletion(model=model,
-                                              method='fba',
-                                              genes=list(model.genes.keys())[0:10])
+        genes_deletion = single_gene_deletion(model=model, genes=list(model.genes.keys())[0:10])
         self.assertGreater(len(genes_deletion), 0)
 
         from mewpy.mew.analysis import fva
-        fva_sol = fva(model=model, method='pfba', fraction=0.9, reactions=list(model.reactions.keys())[0:10])
+        fva_sol = fva(model=model, fraction=0.9, reactions=list(model.reactions.keys())[0:10])
         self.assertGreater(len(fva_sol), 0)
 
         # regulatory analysis
         model = read_model(self.regulatory_reader)
 
-        # milpBool
-        from mewpy.mew.analysis import milpBool
-        simulator = milpBool(model)
-        sol = simulator.optimize()
-        self.assertEqual(sol.objective_value, 0)
-
-        # SimBool
-        from mewpy.mew.analysis import SimBool
-        simulator = SimBool(model)
-        sol = simulator.optimize()
-        self.assertEqual(sol.objective_value, 0)
-
-        # deletions
-        from mewpy.mew.analysis import single_regulator_deletion
-        sol = single_regulator_deletion(model)
-        self.assertGreater(len(sol), 0)
-
         # truth table/regulatory events
-        from mewpy.mew.analysis import regulatory_events
-        reg_events = regulatory_events(model=model)
-        self.assertGreater(len(reg_events), 0)
+        from mewpy.mew.analysis import regulatory_truth_table
+        truth_table = regulatory_truth_table(model=model, initial_state={'ArcA': 0, 'Fnr': 0})
+        self.assertGreater(len(truth_table), 0)
+        self.assertEqual(truth_table.loc['nuoN', 'result'], 1)
 
         # integrated analysis
         # model = read_model(self.regulatory_reader, self.metabolic_reader)
         # changing to sample because of CPLEX community edition
         from mewpy.io import Reader, Engines
         metabolic_reader = Reader(Engines.MetabolicSBML, SAMPLE_MODEL)
-        regulatory_reader = Reader(Engines.RegulatoryCSV,
+        regulatory_reader = Reader(Engines.BooleanRegulatoryCSV,
                                    SAMPLE_REG_MODEL,
                                    sep=',',
                                    id_col=0,
@@ -377,7 +352,7 @@ class TestMewModel(unittest.TestCase):
         #     model.get(rxn).bounds = bds
 
         model.objective = {_BIOMASS_ID: 1}
-        model.get('pH').coefficient.coefficients = (0, 14)
+        model.get('pH').coefficients = (0, 14)
 
         from mewpy.mew.analysis import SRFBA
         simulator = SRFBA(model)
@@ -394,19 +369,19 @@ class TestMewModel(unittest.TestCase):
 
         # ifva
         from mewpy.mew.analysis import ifva
-        sol = ifva(model, method='srfba', reactions=list(model.reactions.keys())[0:10])
+        sol = ifva(model, reactions=list(model.reactions.keys())[0:10])
         self.assertGreater(len(sol), 0)
 
         from mewpy.mew.analysis import isingle_reaction_deletion
-        sol = isingle_reaction_deletion(model, method='srfba', reactions=list(model.reactions.keys())[0:10])
+        sol = isingle_reaction_deletion(model, reactions=list(model.reactions.keys())[0:10])
         self.assertGreater(len(sol), 0)
 
         from mewpy.mew.analysis import isingle_gene_deletion
-        sol = isingle_gene_deletion(model, method='srfba', genes=list(model.genes.keys())[0:10])
+        sol = isingle_gene_deletion(model, genes=list(model.genes.keys())[0:10])
         self.assertGreater(len(sol), 0)
 
         from mewpy.mew.analysis import isingle_regulator_deletion
-        sol = isingle_regulator_deletion(model, method='srfba', regulators=list(model.regulators.keys())[0:10])
+        sol = isingle_regulator_deletion(model, regulators=list(model.regulators.keys())[0:10])
         self.assertGreater(len(sol), 0)
 
     def test_simulation(self):
@@ -417,7 +392,7 @@ class TestMewModel(unittest.TestCase):
         from mewpy.io import Reader, Engines, read_model
 
         metabolic_reader = Reader(Engines.MetabolicSBML, SAMPLE_MODEL)
-        regulatory_reader = Reader(Engines.RegulatoryCSV,
+        regulatory_reader = Reader(Engines.BooleanRegulatoryCSV,
                                    SAMPLE_REG_MODEL,
                                    sep=',',
                                    id_col=0,
@@ -426,7 +401,7 @@ class TestMewModel(unittest.TestCase):
         model = read_model(regulatory_reader, metabolic_reader)
 
         # pH (ph > 5) controls g20, which belongs to the r11 gpr
-        model.get('pH').coefficient.coefficients = (0, 14)
+        model.get('pH').coefficients = (0, 14)
 
         self.assertEqual(model.id, 'COBRAModel')
         self.assertEqual(model.name, 'Model Exported from COBRA Toolbox')
@@ -468,36 +443,6 @@ class TestMewModel(unittest.TestCase):
         self.assertGreater(sol.x.get('r11'), 0)
         self.assertEqual(len(model.simulators), 0)
 
-        # milpFBA
-        from mewpy.mew.analysis import milpFBA
-        milpfba = milpFBA(model)
-        sol = milpfba.optimize()
-        self.assertGreater(sol.x.get('r11'), 0)
-        self.assertEqual(len(model.simulators), 0)
-
-        # milpBool
-        from mewpy.mew.analysis import milpBool
-        milpbool = milpBool(model)
-        sol = milpbool.optimize()
-        self.assertGreater(sol.x.get('pH'), 1)
-        self.assertEqual(len(model.simulators), 0)
-
-        # SimBool
-        from mewpy.mew.analysis import SimBool
-        model.get('pH').coefficient.coefficients = (10, 14)
-        simbool = SimBool(model)
-        sol = simbool.optimize()
-        self.assertGreater(sol.x.get('g20'), 0)
-        self.assertEqual(len(model.simulators), 0)
-        model.get('pH').coefficient.coefficients = (0, 14)
-
-        # milpFBA
-        from mewpy.mew.analysis import milpFBA
-        milpfba = milpFBA(model)
-        sol = milpfba.optimize()
-        self.assertGreater(sol.x.get('r11'), 0)
-        self.assertEqual(len(model.simulators), 0)
-
         # RFBA
         from mewpy.mew.analysis import RFBA
         initial_state = {
@@ -536,12 +481,8 @@ class TestMewModel(unittest.TestCase):
         fba = FBA(model, attach=True)
         pfba = pFBA(model, attach=True)
         srfba = SRFBA(model, attach=True)
-        simulators = [fba, pfba, srfba]
 
         model.get('r16').ko()
-
-        for simulator in simulators:
-            simulator.update()
 
         fba_sol = fba.optimize()
         pfba_sol = pfba.optimize()
@@ -552,15 +493,33 @@ class TestMewModel(unittest.TestCase):
         self.assertGreater(pfba_sol.x.get('r8'), 333)
         self.assertGreater(srfba_sol.x.get('r8'), 333)
 
+        model.undo()
+
+        solver_kwargs = {'constraints': {'r16': (0, 0), 'r8': (0, 0)}}
+
+        fba_sol = fba.optimize(solver_kwargs=solver_kwargs)
+        pfba_sol = pfba.optimize(solver_kwargs=solver_kwargs)
+        srfba_sol = srfba.optimize(solver_kwargs=solver_kwargs)
+        self.assertEqual(fba_sol.objective_value, 0.0)
+        self.assertEqual(pfba_sol.x.get('r11'), 0.0)
+        self.assertEqual(srfba_sol.objective_value, 0.0)
+
+        fba_sol = fba.optimize()
+        pfba_sol = pfba.optimize()
+        srfba_sol = srfba.optimize()
+        self.assertGreater(fba_sol.objective_value, 0.0)
+        self.assertGreater(pfba_sol.x.get('r11'), 0.0)
+        self.assertGreater(srfba_sol.objective_value, 0.0)
+
+
     def test_bounds_coefficients(self):
         """
         Tests model bounds and coefficients workflow
         """
-
         from mewpy.io import Reader, Engines, read_model
 
         metabolic_reader = Reader(Engines.MetabolicSBML, SAMPLE_MODEL)
-        regulatory_reader = Reader(Engines.RegulatoryCSV,
+        regulatory_reader = Reader(Engines.BooleanRegulatoryCSV,
                                    SAMPLE_REG_MODEL,
                                    sep=',',
                                    id_col=0,
@@ -569,21 +528,17 @@ class TestMewModel(unittest.TestCase):
         model = read_model(regulatory_reader, metabolic_reader)
 
         # pH (ph > 5) controls g20, which belongs to the r11 gpr
-        model.get('pH').coefficient.coefficients = (0, 14)
+        model.get('pH').coefficients = (0, 14)
 
         # multiple simulators attached
         from mewpy.mew.analysis import FBA, pFBA, SRFBA
         fba = FBA(model, attach=True)
         pfba = pFBA(model, attach=True)
         srfba = SRFBA(model, attach=True)
-        simulators = [fba, pfba, srfba]
 
         old_lb, old_ub = tuple(model.reactions.get('r16').bounds)
         model.get('r16').ko()
         self.assertEqual(model.get('r16').bounds, (0, 0))
-
-        for simulator in simulators:
-            simulator.update()
 
         fba_sol = fba.optimize()
         pfba_sol = pfba.optimize()
@@ -600,17 +555,14 @@ class TestMewModel(unittest.TestCase):
 
         # using model context so all changes made to the model are reverted upon exiting the context
         with model:
-            min_coef, max_coef = model.get('g14').coefficient.bounds
+            min_coef, max_coef = model.get('g14').coefficients
             lb, ub = model.get('g14').reactions.get('r8').bounds
 
-            # a gene ko does not changes the bounds of the associated reactions
+            # a gene ko does not change the bounds of the associated reactions
             model.get('g14').ko()
 
-            self.assertEqual(model.get('g14').coefficient.bounds, (0, 0))
+            self.assertEqual(model.get('g14').coefficients, (0.0,))
             self.assertEqual(model.get('r8').bounds, (lb, ub))
-
-            for simulator in simulators:
-                simulator.update()
 
             fba_sol = fba.optimize()
             pfba_sol = pfba.optimize()
@@ -632,9 +584,6 @@ class TestMewModel(unittest.TestCase):
             with model:
                 model.get('r16').ko()
 
-                for simulator in simulators:
-                    simulator.update()
-
                 fba_sol = fba.optimize()
                 pfba_sol = pfba.optimize()
                 srfba_sol = srfba.optimize()
@@ -651,7 +600,7 @@ class TestMewModel(unittest.TestCase):
             # model within the given context.
             # In this case, we had revert model.get('g14').ko()
             model.undo()
-            self.assertEqual(model.get('g14').coefficient.bounds, (min_coef, max_coef))
+            self.assertEqual(model.get('g14').coefficients, (min_coef, max_coef))
 
             # using the regulatory network
             # This affects the target g34 which is also the metabolic gene for r16
@@ -661,11 +610,8 @@ class TestMewModel(unittest.TestCase):
             # respectively the reaction r8
             model.get('g31').ko()
 
-            for simulator in simulators:
-                simulator.update()
-
-            fba_sol = fba.optimize()
-            pfba_sol = pfba.optimize()
+            fba.optimize()
+            pfba.optimize()
             srfba_sol = srfba.optimize()
 
             # fba is not affected by the regulatory share,
@@ -681,9 +627,6 @@ class TestMewModel(unittest.TestCase):
         # redo the knock-out to the r16. All changes made to the model within a context are not recorded in the
         # model.history. Once again, these changes are also reverted upon exiting the context
         model.redo()
-
-        for simulator in simulators:
-            simulator.update()
 
         fba_sol = fba.optimize()
         pfba_sol = pfba.optimize()
@@ -702,7 +645,7 @@ class TestMewModel(unittest.TestCase):
         from mewpy.io import Reader, Engines, read_model
 
         metabolic_reader = Reader(Engines.MetabolicSBML, SAMPLE_MODEL)
-        regulatory_reader = Reader(Engines.RegulatoryCSV,
+        regulatory_reader = Reader(Engines.BooleanRegulatoryCSV,
                                    SAMPLE_REG_MODEL,
                                    sep=',',
                                    id_col=0,
@@ -711,7 +654,7 @@ class TestMewModel(unittest.TestCase):
         model = read_model(regulatory_reader, metabolic_reader)
 
         # pH (ph > 5) controls g20, which belongs to the r11 gpr
-        model.get('pH').coefficient.coefficients = (0, 14)
+        model.get('pH').coefficients = (0, 14)
 
         # for rfba
         initial_state = {
@@ -803,7 +746,7 @@ class TestMewModel(unittest.TestCase):
         # to add both interactions and reactions to the model, so that the model comprehends the regulatory and
         # metabolic phenomena. Models are always modular and the main containers static, so that it is possible to
         # work with either the metabolic or regulatory share, even if the variables are linked
-        model.add((i_g37, i_g38, r17, r18, r19))
+        model.add(i_g37, i_g38, r17, r18, r19)
 
         self.assertEqual(len(model.interactions), 38)
         self.assertEqual(len(model.targets), 38)
@@ -862,7 +805,7 @@ class TestMewModel(unittest.TestCase):
         model.reset()
 
         # This was also reset
-        model.get('pH').coefficient.coefficients = (0, 14)
+        model.get('pH').coefficients = (0, 14)
         model.get('r16').ko()
 
         for simulator in simulators:
@@ -917,7 +860,7 @@ class TestMewModel(unittest.TestCase):
         # r11 gpr is g18 & g19 & g20
         # g18 and g19 are equally regulated by g33
         reg_g33 = model.get('g33')
-        reg_g33.coefficient.coefficients = (1,)
+        reg_g33.coefficients = (1,)
 
         from mewpy.mew.algebra import Not, Symbol, Expression
         symbolic = Not(variables=[Symbol(value=reg_g33.id)])
@@ -967,7 +910,7 @@ class TestMewModel(unittest.TestCase):
         from mewpy.io import Reader, Engines, read_model
 
         metabolic_reader = Reader(Engines.MetabolicSBML, SAMPLE_MODEL)
-        regulatory_reader = Reader(Engines.RegulatoryCSV,
+        regulatory_reader = Reader(Engines.BooleanRegulatoryCSV,
                                    SAMPLE_REG_MODEL,
                                    sep=',',
                                    id_col=0,

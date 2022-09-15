@@ -1,8 +1,9 @@
 import unittest
+from pathlib import Path
 
 MODELS_PATH = 'tests/data/'
 EC_CORE_MODEL = MODELS_PATH + 'e_coli_core.xml.gz'
-EC_CORE_MODEL2 = MODELS_PATH + 'e_coli_core.xml'
+EC_CORE_MODEL2 = Path(__file__).parent.joinpath('data', 'e_coli_core.xml')
 MIN_GROWTH = 0.1
 
 
