@@ -511,7 +511,6 @@ class TestMewModel(unittest.TestCase):
         self.assertGreater(pfba_sol.x.get('r11'), 0.0)
         self.assertGreater(srfba_sol.objective_value, 0.0)
 
-
     def test_bounds_coefficients(self):
         """
         Tests model bounds and coefficients workflow
@@ -577,7 +576,7 @@ class TestMewModel(unittest.TestCase):
 
             self.assertLess(srfba_sol.x.get('r8'), 333)
             self.assertGreater(srfba_sol.x.get('r16'), 333)
-            # the gene is a variable of the srfba formulation (and also from milpFBA)
+            # the gene is a variable of the srfba formulation
             self.assertEqual(srfba_sol.x.get('g14'), 0)
 
             # we can have as many contexts as we want
