@@ -15,7 +15,7 @@ try:
     # noinspection PyPackageRequirements
     from sklearn.preprocessing import quantile_transform
     # noinspection PyPackageRequirements
-    from sklearn.regression import LinearRegression
+    from sklearn.linear_model import LinearRegression
 
 except ImportError as exc:
 
@@ -242,7 +242,7 @@ def _get_target_regulators(gene: Union['Gene', 'Target'] = None) -> List[str]:
     return []
 
 
-def _filter_influence_and_expression(targets: Sequence[str],
+def _filter_influence_and_expression(interactions: Dict[str, List[str]],
                                      influence: pd.DataFrame,
                                      expression: pd.DataFrame,
                                      experiments: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -254,10 +254,13 @@ def _filter_influence_and_expression(targets: Sequence[str],
     :param experiments: Experiments matrix
     :return: Filtered influence matrix, filtered expression matrix, filtered experiments matrix
     """
+    targets = pd.Index(set(interactions.keys()))
+    regulators = pd.Index(set([regulator for regulators in interactions.values() for regulator in regulators]))
+
     # filter the expression matrix for the target genes only
-    expression = expression[expression.index.isin(targets)]
-    influence = influence[influence.index.isin(experiments.index)]
-    experiments = experiments[experiments.index.isin(influence.index)]
+    expression = expression.loc[expression.index.intersection(targets)].copy()
+    influence = influence.loc[influence.index.intersection(regulators)].copy()
+    experiments = experiments.loc[experiments.index.intersection(regulators)].copy()
     return influence, expression, experiments
 
 
@@ -270,6 +273,10 @@ def _predict_experiment(interactions: Dict[str, List[str]],
     for target, regulators in interactions.items():
 
         if not regulators:
+            predictions[target] = np.nan
+            continue
+
+        if target not in expression.index:
             predictions[target] = np.nan
             continue
 
@@ -287,24 +294,15 @@ def _predict_experiment(interactions: Dict[str, List[str]],
         # x2 = influence score of the regulator 2 in the train data set
         # x3 ...
 
-        X = influence.loc[regulators].T.to_numpy()
+        x = influence.loc[regulators].transpose().to_numpy()
         y = expression.loc[target].to_numpy()
 
-        reg = LinearRegression()
-        reg.fit(X, y)
+        regressor = LinearRegression()
+        regressor.fit(x, y)
 
         # the expression of the target gene is predicted for the experiment
-        # y = expression of the target gene for all samples
-        # x1 = influence score of the regulator 1 in the experiment
-        # x2 = influence score of the regulator 2 in the experiment
-        # x3 ...
-
-        X = experiment.loc[regulators].T.to_numpy()
-        predictions[target] = reg.predict(X)
-
-        # to_predict = experiment.loc[regulators].T.to_numpy()
-        # to_predict = to_predict.reshape((1, to_predict.shape[0]))
-        # predictions[target] = reg.predict(to_predict)
+        x_pred = experiment.loc[regulators].to_frame().transpose().to_numpy()
+        predictions[target] = regressor.predict(x_pred)[0]
 
     return pd.Series(predictions)
 
@@ -341,7 +339,7 @@ def predict_gene_expression(model: Union['Model', 'MetabolicModel', 'RegulatoryM
     """
     # Filtering only the gene expression and influences data of metabolic genes available in the model
     interactions = {target.id: _get_target_regulators(target) for target in model.yield_targets()}
-    influence, expression, experiments = _filter_influence_and_expression(targets=list(interactions.keys()),
+    influence, expression, experiments = _filter_influence_and_expression(interactions=interactions,
                                                                           influence=influence,
                                                                           expression=expression,
                                                                           experiments=experiments)
@@ -355,4 +353,5 @@ def predict_gene_expression(model: Union['Model', 'MetabolicModel', 'RegulatoryM
         predictions.append(experiment_prediction)
 
     predictions = pd.concat(predictions, axis=1)
+    predictions.columns = experiments.columns
     return predictions.dropna()

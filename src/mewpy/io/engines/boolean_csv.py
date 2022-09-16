@@ -49,14 +49,11 @@ class BooleanRegulatoryCSV(Engine):
         names.update({j: 'aliases_' + str(i + 1) for i, j in enumerate(aliases_cols)})
 
         try:
-
             df = pd.read_csv(self.io, sep=sep, header=header)
 
         except BaseException as exc:
-
             self.clean()
             self.close()
-
             raise exc
 
         cols = []

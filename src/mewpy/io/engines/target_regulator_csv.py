@@ -48,14 +48,11 @@ class TargetRegulatorRegulatoryCSV(Engine):
         names = {target_col: 'targets', regulator_col: 'regulator'}
 
         try:
-
-            df = pd.read_csv(self.io, sep, header=header)
+            df = pd.read_csv(self.io, sep=sep, header=header)
 
         except BaseException as exc:
-
             self.clean()
             self.close()
-
             raise exc
 
         cols = []

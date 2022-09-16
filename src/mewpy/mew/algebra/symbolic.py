@@ -794,8 +794,17 @@ class Symbol(AtomNumber, Boolean):
 
         if self.name in values:
             value = values[self.name]
+
         elif self.mew_variable:
-            value = max(self.mew_variable.bounds)
+            if hasattr(self.mew_variable, 'bounds'):
+                value = max(self.mew_variable.bounds)
+
+            elif hasattr(self.mew_variable, 'coefficients'):
+                value = max(self.mew_variable.coefficients)
+
+            else:
+                value = default
+
         else:
             value = default
 

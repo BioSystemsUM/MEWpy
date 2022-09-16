@@ -63,7 +63,10 @@ class PROM(FBA):
 
     def _max_rates(self, solver_kwargs: Dict[str, Any]):
         # wt-type reference
-        reference = _run_and_decode_solver(self, **{**solver_kwargs, 'get_values': False})
+        reference = self.solver.solve(**solver_kwargs)
+        if reference.status != Status.OPTIMAL:
+            raise RuntimeError('The solver did not find an optimal solution for the wild-type conditions.')
+        reference = reference.values.copy()
         reference_constraints = {key: (reference[key] * 0.99, reference[key])
                                  for key in self._linear_objective}
 
@@ -219,12 +222,15 @@ class PROM(FBA):
                                          minimize=minimize)
 
     def _optimize(self,
-                  probabilities: Dict[str, float] = None,
+                  initial_state: Dict[str, float] = None,
                   regulators: Union[str, Sequence['str']] = None,
                   to_solver: bool = False,
                   solver_kwargs: Dict[str, Any] = None) -> Union[Dict[str, Solution], Dict[str, ModelSolution]]:
         # wild-type reference
-        reference = _run_and_decode_solver(self, **{**solver_kwargs, 'get_values': False})
+        reference = self.solver.solve(**solver_kwargs)
+        if reference.status != Status.OPTIMAL:
+            raise RuntimeError('The solver did not find an optimal solution for the wild-type conditions.')
+        reference = reference.values.copy()
 
         # max and min fluxes of the reactions
         max_rates = self._max_rates(solver_kwargs=solver_kwargs)
@@ -232,7 +238,7 @@ class PROM(FBA):
         # a single regulator knockout
         if isinstance(regulators, str):
             regulators = self.model.get(regulators)
-            return self._optimize_ko(probabilities=probabilities,
+            return self._optimize_ko(probabilities=initial_state,
                                      regulator=regulators,
                                      reference=reference,
                                      max_rates=max_rates,
@@ -242,7 +248,7 @@ class PROM(FBA):
         # multiple regulator knockouts
         kos = {}
         for regulator in regulators:
-            ko_solution = self._optimize_ko(probabilities=probabilities,
+            ko_solution = self._optimize_ko(probabilities=initial_state,
                                             regulator=regulator,
                                             reference=reference,
                                             max_rates=max_rates,
@@ -252,7 +258,7 @@ class PROM(FBA):
         return kos
 
     def optimize(self,
-                 probabilities: Dict[str, float] = None,
+                 initial_state: Dict[str, float] = None,
                  regulators: Union[str, Sequence['str']] = None,
                  to_solver: bool = False,
                  solver_kwargs: Dict[str, Any] = None) -> Union[KOSolution, Dict[str, Solution]]:
@@ -262,7 +268,7 @@ class PROM(FBA):
         The optimize method allows setting temporary changes to the linear problem. The changes are
         applied to the linear problem reverted to the original state afterward.
         Objective, constraints and solver parameters can be set temporarily.
-        :param probabilities: dictionary with the probabilities of
+        :param initial_state: dictionary with the probabilities of
         the interactions between the regulators and the targets.
         :param regulators: list of regulators to be knocked out. If None, all regulators are knocked out.
         :param to_solver: Whether to return the solution as a SolverSolution instance. Default: False.
@@ -286,8 +292,8 @@ class PROM(FBA):
         if not self.synchronized:
             self.build()
 
-        if not probabilities:
-            probabilities = {}
+        if not initial_state:
+            initial_state = {}
 
         if not regulators:
             regulators = list(self.model.yield_regulators())
@@ -296,7 +302,7 @@ class PROM(FBA):
             solver_kwargs = {}
 
         # concrete optimize
-        solutions = self._optimize(probabilities=probabilities,
+        solutions = self._optimize(initial_state=initial_state,
                                    regulators=regulators,
                                    to_solver=to_solver,
                                    solver_kwargs=solver_kwargs)

@@ -175,9 +175,13 @@ def continuous_gpr(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
     states = {}
     for reaction in model.yield_reactions():
 
-        if not reaction.gpr.is_none:
-            state = reaction.gpr.evaluate(values=state, operators=operators, default=0)
-            states[reaction.id] = state
+        if reaction.gpr.is_none:
+            continue
+
+        if not set(reaction.genes).issubset(state):
+            continue
+
+        states[reaction.id] = reaction.gpr.evaluate(values=state, operators=operators, missing_value=0)
 
     if scale:
         _max_state = max(states.values())

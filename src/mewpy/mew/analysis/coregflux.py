@@ -278,7 +278,7 @@ class CoRegFlux(FBA):
         :return: a ModelSolution instance if dynamic is False,
         a DynamicSolution instance otherwise (if to_solver is False)
         """
-        if dynamic and not time_steps:
+        if dynamic and len(time_steps) == 0:
             raise ValueError('Time steps must be provided for dynamic optimization')
 
         if not solver_kwargs:

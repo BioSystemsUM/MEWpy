@@ -39,7 +39,6 @@ class CoExpressionRegulatoryCSV(Engine):
         return self._model
 
     def build_data_frame(self):
-
         sep = self.config.get('sep', ',')
         target_col = self.config.get('target_col', 0)
         activating_regs = self.config.get('co_activating_col', 1)
@@ -50,14 +49,11 @@ class CoExpressionRegulatoryCSV(Engine):
         names = {target_col: 'targets', activating_regs: 'activating', repressing_regs: 'repressing'}
 
         try:
-
-            df = pd.read_csv(self.io, sep, header=header)
+            df = pd.read_csv(self.io, sep=sep, header=header)
 
         except BaseException as exc:
-
             self.clean()
             self.close()
-
             raise exc
 
         cols = []
