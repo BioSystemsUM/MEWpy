@@ -191,11 +191,11 @@ class RFBA(FBA):
 
         return next_state
 
-    def dynamic_optimize(self,
-                         initial_state: Dict[str, float] = None,
-                         iterations: int = 10,
-                         to_solver: bool = False,
-                         solver_kwargs: Dict = None):
+    def _dynamic_optimize(self,
+                          initial_state: Dict[str, float] = None,
+                          iterations: int = 10,
+                          to_solver: bool = False,
+                          solver_kwargs: Dict = None):
         """
         RFBA model dynamic simulation (until the metabolic-regulatory state is reached).
 
@@ -335,10 +335,10 @@ class RFBA(FBA):
 
         return DynamicSolution(*solution)
 
-    def steady_state_optimize(self,
-                              initial_state: Dict[str, float] = None,
-                              to_solver: bool = False,
-                              solver_kwargs: Dict = None) -> Union[ModelSolution, Solution]:
+    def _steady_state_optimize(self,
+                               initial_state: Dict[str, float] = None,
+                               to_solver: bool = False,
+                               solver_kwargs: Dict = None) -> Union[ModelSolution, Solution]:
         """
         RFBA model one-step simulation (pseudo steady-state).
 
@@ -441,11 +441,11 @@ class RFBA(FBA):
         :return: A DynamicSolution instance or a list of solver Solutions if to_solver is True.
         """
         if dynamic:
-            return self.dynamic_optimize(initial_state=initial_state, iterations=iterations,
-                                         to_solver=to_solver, solver_kwargs=solver_kwargs)
-
-        return self.steady_state_optimize(initial_state=initial_state,
+            return self._dynamic_optimize(initial_state=initial_state, iterations=iterations,
                                           to_solver=to_solver, solver_kwargs=solver_kwargs)
+
+        return self._steady_state_optimize(initial_state=initial_state,
+                                           to_solver=to_solver, solver_kwargs=solver_kwargs)
 
     def optimize(self,
                  to_solver: bool = False,
@@ -453,7 +453,7 @@ class RFBA(FBA):
                  initial_state: Dict[str, float] = None,
                  dynamic: bool = False,
                  iterations: int = 10,
-                 **kwargs) -> Union[DynamicSolution, ModelSolution, List[Solution]]:
+                 **kwargs) -> Union[DynamicSolution, ModelSolution, Solution, List[Solution]]:
         """
         RFBA simulation.
 
