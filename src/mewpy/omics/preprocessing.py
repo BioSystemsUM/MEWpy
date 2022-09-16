@@ -1,5 +1,5 @@
 import warnings
-from typing import Tuple, Dict, Union, TYPE_CHECKING, List, Sequence
+from typing import Tuple, Dict, Union, TYPE_CHECKING, List
 
 import numpy as np
 import pandas as pd
@@ -217,9 +217,6 @@ def target_regulator_interaction_probability(model: Union['Model', 'MetabolicMod
                 missed_interactions[target.id + regulator.id] = 1
                 interactions_probabilities[target.id + regulator.id] = 1
 
-    if sum(missed_interactions.values()) > (0.75 * len(missed_interactions)):
-        warnings.warn('Binarization threshold should be changed', Warning, stacklevel=2)
-
     return interactions_probabilities, missed_interactions
 
 
@@ -248,7 +245,7 @@ def _filter_influence_and_expression(interactions: Dict[str, List[str]],
                                      experiments: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     It filters influence, expression and experiments matrices to keep only the targets and their regulators.
-    :param targets: A sequence of target genes to be considered in the gene expression prediction
+    :param interactions: Dictionary with the interactions between targets and regulators
     :param influence: Influence matrix
     :param expression: Expression matrix
     :param experiments: Experiments matrix
