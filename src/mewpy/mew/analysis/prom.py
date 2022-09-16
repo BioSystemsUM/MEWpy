@@ -34,7 +34,6 @@ class PROM(FBA):
 
     def __init__(self,
                  model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
-                 probabilities: Dict[str, float],
                  solver: Union[str, Solver] = None,
                  build: bool = False,
                  attach: bool = False):
@@ -45,13 +44,11 @@ class PROM(FBA):
 
         For more detail consult: https://doi.org/10.1073/pnas.1005139107
         :param model: The metabolic and regulatory model to be simulated.
-        :param probabilities: A dictionary with the probabilities of all target-regulator interactions in the model.
         :param solver: The solver to be used. If None, a new instance will be created from the default solver.
         :param build: If True, the linear problem will be built upon initialization.
         If False, the linear problem can be built later by calling the build() method.
         :param attach: If True, the linear problem will be attached to the model.
         """
-        self.probabilities = probabilities
         super().__init__(model=model, solver=solver, build=build, attach=attach)
 
     def _build(self):
@@ -105,6 +102,7 @@ class PROM(FBA):
         return rates
 
     def _optimize_ko(self,
+                     probabilities: Dict[str, float],
                      regulator: Union['Gene', 'Regulator'],
                      reference: Dict[str, float],
                      max_rates: Dict[str, float],
@@ -159,10 +157,10 @@ class PROM(FBA):
             # composed key for interactions_probabilities
             target_regulator = target.id + regulator.id
 
-            if target_regulator not in self.probabilities:
+            if target_regulator not in probabilities:
                 continue
 
-            interaction_probability = self.probabilities[target_regulator]
+            interaction_probability = probabilities[target_regulator]
 
             # for each reaction associated with this single target
             for reaction in target.yield_reactions():
@@ -221,6 +219,7 @@ class PROM(FBA):
                                          minimize=minimize)
 
     def _optimize(self,
+                  probabilities: Dict[str, float] = None,
                   regulators: Union[str, Sequence['str']] = None,
                   to_solver: bool = False,
                   solver_kwargs: Dict[str, Any] = None) -> Union[Dict[str, Solution], Dict[str, ModelSolution]]:
@@ -230,21 +229,21 @@ class PROM(FBA):
         # max and min fluxes of the reactions
         max_rates = self._max_rates(solver_kwargs=solver_kwargs)
 
-        if regulators is None:
-            regulators = list(self.model.yield_regulators())
-
+        # a single regulator knockout
         if isinstance(regulators, str):
             regulators = self.model.get(regulators)
-            return self._optimize_ko(regulator=regulators,
+            return self._optimize_ko(probabilities=probabilities,
+                                     regulator=regulators,
                                      reference=reference,
                                      max_rates=max_rates,
                                      to_solver=to_solver,
                                      solver_kwargs=solver_kwargs)
 
-        # multiple knock out of regulators
+        # multiple regulator knockouts
         kos = {}
-        for regulator in self.model.yield_regulators():
-            ko_solution = self._optimize_ko(regulator=regulator,
+        for regulator in regulators:
+            ko_solution = self._optimize_ko(probabilities=probabilities,
+                                            regulator=regulator,
                                             reference=reference,
                                             max_rates=max_rates,
                                             to_solver=to_solver,
@@ -253,6 +252,7 @@ class PROM(FBA):
         return kos
 
     def optimize(self,
+                 probabilities: Dict[str, float] = None,
                  regulators: Union[str, Sequence['str']] = None,
                  to_solver: bool = False,
                  solver_kwargs: Dict[str, Any] = None) -> Union[KOSolution, Dict[str, Solution]]:
@@ -262,6 +262,8 @@ class PROM(FBA):
         The optimize method allows setting temporary changes to the linear problem. The changes are
         applied to the linear problem reverted to the original state afterward.
         Objective, constraints and solver parameters can be set temporarily.
+        :param probabilities: dictionary with the probabilities of
+        the interactions between the regulators and the targets.
         :param regulators: list of regulators to be knocked out. If None, all regulators are knocked out.
         :param to_solver: Whether to return the solution as a SolverSolution instance. Default: False.
         Otherwise, a ModelSolution is returned.
@@ -284,11 +286,20 @@ class PROM(FBA):
         if not self.synchronized:
             self.build()
 
+        if not probabilities:
+            probabilities = {}
+
+        if not regulators:
+            regulators = list(self.model.yield_regulators())
+
         if not solver_kwargs:
             solver_kwargs = {}
 
         # concrete optimize
-        solutions = self._optimize(regulators=regulators, to_solver=to_solver, solver_kwargs=solver_kwargs)
+        solutions = self._optimize(probabilities=probabilities,
+                                   regulators=regulators,
+                                   to_solver=to_solver,
+                                   solver_kwargs=solver_kwargs)
 
         if to_solver:
             return solutions

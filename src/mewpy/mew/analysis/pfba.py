@@ -11,7 +11,6 @@ class pFBA(FBA):
 
     def __init__(self,
                  model: Union[Model, MetabolicModel, RegulatoryModel],
-                 fraction: float = None,
                  solver: Union[str, Solver, None] = None,
                  build: bool = False,
                  attach: bool = False):
@@ -26,8 +25,6 @@ class pFBA(FBA):
 
         :param model: a mewpy Model, MetabolicModel, RegulatoryModel or all. The model is used to retrieve
         variables and constraints to the linear problem
-        :param fraction: The fraction of the maximum growth rate to be used as the upper bound for the
-        objective function. If None, the maximum growth rate is used.
         :param solver: A Solver, CplexSolver, GurobiSolver or OptLangSolver instance.
         Alternatively, the name of the solver is also accepted.
         The solver interface will be used to load and solve a linear problem in a given solver.
@@ -37,9 +34,8 @@ class pFBA(FBA):
         :param attach: Whether to attach the linear problem to the model upon instantiation. Default: False
         """
         super().__init__(model=model, solver=solver, build=build, attach=attach)
-        self.fraction = fraction
 
-    def _wt_bounds(self, solver_kwargs: Dict = None):
+    def _wt_bounds(self, fraction: float = None, solver_kwargs: Dict = None):
         """
         It builds the linear problem from the model. The linear problem is built from the model
         variables and constraints. The linear problem is then loaded into the solver.
@@ -53,13 +49,13 @@ class pFBA(FBA):
             lb, ub = 0.0, 0.0
 
         else:
-            if self.fraction is None:
+            if fraction is None:
                 lb, ub = float(sol.fobj), float(sol.fobj)
             else:
-                lb, ub = float(sol.fobj) * self.fraction, float(sol.fobj)
+                lb, ub = float(sol.fobj) * fraction, float(sol.fobj)
         return lb, ub
 
-    def _build_pfba_constrains(self, solver_kwargs: Dict = None):
+    def _build_pfba_constrains(self, fraction: float = None, solver_kwargs: Dict = None):
         """
         It builds the pfba constraints of the linear problem.
         :return:
@@ -67,7 +63,7 @@ class pFBA(FBA):
         if not solver_kwargs:
             solver_kwargs = {}
 
-        lb, ub = self._wt_bounds(solver_kwargs)
+        lb, ub = self._wt_bounds(fraction, solver_kwargs)
 
         if 'linear' in solver_kwargs:
             coef = solver_kwargs['linear'].copy()
@@ -121,12 +117,12 @@ class pFBA(FBA):
             # mass balance constraints and reactions' variables
             self._build_mass_constraints()
 
-            # pFBA constraints
+            # pFBA constraints can be added again to the linear problem during optimization
             self._build_pfba_constrains()
 
         return
 
-    def _optimize(self, solver_kwargs: Dict = None, **kwargs) -> Solution:
+    def _optimize(self, fraction: float = None, solver_kwargs: Dict = None, **kwargs) -> Solution:
         """
         It optimizes the linear problem. The linear problem is solved by the solver interface.
         :param solver_kwargs: A dictionary of keyword arguments to be passed to the solver.
@@ -139,14 +135,16 @@ class pFBA(FBA):
         constraints = solver_kwargs.get('constraints')
 
         # if linear and constraints are not provided, build new pfba constraints and solver
-        if linear is not None or constraints is not None:
+        replace_pfba_constraints = [x for x in (fraction, linear, constraints) if x is not None]
+
+        if replace_pfba_constraints:
             self._build_pfba_constrains(solver_kwargs=solver_kwargs)
             self.build_solver()
 
         solution = self.solver.solve(**solver_kwargs)
 
         # restore the pfba constraints and solver to the previous state
-        if linear is not None or constraints is not None:
+        if replace_pfba_constraints:
             self._build_pfba_constrains()
             self.build_solver()
 
