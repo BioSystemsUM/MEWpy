@@ -5,6 +5,7 @@ from .pfba import pFBA
 from .rfba import RFBA
 from .srfba import SRFBA
 from .prom import PROM
+from .coregflux import CoRegFlux
 from .metabolic_analysis import slim_fba, slim_pfba, fva, single_gene_deletion, single_reaction_deletion
 from .regulatory_analysis import regulatory_truth_table
 from .integrated_analysis import (slim_rfba, slim_srfba, ifva, isingle_regulator_deletion, isingle_reaction_deletion,
@@ -20,6 +21,7 @@ class Analysis(Enum):
     RFBA = RFBA
     SRFBA = SRFBA
     PROM = PROM
+    CoRegFlux = CoRegFlux
 
     @classmethod
     def has_analysis(cls, analysis: str) -> bool:

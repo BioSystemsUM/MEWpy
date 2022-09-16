@@ -2,11 +2,12 @@ import os
 from pathlib import Path
 
 import numpy as np
+from mewpy.omics import ExpressionSet
 
 from mewpy.io import read_model, Engines, Reader, read_gene_expression_dataset
 from mewpy.mew.analysis import (FBA, pFBA, fva, single_reaction_deletion, single_gene_deletion, SRFBA, RFBA, ifva,
-                                isingle_reaction_deletion, isingle_gene_deletion, isingle_regulator_deletion, PROM)
-from mewpy.mew.analysis.coregflux import CoRegFlux
+                                isingle_reaction_deletion, isingle_gene_deletion, isingle_regulator_deletion, PROM,
+                                CoRegFlux)
 from mewpy.omics.preprocessing import quantile_preprocessing_pipeline, target_regulator_interaction_probability
 from mewpy.simulation import get_simulator
 
@@ -232,6 +233,12 @@ def iMM904_integrated_analysis():
                                dynamic=True,
                                time_steps=time_steps)
 
+    # using the omics package
+    expr = ExpressionSet.from_dataframe(gene_expression_prediction)
+    from mewpy.omics import CoRegFlux as OmicsCoRegFlux
+    sol = OmicsCoRegFlux(model, expr, condition=gene_expression_prediction.columns[0])
+
+
 def iNJ661_integrated_analysis():
     """
     Performs an integrated analysis of the iNJ661 integrated model.
@@ -292,9 +299,15 @@ def iNJ661_integrated_analysis():
     prom = PROM(model).build()
     sol = prom.optimize(initial_state=initial_state)
 
+    # using the omics package
+    # expression set conditions must be strings (not integers)
+    expression.columns = [str(col) for col in expression.columns]
+    expr = ExpressionSet.from_dataframe(expression)
+    from mewpy.omics import PROM as OmicsPROM
+    sol = OmicsPROM(model, expr, regulator=next(iter(model.regulators)))
+
 
 if __name__ == '__main__':
     ecoli_core_integrated_analysis()
     iMM904_integrated_analysis()
     iNJ661_integrated_analysis()
-
