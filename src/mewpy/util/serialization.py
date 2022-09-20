@@ -53,11 +53,6 @@ class Serializer:
         return obj
 
     @staticmethod
-    def _coefficient_serializer(coefficient):
-
-        return tuple(coefficient.coefficients)
-
-    @staticmethod
     def _variable_container_serializer(container):
 
         return tuple(container.keys())
@@ -75,13 +70,9 @@ class Serializer:
     def _get_attribute_serializer(self, attr):
 
         if attr in ('id', 'name', 'types', 'aliases', 'target', 'charge', 'compartment', 'formula', 'compartments',
-                    'interaction'):
+                    'bounds', 'coefficients', 'interaction'):
 
             return self._obj_serializer
-
-        elif attr == 'coefficient':
-
-            return self._coefficient_serializer
 
         elif attr in ('reactions', 'regulators', 'genes', 'interactions', 'targets'):
 
@@ -263,7 +254,6 @@ class Serializer:
 
     @staticmethod
     def _obj_deserializer(obj, *args, **kwargs):
-
         return obj
 
     @classmethod
@@ -416,7 +406,6 @@ class Serializer:
 
     @staticmethod
     def _variable_container_deserializer(obj, children=None, children_types=None):
-
         if children is None:
 
             from mewpy.mew.variables import Variable
@@ -427,7 +416,6 @@ class Serializer:
 
     @staticmethod
     def _variable_attribute_deserializer(obj, children=None, children_types=None):
-
         if children is None:
 
             from mewpy.mew.variables import Variable
@@ -440,7 +428,6 @@ class Serializer:
     # reduce for pickle serialization
     # -----------------------------------------------------------------------------
     def __reduce__(self: Union['Serializer', 'Model', 'Variable']):
-
         # for further detail: https://docs.python.org/3/library/pickle.html#object.__reduce__
 
         from mewpy.model import Model, build_model
@@ -469,7 +456,6 @@ class Serializer:
 
     def _pickle_variable_serializer(self: Union['Serializer', 'Variable'],
                                     to_state=True):
-
         attributes = {}
 
         for attribute, (_, _, pickle_name) in self.attributes.items():
@@ -486,7 +472,6 @@ class Serializer:
 
     def _pickle_model_serializer(self: Union['Serializer', 'Model'],
                                  to_state=True):
-
         containers = {}
 
         for container, (_, _, pickle_name) in self.containers.items():
@@ -502,7 +487,6 @@ class Serializer:
         return containers
 
     def _dict_to_pickle(self: Union['Serializer', 'Model', 'Variable']):
-
         if hasattr(self, 'containers'):
             return self._pickle_model_serializer(to_state=True)
 
@@ -514,7 +498,6 @@ class Serializer:
     @classmethod
     def _pickle_variable_deserializer(cls: Union[Type['Variable']],
                                       obj):
-
         identifier = obj.get('id')
         types = obj.get('types')
 
@@ -534,7 +517,6 @@ class Serializer:
     @classmethod
     def _pickle_model_deserializer(cls: Union[Type['Model']],
                                    obj):
-
         identifier = obj.get('id')
         types = obj.get('types')
 
