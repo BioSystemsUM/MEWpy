@@ -4,9 +4,12 @@ from typing import Union, TYPE_CHECKING, List, Dict, Tuple, Optional, Sequence
 import pandas as pd
 
 from mewpy.util.constants import ModelConstants
+from .prom import PROM
+from .coregflux import CoRegFlux
 from .analysis_utils import run_method_and_decode
 from .rfba import RFBA
 from .srfba import SRFBA
+
 
 if TYPE_CHECKING:
     from mewpy.model import Model, MetabolicModel, RegulatoryModel
@@ -26,7 +29,7 @@ def slim_rfba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
     the RFBA simulation.
 
     Fundamentals of the RFBA procedure:
-        - A linear problem based on reactions
+        - A linear problem based on mass balance constraints (reactions/metabolites)
         - A synchronous simulation of the metabolic (GPRs) and regulatory networks is performed to obtain the
         metabolic state (boundaries of the reactions) and the regulatory state (boundaries of the regulators)
         - The metabolic state is used to constrain the reactions of the model
@@ -68,6 +71,69 @@ def slim_srfba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
     srfba = SRFBA(model).build()
 
     objective_value, _ = run_method_and_decode(method=srfba, objective=objective, constraints=constraints,
+                                               initial_state=initial_state)
+    return objective_value
+
+
+def slim_prom(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
+              initial_state: Dict[str, float] = None,
+              regulator: str = None,
+              objective: Union[str, Dict[str, float]] = None,
+              constraints: Dict[str, Tuple[float, float]] = None) -> Optional[float]:
+    """
+    A Probabilistic Regulation of Metabolism (PROM) simulation of an integrated Metabolic-Regulatory model.
+    A slim analysis produces a single and simple solution for the model. This method returns the objective value of
+    the PROM simulation.
+
+    Fundamentals of the PROM procedure:
+        - A linear problem based on mass balance constraints (reactions/metabolites)
+        - Reactions are further constrained using the regulator-target probabilities. The probabilities are
+        obtained from the regulatory network. Namely, the probability of a gene being active when the its regulator
+        is knocked out is used to constrain the associated reaction.
+        - A FBA simulation is performed to obtain the flux distribution.
+
+    :param model: an integrated metabolic-regulatory model to be simulated
+    :param initial_state: the initial state of the model. If None, the default initial state is used
+    :param regulator: the regulator to be knocked out. If None, the first regulator is knocked out
+    :param objective: the objective of the simulation. If None, the default objective is used
+    :param constraints: the constraints of the model. If None, the default constraints are used
+    :return: the objective value of the simulation
+    """
+    if not regulator:
+        regulator = next(iter(model.regulators.keys()))
+
+    prom = PROM(model).build()
+
+    objective_value, _ = run_method_and_decode(method=prom, objective=objective, constraints=constraints,
+                                               initial_state=initial_state, regulators=regulator)
+    return objective_value
+
+
+def slim_coregflux(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
+                   initial_state: Dict[str, float] = None,
+                   objective: Union[str, Dict[str, float]] = None,
+                   constraints: Dict[str, Tuple[float, float]] = None) -> Optional[float]:
+    """
+    A CoRegFlux simulation of an integrated Metabolic-Regulatory model.
+    A slim analysis produces a single and simple solution for the model. This method returns the objective value of
+    the CoRegFlux simulation.
+
+    Fundamentals of the CoRegFlux procedure:
+         - A linear problem based on mass balance constraints (reactions/metabolites)
+         - A linear regression estimator predicts the expression of target genes
+         as function of the co-expression of regulators
+         - the predicted expression of the target genes to constrain the bounds of the associated reactions
+         - A FBA simulation is performed to obtain the flux distribution.
+
+    :param model: an integrated metabolic-regulatory model to be simulated
+    :param initial_state: the initial state of the model. If None, the default initial state is used
+    :param objective: the objective of the simulation. If None, the default objective is used
+    :param constraints: the constraints of the model. If None, the default constraints are used
+    :return: the objective value of the simulation
+    """
+    co_reg_flux = CoRegFlux(model).build()
+
+    objective_value, _ = run_method_and_decode(method=co_reg_flux, objective=objective, constraints=constraints,
                                                initial_state=initial_state)
     return objective_value
 
