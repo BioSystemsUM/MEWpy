@@ -105,7 +105,7 @@ class PROM(FBA):
         return rates
 
     def _optimize_ko(self,
-                     probabilities: Dict[str, float],
+                     probabilities: Dict[Tuple[str, str], float],
                      regulator: Union['Gene', 'Regulator'],
                      reference: Dict[str, float],
                      max_rates: Dict[str, float],
@@ -158,7 +158,7 @@ class PROM(FBA):
             target: Union['Target', 'Gene']
 
             # composed key for interactions_probabilities
-            target_regulator = target.id + regulator.id
+            target_regulator = (target.id, regulator.id)
 
             if target_regulator not in probabilities:
                 continue
@@ -222,7 +222,7 @@ class PROM(FBA):
                                          minimize=minimize)
 
     def _optimize(self,
-                  initial_state: Dict[str, float] = None,
+                  initial_state: Dict[Tuple[str, str], float] = None,
                   regulators: Union[str, Sequence['str']] = None,
                   to_solver: bool = False,
                   solver_kwargs: Dict[str, Any] = None) -> Union[Dict[str, Solution], Dict[str, ModelSolution]]:
@@ -248,6 +248,7 @@ class PROM(FBA):
         # multiple regulator knockouts
         kos = {}
         for regulator in regulators:
+            regulator = self.model.get(regulator)
             ko_solution = self._optimize_ko(probabilities=initial_state,
                                             regulator=regulator,
                                             reference=reference,
@@ -258,7 +259,7 @@ class PROM(FBA):
         return kos
 
     def optimize(self,
-                 initial_state: Dict[str, float] = None,
+                 initial_state: Dict[Tuple[str, str], float] = None,
                  regulators: Union[str, Sequence['str']] = None,
                  to_solver: bool = False,
                  solver_kwargs: Dict[str, Any] = None) -> Union[KOSolution, Dict[str, Solution]]:

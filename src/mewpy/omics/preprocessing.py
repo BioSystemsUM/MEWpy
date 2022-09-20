@@ -157,8 +157,8 @@ def quantile_preprocessing_pipeline(expression: pd.DataFrame,
 # ----------------------------------------------------------------------------------------------------------------------
 def target_regulator_interaction_probability(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
                                              expression: pd.DataFrame,
-                                             binary_expression: pd.DataFrame) -> Tuple[Dict[str, float],
-                                                                                       Dict[str, float]]:
+                                             binary_expression: pd.DataFrame) -> Tuple[Dict[Tuple[str, str], float],
+                                                                                       Dict[Tuple[str, str], float]]:
     """
     It computes the conditional probability of a target gene being active when the regulator is inactive.
     It uses the following formula:
@@ -180,8 +180,8 @@ def target_regulator_interaction_probability(model: Union['Model', 'MetabolicMod
         target = interaction.target
 
         if not interaction.regulators or target.id not in expression.index:
-            missed_interactions[target.id] = 1
-            interactions_probabilities[target.id] = 1
+            missed_interactions[(target.id, target.id)] = 1
+            interactions_probabilities[(target.id, target.id)] = 1
             continue
 
         target_expression = expression.loc[target.id]
@@ -190,8 +190,8 @@ def target_regulator_interaction_probability(model: Union['Model', 'MetabolicMod
         for regulator in interaction.yield_regulators():
 
             if regulator.id not in expression.index:
-                missed_interactions[target.id + regulator.id] = 1
-                interactions_probabilities[target.id + regulator.id] = 1
+                missed_interactions[(target.id, regulator.id)] = 1
+                interactions_probabilities[(target.id, regulator.id)] = 1
                 continue
 
             regulator_binary = binary_expression.loc[regulator.id]
@@ -200,8 +200,8 @@ def target_regulator_interaction_probability(model: Union['Model', 'MetabolicMod
             target_expression_0_regulator = target_expression[regulator_binary == 0]
 
             if len(target_expression_1_regulator) == 0 and len(target_expression_0_regulator) == 0:
-                missed_interactions[target.id + regulator.id] = 1
-                interactions_probabilities[target.id + regulator.id] = 1
+                missed_interactions[(target.id, regulator.id)] = 1
+                interactions_probabilities[(target.id, regulator.id)] = 1
                 continue
 
             _, p_val = ks_2samp(target_expression_1_regulator, target_expression_0_regulator)
@@ -210,12 +210,12 @@ def target_regulator_interaction_probability(model: Union['Model', 'MetabolicMod
 
                 probability = sum(target_binary_0_regulator) / len(target_binary_0_regulator)
 
-                interactions_probabilities[target.id + regulator.id] = probability
-                missed_interactions[target.id + regulator.id] = 0
+                interactions_probabilities[(target.id, regulator.id)] = probability
+                missed_interactions[(target.id, regulator.id)] = 0
 
             else:
-                missed_interactions[target.id + regulator.id] = 1
-                interactions_probabilities[target.id + regulator.id] = 1
+                missed_interactions[(target.id, regulator.id)] = 1
+                interactions_probabilities[(target.id, regulator.id)] = 1
 
     return interactions_probabilities, missed_interactions
 
