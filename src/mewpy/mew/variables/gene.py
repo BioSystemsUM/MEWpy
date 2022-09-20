@@ -60,6 +60,15 @@ class Gene(Variable, variable_type='gene', register=True, constructor=True, chec
 
         return _types
 
+    def _gene_to_html(self):
+        """
+        It returns a html dict representation.
+        """
+        html_dict = {'Coefficients': self.coefficients,
+                     'Active': self.is_active,
+                     'Reactions': ', '.join(self.reactions)}
+        return html_dict
+
     # -----------------------------------------------------------------------------
     # Static attributes
     # -----------------------------------------------------------------------------

@@ -67,14 +67,23 @@ class Target(Variable, variable_type='target', register=True, constructor=True, 
     # -----------------------------------------------------------------------------
     # Built-in
     # -----------------------------------------------------------------------------
-
     def __str__(self):
 
         if self.interaction:
 
-            return f'{self.interaction}'
+            return str(self.interaction)
 
-        return super(Target, self).__str__()
+        return f'{self.id} || {self.coefficients}'
+
+    def _target_to_html(self):
+        """
+        It returns a html representation.
+        """
+        html_dict = {'Coefficients': self.coefficients,
+                     'Active': self.is_active,
+                     'Interaction': self.interaction,
+                     'Regulators': ', '.join(self.regulators)}
+        return html_dict
 
     # -----------------------------------------------------------------------------
     # Static attributes

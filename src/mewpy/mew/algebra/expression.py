@@ -139,6 +139,12 @@ class Expression:
     def __str__(self):
         return str(self.symbolic)
 
+    def _repr_html_(self):
+        """
+        It returns a html representation of the gene.
+        """
+        return str(self.symbolic)
+
     def to_string(self):
         """
         String representation of the symbolic algebra expression

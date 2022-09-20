@@ -61,6 +61,23 @@ class Regulator(Variable, variable_type='regulator', register=True, constructor=
 
         return _types
 
+    def __str__(self):
+
+        if self.is_reaction() or self.is_metabolite():
+            return super(Regulator, self).__str__()
+
+        return f'{self.id} || {self.coefficients}'
+
+    def _regulator_to_html(self):
+        """
+        It returns a html representation.
+        """
+        html_dict = {'Coefficients': self.coefficients,
+                     'Active': self.is_active,
+                     'Interactions': ', '.join(self.interactions),
+                     'Targets': ', '.join(self.targets)}
+        return html_dict
+
     # -----------------------------------------------------------------------------
     # Static attributes
     # -----------------------------------------------------------------------------

@@ -428,15 +428,78 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
     # -----------------------------------------------------------------------------
 
     def __str__(self):
-        return self.name
+        return f'Model {self.id} - {self.name}'
 
     def __repr__(self):
-        if self.types:
-            types = [v_type.title() for v_type in self.types]
+        return self.__str__()
 
-            return ', '.join(types) + f': {self.id}'
-
-        return f'Model: {self.id}'
+    # noinspection PyUnresolvedReferences
+    def _repr_html_(self):
+        """
+        It returns a html representation of the gene.
+        """
+        if self.is_metabolic() and self.is_regulatory():
+            return f"""<div>
+            <h3>Model {self.id}</h3>
+            <br>
+            <h4>Name: {self.name}</h4>
+            <h4>Types: {self.types}</h4>
+            <h4>Metabolic model</h4>
+            <ul>
+                <li>Reactions: {len(self.reactions)}</li>
+                <li>Metabolites: {len(self.metabolites)}</li>
+                <li>Genes: {len(self.genes)}</li>
+                <li>Compartments: {list(self.compartments)}</li>
+                <li>Exchange reactions: {len(self.exchanges)}</li>
+                <li>Objective: {self.objective}</li>
+            </ul>
+            <h4>Regulatory model</h4>
+            <ul>
+                <li>Regulators: {len(self.regulators)}</li>
+                <li>Targets: {len(self.targets)}</li>
+                <li>Regulatory interactions: {len(self.interactions)}</li>
+                <li>Environmental stimuli: {len(self.environmental_stimuli)}</li>
+            </ul>
+            </div>
+            """
+        elif self.is_metabolic():
+            return f"""<div>
+            <h3>Model {self.id}</h3>
+            <br>
+            <h4>Name: {self.name}</h4>
+            <h4>Types: {self.types}</h4>
+            <ul>
+                <li>Reactions: {len(self.reactions)}</li>
+                <li>Metabolites: {len(self.metabolites)}</li>
+                <li>Genes: {len(self.genes)}</li>
+                <li>Compartments: {list(self.compartments)}</li>
+                <li>Exchange reactions: {len(self.exchanges)}</li>
+                <li>Objective: {self.objective}</li>
+            </ul>
+            </div>
+            """
+        elif self.is_regulatory():
+            return f"""<div>
+            <h3>Model {self.id}</h3>
+            <br>
+            <h4>Name: {self.name}</h4>
+            <h4>Types: {self.types}</h4>
+            <ul>
+                <li>Regulators: {len(self.regulators)}</li>
+                <li>Targets: {len(self.targets)}</li>
+                <li>Regulatory interactions: {len(self.interactions)}</li>
+                <li>Compartments: {list(self.compartments)}</li>
+                <li>Environmental stimuli: {len(self.environmental_stimuli)}</li>
+            </ul>
+            </div>
+            """
+        return f"""<div>
+        <h3>Model {self.id}</h3>
+        <br>
+        <h4>Name: {self.name}</h4>
+        <h4>Types: {self.types}</h4>
+        </div>
+        """
 
     # -----------------------------------------------------------------------------
     # Model type manager

@@ -3,7 +3,7 @@ from typing import Any, TYPE_CHECKING, Union, Generator, Dict, List, Tuple, Set
 from mewpy.model.model import Model
 from mewpy.util.history import recorder
 from mewpy.util.serialization import serialize
-from mewpy.util.utilities import iterable, generator
+from mewpy.util.utilities import generator
 
 if TYPE_CHECKING:
     from mewpy.mew.variables import Interaction, Regulator, Target, Metabolite, Reaction

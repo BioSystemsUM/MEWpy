@@ -86,15 +86,27 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
     def __str__(self):
 
         if self.target:
-            string_repr = f'{self.target.id}: '
+            target_str = f'{self.target.id} || '
 
         else:
-            string_repr = ''
+            target_str = ''
 
-        for expression in self.yield_expressions():
-            string_repr += expression.to_string()
+        expression_str = ' + '.join([f'{coefficient} = {expression.to_string()}'
+                                     for coefficient, expression in self.regulatory_events.items()
+                                     if not expression.is_none])
 
-        return string_repr
+        return target_str + expression_str
+
+    def _interaction_to_html(self):
+        """
+        It returns a html dict representation.
+        """
+        html_dict = {'Target': self.target,
+                     'Regulators': ', '.join(self.regulators),
+                     'Regulatory events': ', '.join([f'{coefficient} = {expression.to_string()}'
+                                                     for coefficient, expression in self.regulatory_events.items()
+                                                     if not expression.is_none])}
+        return html_dict
 
     # -----------------------------------------------------------------------------
     # Static attributes
@@ -129,9 +141,11 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
         This setter adds and removes regulatory events.
         It also handles the linear problems associated to this interaction
         """
+        if not value:
+            value = {0.0: Expression()}
 
         for coefficient, expression in self.regulatory_events.items():
-            self.remove_regulatory_event(coefficient=coefficient, expression=expression,
+            self.remove_regulatory_event(coefficient=coefficient,
                                          remove_orphans=True, history=False)
 
         for coefficient, expression in value.items():
@@ -174,7 +188,7 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
         truth_tables = []
 
         for coefficient, expression in self._regulatory_events.items():
-            df = expression.truth_table(coefficients='max', coefficient=coefficient)
+            df = expression.truth_table(strategy='max', coefficient=coefficient)
 
             df.index = [self.target.id if self.target else 'result'] * df.shape[0]
 
@@ -439,7 +453,6 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
 
     def remove_regulatory_event(self,
                                 coefficient: Union[float, int],
-                                expression: Expression,
                                 remove_orphans=True,
                                 history=True):
         """
@@ -449,12 +462,14 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
         It also handles the linear problems associated to this interaction
 
         This operation can be reverted using the model history
-        :param coefficient:
-        :param expression:
-        :param remove_orphans:
-        :param history:
+        :param coefficient: the coefficient that should be taken by the target for this expression
+        :param remove_orphans: Whether to remove orphaned regulators from the model
+        :param history: Whether to register this operation in the model history
         :return:
         """
+        expression = self.regulatory_events.get(coefficient)
+        if expression is None:
+            raise ValueError(f'No regulatory event associated with coefficient {coefficient}')
 
         if not isinstance(expression, Expression):
             raise TypeError(f'expression must be an {Expression} object. '
@@ -467,7 +482,6 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
                                                     'history': False},
                                        func=self.remove_regulatory_event,
                                        kwargs={'coefficient': coefficient,
-                                               'expression': expression,
                                                'remove_orphans': remove_orphans,
                                                'history': history})
 

@@ -49,13 +49,18 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         :param gpr: an expression object with the boolean logic of the associated genes.
         Genes objects must be associated with the expression object.
         """
-
         # the coefficient bounds initializer sets minimum and maximum bounds of MEWPY_LB and MEWPY_UB
         if not bounds:
             bounds = ModelConstants.REACTION_LOWER_BOUND, ModelConstants.REACTION_UPPER_BOUND
 
-        else:
+        elif len(bounds) == 1:
+            bounds = (bounds[0], bounds[0])
+
+        elif len(bounds) == 2:
             bounds = tuple(bounds)
+
+        else:
+            raise ValueError('Bounds must be a tuple of length 1 or 2')
 
         if not gpr:
             gpr = Expression()
@@ -93,7 +98,24 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     # Built-in
     # -----------------------------------------------------------------------------
     def __str__(self):
-        return f'{self.id}: {self.equation}'
+        return f'{self.id} || {self.equation}'
+
+    def _reaction_to_html(self):
+        """
+        It returns a html representation.
+        """
+        html_dict = {'Equation': self.equation,
+                     'Bounds': self.bounds,
+                     'Reversibility': self.reversibility,
+                     'Metabolites': ', '.join(self.metabolites),
+                     'Boundary': self.boundary,
+                     'GPR': self.gene_protein_reaction_rule,
+                     'Genes': ', '.join(self.genes),
+                     'Compartments': ', '.join(self.compartments),
+                     'Charge balance': self.charge_balance,
+                     'Mass balance': self.mass_balance}
+
+        return html_dict
 
     # -----------------------------------------------------------------------------
     # Static attributes
@@ -140,9 +162,17 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         :param value: tuple of lower and upper bounds
         :return:
         """
-
         if not value:
-            value = (ModelConstants.REACTION_LOWER_BOUND, ModelConstants.REACTION_UPPER_BOUND)
+            value = ModelConstants.REACTION_LOWER_BOUND, ModelConstants.REACTION_UPPER_BOUND
+
+        elif len(value) == 1:
+            value = (value[0], value[0])
+
+        elif len(value) == 2:
+            value = tuple(value)
+
+        else:
+            raise ValueError('Bounds must be a tuple of length 1 or 2')
 
         self._bounds = value
 
@@ -249,27 +279,13 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         :return: equation as a string
         """
 
-        equation = ''
-
-        for _id, met in self.reactants.items():
-            equation += f'{-self._stoichiometry[met]} {_id} + '
+        reactants = ' + '.join([f'{abs(st)} {met.id}' for met, st in self._stoichiometry.items() if st < 0.0])
+        products = ' + '.join([f'{abs(st)} {met.id}' for met, st in self._stoichiometry.items() if st > 0.0])
 
         if self.reversibility:
-            equation = equation[:-2] + '<-> '
+            return f'{reactants} <-> {products}'
         else:
-            equation = equation[:-2] + '-> '
-
-        for _id, met in self.products.items():
-            equation += f'{self._stoichiometry[met]} {_id} + '
-
-        if not equation:
-            return ''
-
-        elif self.products:
-            return equation[:-2]
-
-        else:
-            return equation[:-1]
+            return f'{reactants} -> {products}'
 
     @property
     def genes(self) -> Dict[str, 'Gene']:

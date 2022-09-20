@@ -458,6 +458,40 @@ class Variable(Serializer, metaclass=MetaVariable, factory=True):
     def __str__(self):
         return self.name
 
+    def __repr__(self):
+        return self.__str__()
+
+    def _variable_to_html(self):
+        """
+        It returns an HTML dict representation of the variable.
+        """
+        html_dict = {'Identifier': self.id,
+                     'Name': self.name,
+                     'Aliases': ', '.join(self.aliases),
+                     'Model': self.model.id if self.model else None,
+                     'Types': ', '.join(self.types)}
+        return html_dict
+
+    def _repr_html_(self):
+        """
+        It returns a html representation.
+        """
+        html_dict = self._variable_to_html()
+
+        for type_ in self.types:
+            method = getattr(self, f'_{type_}_to_html', lambda: {})
+            html_dict.update(method())
+
+        html_representation = ''
+        for key, value in html_dict.items():
+            html_representation += f'<tr><th>{key}</th><td>{value}</td></tr>'
+
+        return f"""
+            <table>
+                {html_representation}
+            </table>
+        """
+
     # -----------------------------------------------------------------------------
     # Variable type manager
     # -----------------------------------------------------------------------------

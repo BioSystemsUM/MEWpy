@@ -75,7 +75,18 @@ class Metabolite(Variable, variable_type='metabolite', register=True, constructo
     # -----------------------------------------------------------------------------
     def __str__(self):
 
-        return f'{self.id}: {self.name} {self.formula}'
+        return f'{self.id} || {self.name} || {self.formula}'
+
+    def _metabolite_to_html(self):
+        """
+        It returns a html dict representation.
+        """
+        html_dict = {'Compartment': self.compartment,
+                     'Formula': self.formula,
+                     'Molecular weight': self.molecular_weight,
+                     'Charge': self.charge,
+                     'Reactions': ', '.join(self.reactions)}
+        return html_dict
 
     # -----------------------------------------------------------------------------
     # Static attributes
