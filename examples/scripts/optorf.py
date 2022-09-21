@@ -50,10 +50,10 @@ def optorf_imc():
     metabolic_reader = Reader(Engines.MetabolicSBML, cbm_model_f)
     regulatory_reader = Reader(Engines.BooleanRegulatoryCSV,
                                reg_model_f,
-                               sep=';',
-                               id_col=1,
+                               sep=',',
+                               id_col=0,
                                rule_col=4,
-                               aliases_cols=[0, 2, 3],
+                               aliases_cols=[1, 2, 3],
                                header=0)
 
     model = read_model(metabolic_reader, regulatory_reader)
