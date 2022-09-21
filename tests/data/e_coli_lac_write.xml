@@ -7,88 +7,88 @@
     </listOfCompartments>
     <qual:listOfQualitativeSpecies>
       <qual:qualitativeSpecies qual:id="G_b0008" qual:compartment="c" qual:constant="false" qual:name="talB" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="FruR" qual:compartment="c" qual:constant="false" qual:name="FruR" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="PdhR" qual:compartment="c" qual:constant="false" qual:name="PdhR" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="aceE" qual:compartment="c" qual:constant="false" qual:name="aceE" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="aceF" qual:compartment="c" qual:constant="false" qual:name="aceF" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="b0080" qual:compartment="c" qual:constant="false" qual:name="b0080" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="b0113" qual:compartment="c" qual:constant="false" qual:name="b0113" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b0114" qual:compartment="c" qual:constant="false" qual:name="aceE" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b0115" qual:compartment="c" qual:constant="false" qual:name="aceF" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0116" qual:compartment="c" qual:constant="false" qual:name="lpd" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0118" qual:compartment="c" qual:constant="false" qual:name="acnB" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0351" qual:compartment="c" qual:constant="false" qual:name="mhpF" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0356" qual:compartment="c" qual:constant="false" qual:name="frmA" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="PhoB" qual:compartment="c" qual:constant="false" qual:name="PhoB" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="PhoR" qual:compartment="c" qual:constant="false" qual:name="PhoR" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="b0399" qual:compartment="c" qual:constant="false" qual:name="b0399" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="b0400" qual:compartment="c" qual:constant="false" qual:name="b0400" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0451" qual:compartment="c" qual:constant="false" qual:name="amtB" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0474" qual:compartment="c" qual:constant="false" qual:name="adk" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0485" qual:compartment="c" qual:constant="false" qual:name="glsA" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0720" qual:compartment="c" qual:constant="false" qual:name="gltA" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="sdhC" qual:compartment="c" qual:constant="false" qual:name="sdhC" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="sdhD" qual:compartment="c" qual:constant="false" qual:name="sdhD" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="sdhA" qual:compartment="c" qual:constant="false" qual:name="sdhA" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="sdhB" qual:compartment="c" qual:constant="false" qual:name="sdhB" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b0721" qual:compartment="c" qual:constant="false" qual:name="sdhC" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b0722" qual:compartment="c" qual:constant="false" qual:name="sdhD" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b0723" qual:compartment="c" qual:constant="false" qual:name="sdhA" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b0724" qual:compartment="c" qual:constant="false" qual:name="sdhB" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0726" qual:compartment="c" qual:constant="false" qual:name="sucA" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0727" qual:compartment="c" qual:constant="false" qual:name="sucB" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0728" qual:compartment="c" qual:constant="false" qual:name="sucC" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0729" qual:compartment="c" qual:constant="false" qual:name="sucD" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="cydA" qual:compartment="c" qual:constant="false" qual:name="cydA" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="cydB" qual:compartment="c" qual:constant="false" qual:name="cydB" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b0733" qual:compartment="c" qual:constant="false" qual:name="cydA" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b0734" qual:compartment="c" qual:constant="false" qual:name="cydB" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0755" qual:compartment="c" qual:constant="false" qual:name="gpmA" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0767" qual:compartment="c" qual:constant="false" qual:name="pgl" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0809" qual:compartment="c" qual:constant="false" qual:name="glnQ" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0810" qual:compartment="c" qual:constant="false" qual:name="glnP" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0811" qual:compartment="c" qual:constant="false" qual:name="glnH" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0875" qual:compartment="c" qual:constant="false" qual:name="aqpZ" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="pflA" qual:compartment="c" qual:constant="false" qual:name="pflA" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="pflB" qual:compartment="c" qual:constant="false" qual:name="pflB" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="focA" qual:compartment="c" qual:constant="false" qual:name="focA" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b0902" qual:compartment="c" qual:constant="false" qual:name="pflA" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b0903" qual:compartment="c" qual:constant="false" qual:name="pflB" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b0904" qual:compartment="c" qual:constant="false" qual:name="focA" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0978" qual:compartment="c" qual:constant="false" qual:name="cbdA" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b0979" qual:compartment="c" qual:constant="false" qual:name="cbdB" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="ptsG" qual:compartment="c" qual:constant="false" qual:name="ptsG" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="b1137" qual:compartment="c" qual:constant="false" qual:name="b1137" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="FadR" qual:compartment="c" qual:constant="false" qual:name="FadR" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="adhE" qual:compartment="c" qual:constant="false" qual:name="adhE" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b1101" qual:compartment="c" qual:constant="false" qual:name="ptsG" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b1136" qual:compartment="c" qual:constant="false" qual:name="icd" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="b1187" qual:compartment="c" qual:constant="false" qual:name="b1187" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b1241" qual:compartment="c" qual:constant="false" qual:name="adhE" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1276" qual:compartment="c" qual:constant="false" qual:name="acnA" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1297" qual:compartment="c" qual:constant="false" qual:name="puuA" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="Fnr" qual:compartment="c" qual:constant="false" qual:name="Fnr" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="b1334" qual:compartment="c" qual:constant="false" qual:name="b1334" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1380" qual:compartment="c" qual:constant="false" qual:name="ldhA" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1478" qual:compartment="c" qual:constant="false" qual:name="adhP" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1479" qual:compartment="c" qual:constant="false" qual:name="maeA" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="yneH" qual:compartment="c" qual:constant="false" qual:name="yneH" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="Mlc" qual:compartment="c" qual:constant="false" qual:name="Mlc" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b1524" qual:compartment="c" qual:constant="false" qual:name="glsB" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="b1594" qual:compartment="c" qual:constant="false" qual:name="b1594" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1602" qual:compartment="c" qual:constant="false" qual:name="pntB" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1603" qual:compartment="c" qual:constant="false" qual:name="pntA" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="fumC" qual:compartment="c" qual:constant="false" qual:name="fumC" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="fumA" qual:compartment="c" qual:constant="false" qual:name="fumA" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="b1622" qual:compartment="c" qual:constant="false" qual:name="b1622" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="pykF" qual:compartment="c" qual:constant="false" qual:name="pykF" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="pps" qual:compartment="c" qual:constant="false" qual:name="pps" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="b1724" qual:compartment="c" qual:constant="false" qual:name="b1724" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="gdhA" qual:compartment="c" qual:constant="false" qual:name="gdhA" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b1611" qual:compartment="c" qual:constant="false" qual:name="fumC" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b1612" qual:compartment="c" qual:constant="false" qual:name="fumA" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b1621" qual:compartment="c" qual:constant="false" qual:name="malX" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b1676" qual:compartment="c" qual:constant="false" qual:name="pykF" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b1702" qual:compartment="c" qual:constant="false" qual:name="ppsA" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b1723" qual:compartment="c" qual:constant="false" qual:name="pfkB" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b1761" qual:compartment="c" qual:constant="false" qual:name="gdhA" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1773" qual:compartment="c" qual:constant="false" qual:name="ydjI" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1779" qual:compartment="c" qual:constant="false" qual:name="gapA" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1812" qual:compartment="c" qual:constant="false" qual:name="pabB" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="manX" qual:compartment="c" qual:constant="false" qual:name="manX" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="manY" qual:compartment="c" qual:constant="false" qual:name="manY" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="manZ" qual:compartment="c" qual:constant="false" qual:name="manZ" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b1817" qual:compartment="c" qual:constant="false" qual:name="manX" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b1818" qual:compartment="c" qual:constant="false" qual:name="manY" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b1819" qual:compartment="c" qual:constant="false" qual:name="manZ" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1849" qual:compartment="c" qual:constant="false" qual:name="purT" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1852" qual:compartment="c" qual:constant="false" qual:name="zwf" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b1854" qual:compartment="c" qual:constant="false" qual:name="pykA" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="Nac" qual:compartment="c" qual:constant="false" qual:name="Nac" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="b1988" qual:compartment="c" qual:constant="false" qual:name="b1988" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b2029" qual:compartment="c" qual:constant="false" qual:name="gnd" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b2097" qual:compartment="c" qual:constant="false" qual:name="fbaB" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b2133" qual:compartment="c" qual:constant="false" qual:name="dld" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="nuoN" qual:compartment="c" qual:constant="false" qual:name="nuoN" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="nuoM" qual:compartment="c" qual:constant="false" qual:name="nuoM" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="nuoL" qual:compartment="c" qual:constant="false" qual:name="nuoL" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="nuoK" qual:compartment="c" qual:constant="false" qual:name="nuoK" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="nuoJ" qual:compartment="c" qual:constant="false" qual:name="nuoJ" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="nuoI" qual:compartment="c" qual:constant="false" qual:name="nuoI" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="nuoH" qual:compartment="c" qual:constant="false" qual:name="nuoH" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="nuoG" qual:compartment="c" qual:constant="false" qual:name="nuoG" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="nuoF" qual:compartment="c" qual:constant="false" qual:name="nuoF" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="nuoE" qual:compartment="c" qual:constant="false" qual:name="nuoE" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="nuoC" qual:compartment="c" qual:constant="false" qual:name="nuoC" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="nuoB" qual:compartment="c" qual:constant="false" qual:name="nuoB" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="nuoA" qual:compartment="c" qual:constant="false" qual:name="nuoA" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b2276" qual:compartment="c" qual:constant="false" qual:name="nuoN" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b2277" qual:compartment="c" qual:constant="false" qual:name="nuoM" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b2278" qual:compartment="c" qual:constant="false" qual:name="nuoL" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b2279" qual:compartment="c" qual:constant="false" qual:name="nuoK" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b2280" qual:compartment="c" qual:constant="false" qual:name="nuoJ" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b2281" qual:compartment="c" qual:constant="false" qual:name="nuoI" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b2282" qual:compartment="c" qual:constant="false" qual:name="nuoH" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b2283" qual:compartment="c" qual:constant="false" qual:name="nuoG" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b2284" qual:compartment="c" qual:constant="false" qual:name="nuoF" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b2285" qual:compartment="c" qual:constant="false" qual:name="nuoE" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b2286" qual:compartment="c" qual:constant="false" qual:name="nuoC" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b2287" qual:compartment="c" qual:constant="false" qual:name="nuoB" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b2288" qual:compartment="c" qual:constant="false" qual:name="nuoA" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b2296" qual:compartment="c" qual:constant="false" qual:name="ackA" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b2297" qual:compartment="c" qual:constant="false" qual:name="pta" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b2415" qual:compartment="c" qual:constant="false" qual:name="ptsH" qual:initialLevel="0" qual:maxLevel="1"/>
@@ -98,7 +98,7 @@
       <qual:qualitativeSpecies qual:id="G_b2463" qual:compartment="c" qual:constant="false" qual:name="maeB" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b2464" qual:compartment="c" qual:constant="false" qual:name="talA" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b2465" qual:compartment="c" qual:constant="false" qual:name="tktB" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="focB" qual:compartment="c" qual:constant="false" qual:name="focB" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b2492" qual:compartment="c" qual:constant="false" qual:name="focB" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b2579" qual:compartment="c" qual:constant="false" qual:name="grcA" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b2587" qual:compartment="c" qual:constant="false" qual:name="kgtP" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b2779" qual:compartment="c" qual:constant="false" qual:name="eno" qual:initialLevel="0" qual:maxLevel="1"/>
@@ -106,22 +106,22 @@
       <qual:qualitativeSpecies qual:id="G_b2925" qual:compartment="c" qual:constant="false" qual:name="fbaA" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b2926" qual:compartment="c" qual:constant="false" qual:name="pgk" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b2935" qual:compartment="c" qual:constant="false" qual:name="tktA" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="glcA" qual:compartment="c" qual:constant="false" qual:name="glcA" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="glcB" qual:compartment="c" qual:constant="false" qual:name="glcB" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="GlcC" qual:compartment="c" qual:constant="false" qual:name="GlcC" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="pitB" qual:compartment="c" qual:constant="false" qual:name="pitB" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="tdcE" qual:compartment="c" qual:constant="false" qual:name="tdcE" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="tdcD" qual:compartment="c" qual:constant="false" qual:name="tdcD" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="gltB" qual:compartment="c" qual:constant="false" qual:name="gltB" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="gltD" qual:compartment="c" qual:constant="false" qual:name="gltD" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="mdh" qual:compartment="c" qual:constant="false" qual:name="mdh" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="Fis" qual:compartment="c" qual:constant="false" qual:name="Fis" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="Crp" qual:compartment="c" qual:constant="false" qual:name="Crp" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b2975" qual:compartment="c" qual:constant="false" qual:name="glcA" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b2976" qual:compartment="c" qual:constant="false" qual:name="glcB" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="b2980" qual:compartment="c" qual:constant="false" qual:name="b2980" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b2987" qual:compartment="c" qual:constant="false" qual:name="pitB" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b3114" qual:compartment="c" qual:constant="false" qual:name="tdcE" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b3115" qual:compartment="c" qual:constant="false" qual:name="tdcD" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b3212" qual:compartment="c" qual:constant="false" qual:name="gltB" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b3213" qual:compartment="c" qual:constant="false" qual:name="gltD" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b3236" qual:compartment="c" qual:constant="false" qual:name="mdh" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="b3261" qual:compartment="c" qual:constant="false" qual:name="b3261" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="b3357" qual:compartment="c" qual:constant="false" qual:name="b3357" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b3386" qual:compartment="c" qual:constant="false" qual:name="rpe" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b3403" qual:compartment="c" qual:constant="false" qual:name="pck" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b3493" qual:compartment="c" qual:constant="false" qual:name="pitA" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="dctA" qual:compartment="c" qual:constant="false" qual:name="dctA" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="lldP" qual:compartment="c" qual:constant="false" qual:name="lldP" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b3528" qual:compartment="c" qual:constant="false" qual:name="dctA" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b3603" qual:compartment="c" qual:constant="false" qual:name="lldP" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b3612" qual:compartment="c" qual:constant="false" qual:name="gpmM" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b3731" qual:compartment="c" qual:constant="false" qual:name="atpC" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b3732" qual:compartment="c" qual:constant="false" qual:name="atpD" qual:initialLevel="0" qual:maxLevel="1"/>
@@ -132,32 +132,32 @@
       <qual:qualitativeSpecies qual:id="G_b3737" qual:compartment="c" qual:constant="false" qual:name="atpE" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b3738" qual:compartment="c" qual:constant="false" qual:name="atpB" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b3739" qual:compartment="c" qual:constant="false" qual:name="atpI" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="GlnG" qual:compartment="c" qual:constant="false" qual:name="GlnG" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="glnA" qual:compartment="c" qual:constant="false" qual:name="glnA" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="b3868" qual:compartment="c" qual:constant="false" qual:name="b3868" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b3870" qual:compartment="c" qual:constant="false" qual:name="glnA" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b3916" qual:compartment="c" qual:constant="false" qual:name="pfkA" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b3919" qual:compartment="c" qual:constant="false" qual:name="tpiA" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b3925" qual:compartment="c" qual:constant="false" qual:name="glpX" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="pflD" qual:compartment="c" qual:constant="false" qual:name="pflD" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="pflC" qual:compartment="c" qual:constant="false" qual:name="pflC" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b3951" qual:compartment="c" qual:constant="false" qual:name="pflD" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b3952" qual:compartment="c" qual:constant="false" qual:name="pflC" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b3956" qual:compartment="c" qual:constant="false" qual:name="ppc" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b3962" qual:compartment="c" qual:constant="false" qual:name="sthA" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="aceB" qual:compartment="c" qual:constant="false" qual:name="aceB" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="aceA" qual:compartment="c" qual:constant="false" qual:name="aceA" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="IclR" qual:compartment="c" qual:constant="false" qual:name="IclR" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b4014" qual:compartment="c" qual:constant="false" qual:name="aceB" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b4015" qual:compartment="c" qual:constant="false" qual:name="aceA" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="b4018" qual:compartment="c" qual:constant="false" qual:name="b4018" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b4025" qual:compartment="c" qual:constant="false" qual:name="pgi" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b4077" qual:compartment="c" qual:constant="false" qual:name="gltP" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b4090" qual:compartment="c" qual:constant="false" qual:name="rpiB" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="fumB" qual:compartment="c" qual:constant="false" qual:name="fumB" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="DcuR" qual:compartment="c" qual:constant="false" qual:name="DcuR" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="DcuS" qual:compartment="c" qual:constant="false" qual:name="DcuS" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="frdD" qual:compartment="c" qual:constant="false" qual:name="frdD" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="frdC" qual:compartment="c" qual:constant="false" qual:name="frdC" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="frdB" qual:compartment="c" qual:constant="false" qual:name="frdB" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="frdA" qual:compartment="c" qual:constant="false" qual:name="frdA" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b4122" qual:compartment="c" qual:constant="false" qual:name="fumB" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="b4124" qual:compartment="c" qual:constant="false" qual:name="b4124" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="b4125" qual:compartment="c" qual:constant="false" qual:name="b4125" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b4151" qual:compartment="c" qual:constant="false" qual:name="frdD" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b4152" qual:compartment="c" qual:constant="false" qual:name="frdC" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b4153" qual:compartment="c" qual:constant="false" qual:name="frdB" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="G_b4154" qual:compartment="c" qual:constant="false" qual:name="frdA" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b4232" qual:compartment="c" qual:constant="false" qual:name="fbp" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b4301" qual:compartment="c" qual:constant="false" qual:name="sgcE" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_b4395" qual:compartment="c" qual:constant="false" qual:name="ytjC" qual:initialLevel="0" qual:maxLevel="1"/>
-      <qual:qualitativeSpecies qual:id="ArcA" qual:compartment="c" qual:constant="false" qual:name="ArcA" qual:initialLevel="0" qual:maxLevel="1"/>
+      <qual:qualitativeSpecies qual:id="b4401" qual:compartment="c" qual:constant="false" qual:name="b4401" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="G_s0001" qual:compartment="c" qual:constant="false" qual:name="G_s0001" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="CRPnoGLC" qual:compartment="c" qual:constant="false" qual:name="CRPnoGLC" qual:initialLevel="0" qual:maxLevel="1"/>
       <qual:qualitativeSpecies qual:id="CRPnoGLM" qual:compartment="c" qual:constant="false" qual:name="CRPnoGLM" qual:initialLevel="0" qual:maxLevel="1"/>
@@ -203,12 +203,12 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_FruR" qual:name="FruR_interaction">
+      <qual:transition qual:id="TR_b0080" qual:name="b0080_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="surplusFDP_input" qual:qualitativeSpecies="surplusFDP"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="FruR_out" qual:qualitativeSpecies="FruR"/>
+          <qual:output qual:id="b0080_out" qual:qualitativeSpecies="b0080"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -222,12 +222,12 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_PdhR" qual:name="PdhR_interaction">
+      <qual:transition qual:id="TR_b0113" qual:name="b0113_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="surplusPYR_input" qual:qualitativeSpecies="surplusPYR"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="PdhR_out" qual:qualitativeSpecies="PdhR"/>
+          <qual:output qual:id="b0113_out" qual:qualitativeSpecies="b0113"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -241,13 +241,13 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_aceE" qual:name="aceE_interaction">
+      <qual:transition qual:id="TR_G_b0114" qual:name="b0114_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="PdhR_input" qual:qualitativeSpecies="PdhR"/>
-          <qual:input qual:id="Fis_input" qual:qualitativeSpecies="Fis"/>
+          <qual:input qual:id="b0113_input" qual:qualitativeSpecies="b0113"/>
+          <qual:input qual:id="b3261_input" qual:qualitativeSpecies="b3261"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="aceE_out" qual:qualitativeSpecies="aceE"/>
+          <qual:output qual:id="G_b0114_out" qual:qualitativeSpecies="G_b0114"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -257,21 +257,21 @@
                 <or/>
                 <apply>
                   <not/>
-                  <ci> PdhR </ci>
+                  <ci> b0113 </ci>
                 </apply>
-                <ci> Fis </ci>
+                <ci> b3261 </ci>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_aceF" qual:name="aceF_interaction">
+      <qual:transition qual:id="TR_G_b0115" qual:name="b0115_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="PdhR_input" qual:qualitativeSpecies="PdhR"/>
-          <qual:input qual:id="Fis_input" qual:qualitativeSpecies="Fis"/>
+          <qual:input qual:id="b0113_input" qual:qualitativeSpecies="b0113"/>
+          <qual:input qual:id="b3261_input" qual:qualitativeSpecies="b3261"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="aceF_out" qual:qualitativeSpecies="aceF"/>
+          <qual:output qual:id="G_b0115_out" qual:qualitativeSpecies="G_b0115"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -281,9 +281,9 @@
                 <or/>
                 <apply>
                   <not/>
-                  <ci> PdhR </ci>
+                  <ci> b0113 </ci>
                 </apply>
-                <ci> Fis </ci>
+                <ci> b3261 </ci>
               </apply>
             </math>
           </qual:functionTerm>
@@ -341,28 +341,28 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_PhoB" qual:name="PhoB_interaction">
+      <qual:transition qual:id="TR_b0399" qual:name="b0399_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="PhoR_input" qual:qualitativeSpecies="PhoR"/>
+          <qual:input qual:id="b0400_input" qual:qualitativeSpecies="b0400"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="PhoB_out" qual:qualitativeSpecies="PhoB"/>
+          <qual:output qual:id="b0399_out" qual:qualitativeSpecies="b0399"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
           <qual:functionTerm qual:resultLevel="1">
             <math xmlns="http://www.w3.org/1998/Math/MathML">
-              <ci> PhoR </ci>
+              <ci> b0400 </ci>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_PhoR" qual:name="PhoR_interaction">
+      <qual:transition qual:id="TR_b0400" qual:name="b0400_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="M_pi_e_input" qual:qualitativeSpecies="M_pi_e"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="PhoR_out" qual:qualitativeSpecies="PhoR"/>
+          <qual:output qual:id="b0400_out" qual:qualitativeSpecies="b0400"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -432,15 +432,15 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_sdhC" qual:name="sdhC_interaction">
+      <qual:transition qual:id="TR_G_b0721" qual:name="b0721_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
-          <qual:input qual:id="Crp_input" qual:qualitativeSpecies="Crp"/>
-          <qual:input qual:id="Fis_input" qual:qualitativeSpecies="Fis"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
+          <qual:input qual:id="b3357_input" qual:qualitativeSpecies="b3357"/>
+          <qual:input qual:id="b3261_input" qual:qualitativeSpecies="b3261"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="sdhC_out" qual:qualitativeSpecies="sdhC"/>
+          <qual:output qual:id="G_b0721_out" qual:qualitativeSpecies="G_b0721"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -452,26 +452,26 @@
                   <not/>
                   <apply>
                     <or/>
-                    <ci> ArcA </ci>
-                    <ci> Fnr </ci>
+                    <ci> b4401 </ci>
+                    <ci> b1334 </ci>
                   </apply>
                 </apply>
-                <ci> Crp </ci>
-                <ci> Fis </ci>
+                <ci> b3357 </ci>
+                <ci> b3261 </ci>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_sdhD" qual:name="sdhD_interaction">
+      <qual:transition qual:id="TR_G_b0722" qual:name="b0722_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
-          <qual:input qual:id="Crp_input" qual:qualitativeSpecies="Crp"/>
-          <qual:input qual:id="Fis_input" qual:qualitativeSpecies="Fis"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
+          <qual:input qual:id="b3357_input" qual:qualitativeSpecies="b3357"/>
+          <qual:input qual:id="b3261_input" qual:qualitativeSpecies="b3261"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="sdhD_out" qual:qualitativeSpecies="sdhD"/>
+          <qual:output qual:id="G_b0722_out" qual:qualitativeSpecies="G_b0722"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -483,26 +483,26 @@
                   <not/>
                   <apply>
                     <or/>
-                    <ci> ArcA </ci>
-                    <ci> Fnr </ci>
+                    <ci> b4401 </ci>
+                    <ci> b1334 </ci>
                   </apply>
                 </apply>
-                <ci> Crp </ci>
-                <ci> Fis </ci>
+                <ci> b3357 </ci>
+                <ci> b3261 </ci>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_sdhA" qual:name="sdhA_interaction">
+      <qual:transition qual:id="TR_G_b0723" qual:name="b0723_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
-          <qual:input qual:id="Crp_input" qual:qualitativeSpecies="Crp"/>
-          <qual:input qual:id="Fis_input" qual:qualitativeSpecies="Fis"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
+          <qual:input qual:id="b3357_input" qual:qualitativeSpecies="b3357"/>
+          <qual:input qual:id="b3261_input" qual:qualitativeSpecies="b3261"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="sdhA_out" qual:qualitativeSpecies="sdhA"/>
+          <qual:output qual:id="G_b0723_out" qual:qualitativeSpecies="G_b0723"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -514,26 +514,26 @@
                   <not/>
                   <apply>
                     <or/>
-                    <ci> ArcA </ci>
-                    <ci> Fnr </ci>
+                    <ci> b4401 </ci>
+                    <ci> b1334 </ci>
                   </apply>
                 </apply>
-                <ci> Crp </ci>
-                <ci> Fis </ci>
+                <ci> b3357 </ci>
+                <ci> b3261 </ci>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_sdhB" qual:name="sdhB_interaction">
+      <qual:transition qual:id="TR_G_b0724" qual:name="b0724_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
-          <qual:input qual:id="Crp_input" qual:qualitativeSpecies="Crp"/>
-          <qual:input qual:id="Fis_input" qual:qualitativeSpecies="Fis"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
+          <qual:input qual:id="b3357_input" qual:qualitativeSpecies="b3357"/>
+          <qual:input qual:id="b3261_input" qual:qualitativeSpecies="b3261"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="sdhB_out" qual:qualitativeSpecies="sdhB"/>
+          <qual:output qual:id="G_b0724_out" qual:qualitativeSpecies="G_b0724"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -545,12 +545,12 @@
                   <not/>
                   <apply>
                     <or/>
-                    <ci> ArcA </ci>
-                    <ci> Fnr </ci>
+                    <ci> b4401 </ci>
+                    <ci> b1334 </ci>
                   </apply>
                 </apply>
-                <ci> Crp </ci>
-                <ci> Fis </ci>
+                <ci> b3357 </ci>
+                <ci> b3261 </ci>
               </apply>
             </math>
           </qual:functionTerm>
@@ -608,13 +608,13 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_cydA" qual:name="cydA_interaction">
+      <qual:transition qual:id="TR_G_b0733" qual:name="b0733_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="cydA_out" qual:qualitativeSpecies="cydA"/>
+          <qual:output qual:id="G_b0733_out" qual:qualitativeSpecies="G_b0733"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -624,21 +624,21 @@
                 <or/>
                 <apply>
                   <not/>
-                  <ci> Fnr </ci>
+                  <ci> b1334 </ci>
                 </apply>
-                <ci> ArcA </ci>
+                <ci> b4401 </ci>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_cydB" qual:name="cydB_interaction">
+      <qual:transition qual:id="TR_G_b0734" qual:name="b0734_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="cydB_out" qual:qualitativeSpecies="cydB"/>
+          <qual:output qual:id="G_b0734_out" qual:qualitativeSpecies="G_b0734"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -648,9 +648,9 @@
                 <or/>
                 <apply>
                   <not/>
-                  <ci> Fnr </ci>
+                  <ci> b1334 </ci>
                 </apply>
-                <ci> ArcA </ci>
+                <ci> b4401 </ci>
               </apply>
             </math>
           </qual:functionTerm>
@@ -734,14 +734,14 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_pflA" qual:name="pflA_interaction">
+      <qual:transition qual:id="TR_G_b0902" qual:name="b0902_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
-          <qual:input qual:id="Crp_input" qual:qualitativeSpecies="Crp"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
+          <qual:input qual:id="b3357_input" qual:qualitativeSpecies="b3357"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="pflA_out" qual:qualitativeSpecies="pflA"/>
+          <qual:output qual:id="G_b0902_out" qual:qualitativeSpecies="G_b0902"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -749,25 +749,25 @@
             <math xmlns="http://www.w3.org/1998/Math/MathML">
               <apply>
                 <or/>
-                <ci> ArcA </ci>
+                <ci> b4401 </ci>
                 <apply>
                   <and/>
-                  <ci> Fnr </ci>
-                  <ci> Crp </ci>
+                  <ci> b1334 </ci>
+                  <ci> b3357 </ci>
                 </apply>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_pflB" qual:name="pflB_interaction">
+      <qual:transition qual:id="TR_G_b0903" qual:name="b0903_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
-          <qual:input qual:id="Crp_input" qual:qualitativeSpecies="Crp"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
+          <qual:input qual:id="b3357_input" qual:qualitativeSpecies="b3357"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="pflB_out" qual:qualitativeSpecies="pflB"/>
+          <qual:output qual:id="G_b0903_out" qual:qualitativeSpecies="G_b0903"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -775,25 +775,25 @@
             <math xmlns="http://www.w3.org/1998/Math/MathML">
               <apply>
                 <or/>
-                <ci> ArcA </ci>
+                <ci> b4401 </ci>
                 <apply>
                   <and/>
-                  <ci> Fnr </ci>
-                  <ci> Crp </ci>
+                  <ci> b1334 </ci>
+                  <ci> b3357 </ci>
                 </apply>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_focA" qual:name="focA_interaction">
+      <qual:transition qual:id="TR_G_b0904" qual:name="b0904_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
-          <qual:input qual:id="Crp_input" qual:qualitativeSpecies="Crp"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
+          <qual:input qual:id="b3357_input" qual:qualitativeSpecies="b3357"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="focA_out" qual:qualitativeSpecies="focA"/>
+          <qual:output qual:id="G_b0904_out" qual:qualitativeSpecies="G_b0904"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -801,11 +801,11 @@
             <math xmlns="http://www.w3.org/1998/Math/MathML">
               <apply>
                 <or/>
-                <ci> ArcA </ci>
+                <ci> b4401 </ci>
                 <apply>
                   <and/>
-                  <ci> Fnr </ci>
-                  <ci> Crp </ci>
+                  <ci> b1334 </ci>
+                  <ci> b3357 </ci>
                 </apply>
               </apply>
             </math>
@@ -838,13 +838,13 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_ptsG" qual:name="ptsG_interaction">
+      <qual:transition qual:id="TR_G_b1101" qual:name="b1101_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="Mlc_input" qual:qualitativeSpecies="Mlc"/>
-          <qual:input qual:id="FruR_input" qual:qualitativeSpecies="FruR"/>
+          <qual:input qual:id="b1594_input" qual:qualitativeSpecies="b1594"/>
+          <qual:input qual:id="b0080_input" qual:qualitativeSpecies="b0080"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="ptsG_out" qual:qualitativeSpecies="ptsG"/>
+          <qual:output qual:id="G_b1101_out" qual:qualitativeSpecies="G_b1101"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -854,20 +854,20 @@
                 <or/>
                 <apply>
                   <not/>
-                  <ci> Mlc </ci>
+                  <ci> b1594 </ci>
                 </apply>
                 <apply>
                   <not/>
-                  <ci> FruR </ci>
+                  <ci> b0080 </ci>
                 </apply>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_b1137" qual:name="b1137_interaction">
+      <qual:transition qual:id="TR_G_b1136" qual:name="b1136_interaction">
         <qual:listOfOutputs>
-          <qual:output qual:id="b1137_out" qual:qualitativeSpecies="b1137"/>
+          <qual:output qual:id="G_b1136_out" qual:qualitativeSpecies="G_b1136"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -878,13 +878,13 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_FadR" qual:name="FadR_interaction">
+      <qual:transition qual:id="TR_b1187" qual:name="b1187_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="M_glc__D_e_input" qual:qualitativeSpecies="M_glc__D_e"/>
           <qual:input qual:id="M_ac_e_input" qual:qualitativeSpecies="M_ac_e"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="FadR_out" qual:qualitativeSpecies="FadR"/>
+          <qual:output qual:id="b1187_out" qual:qualitativeSpecies="b1187"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -910,14 +910,14 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_adhE" qual:name="adhE_interaction">
+      <qual:transition qual:id="TR_G_b1241" qual:name="b1241_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="M_o2_e_input" qual:qualitativeSpecies="M_o2_e"/>
-          <qual:input qual:id="FruR_input" qual:qualitativeSpecies="FruR"/>
-          <qual:input qual:id="Fis_input" qual:qualitativeSpecies="Fis"/>
+          <qual:input qual:id="b0080_input" qual:qualitativeSpecies="b0080"/>
+          <qual:input qual:id="b3261_input" qual:qualitativeSpecies="b3261"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="adhE_out" qual:qualitativeSpecies="adhE"/>
+          <qual:output qual:id="G_b1241_out" qual:qualitativeSpecies="G_b1241"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -942,10 +942,10 @@
                       <ci> M_o2_e </ci>
                       <cn type="integer"> 0 </cn>
                     </apply>
-                    <ci> FruR </ci>
+                    <ci> b0080 </ci>
                   </apply>
                 </apply>
-                <ci> Fis </ci>
+                <ci> b3261 </ci>
               </apply>
             </math>
           </qual:functionTerm>
@@ -977,12 +977,12 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_Fnr" qual:name="Fnr_interaction">
+      <qual:transition qual:id="TR_b1334" qual:name="b1334_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="M_o2_e_input" qual:qualitativeSpecies="M_o2_e"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="Fnr_out" qual:qualitativeSpecies="Fnr"/>
+          <qual:output qual:id="b1334_out" qual:qualitativeSpecies="b1334"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1039,14 +1039,14 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_yneH" qual:name="yneH_interaction">
+      <qual:transition qual:id="TR_G_b1524" qual:name="b1524_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="M_glc__D_e_input" qual:qualitativeSpecies="M_glc__D_e"/>
           <qual:input qual:id="M_nh4_e_input" qual:qualitativeSpecies="M_nh4_e"/>
-          <qual:input qual:id="Crp_input" qual:qualitativeSpecies="Crp"/>
+          <qual:input qual:id="b3357_input" qual:qualitativeSpecies="b3357"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="yneH_out" qual:qualitativeSpecies="yneH"/>
+          <qual:output qual:id="G_b1524_out" qual:qualitativeSpecies="G_b1524"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1071,7 +1071,7 @@
                   </apply>
                   <apply>
                     <not/>
-                    <ci> Crp </ci>
+                    <ci> b3357 </ci>
                   </apply>
                 </apply>
               </apply>
@@ -1079,12 +1079,12 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_Mlc" qual:name="Mlc_interaction">
+      <qual:transition qual:id="TR_b1594" qual:name="b1594_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="M_glc__D_e_input" qual:qualitativeSpecies="M_glc__D_e"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="Mlc_out" qual:qualitativeSpecies="Mlc"/>
+          <qual:output qual:id="b1594_out" qual:qualitativeSpecies="b1594"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1128,12 +1128,12 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_fumC" qual:name="fumC_interaction">
+      <qual:transition qual:id="TR_G_b1611" qual:name="b1611_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="fumC_out" qual:qualitativeSpecies="fumC"/>
+          <qual:output qual:id="G_b1611_out" qual:qualitativeSpecies="G_b1611"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1141,19 +1141,19 @@
             <math xmlns="http://www.w3.org/1998/Math/MathML">
               <apply>
                 <not/>
-                <ci> ArcA </ci>
+                <ci> b4401 </ci>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_fumA" qual:name="fumA_interaction">
+      <qual:transition qual:id="TR_G_b1612" qual:name="b1612_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="fumA_out" qual:qualitativeSpecies="fumA"/>
+          <qual:output qual:id="G_b1612_out" qual:qualitativeSpecies="G_b1612"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1163,17 +1163,17 @@
                 <not/>
                 <apply>
                   <or/>
-                  <ci> ArcA </ci>
-                  <ci> Fnr </ci>
+                  <ci> b4401 </ci>
+                  <ci> b1334 </ci>
                 </apply>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_b1622" qual:name="b1622_interaction">
+      <qual:transition qual:id="TR_G_b1621" qual:name="b1621_interaction">
         <qual:listOfOutputs>
-          <qual:output qual:id="b1622_out" qual:qualitativeSpecies="b1622"/>
+          <qual:output qual:id="G_b1621_out" qual:qualitativeSpecies="G_b1621"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1184,12 +1184,12 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_pykF" qual:name="pykF_interaction">
+      <qual:transition qual:id="TR_G_b1676" qual:name="b1676_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="FruR_input" qual:qualitativeSpecies="FruR"/>
+          <qual:input qual:id="b0080_input" qual:qualitativeSpecies="b0080"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="pykF_out" qual:qualitativeSpecies="pykF"/>
+          <qual:output qual:id="G_b1676_out" qual:qualitativeSpecies="G_b1676"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1197,31 +1197,31 @@
             <math xmlns="http://www.w3.org/1998/Math/MathML">
               <apply>
                 <not/>
-                <ci> FruR </ci>
+                <ci> b0080 </ci>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_pps" qual:name="pps_interaction">
+      <qual:transition qual:id="TR_G_b1702" qual:name="b1702_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="FruR_input" qual:qualitativeSpecies="FruR"/>
+          <qual:input qual:id="b0080_input" qual:qualitativeSpecies="b0080"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="pps_out" qual:qualitativeSpecies="pps"/>
+          <qual:output qual:id="G_b1702_out" qual:qualitativeSpecies="G_b1702"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
           <qual:functionTerm qual:resultLevel="1">
             <math xmlns="http://www.w3.org/1998/Math/MathML">
-              <ci> FruR </ci>
+              <ci> b0080 </ci>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_b1724" qual:name="b1724_interaction">
+      <qual:transition qual:id="TR_G_b1723" qual:name="b1723_interaction">
         <qual:listOfOutputs>
-          <qual:output qual:id="b1724_out" qual:qualitativeSpecies="b1724"/>
+          <qual:output qual:id="G_b1723_out" qual:qualitativeSpecies="G_b1723"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1232,13 +1232,13 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_gdhA" qual:name="gdhA_interaction">
+      <qual:transition qual:id="TR_G_b1761" qual:name="b1761_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="Nac_input" qual:qualitativeSpecies="Nac"/>
+          <qual:input qual:id="b1988_input" qual:qualitativeSpecies="b1988"/>
           <qual:input qual:id="M_glu__L_e_input" qual:qualitativeSpecies="M_glu__L_e"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="gdhA_out" qual:qualitativeSpecies="gdhA"/>
+          <qual:output qual:id="G_b1761_out" qual:qualitativeSpecies="G_b1761"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1248,7 +1248,7 @@
                 <not/>
                 <apply>
                   <or/>
-                  <ci> Nac </ci>
+                  <ci> b1988 </ci>
                   <apply>
                     <gt/>
                     <ci> M_glu__L_e </ci>
@@ -1299,13 +1299,13 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_manX" qual:name="manX_interaction">
+      <qual:transition qual:id="TR_G_b1817" qual:name="b1817_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="CRPnoGLM_input" qual:qualitativeSpecies="CRPnoGLM"/>
-          <qual:input qual:id="Mlc_input" qual:qualitativeSpecies="Mlc"/>
+          <qual:input qual:id="b1594_input" qual:qualitativeSpecies="b1594"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="manX_out" qual:qualitativeSpecies="manX"/>
+          <qual:output qual:id="G_b1817_out" qual:qualitativeSpecies="G_b1817"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1316,20 +1316,20 @@
                 <ci> CRPnoGLM </ci>
                 <apply>
                   <not/>
-                  <ci> Mlc </ci>
+                  <ci> b1594 </ci>
                 </apply>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_manY" qual:name="manY_interaction">
+      <qual:transition qual:id="TR_G_b1818" qual:name="b1818_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="CRPnoGLM_input" qual:qualitativeSpecies="CRPnoGLM"/>
-          <qual:input qual:id="Mlc_input" qual:qualitativeSpecies="Mlc"/>
+          <qual:input qual:id="b1594_input" qual:qualitativeSpecies="b1594"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="manY_out" qual:qualitativeSpecies="manY"/>
+          <qual:output qual:id="G_b1818_out" qual:qualitativeSpecies="G_b1818"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1340,20 +1340,20 @@
                 <ci> CRPnoGLM </ci>
                 <apply>
                   <not/>
-                  <ci> Mlc </ci>
+                  <ci> b1594 </ci>
                 </apply>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_manZ" qual:name="manZ_interaction">
+      <qual:transition qual:id="TR_G_b1819" qual:name="b1819_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="CRPnoGLM_input" qual:qualitativeSpecies="CRPnoGLM"/>
-          <qual:input qual:id="Mlc_input" qual:qualitativeSpecies="Mlc"/>
+          <qual:input qual:id="b1594_input" qual:qualitativeSpecies="b1594"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="manZ_out" qual:qualitativeSpecies="manZ"/>
+          <qual:output qual:id="G_b1819_out" qual:qualitativeSpecies="G_b1819"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1364,7 +1364,7 @@
                 <ci> CRPnoGLM </ci>
                 <apply>
                   <not/>
-                  <ci> Mlc </ci>
+                  <ci> b1594 </ci>
                 </apply>
               </apply>
             </math>
@@ -1410,12 +1410,12 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_Nac" qual:name="Nac_interaction">
+      <qual:transition qual:id="TR_b1988" qual:name="b1988_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="NRI_low_input" qual:qualitativeSpecies="NRI_low"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="Nac_out" qual:qualitativeSpecies="Nac"/>
+          <qual:output qual:id="b1988_out" qual:qualitativeSpecies="b1988"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1465,13 +1465,13 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_nuoN" qual:name="nuoN_interaction">
+      <qual:transition qual:id="TR_G_b2276" qual:name="b2276_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="nuoN_out" qual:qualitativeSpecies="nuoN"/>
+          <qual:output qual:id="G_b2276_out" qual:qualitativeSpecies="G_b2276"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1481,21 +1481,21 @@
                 <not/>
                 <apply>
                   <or/>
-                  <ci> ArcA </ci>
-                  <ci> Fnr </ci>
+                  <ci> b4401 </ci>
+                  <ci> b1334 </ci>
                 </apply>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_nuoM" qual:name="nuoM_interaction">
+      <qual:transition qual:id="TR_G_b2277" qual:name="b2277_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="nuoM_out" qual:qualitativeSpecies="nuoM"/>
+          <qual:output qual:id="G_b2277_out" qual:qualitativeSpecies="G_b2277"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1505,21 +1505,21 @@
                 <not/>
                 <apply>
                   <or/>
-                  <ci> ArcA </ci>
-                  <ci> Fnr </ci>
+                  <ci> b4401 </ci>
+                  <ci> b1334 </ci>
                 </apply>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_nuoL" qual:name="nuoL_interaction">
+      <qual:transition qual:id="TR_G_b2278" qual:name="b2278_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="nuoL_out" qual:qualitativeSpecies="nuoL"/>
+          <qual:output qual:id="G_b2278_out" qual:qualitativeSpecies="G_b2278"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1529,21 +1529,21 @@
                 <not/>
                 <apply>
                   <or/>
-                  <ci> ArcA </ci>
-                  <ci> Fnr </ci>
+                  <ci> b4401 </ci>
+                  <ci> b1334 </ci>
                 </apply>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_nuoK" qual:name="nuoK_interaction">
+      <qual:transition qual:id="TR_G_b2279" qual:name="b2279_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="nuoK_out" qual:qualitativeSpecies="nuoK"/>
+          <qual:output qual:id="G_b2279_out" qual:qualitativeSpecies="G_b2279"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1553,21 +1553,21 @@
                 <not/>
                 <apply>
                   <or/>
-                  <ci> ArcA </ci>
-                  <ci> Fnr </ci>
+                  <ci> b4401 </ci>
+                  <ci> b1334 </ci>
                 </apply>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_nuoJ" qual:name="nuoJ_interaction">
+      <qual:transition qual:id="TR_G_b2280" qual:name="b2280_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="nuoJ_out" qual:qualitativeSpecies="nuoJ"/>
+          <qual:output qual:id="G_b2280_out" qual:qualitativeSpecies="G_b2280"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1577,21 +1577,21 @@
                 <not/>
                 <apply>
                   <or/>
-                  <ci> ArcA </ci>
-                  <ci> Fnr </ci>
+                  <ci> b4401 </ci>
+                  <ci> b1334 </ci>
                 </apply>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_nuoI" qual:name="nuoI_interaction">
+      <qual:transition qual:id="TR_G_b2281" qual:name="b2281_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="nuoI_out" qual:qualitativeSpecies="nuoI"/>
+          <qual:output qual:id="G_b2281_out" qual:qualitativeSpecies="G_b2281"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1601,21 +1601,21 @@
                 <not/>
                 <apply>
                   <or/>
-                  <ci> ArcA </ci>
-                  <ci> Fnr </ci>
+                  <ci> b4401 </ci>
+                  <ci> b1334 </ci>
                 </apply>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_nuoH" qual:name="nuoH_interaction">
+      <qual:transition qual:id="TR_G_b2282" qual:name="b2282_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="nuoH_out" qual:qualitativeSpecies="nuoH"/>
+          <qual:output qual:id="G_b2282_out" qual:qualitativeSpecies="G_b2282"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1625,21 +1625,21 @@
                 <not/>
                 <apply>
                   <or/>
-                  <ci> ArcA </ci>
-                  <ci> Fnr </ci>
+                  <ci> b4401 </ci>
+                  <ci> b1334 </ci>
                 </apply>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_nuoG" qual:name="nuoG_interaction">
+      <qual:transition qual:id="TR_G_b2283" qual:name="b2283_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="nuoG_out" qual:qualitativeSpecies="nuoG"/>
+          <qual:output qual:id="G_b2283_out" qual:qualitativeSpecies="G_b2283"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1649,21 +1649,21 @@
                 <not/>
                 <apply>
                   <or/>
-                  <ci> ArcA </ci>
-                  <ci> Fnr </ci>
+                  <ci> b4401 </ci>
+                  <ci> b1334 </ci>
                 </apply>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_nuoF" qual:name="nuoF_interaction">
+      <qual:transition qual:id="TR_G_b2284" qual:name="b2284_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="nuoF_out" qual:qualitativeSpecies="nuoF"/>
+          <qual:output qual:id="G_b2284_out" qual:qualitativeSpecies="G_b2284"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1673,21 +1673,21 @@
                 <not/>
                 <apply>
                   <or/>
-                  <ci> ArcA </ci>
-                  <ci> Fnr </ci>
+                  <ci> b4401 </ci>
+                  <ci> b1334 </ci>
                 </apply>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_nuoE" qual:name="nuoE_interaction">
+      <qual:transition qual:id="TR_G_b2285" qual:name="b2285_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="nuoE_out" qual:qualitativeSpecies="nuoE"/>
+          <qual:output qual:id="G_b2285_out" qual:qualitativeSpecies="G_b2285"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1697,21 +1697,21 @@
                 <not/>
                 <apply>
                   <or/>
-                  <ci> ArcA </ci>
-                  <ci> Fnr </ci>
+                  <ci> b4401 </ci>
+                  <ci> b1334 </ci>
                 </apply>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_nuoC" qual:name="nuoC_interaction">
+      <qual:transition qual:id="TR_G_b2286" qual:name="b2286_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="nuoC_out" qual:qualitativeSpecies="nuoC"/>
+          <qual:output qual:id="G_b2286_out" qual:qualitativeSpecies="G_b2286"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1721,21 +1721,21 @@
                 <not/>
                 <apply>
                   <or/>
-                  <ci> ArcA </ci>
-                  <ci> Fnr </ci>
+                  <ci> b4401 </ci>
+                  <ci> b1334 </ci>
                 </apply>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_nuoB" qual:name="nuoB_interaction">
+      <qual:transition qual:id="TR_G_b2287" qual:name="b2287_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="nuoB_out" qual:qualitativeSpecies="nuoB"/>
+          <qual:output qual:id="G_b2287_out" qual:qualitativeSpecies="G_b2287"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1745,21 +1745,21 @@
                 <not/>
                 <apply>
                   <or/>
-                  <ci> ArcA </ci>
-                  <ci> Fnr </ci>
+                  <ci> b4401 </ci>
+                  <ci> b1334 </ci>
                 </apply>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_nuoA" qual:name="nuoA_interaction">
+      <qual:transition qual:id="TR_G_b2288" qual:name="b2288_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="nuoA_out" qual:qualitativeSpecies="nuoA"/>
+          <qual:output qual:id="G_b2288_out" qual:qualitativeSpecies="G_b2288"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1769,8 +1769,8 @@
                 <not/>
                 <apply>
                   <or/>
-                  <ci> ArcA </ci>
-                  <ci> Fnr </ci>
+                  <ci> b4401 </ci>
+                  <ci> b1334 </ci>
                 </apply>
               </apply>
             </math>
@@ -1894,14 +1894,14 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_focB" qual:name="focB_interaction">
+      <qual:transition qual:id="TR_G_b2492" qual:name="b2492_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
-          <qual:input qual:id="Crp_input" qual:qualitativeSpecies="Crp"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
+          <qual:input qual:id="b3357_input" qual:qualitativeSpecies="b3357"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="focB_out" qual:qualitativeSpecies="focB"/>
+          <qual:output qual:id="G_b2492_out" qual:qualitativeSpecies="G_b2492"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -1909,11 +1909,11 @@
             <math xmlns="http://www.w3.org/1998/Math/MathML">
               <apply>
                 <or/>
-                <ci> ArcA </ci>
+                <ci> b4401 </ci>
                 <apply>
                   <and/>
-                  <ci> Fnr </ci>
-                  <ci> Crp </ci>
+                  <ci> b1334 </ci>
+                  <ci> b3357 </ci>
                 </apply>
               </apply>
             </math>
@@ -2011,13 +2011,13 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_glcA" qual:name="glcA_interaction">
+      <qual:transition qual:id="TR_G_b2975" qual:name="b2975_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="GlcC_input" qual:qualitativeSpecies="GlcC"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b2980_input" qual:qualitativeSpecies="b2980"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="glcA_out" qual:qualitativeSpecies="glcA"/>
+          <qual:output qual:id="G_b2975_out" qual:qualitativeSpecies="G_b2975"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2027,21 +2027,21 @@
                 <and/>
                 <apply>
                   <not/>
-                  <ci> ArcA </ci>
+                  <ci> b4401 </ci>
                 </apply>
-                <ci> GlcC </ci>
+                <ci> b2980 </ci>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_glcB" qual:name="glcB_interaction">
+      <qual:transition qual:id="TR_G_b2976" qual:name="b2976_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="GlcC_input" qual:qualitativeSpecies="GlcC"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b2980_input" qual:qualitativeSpecies="b2980"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="glcB_out" qual:qualitativeSpecies="glcB"/>
+          <qual:output qual:id="G_b2976_out" qual:qualitativeSpecies="G_b2976"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2051,20 +2051,20 @@
                 <and/>
                 <apply>
                   <not/>
-                  <ci> ArcA </ci>
+                  <ci> b4401 </ci>
                 </apply>
-                <ci> GlcC </ci>
+                <ci> b2980 </ci>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_GlcC" qual:name="GlcC_interaction">
+      <qual:transition qual:id="TR_b2980" qual:name="b2980_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="M_ac_e_input" qual:qualitativeSpecies="M_ac_e"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="GlcC_out" qual:qualitativeSpecies="GlcC"/>
+          <qual:output qual:id="b2980_out" qual:qualitativeSpecies="b2980"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2079,12 +2079,12 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_pitB" qual:name="pitB_interaction">
+      <qual:transition qual:id="TR_G_b2987" qual:name="b2987_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="PhoB_input" qual:qualitativeSpecies="PhoB"/>
+          <qual:input qual:id="b0399_input" qual:qualitativeSpecies="b0399"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="pitB_out" qual:qualitativeSpecies="pitB"/>
+          <qual:output qual:id="G_b2987_out" qual:qualitativeSpecies="G_b2987"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2092,19 +2092,19 @@
             <math xmlns="http://www.w3.org/1998/Math/MathML">
               <apply>
                 <not/>
-                <ci> PhoB </ci>
+                <ci> b0399 </ci>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_tdcE" qual:name="tdcE_interaction">
+      <qual:transition qual:id="TR_G_b3114" qual:name="b3114_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="Crp_input" qual:qualitativeSpecies="Crp"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
+          <qual:input qual:id="b3357_input" qual:qualitativeSpecies="b3357"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="tdcE_out" qual:qualitativeSpecies="tdcE"/>
+          <qual:output qual:id="G_b3114_out" qual:qualitativeSpecies="G_b3114"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2112,20 +2112,20 @@
             <math xmlns="http://www.w3.org/1998/Math/MathML">
               <apply>
                 <or/>
-                <ci> Crp </ci>
-                <ci> Fnr </ci>
+                <ci> b3357 </ci>
+                <ci> b1334 </ci>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_tdcD" qual:name="tdcD_interaction">
+      <qual:transition qual:id="TR_G_b3115" qual:name="b3115_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="Crp_input" qual:qualitativeSpecies="Crp"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
+          <qual:input qual:id="b3357_input" qual:qualitativeSpecies="b3357"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="tdcD_out" qual:qualitativeSpecies="tdcD"/>
+          <qual:output qual:id="G_b3115_out" qual:qualitativeSpecies="G_b3115"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2133,20 +2133,20 @@
             <math xmlns="http://www.w3.org/1998/Math/MathML">
               <apply>
                 <or/>
-                <ci> Crp </ci>
-                <ci> Fnr </ci>
+                <ci> b3357 </ci>
+                <ci> b1334 </ci>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_gltB" qual:name="gltB_interaction">
+      <qual:transition qual:id="TR_G_b3212" qual:name="b3212_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="NRI_hi_input" qual:qualitativeSpecies="NRI_hi"/>
           <qual:input qual:id="M_glu__L_e_input" qual:qualitativeSpecies="M_glu__L_e"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="gltB_out" qual:qualitativeSpecies="gltB"/>
+          <qual:output qual:id="G_b3212_out" qual:qualitativeSpecies="G_b3212"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2168,13 +2168,13 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_gltD" qual:name="gltD_interaction">
+      <qual:transition qual:id="TR_G_b3213" qual:name="b3213_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="NRI_hi_input" qual:qualitativeSpecies="NRI_hi"/>
           <qual:input qual:id="M_glu__L_e_input" qual:qualitativeSpecies="M_glu__L_e"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="gltD_out" qual:qualitativeSpecies="gltD"/>
+          <qual:output qual:id="G_b3213_out" qual:qualitativeSpecies="G_b3213"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2196,12 +2196,12 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_mdh" qual:name="mdh_interaction">
+      <qual:transition qual:id="TR_G_b3236" qual:name="b3236_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="mdh_out" qual:qualitativeSpecies="mdh"/>
+          <qual:output qual:id="G_b3236_out" qual:qualitativeSpecies="G_b3236"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2209,18 +2209,18 @@
             <math xmlns="http://www.w3.org/1998/Math/MathML">
               <apply>
                 <not/>
-                <ci> ArcA </ci>
+                <ci> b4401 </ci>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_Fis" qual:name="Fis_interaction">
+      <qual:transition qual:id="TR_b3261" qual:name="b3261_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="R_Biomass_Ecoli_core_input" qual:qualitativeSpecies="R_Biomass_Ecoli_core"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="Fis_out" qual:qualitativeSpecies="Fis"/>
+          <qual:output qual:id="b3261_out" qual:qualitativeSpecies="b3261"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2235,12 +2235,12 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_Crp" qual:name="Crp_interaction">
+      <qual:transition qual:id="TR_b3357" qual:name="b3357_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="CRPnoGLC_input" qual:qualitativeSpecies="CRPnoGLC"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="Crp_out" qual:qualitativeSpecies="Crp"/>
+          <qual:output qual:id="b3357_out" qual:qualitativeSpecies="b3357"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2290,14 +2290,14 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_dctA" qual:name="dctA_interaction">
+      <qual:transition qual:id="TR_G_b3528" qual:name="b3528_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="CRPnoGLM_input" qual:qualitativeSpecies="CRPnoGLM"/>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="DcuR_input" qual:qualitativeSpecies="DcuR"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b4124_input" qual:qualitativeSpecies="b4124"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="dctA_out" qual:qualitativeSpecies="dctA"/>
+          <qual:output qual:id="G_b3528_out" qual:qualitativeSpecies="G_b3528"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2308,20 +2308,20 @@
                 <ci> CRPnoGLM </ci>
                 <apply>
                   <not/>
-                  <ci> ArcA </ci>
+                  <ci> b4401 </ci>
                 </apply>
-                <ci> DcuR </ci>
+                <ci> b4124 </ci>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_lldP" qual:name="lldP_interaction">
+      <qual:transition qual:id="TR_G_b3603" qual:name="b3603_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="lldP_out" qual:qualitativeSpecies="lldP"/>
+          <qual:output qual:id="G_b3603_out" qual:qualitativeSpecies="G_b3603"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2329,7 +2329,7 @@
             <math xmlns="http://www.w3.org/1998/Math/MathML">
               <apply>
                 <not/>
-                <ci> ArcA </ci>
+                <ci> b4401 </ci>
               </apply>
             </math>
           </qual:functionTerm>
@@ -2465,12 +2465,12 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_GlnG" qual:name="GlnG_interaction">
+      <qual:transition qual:id="TR_b3868" qual:name="b3868_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="M_nh4_e_input" qual:qualitativeSpecies="M_nh4_e"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="GlnG_out" qual:qualitativeSpecies="GlnG"/>
+          <qual:output qual:id="b3868_out" qual:qualitativeSpecies="b3868"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2488,18 +2488,18 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_glnA" qual:name="glnA_interaction">
+      <qual:transition qual:id="TR_G_b3870" qual:name="b3870_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="Crp_input" qual:qualitativeSpecies="Crp"/>
+          <qual:input qual:id="b3357_input" qual:qualitativeSpecies="b3357"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="glnA_out" qual:qualitativeSpecies="glnA"/>
+          <qual:output qual:id="G_b3870_out" qual:qualitativeSpecies="G_b3870"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
           <qual:functionTerm qual:resultLevel="1">
             <math xmlns="http://www.w3.org/1998/Math/MathML">
-              <ci> Crp </ci>
+              <ci> b3357 </ci>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
@@ -2543,13 +2543,13 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_pflD" qual:name="pflD_interaction">
+      <qual:transition qual:id="TR_G_b3951" qual:name="b3951_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="pflD_out" qual:qualitativeSpecies="pflD"/>
+          <qual:output qual:id="G_b3951_out" qual:qualitativeSpecies="G_b3951"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2557,20 +2557,20 @@
             <math xmlns="http://www.w3.org/1998/Math/MathML">
               <apply>
                 <or/>
-                <ci> ArcA </ci>
-                <ci> Fnr </ci>
+                <ci> b4401 </ci>
+                <ci> b1334 </ci>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_pflC" qual:name="pflC_interaction">
+      <qual:transition qual:id="TR_G_b3952" qual:name="b3952_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="pflC_out" qual:qualitativeSpecies="pflC"/>
+          <qual:output qual:id="G_b3952_out" qual:qualitativeSpecies="G_b3952"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2578,8 +2578,8 @@
             <math xmlns="http://www.w3.org/1998/Math/MathML">
               <apply>
                 <or/>
-                <ci> ArcA </ci>
-                <ci> Fnr </ci>
+                <ci> b4401 </ci>
+                <ci> b1334 </ci>
               </apply>
             </math>
           </qual:functionTerm>
@@ -2611,14 +2611,14 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_aceB" qual:name="aceB_interaction">
+      <qual:transition qual:id="TR_G_b4014" qual:name="b4014_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="IclR_input" qual:qualitativeSpecies="IclR"/>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="FruR_input" qual:qualitativeSpecies="FruR"/>
+          <qual:input qual:id="b4018_input" qual:qualitativeSpecies="b4018"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b0080_input" qual:qualitativeSpecies="b0080"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="aceB_out" qual:qualitativeSpecies="aceB"/>
+          <qual:output qual:id="G_b4014_out" qual:qualitativeSpecies="G_b4014"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2628,29 +2628,29 @@
                 <and/>
                 <apply>
                   <not/>
-                  <ci> IclR </ci>
+                  <ci> b4018 </ci>
                 </apply>
                 <apply>
                   <or/>
                   <apply>
                     <not/>
-                    <ci> ArcA </ci>
+                    <ci> b4401 </ci>
                   </apply>
-                  <ci> FruR </ci>
+                  <ci> b0080 </ci>
                 </apply>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_aceA" qual:name="aceA_interaction">
+      <qual:transition qual:id="TR_G_b4015" qual:name="b4015_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="IclR_input" qual:qualitativeSpecies="IclR"/>
-          <qual:input qual:id="ArcA_input" qual:qualitativeSpecies="ArcA"/>
-          <qual:input qual:id="FruR_input" qual:qualitativeSpecies="FruR"/>
+          <qual:input qual:id="b4018_input" qual:qualitativeSpecies="b4018"/>
+          <qual:input qual:id="b4401_input" qual:qualitativeSpecies="b4401"/>
+          <qual:input qual:id="b0080_input" qual:qualitativeSpecies="b0080"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="aceA_out" qual:qualitativeSpecies="aceA"/>
+          <qual:output qual:id="G_b4015_out" qual:qualitativeSpecies="G_b4015"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2660,33 +2660,33 @@
                 <and/>
                 <apply>
                   <not/>
-                  <ci> IclR </ci>
+                  <ci> b4018 </ci>
                 </apply>
                 <apply>
                   <or/>
                   <apply>
                     <not/>
-                    <ci> ArcA </ci>
+                    <ci> b4401 </ci>
                   </apply>
-                  <ci> FruR </ci>
+                  <ci> b0080 </ci>
                 </apply>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_IclR" qual:name="IclR_interaction">
+      <qual:transition qual:id="TR_b4018" qual:name="b4018_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="FadR_input" qual:qualitativeSpecies="FadR"/>
+          <qual:input qual:id="b1187_input" qual:qualitativeSpecies="b1187"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="IclR_out" qual:qualitativeSpecies="IclR"/>
+          <qual:output qual:id="b4018_out" qual:qualitativeSpecies="b4018"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
           <qual:functionTerm qual:resultLevel="1">
             <math xmlns="http://www.w3.org/1998/Math/MathML">
-              <ci> FadR </ci>
+              <ci> b1187 </ci>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
@@ -2730,14 +2730,14 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_fumB" qual:name="fumB_interaction">
+      <qual:transition qual:id="TR_G_b4122" qual:name="b4122_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
-          <qual:input qual:id="Crp_input" qual:qualitativeSpecies="Crp"/>
-          <qual:input qual:id="DcuR_input" qual:qualitativeSpecies="DcuR"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
+          <qual:input qual:id="b3357_input" qual:qualitativeSpecies="b3357"/>
+          <qual:input qual:id="b4124_input" qual:qualitativeSpecies="b4124"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="fumB_out" qual:qualitativeSpecies="fumB"/>
+          <qual:output qual:id="G_b4122_out" qual:qualitativeSpecies="G_b4122"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2745,38 +2745,38 @@
             <math xmlns="http://www.w3.org/1998/Math/MathML">
               <apply>
                 <or/>
-                <ci> Fnr </ci>
-                <ci> Crp </ci>
-                <ci> DcuR </ci>
+                <ci> b1334 </ci>
+                <ci> b3357 </ci>
+                <ci> b4124 </ci>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_DcuR" qual:name="DcuR_interaction">
+      <qual:transition qual:id="TR_b4124" qual:name="b4124_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="DcuS_input" qual:qualitativeSpecies="DcuS"/>
+          <qual:input qual:id="b4125_input" qual:qualitativeSpecies="b4125"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="DcuR_out" qual:qualitativeSpecies="DcuR"/>
+          <qual:output qual:id="b4124_out" qual:qualitativeSpecies="b4124"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
           <qual:functionTerm qual:resultLevel="1">
             <math xmlns="http://www.w3.org/1998/Math/MathML">
-              <ci> DcuS </ci>
+              <ci> b4125 </ci>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_DcuS" qual:name="DcuS_interaction">
+      <qual:transition qual:id="TR_b4125" qual:name="b4125_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="M_succ_e_input" qual:qualitativeSpecies="M_succ_e"/>
           <qual:input qual:id="M_fum_e_input" qual:qualitativeSpecies="M_fum_e"/>
           <qual:input qual:id="M_mal__L_e_input" qual:qualitativeSpecies="M_mal__L_e"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="DcuS_out" qual:qualitativeSpecies="DcuS"/>
+          <qual:output qual:id="b4125_out" qual:qualitativeSpecies="b4125"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2804,13 +2804,13 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_frdD" qual:name="frdD_interaction">
+      <qual:transition qual:id="TR_G_b4151" qual:name="b4151_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
-          <qual:input qual:id="DcuR_input" qual:qualitativeSpecies="DcuR"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
+          <qual:input qual:id="b4124_input" qual:qualitativeSpecies="b4124"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="frdD_out" qual:qualitativeSpecies="frdD"/>
+          <qual:output qual:id="G_b4151_out" qual:qualitativeSpecies="G_b4151"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2818,20 +2818,20 @@
             <math xmlns="http://www.w3.org/1998/Math/MathML">
               <apply>
                 <or/>
-                <ci> Fnr </ci>
-                <ci> DcuR </ci>
+                <ci> b1334 </ci>
+                <ci> b4124 </ci>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_frdC" qual:name="frdC_interaction">
+      <qual:transition qual:id="TR_G_b4152" qual:name="b4152_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
-          <qual:input qual:id="DcuR_input" qual:qualitativeSpecies="DcuR"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
+          <qual:input qual:id="b4124_input" qual:qualitativeSpecies="b4124"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="frdC_out" qual:qualitativeSpecies="frdC"/>
+          <qual:output qual:id="G_b4152_out" qual:qualitativeSpecies="G_b4152"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2839,20 +2839,20 @@
             <math xmlns="http://www.w3.org/1998/Math/MathML">
               <apply>
                 <or/>
-                <ci> Fnr </ci>
-                <ci> DcuR </ci>
+                <ci> b1334 </ci>
+                <ci> b4124 </ci>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_frdB" qual:name="frdB_interaction">
+      <qual:transition qual:id="TR_G_b4153" qual:name="b4153_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
-          <qual:input qual:id="DcuR_input" qual:qualitativeSpecies="DcuR"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
+          <qual:input qual:id="b4124_input" qual:qualitativeSpecies="b4124"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="frdB_out" qual:qualitativeSpecies="frdB"/>
+          <qual:output qual:id="G_b4153_out" qual:qualitativeSpecies="G_b4153"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2860,20 +2860,20 @@
             <math xmlns="http://www.w3.org/1998/Math/MathML">
               <apply>
                 <or/>
-                <ci> Fnr </ci>
-                <ci> DcuR </ci>
+                <ci> b1334 </ci>
+                <ci> b4124 </ci>
               </apply>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_frdA" qual:name="frdA_interaction">
+      <qual:transition qual:id="TR_G_b4154" qual:name="b4154_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="Fnr_input" qual:qualitativeSpecies="Fnr"/>
-          <qual:input qual:id="DcuR_input" qual:qualitativeSpecies="DcuR"/>
+          <qual:input qual:id="b1334_input" qual:qualitativeSpecies="b1334"/>
+          <qual:input qual:id="b4124_input" qual:qualitativeSpecies="b4124"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="frdA_out" qual:qualitativeSpecies="frdA"/>
+          <qual:output qual:id="G_b4154_out" qual:qualitativeSpecies="G_b4154"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -2881,8 +2881,8 @@
             <math xmlns="http://www.w3.org/1998/Math/MathML">
               <apply>
                 <or/>
-                <ci> Fnr </ci>
-                <ci> DcuR </ci>
+                <ci> b1334 </ci>
+                <ci> b4124 </ci>
               </apply>
             </math>
           </qual:functionTerm>
@@ -2927,12 +2927,12 @@
           </qual:functionTerm>
         </qual:listOfFunctionTerms>
       </qual:transition>
-      <qual:transition qual:id="TR_ArcA" qual:name="ArcA_interaction">
+      <qual:transition qual:id="TR_b4401" qual:name="b4401_interaction">
         <qual:listOfInputs>
           <qual:input qual:id="M_o2_e_input" qual:qualitativeSpecies="M_o2_e"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
-          <qual:output qual:id="ArcA_out" qual:qualitativeSpecies="ArcA"/>
+          <qual:output qual:id="b4401_out" qual:qualitativeSpecies="b4401"/>
         </qual:listOfOutputs>
         <qual:listOfFunctionTerms>
           <qual:defaultTerm qual:resultLevel="0"/>
@@ -3042,7 +3042,7 @@
       </qual:transition>
       <qual:transition qual:id="TR_NRI_low" qual:name="NRI_low_interaction">
         <qual:listOfInputs>
-          <qual:input qual:id="GlnG_input" qual:qualitativeSpecies="GlnG"/>
+          <qual:input qual:id="b3868_input" qual:qualitativeSpecies="b3868"/>
         </qual:listOfInputs>
         <qual:listOfOutputs>
           <qual:output qual:id="NRI_low_out" qual:qualitativeSpecies="NRI_low"/>
@@ -3051,7 +3051,7 @@
           <qual:defaultTerm qual:resultLevel="0"/>
           <qual:functionTerm qual:resultLevel="1">
             <math xmlns="http://www.w3.org/1998/Math/MathML">
-              <ci> GlnG </ci>
+              <ci> b3868 </ci>
             </math>
           </qual:functionTerm>
         </qual:listOfFunctionTerms>

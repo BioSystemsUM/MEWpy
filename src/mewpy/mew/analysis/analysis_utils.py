@@ -11,7 +11,7 @@ from mewpy.util.constants import ModelConstants
 if TYPE_CHECKING:
     from mewpy.solvers import Solution
     from mewpy.mew.lp import LinearProblem
-    from mewpy.model import Model, MetabolicModel, RegulatoryModel
+    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
 
 
 def decode_solver_solution(solution: 'Solution') -> Tuple[float, str]:

@@ -2,7 +2,7 @@ from re import findall
 from typing import Any, Dict, Generator, Union, TYPE_CHECKING
 
 from mewpy.util.utilities import generator, chemical_formula_re
-from mewpy.util.serialization import serialize
+from mewpy.mew.models.serialization import serialize
 from mewpy.util.history import recorder
 from mewpy.util.constants import atomic_weights
 from .variable import Variable

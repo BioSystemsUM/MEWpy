@@ -3,7 +3,7 @@ from typing import Union, Dict
 from mewpy.mew.analysis import FBA
 from mewpy.mew.lp import LinearMixIn
 from mewpy.mew.solution import ModelSolution
-from mewpy.model import Model, MetabolicModel, RegulatoryModel
+from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
 from mewpy.solvers import Solution
 from mewpy.solvers.solver import Solver
 

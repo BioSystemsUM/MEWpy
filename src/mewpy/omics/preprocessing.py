@@ -6,7 +6,7 @@ import pandas as pd
 
 if TYPE_CHECKING:
     from mewpy.mew.variables import Gene, Target
-    from mewpy.model import Model, MetabolicModel, RegulatoryModel
+    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
 
 try:
 

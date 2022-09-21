@@ -49,7 +49,7 @@ def load_optorf(regulatory_model: Union[str, TextIOWrapper, Reader],
         else:
             raise ImportError('Invalid file type')
 
-        engine = Engines.RegulatoryCSV
+        engine = Engines.BooleanRegulatoryCSV
 
         if file_name.endswith('.xml') or file_name.endswith('.sbml'):
             engine = Engines.RegulatorySBML
@@ -70,7 +70,7 @@ def load_optorf(regulatory_model: Union[str, TextIOWrapper, Reader],
 
         elif isinstance(metabolic_model, Cobra_Model):
 
-            engine = Engines.CobrapyModel
+            engine = Engines.CobraModel
 
         elif isinstance(metabolic_model, Reframed_Model):
 

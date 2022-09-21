@@ -7,13 +7,13 @@ import pandas as pd
 
 from mewpy.io.dto import VariableRecord, DataTransferObject, FunctionTerm
 from mewpy.mew.algebra import Expression, And, Symbol
-from mewpy.model import RegulatoryModel
+from mewpy.mew.models import RegulatoryModel
 from .engine import Engine
 from .engines_utils import csv_warning
 
 
 if TYPE_CHECKING:
-    from mewpy.model import RegulatoryModel, Model, MetabolicModel
+    from mewpy.mew.models import RegulatoryModel, Model, MetabolicModel
 
 
 class CoExpressionRegulatoryCSV(Engine):

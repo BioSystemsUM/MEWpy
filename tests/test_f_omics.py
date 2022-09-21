@@ -43,9 +43,9 @@ class TestExpressionSet(unittest.TestCase):
         regulatory_reader = Reader(Engines.BooleanRegulatoryCSV,
                                    EC_CORE_MEW_MODEL2,
                                    sep=',',
-                                   id_col=1,
+                                   id_col=0,
                                    rule_col=2,
-                                   aliases_cols=[0],
+                                   aliases_cols=[1],
                                    header=0)
         model = read_model(regulatory_reader, metabolic_reader)
         PROM(model, self.expr, regulator=next(iter(model.regulators)))

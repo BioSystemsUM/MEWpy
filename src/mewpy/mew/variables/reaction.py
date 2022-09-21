@@ -2,7 +2,7 @@ from typing import Any, Dict, Union, TYPE_CHECKING, Tuple, Generator, List
 
 from mewpy.mew.algebra import Expression, parse_expression
 from mewpy.util.utilities import generator
-from mewpy.util.serialization import serialize
+from mewpy.mew.models.serialization import serialize
 from mewpy.util.history import recorder
 from mewpy.util.constants import ModelConstants
 from mewpy.io.engines.engines_utils import expression_warning
@@ -11,7 +11,7 @@ from .variable import Variable, variables_from_symbolic
 if TYPE_CHECKING:
     from .metabolite import Metabolite
     from .gene import Gene
-    from mewpy.model import Model, MetabolicModel, RegulatoryModel
+    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
 
 
 def _bounds_setter(instance, old_bounds):

@@ -1,11 +1,11 @@
 from collections import defaultdict
 from typing import Union, TYPE_CHECKING, Tuple
 
-from mewpy.model import Model
+from mewpy.mew.models import Model
 from .engines import JSON
 
 if TYPE_CHECKING:
-    from mewpy.model import Model, MetabolicModel, RegulatoryModel
+    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
     from .builder import Builder
     from .reader import Reader
     from .writer import Writer

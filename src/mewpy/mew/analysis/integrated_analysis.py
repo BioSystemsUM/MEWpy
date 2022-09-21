@@ -12,7 +12,7 @@ from .srfba import SRFBA
 
 
 if TYPE_CHECKING:
-    from mewpy.model import Model, MetabolicModel, RegulatoryModel
+    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
 
 
 INTEGRATED_ANALYSIS_METHODS = {'rfba': RFBA,

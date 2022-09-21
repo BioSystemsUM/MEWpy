@@ -11,7 +11,7 @@ from mewpy.mew.variables import Variable
 
 if TYPE_CHECKING:
     from mewpy.mew.variables import Gene, Interaction, Metabolite, Reaction, Regulator, Target
-    from mewpy.model import Model, MetabolicModel, RegulatoryModel
+    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
 
 
 @dataclass

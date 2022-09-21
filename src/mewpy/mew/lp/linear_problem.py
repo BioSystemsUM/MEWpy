@@ -10,7 +10,7 @@ from .linear_containers import ConstraintContainer, VariableContainer
 from .linear_utils import LinkedList, Node, get_solver_instance
 
 if TYPE_CHECKING:
-    from mewpy.model import Model, MetabolicModel, RegulatoryModel
+    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
 
 
 class LinearProblem:

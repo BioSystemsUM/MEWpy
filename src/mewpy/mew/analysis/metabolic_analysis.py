@@ -9,7 +9,7 @@ from .pfba import pFBA
 from .analysis_utils import run_method_and_decode
 
 if TYPE_CHECKING:
-    from mewpy.model import Model, MetabolicModel, RegulatoryModel
+    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
 
 
 def slim_fba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],

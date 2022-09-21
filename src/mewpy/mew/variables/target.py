@@ -2,7 +2,7 @@ from typing import Any, TYPE_CHECKING, Dict, Generator, Tuple, Sequence
 
 from mewpy.util.constants import ModelConstants
 from mewpy.util.history import recorder
-from mewpy.util.serialization import serialize
+from mewpy.mew.models.serialization import serialize
 from mewpy.util.utilities import generator
 from .variable import Variable
 from .variables_utils import coefficients_setter

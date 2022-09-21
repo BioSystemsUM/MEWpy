@@ -4,7 +4,7 @@ from typing import Union, TYPE_CHECKING
 
 from mewpy.io.dto import DataTransferObject, VariableRecord, History, FunctionTerm, CompartmentRecord
 from mewpy.mew.algebra import Expression, Symbol, NoneAtom, Float
-from mewpy.model import RegulatoryModel, MetabolicModel
+from mewpy.mew.models import RegulatoryModel, MetabolicModel
 from mewpy.util.constants import ModelConstants
 from .engine import Engine
 from .engines_utils import (ASTNODE_BOOLEAN_VALUES, ASTNODE_RELATIONAL_OPERATORS,
@@ -17,7 +17,7 @@ from .engines_utils import (ASTNODE_BOOLEAN_VALUES, ASTNODE_RELATIONAL_OPERATORS
                             set_math, expression_warning, sbml_warning)
 
 if TYPE_CHECKING:
-    from mewpy.model import Model, MetabolicModel, RegulatoryModel
+    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
 
 
 class RegulatorySBML(Engine):

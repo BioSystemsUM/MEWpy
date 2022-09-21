@@ -141,9 +141,9 @@ class TestOptORF(unittest.TestCase):
         regulatory_reader = Reader(Engines.BooleanRegulatoryCSV,
                                    EC_CORE_REG_MODEL,
                                    sep=',',
-                                   id_col=1,
+                                   id_col=0,
                                    rule_col=2,
-                                   aliases_cols=[0],
+                                   aliases_cols=[1],
                                    header=0)
 
         model = read_model(metabolic_reader, regulatory_reader)

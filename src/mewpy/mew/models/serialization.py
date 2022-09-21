@@ -5,9 +5,8 @@ from mewpy.mew.algebra import Expression
 from mewpy.mew.algebra import parse_expression
 
 if TYPE_CHECKING:
-    from mewpy.model import Model, MetabolicModel, RegulatoryModel
+    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
     from mewpy.mew.variables import Variable, Gene, Interaction, Metabolite, Reaction, Regulator, Target
-
 
 sys.setrecursionlimit(50000)
 
@@ -430,7 +429,7 @@ class Serializer:
     def __reduce__(self: Union['Serializer', 'Model', 'Variable']):
         # for further detail: https://docs.python.org/3/library/pickle.html#object.__reduce__
 
-        from mewpy.model import Model, build_model
+        from mewpy.mew.models import Model, build_model
         from mewpy.mew.variables import Variable, build_variable
 
         if isinstance(self, Model):
@@ -440,6 +439,7 @@ class Serializer:
             return build_variable, (tuple(self.types), {'identifier': self.id}), self._dict_to_pickle()
 
         return super(Serializer, self).__reduce__()
+
     # -----------------------------------------------------------------------------
     # State for pickle serialization
     # -----------------------------------------------------------------------------
@@ -659,17 +659,16 @@ class Serializer:
         """
         return self.__copy__()
 
-    def __deepcopy__(self) -> Union['Gene',
-                                    'Interaction',
-                                    'Metabolite',
-                                    'Reaction',
-                                    'Regulator',
-                                    'Target',
-                                    'MetabolicModel',
-                                    'RegulatoryModel']:
-
+    def __deepcopy__(self, memo) -> Union['Gene',
+                                          'Interaction',
+                                          'Metabolite',
+                                          'Reaction',
+                                          'Regulator',
+                                          'Target',
+                                          'MetabolicModel',
+                                          'RegulatoryModel']:
         obj_dict = self.to_dict(variables=True)
-
+        memo[id(self)] = obj_dict
         return self.from_dict(obj_dict, variables=True)
 
     def deepcopy(self) -> Union['Gene',

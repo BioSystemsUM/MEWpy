@@ -22,7 +22,7 @@ from .gene_expression import read_gene_expression_dataset, read_coregflux_influe
 if TYPE_CHECKING:
     from io import TextIOWrapper
 
-    from mewpy.model import Model, RegulatoryModel, MetabolicModel
+    from mewpy.mew.models import Model, RegulatoryModel, MetabolicModel
     from cobra import Model as Cobra_Model
     from reframed import CBModel as Reframed_Model
 

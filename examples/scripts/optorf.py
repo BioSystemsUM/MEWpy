@@ -23,7 +23,6 @@ def optorf_imc():
 
     :return:
     """
-
     DIR = os.path.dirname(os.path.realpath(__file__))
     cbm_model_f = os.path.join(DIR, "../models/regulation/iJR904_srfba.xml")
     reg_model_f = os.path.join(DIR, '../models/regulation/imc1010.csv')
@@ -49,7 +48,7 @@ def optorf_imc():
     from mewpy.io import read_model, Engines, Reader
 
     metabolic_reader = Reader(Engines.MetabolicSBML, cbm_model_f)
-    regulatory_reader = Reader(Engines.RegulatoryCSV,
+    regulatory_reader = Reader(Engines.BooleanRegulatoryCSV,
                                reg_model_f,
                                sep=';',
                                id_col=1,
@@ -73,9 +72,6 @@ def optorf_imc():
 
     for rxn, bds in envcond.items():
         model.get(rxn).bounds = bds
-
-    for gene in model.yield_genes():
-        gene.coefficient.coefficients = (1, )
 
     model.get(_BIOMASS_ID).lower_bound = 0.1
 
@@ -113,22 +109,18 @@ def optorf_ec():
     from mewpy.io import read_model, Engines, Reader
 
     metabolic_reader = Reader(Engines.MetabolicSBML, cbm_model_f)
-    regulatory_reader = Reader(Engines.RegulatoryCSV,
+    regulatory_reader = Reader(Engines.BooleanRegulatoryCSV,
                                reg_model_f,
                                sep=',',
-                               id_col=1,
+                               id_col=0,
                                rule_col=2,
-                               aliases_cols=[0],
+                               aliases_cols=[1],
                                header=0)
 
     model = read_model(metabolic_reader, regulatory_reader)
     model.objective = {_BIOMASS_ID: 1}
 
     model.get(_GLC).bounds = (-10.0, 100000.0)
-
-    for gene in model.yield_genes():
-        gene.coefficient.coefficients = (1, )
-
     model.get(_BIOMASS_ID).lower_bound = 0.1
 
     _PRODUCT_ID = _SUC

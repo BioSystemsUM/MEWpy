@@ -6,7 +6,7 @@ import pandas as pd
 from mewpy.mew.algebra import Symbolic
 
 if TYPE_CHECKING:
-    from mewpy.model import Model, MetabolicModel, RegulatoryModel
+    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
 
 
 def regulatory_truth_table(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],

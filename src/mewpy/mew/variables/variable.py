@@ -1,11 +1,11 @@
 from typing import Any, Union, Type, TYPE_CHECKING, List, Set, Tuple, Dict, Iterable
 
 from mewpy.util.history import HistoryManager, recorder
-from mewpy.util.serialization import serialize, Serializer
+from mewpy.mew.models.serialization import serialize, Serializer
 
 # Preventing circular dependencies that only happen due to type checking
 if TYPE_CHECKING:
-    from mewpy.model import Model, MetabolicModel, RegulatoryModel
+    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
     from mewpy.mew.algebra import Expression, Symbolic
 
     from .gene import Gene

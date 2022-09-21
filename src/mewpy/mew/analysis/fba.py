@@ -1,7 +1,7 @@
 from typing import Union, Dict
 
 from mewpy.mew.lp import ConstraintContainer, VariableContainer, LinearProblem
-from mewpy.model import Model, MetabolicModel, RegulatoryModel
+from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
 from mewpy.solvers.solution import Solution
 from mewpy.solvers.solver import VarType, Solver
 

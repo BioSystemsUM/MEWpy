@@ -6,7 +6,7 @@ from .engines import Engines
 
 if TYPE_CHECKING:
     from .engines.engine import Engine
-    from mewpy.model import Model, MetabolicModel, RegulatoryModel
+    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
     from cobra import Model as CobraModel
     from reframed import CBModel as ReframedModel
 

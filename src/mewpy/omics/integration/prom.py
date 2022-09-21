@@ -4,7 +4,7 @@ from mewpy.omics import ExpressionSet
 from mewpy.omics.preprocessing import quantile_preprocessing_pipeline, target_regulator_interaction_probability
 
 if TYPE_CHECKING:
-    from mewpy.model import Model, MetabolicModel, RegulatoryModel
+    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
 
 
 def PROM(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],

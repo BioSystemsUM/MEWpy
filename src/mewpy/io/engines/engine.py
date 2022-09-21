@@ -4,7 +4,7 @@ from collections import defaultdict
 from typing import Union, TYPE_CHECKING, Dict, Optional
 
 if TYPE_CHECKING:
-    from mewpy.model import RegulatoryModel, MetabolicModel, Model
+    from mewpy.mew.models import RegulatoryModel, MetabolicModel, Model
     from mewpy.io.dto import DataTransferObject
     from io import TextIOWrapper
     from cobra import Model as CobraModel

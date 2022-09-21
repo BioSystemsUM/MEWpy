@@ -6,7 +6,7 @@ import pandas as pd
 
 from . import SimulationMethod, SStatus
 from .simulation import Simulator, SimulationResult, ModelContainer
-from mewpy.model import Model, MetabolicModel, RegulatoryModel
+from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
 from mewpy.mew.variables import Reaction
 from mewpy.util.constants import ModelConstants
 from mewpy.util.utilities import Dispatcher, AttrDict
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 LOGGER = logging.getLogger(__name__)
 
 
-class MewModelContainer(ModelContainer):
+class MewModel(ModelContainer):
 
     def __init__(self, model: Union[Model, MetabolicModel, RegulatoryModel]):
         """
@@ -262,7 +262,7 @@ class MewModelContainer(ModelContainer):
             print(f"Targets: {len(self.targets)}")
 
 
-class Simulation(MewModelContainer, Simulator):
+class Simulation(MewModel, Simulator):
     dispatcher = Dispatcher()
 
     def __init__(self,

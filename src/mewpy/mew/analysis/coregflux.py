@@ -10,7 +10,7 @@ from mewpy.solvers.solver import Solver
 from mewpy.util.constants import ModelConstants
 
 if TYPE_CHECKING:
-    from mewpy.model import Model, MetabolicModel, RegulatoryModel
+    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
 
 
 def _run_and_decode(lp, additional_constraints=None, solver_kwargs=None):

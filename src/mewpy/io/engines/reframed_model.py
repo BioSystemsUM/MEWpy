@@ -3,13 +3,13 @@ from typing import Union, TYPE_CHECKING
 
 from mewpy.io.dto import VariableRecord, DataTransferObject, FunctionTerm
 from mewpy.mew.algebra import Expression, NoneAtom
-from mewpy.model import MetabolicModel
+from mewpy.mew.models import MetabolicModel
 from .engine import Engine
 from .engines_utils import build_symbolic, expression_warning, cobra_warning
 
 
 if TYPE_CHECKING:
-    from mewpy.model import RegulatoryModel, Model, MetabolicModel
+    from mewpy.mew.models import RegulatoryModel, Model, MetabolicModel
 
 
 class ReframedModel(Engine):

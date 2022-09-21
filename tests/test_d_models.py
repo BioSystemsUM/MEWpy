@@ -23,9 +23,9 @@ class TestMewModel(unittest.TestCase):
         self.regulatory_reader = Reader(Engines.BooleanRegulatoryCSV,
                                         EC_CORE_REG_MODEL,
                                         sep=',',
-                                        id_col=1,
+                                        id_col=0,
                                         rule_col=2,
-                                        aliases_cols=[0],
+                                        aliases_cols=[1],
                                         header=0)
 
     def test_algebra(self):
@@ -98,7 +98,7 @@ class TestMewModel(unittest.TestCase):
         interaction = Interaction(2)
         regulator = Regulator(2)
 
-        from mewpy.model import Model
+        from mewpy.mew.models import Model
         integrated_model = Model.from_types(('metabolic', 'regulatory'),
                                             identifier='IntegratedModel',
                                             genes={'1': gene},
@@ -117,7 +117,7 @@ class TestMewModel(unittest.TestCase):
         self.assertEqual(integrated_model.interactions, {2: interaction})
 
         # metabolic model
-        from mewpy.model import MetabolicModel
+        from mewpy.mew.models import MetabolicModel
         model = MetabolicModel('MetabolicModel')
 
         metabolite1 = Metabolite('o2')
@@ -156,7 +156,7 @@ class TestMewModel(unittest.TestCase):
         self.assertEqual(len(model.reactions['R0002'].genes), 3)
 
         # regulatory model
-        from mewpy.model import RegulatoryModel
+        from mewpy.mew.models import RegulatoryModel
         model = RegulatoryModel('RegulatoryModel')
 
         target = Target('b0001')
@@ -324,9 +324,9 @@ class TestMewModel(unittest.TestCase):
 
         # truth table/regulatory events
         from mewpy.mew.analysis import regulatory_truth_table
-        truth_table = regulatory_truth_table(model=model, initial_state={'ArcA': 0, 'Fnr': 0})
+        truth_table = regulatory_truth_table(model=model, initial_state={'b4401': 0, 'b1334': 0})
         self.assertGreater(len(truth_table), 0)
-        self.assertEqual(truth_table.loc['nuoN', 'result'], 1)
+        self.assertEqual(truth_table.loc['b2276', 'result'], 1)
 
         # integrated analysis
         # model = read_model(self.regulatory_reader, self.metabolic_reader)

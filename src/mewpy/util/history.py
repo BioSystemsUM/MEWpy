@@ -2,12 +2,10 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Union
 from functools import partial, wraps
 
-# TODO: this module depends on pandas dataframes. Should it be set as package requirement?
-# noinspection PyPackageRequirements
-from pandas import DataFrame
+import pandas as pd
 
 if TYPE_CHECKING:
-    from mewpy.model import Model
+    from mewpy.mew.models import Model
     from mewpy.mew.variables import Variable
 
 
@@ -26,7 +24,7 @@ class HistoryManager:
     @property
     def history(self):
 
-        return DataFrame(data=self._history, columns=['method', 'args', 'kwargs', 'object'])
+        return pd.DataFrame(data=self._history, columns=['method', 'args', 'kwargs', 'object'])
 
     @property
     def undo_able_commands(self):
