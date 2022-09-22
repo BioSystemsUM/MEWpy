@@ -1,5 +1,7 @@
 from mewpy.problems.problem import AbstractKOProblem, AbstractOUProblem
-from ..simulation.kinetic import KineticSimulation
+from mewpy.optimization.evaluation import KineticEvaluationFunction
+from mewpy.simulation.kinetic import KineticSimulation
+from mewpy.solvers import KineticConfigurations
 from re import search
 
 class KineticKOProblem(AbstractKOProblem):
@@ -9,9 +11,16 @@ class KineticKOProblem(AbstractKOProblem):
             model, fevaluation=fevaluation, **kwargs)
         kinetic_parameters = kwargs.get('kparam', None)
         tSteps = kwargs.get('tSteps', None)
-        self.kinetic_sim = KineticSimulation(model, parameters=kinetic_parameters, tSteps=tSteps)
+        timeout = kwargs.get('timeout', KineticConfigurations.SOLVER_TIMEOUT)
+        self.kinetic_sim = KineticSimulation(model, 
+                                             parameters=kinetic_parameters,
+                                             timeout=timeout,
+                                             tSteps=tSteps)
         for f in self.fevaluation:
-            f.kinetic = True
+            if isinstance(f,KineticEvaluationFunction):
+                f.kinetic = True
+            else:
+                raise ValueError(f"The optimization function {f} is not intended for kinetic optimization.")
 
     def _build_target_list(self):
         p = list(self.model.get_parameters(exclude_compartments=True))
@@ -43,9 +52,16 @@ class KineticOUProblem(AbstractOUProblem):
             model, fevaluation=fevaluation, **kwargs)
         kinetic_parameters = kwargs.get('kparam', None)
         tSteps = kwargs.get('tSteps', None)
-        self.kinetic_sim = KineticSimulation(model, parameters=kinetic_parameters, tSteps=tSteps)
+        timeout = kwargs.get('timeout', KineticConfigurations.SOLVER_TIMEOUT)
+        self.kinetic_sim = KineticSimulation(model, 
+                                             parameters=kinetic_parameters,
+                                             timeout=timeout,
+                                             tSteps=tSteps)
         for f in self.fevaluation:
-            f.kinetic = True
+            if isinstance(f,KineticEvaluationFunction):
+                f.kinetic = True
+            else:
+                raise ValueError(f"The optimization function {f} is not intended for kinetic optimization.")
 
     def _build_target_list(self):
         p = list(self.model.get_parameters(exclude_compartments=True))
