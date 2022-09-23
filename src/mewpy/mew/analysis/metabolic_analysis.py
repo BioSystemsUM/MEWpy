@@ -71,14 +71,12 @@ def fva(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
         fraction: float = 1.0,
         reactions: Sequence[str] = None,
         objective: Union[str, Dict[str, float]] = None,
-        constraints: Dict[str, Tuple[float, float]] = None,
-        to_dict: bool = False) -> Union[Dict[str, List[float]], pd.DataFrame]:
+        constraints: Dict[str, Tuple[float, float]] = None) -> pd.DataFrame:
     """
     Flux Variability Analysis (FVA) of a metabolic model.
     FVA is a method to determine the minimum and maximum fluxes for each reaction in a metabolic model.
     It can be used to identify the reactions that are limiting the growth of a cell.
     In MEWpy, FVA is performed by solving a linear problem for each reaction in the model.
-    The method can be either FBA, MILP-FBA or pFBA.
 
     :param model: a metabolic model to be simulated
     :param fraction: the fraction of the optimal solution to be used as the upper bound for the objective function
@@ -86,8 +84,7 @@ def fva(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
     :param reactions: the reactions to be simulated (default: all reactions in the model)
     :param objective: the objective function to be used for the simulation (default: the default objective)
     :param constraints: additional constraints to be used for the simulation (default: None)
-    :param to_dict: whether to return the results as a dictionary (default: False)
-    :return: a dictionary or a pandas DataFrame with the minimum and maximum fluxes for each reaction
+    :return: a pandas DataFrame with the minimum and maximum fluxes for each reaction
     """
     if not reactions:
         reactions = model.reactions.keys()
@@ -118,29 +115,23 @@ def fva(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
         max_val, _ = run_method_and_decode(method=fba, objective={rxn: 1.0}, constraints=constraints, minimize=False)
         result[rxn].append(max_val)
 
-    if to_dict:
-        return result
-
     return pd.DataFrame.from_dict(data=result, orient='index', columns=['minimum', 'maximum'])
 
 
 def single_gene_deletion(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
                          genes: Sequence[str] = None,
-                         constraints: Dict[str, Tuple[float, float]] = None,
-                         to_dict: bool = False) -> Union[Dict[str, List[float]], pd.DataFrame]:
+                         constraints: Dict[str, Tuple[float, float]] = None) -> pd.DataFrame:
     """
     Single gene deletion analysis of a metabolic model.
     Single gene deletion analysis is a method to determine the effect of deleting each gene in a metabolic model.
     It can be used to identify the genes that are essential for the growth of a cell.
     In MEWpy, single gene deletion analysis is performed by solving a linear problem for each gene in the model.
     A gene knockout can switch off reactions associated with the gene, only if the gene is essential for the reaction.
-    The methods FBA or pFBA can determine if the gene is essential for the growth of a cell.
 
     :param model: a metabolic model to be simulated
     :param genes: the genes to be simulated (default: all genes in the model)
     :param constraints: additional constraints to be used for the simulation (default: None)
-    :param to_dict: whether to return the results as a dictionary (default: False)
-    :return: a dictionary or a pandas DataFrame with the fluxes for each gene
+    :return: a pandas DataFrame with the fluxes for each gene
     """
     if not constraints:
         constraints = {}
@@ -183,29 +174,23 @@ def single_gene_deletion(model: Union['Model', 'MetabolicModel', 'RegulatoryMode
 
         state[gene.id] = gene_coefficient
 
-    if to_dict:
-        return result
-
     return pd.DataFrame.from_dict(data=result, orient='index', columns=['growth', 'status'])
 
 
 def single_reaction_deletion(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
                              reactions: Sequence[str] = None,
-                             constraints: Dict[str, Tuple[float, float]] = None,
-                             to_dict: bool = False) -> Union[Dict[str, List[float]], pd.DataFrame]:
+                             constraints: Dict[str, Tuple[float, float]] = None) -> pd.DataFrame:
     """
     Single reaction deletion analysis of a metabolic model.
     Single reaction deletion analysis is a method to determine the effect of deleting each reaction
     in a metabolic model.
     It can be used to identify the reactions that are essential for the growth of a cell.
     In MEWpy, single reaction deletion analysis is performed by solving a linear problem for each reaction in the model.
-    The methods FBA, MILP-FBA or pFBA can determine if the reaction is essential for the growth of a cell.
 
     :param model: a metabolic model to be simulated
     :param reactions: the reactions to be simulated (default: all reactions in the model)
     :param constraints: additional constraints to be used for the simulation (default: None)
-    :param to_dict: whether to return the results as a dictionary (default: False)
-    :return: a dictionary or a pandas DataFrame with the fluxes for each reaction
+    :return: a pandas DataFrame with the fluxes for each reaction
     """
     if not reactions:
         reactions = model.reactions.keys()
@@ -220,8 +205,5 @@ def single_reaction_deletion(model: Union['Model', 'MetabolicModel', 'Regulatory
         reaction_constraints = {reaction: (0.0, 0.0)}
         solution, status = run_method_and_decode(method=fba, constraints={**constraints, **reaction_constraints})
         result[reaction] = [solution, status]
-
-    if to_dict:
-        return result
 
     return pd.DataFrame.from_dict(data=result, orient='index', columns=['growth', 'status'])

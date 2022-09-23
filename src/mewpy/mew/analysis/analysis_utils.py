@@ -31,7 +31,7 @@ def decode_solver_solution(solution: 'Solution') -> Tuple[float, str]:
         sol_f_obj = ModelConstants.REACTION_UPPER_BOUND
 
     else:
-        sol_f_obj = None
+        sol_f_obj = 0.0
 
     return sol_f_obj, sol_status
 

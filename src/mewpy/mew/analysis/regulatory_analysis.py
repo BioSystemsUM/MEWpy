@@ -54,5 +54,6 @@ def regulatory_truth_table(model: Union['Model', 'MetabolicModel', 'RegulatoryMo
                 dfs.append(df)
 
     df = pd.concat(dfs)
-    df.insert(0, 'result', df.pop('result'))
+    result_col = df.pop('result')
+    df = pd.concat([result_col, df], axis=1)
     return df
