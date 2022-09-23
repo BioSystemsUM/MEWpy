@@ -70,7 +70,7 @@ class RFBA(FBA):
 
         return {}
 
-    def decode_regulatory_state(self, state: Dict[str, float]):
+    def decode_regulatory_state(self, state: Dict[str, float]) -> Dict[str, float]:
         """
         It solves the boolean regulatory network for a given specific state.
         It also updates all targets having a valid regulatory interaction associated with it for the resulting state
@@ -79,38 +79,60 @@ class RFBA(FBA):
         (reactions and metabolites predicates)
         :return: dict of target keys and a value of the resulting state
         """
+        if not self.model.is_regulatory():
+            return {}
+
+        # Solving regulatory model synchronously for the regulators according to the initial state
+        # Targets are associated with a single regulatory interaction
         result = {}
+        for interaction in self.model.yield_interactions():
 
-        # solving regulatory rule by regulatory rule (synchronously though, as asynchronously would take too much time)
-        # Each target has one and only one regulatory interaction
-        # The regulatory model object only supports this strategy, though this can easily be altered. If so,
-        # the solve method must be changed too
+            # solving regulators state only
+            if not interaction.target.is_regulator():
+                continue
 
-        if self.model.is_regulatory():
+            # an interaction can have multiple regulatory events, namely one for 0 and another for 1
+            for coefficient, event in interaction.regulatory_events.items():
+                if event.is_none:
+                    continue
 
-            # interaction over model.interactions.
-            for interaction in self.model.yield_interactions():
-
-                # regulatory event over interaction.regulatory events.
-                # an interaction can have multiple regulatory events.
-                # Regularly, there is one event for each possible coefficient of the target variable.
-                # If the regulatory event is evaluated to True or 1, this is the outcome coefficient of the target
-                # By default the outcome of the target is a zero coefficient
-
-                target_value = max(interaction.target.coefficients)
-                for coefficient, regulatory_event in interaction.regulatory_events.items():
-
-                    if regulatory_event.is_none:
-                        continue
-
-                    target_value = regulatory_event.evaluate(values=state, coefficient=coefficient)
-                    break
-
-                result[interaction.target.id] = target_value
-
+                eval_result = event.evaluate(values=state)
+                if eval_result:
+                    result[interaction.target.id] = coefficient
+                else:
+                    result[interaction.target.id] = 0.0
         return result
 
-    def decode_metabolic_state(self, state: Dict[str, float]) -> Dict[str, Tuple[float, float]]:
+    def decode_metabolic_state(self, state: Dict[str, float]) -> Dict[str, float]:
+        """
+        It solves the boolean regulatory network for a given specific state.
+        It also updates all targets having a valid regulatory interaction associated with it for the resulting state
+
+        :param state: dict of regulatory variable keys (regulators) and a value of 0, 1 or float
+        (reactions and metabolites predicates)
+        :return: dict of target keys and a value of the resulting state
+        """
+        if not self.model.is_regulatory():
+            return {}
+
+        # Solving the whole regulatory model synchronously, as asynchronously would take too much time
+        # Targets are associated with a single regulatory interaction
+        result = {}
+        for interaction in self.model.yield_interactions():
+
+            # an interaction can have multiple regulatory events, namely one for 0 and another for 1
+            for coefficient, event in interaction.regulatory_events.items():
+                if event.is_none:
+                    continue
+
+                eval_result = event.evaluate(values=state)
+                if eval_result:
+                    result[interaction.target.id] = coefficient
+                else:
+                    result[interaction.target.id] = 0.0
+        return result
+
+    def decode_constraints(self, state: Dict[str, float]) -> Dict[str, Tuple[float, float]]:
         """
         Method responsible for decoding the RFBA metabolic state, namely the state of all metabolic genes associated
         at least with one reaction in the GPRs rule.
@@ -120,20 +142,19 @@ class RFBA(FBA):
         """
         # This method retrieves the constraints associated with a given metabolic/regulatory state
 
+        if not self.model.is_metabolic():
+            return {}
+
         constraints = {}
+        for rxn in self.model.yield_reactions():
 
-        if self.model.is_metabolic():
+            if rxn.gpr.is_none:
+                continue
 
-            # gpr over model.reactions
-            for rxn in self.model.yield_reactions():
+            res = rxn.gpr.evaluate(values=state)
 
-                if rxn.gpr.is_none:
-                    continue
-
-                res = rxn.gpr.evaluate(values=state)
-
-                if not res:
-                    constraints[rxn.id] = (0.0, 0.0)
+            if not res:
+                constraints[rxn.id] = (0.0, 0.0)
 
         return constraints
 
@@ -157,16 +178,14 @@ class RFBA(FBA):
         else:
             constraints = {}
 
-        # Regulatory rules from the boolean network
+        # Regulatory state from a synchronous boolean simulation
+        # noinspection PyTypeChecker
         regulatory_state = self.decode_regulatory_state(state=state)
 
-        # Reactions and metabolites inactivated by the genes, reactions and metabolites
-        # in the initial state or regulatory state simulation
-        metabolic_state = {gene.id: max(gene.coefficients)
-                           for gene in self.model.yield_genes()}
-        metabolic_regulatory_state = {**metabolic_state, **regulatory_state}
+        # After a simulation of the regulators outputs, the state of the targets are retrieved now
+        metabolic_state = self.decode_metabolic_state(state={**state, **regulatory_state})
 
-        regulatory_constraints = self.decode_metabolic_state(metabolic_regulatory_state)
+        regulatory_constraints = self.decode_constraints(metabolic_state)
         metabolic_regulatory_constraints = {**constraints, **regulatory_constraints}
 
         solver_kwargs['constraints'] = metabolic_regulatory_constraints
@@ -176,7 +195,7 @@ class RFBA(FBA):
         else:
             values = {}
 
-        next_state = {**state, **metabolic_regulatory_state}
+        next_state = {**state, **regulatory_state, **metabolic_state}
 
         # update the regulatory/metabolic state
         for reaction in self._regulatory_reactions:
@@ -228,6 +247,9 @@ class RFBA(FBA):
         :param solver_kwargs: Keyword arguments to pass to the solver.
         :return: A DynamicSolution instance or a list of solver Solutions if to_solver is True.
         """
+        if not initial_state:
+            initial_state = {}
+
         if not solver_kwargs:
             solver_kwargs = {}
 
@@ -236,14 +258,13 @@ class RFBA(FBA):
         else:
             constraints = {}
 
-        if not initial_state:
-            initial_state = self.initial_state()
-        else:
-            initial_state = {**self.initial_state(), **initial_state}
+        # It takes the initial state from the model and then updates with the initial state provided as input
+        initial_state = {**self.initial_state(), **initial_state}
 
         regulatory_solution = []
 
         # solve using the initial state
+        # noinspection PyTypeChecker
         state = self.next_state(state=initial_state, solver_kwargs=solver_kwargs)
         regulatory_solution.append(state)
 
@@ -307,7 +328,7 @@ class RFBA(FBA):
 
             regulatory_state = regulatory_solution[i]
 
-            regulatory_state_constraints = self.decode_metabolic_state(regulatory_state)
+            regulatory_state_constraints = self.decode_constraints(regulatory_state)
 
             state_constraints = {**constraints, **regulatory_state_constraints}
 
@@ -361,6 +382,9 @@ class RFBA(FBA):
         :param solver_kwargs: A dictionary with the solver arguments. Default: None
         :return: A ModelSolution instance or a SolverSolution instance if to_solver is True.
         """
+        if not initial_state:
+            initial_state = {}
+
         if not solver_kwargs:
             solver_kwargs = {}
 
@@ -369,29 +393,24 @@ class RFBA(FBA):
         else:
             constraints = {}
 
-        # It takes the initial state from the model and then updates with the initial state provide as input
-        if not initial_state:
-            initial_state = self.initial_state()
-        else:
-            initial_state = {**self.initial_state(), **initial_state}
+        # It takes the initial state from the model and then updates with the initial state provided as input
+        initial_state = {**self.initial_state(), **initial_state}
 
-        # Regulatory rules from the boolean network
+        # Regulatory state from a synchronous boolean simulation
+        # noinspection PyTypeChecker
         regulatory_state = self.decode_regulatory_state(state=initial_state)
 
-        # Reactions and metabolites inactivated by the genes, reactions and metabolites
-        # in the initial state or regulatory state simulation
-        metabolic_state = {gene.id: max(gene.coefficients)
-                           for gene in self.model.yield_genes()}
-        metabolic_regulatory_state = {**metabolic_state, **regulatory_state}
+        # After a simulation of the regulators outputs, the state of the targets are retrieved now
+        metabolic_state = self.decode_metabolic_state(state={**initial_state, **regulatory_state})
 
-        regulatory_constraints = self.decode_metabolic_state(metabolic_regulatory_state)
+        regulatory_constraints = self.decode_constraints(metabolic_state)
         metabolic_regulatory_constraints = {**constraints, **regulatory_constraints}
 
         solver_kwargs['constraints'] = metabolic_regulatory_constraints
         solution = self.solver.solve(**solver_kwargs)
 
         if solution.values:
-            solution.values = {**initial_state, **metabolic_regulatory_state, **solution.values}
+            solution.values = {**initial_state, **regulatory_state, **solution.values}
 
         if to_solver:
             return solution
