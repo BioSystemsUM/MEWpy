@@ -168,7 +168,7 @@ def read_imc1010():
     return model
 
 
-def imc1010_integrated_analysis():
+def iMC1010_integrated_analysis():
     """
     Performs an integrated analysis of the E. coli iMC1010 integrated model.
     :return:
@@ -437,6 +437,6 @@ def iNJ661_integrated_analysis():
 
 if __name__ == '__main__':
     # ecoli_core_integrated_analysis()
-    imc1010_integrated_analysis()
+    iMC1010_integrated_analysis()
     # iMM904_integrated_analysis()
     # iNJ661_integrated_analysis()

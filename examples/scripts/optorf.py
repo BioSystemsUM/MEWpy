@@ -14,7 +14,7 @@ def optorf_imc():
     In the simulations, we excluded transport reactions for acetate, carbon dioxide, formate, phosphate,
     and water from consideration as eliminating transport may be challenging. In addition, ATP synthase deletion was
     excluded from consideration since the deletion resulted in a high variability in ethanol production at the
-    predicted optimal growth condition. Equivantly, the deletion of focA, focB, and atp operon were excluded from the
+    predicted optimal growth condition. Equivalently, the deletion of focA, focB, and atp operon were excluded from the
     OptORF simulations. The OptORF approach was applied to identify metabolic engineering strategies for
     overproduction of ethanol or higher alcohols (i.e. c j = 1 for j = desired alcohol secretion) in glucose minimal
     media. Maximum glucose uptake rate (GUR) and oxygen uptake rate (OUR) are specified in order to simulate
