@@ -303,46 +303,41 @@ class Expression:
         if not values:
             values = {}
 
+        state = {}
+        for var_id, var in self.variables.items():
+            if var_id in values:
+                state[var_id] = values[var_id]
+
+            else:
+                if var.is_metabolite() and var.exchange_reaction is not None and var.exchange_reaction.id in values:
+                    state[var_id] = values[var.exchange_reaction.id]
+                else:
+                    if strategy == 'max':
+                        state[var_id] = max(var.coefficients)
+                    elif strategy == 'min':
+                        state[var_id] = min(var.coefficients)
+                    else:
+                        state[var_id] = var.coefficients
+
         truth_table = []
-
-        if strategy == 'max':
-            state = {key: max(variable.coefficients)
-                     for key, variable in self._variables.items()}
-            state.update(values)
-
+        if strategy in ('max', 'min'):
             state['result'] = self.evaluate(values=state,
                                             coefficient=coefficient,
                                             operators=operators,
                                             decoder=decoder)
-
-            truth_table.append(state)
-
-        elif strategy == 'min':
-            state = {key: min(variable.coefficients)
-                     for key, variable in self._variables.items()}
-            state.update(values)
-
-            state['result'] = self.evaluate(values=state,
-                                            coefficient=coefficient,
-                                            operators=operators,
-                                            decoder=decoder)
-
             truth_table.append(state)
 
         elif strategy == 'all':
             variables = list(self.variables.keys())
-            all_states = [variable.coefficients for variable in self._variables.values()]
 
-            for state in product(*all_states):
-                state = dict(list(zip(variables, state)))
-                state.update(values)
+            for mid_state in product(*state):
+                mid_state = dict(list(zip(variables, mid_state)))
 
-                state['result'] = self.evaluate(values=state,
-                                                coefficient=coefficient,
-                                                operators=operators,
-                                                decoder=decoder)
-
-                truth_table.append(state)
+                mid_state['result'] = self.evaluate(values=mid_state,
+                                                    coefficient=coefficient,
+                                                    operators=operators,
+                                                    decoder=decoder)
+                truth_table.append(mid_state)
 
         else:
             raise ValueError('coefficients must be max, min or all')

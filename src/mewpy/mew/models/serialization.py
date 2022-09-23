@@ -685,4 +685,4 @@ class Serializer:
         If you want to create a shallow copy, use the copy method.
         :return: a new variable or model
         """
-        return self.__deepcopy__()
+        return self.__deepcopy__({})
