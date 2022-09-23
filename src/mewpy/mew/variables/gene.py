@@ -115,7 +115,7 @@ class Gene(Variable, variable_type='gene', register=True, constructor=True, chec
     # -----------------------------------------------------------------------------
     @coefficients.setter
     @recorder
-    def coefficients(self, value: Sequence[float]):
+    def coefficients(self, value: Union[float, Sequence[float]]):
         """
         The gene coefficients setter
         :param value: The gene coefficients
@@ -159,7 +159,7 @@ class Gene(Variable, variable_type='gene', register=True, constructor=True, chec
         """
         old_coef = tuple(self.coefficients)
 
-        coefficients_setter(self, (minimum_coefficient,))
+        coefficients_setter(self, minimum_coefficient)
 
         if history:
             self.history.queue_command(undo_func=coefficients_setter,

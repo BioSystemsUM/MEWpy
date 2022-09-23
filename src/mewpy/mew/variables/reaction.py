@@ -153,7 +153,7 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
     # -----------------------------------------------------------------------------
     @bounds.setter
     @recorder
-    def bounds(self, value: Tuple[float, float]):
+    def bounds(self, value: Union[Tuple[float, float], Tuple[float], float]):
         """
         The setter for the bounds of the reaction.
         It accepts a tuple of lower and upper bounds.
@@ -162,8 +162,11 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
         :param value: tuple of lower and upper bounds
         :return:
         """
-        if not value:
+        if value is None:
             value = ModelConstants.REACTION_LOWER_BOUND, ModelConstants.REACTION_UPPER_BOUND
+
+        elif isinstance(value, (int, float)):
+            value = (value, value)
 
         elif len(value) == 1:
             value = (value[0], value[0])
@@ -172,7 +175,7 @@ class Reaction(Variable, variable_type='reaction', register=True, constructor=Tr
             value = tuple(value)
 
         else:
-            raise ValueError('Bounds must be a tuple of length 1 or 2')
+            raise ValueError('Invalid value for bounds')
 
         self._bounds = value
 

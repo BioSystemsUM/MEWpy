@@ -1,4 +1,4 @@
-from typing import Any, Dict, TYPE_CHECKING, Generator, Tuple, Sequence
+from typing import Any, Dict, TYPE_CHECKING, Generator, Tuple, Sequence, Union
 
 from mewpy.util.constants import ModelConstants
 from mewpy.util.history import recorder
@@ -125,7 +125,7 @@ class Regulator(Variable, variable_type='regulator', register=True, constructor=
     # -----------------------------------------------------------------------------
     @coefficients.setter
     @recorder
-    def coefficients(self, value: Sequence[float]):
+    def coefficients(self, value: Union[float, Sequence[float]]):
         """
         The target coefficients setter
         :param value: The target coefficients
@@ -207,7 +207,7 @@ class Regulator(Variable, variable_type='regulator', register=True, constructor=
         """
         old_coef = tuple(self.coefficients)
 
-        coefficients_setter(self, (minimum_coefficient,))
+        coefficients_setter(self, minimum_coefficient)
 
         if history:
             self.history.queue_command(undo_func=coefficients_setter,
