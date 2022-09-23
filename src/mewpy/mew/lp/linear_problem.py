@@ -97,7 +97,50 @@ class LinearProblem:
         return f"{self.method} for {self.model.id}"
 
     def __repr__(self):
-        return f"{self.method}: {self.model.id}"
+        return self.__str__()
+
+    def _repr_html_(self):
+        """
+        It returns a html representation of the linear problem
+        :return:
+        """
+        if self.solver:
+            solver = self.solver.__class__.__name__
+        else:
+            solver = 'None'
+
+        return f"""
+        <table>
+            <tr>
+                <td>Method</td>
+                <td>{self.method}</td>
+            </tr>
+            <tr>
+                <td>Model</td>
+                <td>{self.model}</td>
+            </tr>
+            <tr>
+                <th>Variables</th>
+                <td>{len(self.variables)}</td>
+            </tr>
+            <tr>
+                <th>Constraints</th>
+                <td>{len(self.constraints)}</td>
+            </tr>
+            <tr>
+                <th>Objective</th>
+                <td>{self.objective}</td>
+            </tr>
+            <tr>
+                <th>Solver</th>
+                <td>{solver}</td>
+            </tr>
+            <tr>
+                <th>Synchronized</th>
+                <td>{self.synchronized}</td>
+            </tr>
+        </table>
+        """
 
     # -----------------------------------------------------------------------------
     # Static attributes
