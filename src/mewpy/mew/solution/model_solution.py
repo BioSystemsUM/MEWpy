@@ -1,8 +1,8 @@
-from collections import namedtuple
 from typing import Union, TYPE_CHECKING, Dict, Optional, Tuple, Any
 
 import pandas as pd
 
+from .summary import Summary
 from mewpy.util.constants import ModelConstants
 
 if TYPE_CHECKING:
@@ -114,11 +114,42 @@ class ModelSolution:
     # ---------------------------------
     # Buil-in
     # ---------------------------------
-    def __repr__(self):
-        return f'{self.method} Solution'
-
     def __str__(self):
-        return f'{self.method} {self.status} solution: {self.objective_value}'
+        return f'{self.method} Solution\n Objective value: {self.objective_value}\n Status: {self.status}'
+
+    def __repr__(self):
+        return self.__str__()
+
+    def _repr_html_(self):
+        """
+        It returns a html representation of the linear problem
+        :return:
+        """
+
+        return f"""
+        <table>
+            <tr>
+                <td>Method</td>
+                <td>{self.method}</td>
+            </tr>
+            <tr>
+                <td>Model</td>
+                <td>{self.model}</td>
+            </tr>
+            <tr>
+                <th>Objective</th>
+                <td>{self.objective}</td>
+            </tr>
+            <tr>
+                <th>Objective value</th>
+                <td>{self.objective_value}</td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td>{self.status}</td>
+            </tr>
+        </table>
+        """
 
     @staticmethod
     def _filter_mid_term_variables(x: Dict[str, float],
@@ -326,7 +357,7 @@ class ModelSolution:
             if variable.is_regulator():
                 _id, v_type, x = self._get_variable_info(variable)
 
-                lb, ub = variable.coefficient.bounds
+                lb, ub = variable.coefficients
 
                 results[_id] = (_id, v_type, lb, ub, x)
 
@@ -532,45 +563,9 @@ class ModelSolution:
         else:
             return pd.DataFrame()
 
-    def _frame_builder(self, to: str, dimensions: Tuple[str, ...]) -> Tuple[pd.DataFrame, ...]:
+    def to_frame(self, dimensions: Tuple[str, ...] = None) -> pd.DataFrame:
         """
-        It returns a namedtuple with pandas DataFrame having all results of the model.
-        Internal use only.
-        :param to: The type of the results to be returned
-        :param dimensions: The dimensions of the results to be returned
-        :return: A namedtuple with pandas DataFrame having all results of the model
-        """
-
-        fields = tuple(dimensions) + ('frame',)
-
-        Frame = namedtuple('Frame', fields)
-
-        frames = [self._get_frame(to=to, dimension=dimension)
-                  for dimension in dimensions]
-
-        if frames:
-            frame = pd.concat(frames,
-                              axis=1,
-                              join='outer',
-                              keys=dimensions)
-
-        else:
-            frame = pd.DataFrame()
-
-        frames.append(frame)
-
-        # noinspection PyArgumentList
-        return Frame(*frames)
-
-    def to_frame(self, dimensions: Tuple[str, ...] = None,
-                 environmental_conditions: bool = False) -> Tuple[pd.DataFrame, ...]:
-        """
-        It returns a namedtuple with pandas DataFrame having the results of the simulation.
-        According to the dimensions and environmental conditions, the namedtuple will have the following attributes:
-            - metabolic: A pandas DataFrame with the fluxes of the metabolic model
-            - regulatory: A pandas DataFrame with the expression coefficients of the regulatory model
-            - objective: A pandas DataFrame with the objective value
-            - frame: A pandas DataFrame with all the results
+        It returns a  pandas DataFrame having the summary results of the simulation.
 
         Example:
         >>> from mewpy.mew.analysis import FBA
@@ -579,20 +574,24 @@ class ModelSolution:
         >>> fba = FBA(model)
         >>> solution = fba.optimize()
         >>> solution.to_frame()
-        Frame(metabolic= ...  regulatory= ...  objective= ...)
 
         :param dimensions: The dimensions of the results to be returned. If None, all dimensions are returned.
         possible values are: 'regulatory', 'metabolic', 'objective'
-        :param environmental_conditions: If True, the environmental conditions are returned as well
-        :return: A namedtuple with pandas DataFrame having all results of the model
+        :return: A pandas DataFrame having the summary results of the model
         """
         if not dimensions:
             dimensions = self.model.types
 
-        if environmental_conditions:
-            return self._frame_builder(to='environmental_conditions', dimensions=dimensions)
+        frames = [self._get_frame(to='environmental_conditions', dimension=dimension)
+                  for dimension in dimensions]
 
-        return self._frame_builder(to='frame', dimensions=dimensions)
+        if frames:
+            return pd.concat(frames,
+                             axis=1,
+                             join='outer',
+                             keys=dimensions)
+
+        return pd.DataFrame()
 
     def to_series(self) -> pd.Series:
         """
@@ -603,54 +602,42 @@ class ModelSolution:
         """
         return pd.Series(self.x)
 
-    def _summary_builder(self, dimensions: Tuple[str, ...]) -> Tuple[pd.DataFrame, ...]:
+    def _summary_builder(self, dimensions: Tuple[str, ...]) -> Summary:
         """
         It returns a namedtuple with pandas DataFrame having all results of the model.
         Internal use only.
         :param dimensions: The dimensions of the results to be returned
-        :return: A namedtuple with pandas DataFrame having all results of the model
+        :return: A Summary with pandas DataFrame having all results of the model
         """
-        fields = ('inputs', 'outputs', 'objective', 'frame') + tuple(dimensions)
-
-        Summary = namedtuple('Summary', fields)
-
-        frames = []
+        frames = {}
 
         inputs_frames = [self._get_frame(to='inputs', dimension=dimension)
                          for dimension in dimensions]
-
         if inputs_frames:
             inputs_frame = pd.concat(inputs_frames,
                                      axis=1,
                                      join='outer',
                                      keys=dimensions)
-
         else:
             inputs_frame = pd.DataFrame()
-
-        frames.append(inputs_frame)
+        frames['inputs'] = inputs_frame
 
         outputs_frames = [self._get_frame(to='outputs', dimension=dimension)
                           for dimension in dimensions]
-
         if outputs_frames:
             outputs_frame = pd.concat(outputs_frames,
                                       axis=1,
                                       join='outer',
                                       keys=dimensions)
-
         else:
             outputs_frame = pd.DataFrame()
-
-        frames.append(outputs_frame)
+        frames['outputs'] = outputs_frame
 
         objective_frame = self._get_frame(to='objective', dimension='objective')
-
-        frames.append(objective_frame)
+        frames['objective'] = objective_frame
 
         summary_frames = [self._get_frame(to='summary', dimension=dimension)
                           for dimension in dimensions]
-
         if summary_frames:
             frame = pd.concat(summary_frames,
                               axis=1,
@@ -659,23 +646,24 @@ class ModelSolution:
 
         else:
             frame = pd.DataFrame()
+        frames['df'] = frame
 
-        frames.append(frame)
-        frames.extend(summary_frames)
+        for i, dimension in enumerate(dimensions):
+            frames[dimension] = summary_frames[i]
 
-        return Summary(*frames)
+        return Summary(**frames)
 
-    def to_summary(self, dimensions: Tuple[str, ...] = None) -> Tuple[pd.DataFrame, ...]:
+    def to_summary(self, dimensions: Tuple[str, ...] = None) -> Summary:
         """
-        It returns a namedtuple with pandas DataFrame having a summary of the simulation.
+        It returns a summary with pandas DataFrame of the simulation.
 
-        According to the dimensions, the namedtuple will have the following attributes:
+        According to the dimensions, the Summary will have the following attributes:
             - inputs: A pandas DataFrame with the inputs of the metabolic and regulatory model
             - outputs: A pandas DataFrame with the outputs of the metabolic and regulatory model
             - objective: A pandas DataFrame with the objective value
             - metabolic: A pandas DataFrame with the summary of the metabolic model
             - regulatory: A pandas DataFrame with the summary of the regulatory model
-            - frame: A pandas DataFrame with the summary of the metabolic and regulatory models
+            - df: A pandas DataFrame with the summary of the metabolic and regulatory models
 
         Example:
         >>> from mewpy.mew.analysis import FBA
@@ -684,7 +672,6 @@ class ModelSolution:
         >>> fba = FBA(model)
         >>> solution = fba.optimize()
         >>> solution.to_summary()
-        Frame(inputs= ...  outputs= ...  objective= ... metabolic= ...)
 
         :param dimensions: The dimensions of the results to be returned. If None, all dimensions are returned.
         possible values are: 'regulatory', 'metabolic', 'objective'
