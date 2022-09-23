@@ -2,8 +2,8 @@
 <sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version2" sboTerm="SBO:0000624" level="3" version="1" fbc:required="false">
   <model metaid="meta_e_coli_core" id="e_coli_core" name="model" fbc:strict="true">
     <listOfCompartments>
-      <compartment id="c" name="cytosol" constant="true"/>
       <compartment id="e" constant="true"/>
+      <compartment id="c" constant="true"/>
     </listOfCompartments>
     <listOfSpecies>
       <species id="M_acald_c" name="Acetaldehyde" compartment="c" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false" fbc:charge="0" fbc:chemicalFormula="C2H4O"/>
