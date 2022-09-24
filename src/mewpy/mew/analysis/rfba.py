@@ -9,6 +9,31 @@ from mewpy.util.constants import ModelConstants
 from mewpy.mew.solution import ModelSolution, DynamicSolution
 
 
+def _get_boolean_state_from_reaction_flux(flux_rate: float) -> bool:
+    # A reaction can have different flux values between two solutions,
+    # though the state remains the same. Thus, non-zero flux stands for ON state
+    # while zero flux stands for OFF state
+    if abs(flux_rate) > ModelConstants.TOLERANCE:
+        return True
+
+    return False
+
+
+def _find_duplicated_state(state, regulatory_solution, regulatory_reactions, regulatory_metabolites):
+    mask = []
+    for regulator, value in regulatory_solution.items():
+
+        state_value = state[regulator]
+
+        if regulator in regulatory_reactions or regulator in regulatory_metabolites:
+            state_value = _get_boolean_state_from_reaction_flux(state_value)
+            value = _get_boolean_state_from_reaction_flux(value)
+
+        mask.append(value == state_value)
+
+    return all(mask)
+
+
 class RFBA(FBA):
 
     def __init__(self,
@@ -176,7 +201,8 @@ class RFBA(FBA):
 
         return constraints
 
-    def next_state(self, state: Dict[str, float], solver_kwargs: Dict = None) -> Dict[str, float]:
+    def next_state(self, state: Dict[str, float], solver_kwargs: Dict = None) -> Tuple[Dict[str, float],
+                                                                                       Solution]:
         """
         Retrieves the next state for the provided state
 
@@ -188,6 +214,8 @@ class RFBA(FBA):
         :param solver_kwargs: solver kwargs
         :return: dict of all regulatory/metabolic variables keys and a value of the resulting state
         """
+        state = state.copy()
+
         if not solver_kwargs:
             solver_kwargs = {}
 
@@ -200,33 +228,35 @@ class RFBA(FBA):
         # noinspection PyTypeChecker
         regulatory_state = self.decode_regulatory_state(state=state)
 
+        # Next state is the previous state plus the regulatory state
+        next_state = {**state, **regulatory_state}
+
         # After a simulation of the regulators outputs, the state of the targets are retrieved now
-        metabolic_state = self.decode_metabolic_state(state={**state, **regulatory_state})
+        metabolic_state = self.decode_metabolic_state(state=next_state)
 
         regulatory_constraints = self.decode_constraints(metabolic_state)
-        metabolic_regulatory_constraints = {**constraints, **regulatory_constraints}
+        regulatory_constraints = {**constraints, **regulatory_constraints}
 
-        solver_kwargs['constraints'] = metabolic_regulatory_constraints
+        solver_kwargs['constraints'] = regulatory_constraints
         solver_solution = self.solver.solve(**solver_kwargs)
+
         if solver_solution.values:
-            values = solver_solution.values.copy()
+            solver_solution.values = {**metabolic_state, **solver_solution.values}
         else:
-            values = {}
+            solver_solution.values = {**metabolic_state, **{rxn: 0.0 for rxn in self.model.reactions}}
 
-        next_state = {**state, **regulatory_state, **metabolic_state}
-
-        # update the regulatory/metabolic state
+        # update the next state with the regulatory/metabolic state
         for reaction in self._regulatory_reactions:
-            next_state[reaction] = values.get(reaction, 0.0)
+            next_state[reaction] = solver_solution.values.get(reaction, 0.0)
 
         for metabolite in self._regulatory_metabolites:
 
-            reaction = self.model.get(metabolite).exchange_reaction
+            reaction = self.model.metabolites[metabolite].exchange_reaction
 
             if reaction:
-                next_state[metabolite] = values.get(reaction.id, 0.0)
+                next_state[metabolite] = solver_solution.values.get(reaction.id, 0.0)
 
-        return next_state
+        return next_state, solver_solution
 
     def _dynamic_optimize(self,
                           initial_state: Dict[str, float] = None,
@@ -271,108 +301,60 @@ class RFBA(FBA):
         if not solver_kwargs:
             solver_kwargs = {}
 
-        if 'constraints' in solver_kwargs:
-            constraints = solver_kwargs['constraints'].copy()
-        else:
-            constraints = {}
-
         # It takes the initial state from the model and then updates with the initial state provided as input
         initial_state = self.initial_state(initial_state)
 
-        regulatory_solution = []
+        regulatory_solutions = []
+        solver_solutions = []
 
         # solve using the initial state
         # noinspection PyTypeChecker
-        state = self.next_state(state=initial_state, solver_kwargs=solver_kwargs)
-        regulatory_solution.append(state)
+        state, solver_solution = self.next_state(state=initial_state, solver_kwargs=solver_kwargs)
+        regulatory_solutions.append(state)
+        solver_solutions.append(solver_solution)
 
         i = 1
-        sol = 1
         steady_state = False
         while not steady_state:
-
             # Updating state upon state. See next state for further detail
-            state = self.next_state(state=state, solver_kwargs=solver_kwargs)
-            regulatory_solution.append(state)
+            state, solver_solution = self.next_state(state=state, solver_kwargs=solver_kwargs)
 
-            n_sols = len(regulatory_solution) - 1
+            for regulatory_solution in regulatory_solutions:
 
-            for sol in range(n_sols):
+                is_duplicated = _find_duplicated_state(state=state, regulatory_solution=regulatory_solution,
+                                                       regulatory_reactions=self._regulatory_reactions,
+                                                       regulatory_metabolites=self._regulatory_metabolites)
+                if not is_duplicated:
+                    continue
 
-                # A reaction can have different flux values between two solutions, though the state remains the same.
-                # Thus, non-zero flux stands for ON state while zero flux stands for OFF state
+                steady_state = True
+                break
 
-                replica_v = []
+            # add the new state to the list of regulatory solutions
+            regulatory_solutions.append(state)
+            solver_solutions.append(solver_solution)
 
-                for key, val in regulatory_solution[sol].items():
-
-                    sol_val = regulatory_solution[n_sols][key]
-
-                    if key in self._regulatory_reactions or key in self._regulatory_metabolites:
-
-                        if abs(val) > ModelConstants.TOLERANCE:
-                            val = True
-                        else:
-                            val = False
-
-                        if abs(sol_val) > ModelConstants.TOLERANCE:
-                            sol_val = True
-                        else:
-                            sol_val = False
-
-                    replica_v.append(val == sol_val)
-
-                is_replica = all(replica_v)
-
-                if is_replica:
-                    steady_state = True
-
-                    break
-
+            # if the maximum number of iterations is reached, the simulation is stopped
             if i < iterations:
                 i += 1
-            else:
 
+            else:
                 def iteration_limit(message):
                     warn(message, UserWarning, stacklevel=2)
 
                 iteration_limit("Iteration limit reached")
                 steady_state = True
 
-        # The solution comprehends and FBA simulation between the first and second similar regulatory and metabolic
-        # states using the corresponding regulatory states to switch on or off the associated reactions
-        solution = []
-        for i in range(sol, len(regulatory_solution)):
-
-            regulatory_state = regulatory_solution[i]
-
-            regulatory_state_constraints = self.decode_constraints(regulatory_state)
-
-            state_constraints = {**constraints, **regulatory_state_constraints}
-
-            solver_kwargs['constraints'] = state_constraints
-            solver_solution = self.solver.solve(**solver_kwargs)
-
-            if solver_solution.values:
-                solver_solution.values = {**regulatory_state, **solver_solution.values}
-
-            if to_solver:
-                solution.append(solver_solution)
-
-                continue
-
-            minimize = solver_kwargs.get('minimize', self._minimize)
-            sol = ModelSolution.from_solver(method=self.method,
-                                            solution=solver_solution,
-                                            model=self.model,
-                                            minimize=minimize)
-
-            solution.append(sol)
-
         if to_solver:
-            return solution
+            return solver_solutions
 
-        return DynamicSolution(*solution)
+        minimize = solver_kwargs.get('minimize', self._minimize)
+        solutions = [ModelSolution.from_solver(method=self.method,
+                                               solution=solver_solution,
+                                               model=self.model,
+                                               minimize=minimize)
+                     for solver_solution in solver_solutions]
+        return DynamicSolution(*solutions)
 
     def _steady_state_optimize(self,
                                initial_state: Dict[str, float] = None,
