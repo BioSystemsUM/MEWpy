@@ -848,7 +848,7 @@ class SRFBA(FBA):
         :param symbolic: the symbolic expression
         :return: a list of variables and a list of constraints
         """
-        # if expression is atom and defines a variable always On or Off, add a On/Off row
+        # if expression is atom and defines a variable always On or Off, add an On/Off row
         if symbolic.is_atom:
             return self.linearize_atomic_expression(boolean_variable=boolean_variable, symbolic=symbolic)
 
@@ -931,10 +931,14 @@ class SRFBA(FBA):
         if not solver_kwargs:
             solver_kwargs = {}
 
-        if 'constraints' not in solver_kwargs:
-            solver_kwargs['constraints'] = initial_state.copy()
+        if 'constraints' in solver_kwargs:
+            constraints = solver_kwargs['constraints'].copy()
+
         else:
-            solver_kwargs['constraints'].update(initial_state)
+            constraints = {}
+
+        constraints = {**constraints, **initial_state}
+        solver_kwargs['constraints'] = constraints
 
         solution = self.solver.solve(**solver_kwargs)
         return solution

@@ -58,17 +58,35 @@ class RFBA(FBA):
             self._linear_objective = {var.id: value for var, value in self.model.objective.items()}
             self._minimize = False
 
-    def initial_state(self) -> Dict[str, float]:
+    def initial_state(self, state: Dict[str, float] = None) -> Dict[str, float]:
         """
         Method responsible for retrieving the initial state of the model.
         The initial state is the state of all regulators found in the Metabolic-Regulatory model.
+        :param state: the initial state of the model
         :return: dict of regulatory/metabolic variable keys (regulators) and a value of 0 or 1
         """
-        if self.model.is_regulatory():
-            return {regulator.id: max(regulator.coefficients)
-                    for regulator in self.model.yield_regulators()}
+        if not state:
+            state = {}
 
-        return {}
+        if not self.model.is_regulatory():
+            return state
+
+        initial_state = {}
+        for regulator in self.model.yield_regulators():
+            if regulator.id in state:
+                initial_state[regulator.id] = state[regulator.id]
+
+            elif regulator.is_metabolite() and regulator.exchange_reaction:
+                if regulator.exchange_reaction.id in state:
+                    initial_state[regulator.id] = state[regulator.exchange_reaction.id]
+
+                else:
+                    initial_state[regulator.id] = abs(regulator.exchange_reaction.lower_bound)
+
+            else:
+                initial_state[regulator.id] = max(regulator.coefficients)
+
+        return initial_state
 
     def decode_regulatory_state(self, state: Dict[str, float]) -> Dict[str, float]:
         """
@@ -259,7 +277,7 @@ class RFBA(FBA):
             constraints = {}
 
         # It takes the initial state from the model and then updates with the initial state provided as input
-        initial_state = {**self.initial_state(), **initial_state}
+        initial_state = self.initial_state(initial_state)
 
         regulatory_solution = []
 
@@ -394,7 +412,7 @@ class RFBA(FBA):
             constraints = {}
 
         # It takes the initial state from the model and then updates with the initial state provided as input
-        initial_state = {**self.initial_state(), **initial_state}
+        initial_state = self.initial_state(initial_state)
 
         # Regulatory state from a synchronous boolean simulation
         # noinspection PyTypeChecker

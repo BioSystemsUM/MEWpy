@@ -1,12 +1,12 @@
 from collections import defaultdict
-from typing import Union, TYPE_CHECKING, List, Dict, Tuple, Optional, Sequence
+from typing import Union, TYPE_CHECKING, Dict, Tuple, Optional, Sequence
 
 import pandas as pd
 
 from mewpy.util.constants import ModelConstants
-from .prom import PROM
-from .coregflux import CoRegFlux
 from .analysis_utils import run_method_and_decode
+from .coregflux import CoRegFlux
+from .prom import PROM
 from .rfba import RFBA
 from .srfba import SRFBA
 
@@ -346,6 +346,36 @@ def isingle_regulator_deletion(model: Union['Model', 'MetabolicModel', 'Regulato
     return pd.DataFrame.from_dict(data=result, orient='index', columns=['growth', 'status'])
 
 
+def _decode_initial_state(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
+                          state: Dict[str, float]) -> Dict[str, float]:
+    """
+    Method responsible for retrieving the initial state of the model.
+    The initial state is the state of all regulators found in the Metabolic-Regulatory model.
+    :param model: the model to be simulated
+    :param state: the initial state of the model
+    :return: dict of regulatory/metabolic variable keys (regulators) and a value of 0 or 1
+    """
+    if not state:
+        state = {}
+
+    initial_state = {}
+    for regulator in model.yield_regulators():
+        if regulator.id in state:
+            initial_state[regulator.id] = state[regulator.id]
+
+        elif regulator.is_metabolite() and regulator.exchange_reaction:
+            if regulator.exchange_reaction.id in state:
+                initial_state[regulator.id] = state[regulator.exchange_reaction.id]
+
+            else:
+                initial_state[regulator.id] = abs(regulator.exchange_reaction.lower_bound)
+
+        else:
+            initial_state[regulator.id] = max(regulator.coefficients)
+
+    return initial_state
+
+
 def _decode_interactions(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
                          state: Dict[str, float]) -> Dict[str, float]:
     """
@@ -455,15 +485,14 @@ def find_conflicts(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
     reaction_deletion = single_reaction_deletion(model, constraints=constraints)
     essential_reactions = reaction_deletion[reaction_deletion['growth'] < ModelConstants.TOLERANCE]
 
-    default_state = {regulator.id: max(regulator.coefficients) for regulator in model.yield_regulators()}
-    state = {**default_state, **initial_state}
+    state = _decode_initial_state(model, initial_state)
 
     # noinspection PyTypeChecker
     regulatory_state = _decode_interactions(model, state)
 
     if strategy == 'two-step':
         regulatory_state = {gene: value for gene, value in regulatory_state.items() if model.get(gene).is_regulator()}
-        regulatory_state = {**default_state, **initial_state, **regulatory_state}
+        regulatory_state = {**state, **regulatory_state}
         # noinspection PyTypeChecker
         metabolic_state = _decode_interactions(model, regulatory_state)
 
@@ -482,7 +511,9 @@ def find_conflicts(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
         gene = model.genes[gene]
 
         if gene.is_target():
+            # noinspection PyUnresolvedReferences
             repressed_gene = {regulator: regulatory_state[regulator] for regulator in gene.regulators}
+            # noinspection PyUnresolvedReferences
             repressed_gene['interaction'] = str(gene.interaction)
         else:
             repressed_gene = {}
