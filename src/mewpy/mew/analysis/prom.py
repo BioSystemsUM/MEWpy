@@ -223,10 +223,11 @@ class PROM(FBA):
 
     def _optimize(self,
                   initial_state: Dict[Tuple[str, str], float] = None,
-                  regulators: Union[str, Sequence['str']] = None,
+                  regulators: Sequence[Union['Gene', 'Regulator']] = None,
                   to_solver: bool = False,
                   solver_kwargs: Dict[str, Any] = None) -> Union[Dict[str, Solution], Dict[str, ModelSolution]]:
         # wild-type reference
+        solver_kwargs['get_values'] = True
         reference = self.solver.solve(**solver_kwargs)
         if reference.status != Status.OPTIMAL:
             raise RuntimeError('The solver did not find an optimal solution for the wild-type conditions.')
@@ -236,10 +237,9 @@ class PROM(FBA):
         max_rates = self._max_rates(solver_kwargs=solver_kwargs)
 
         # a single regulator knockout
-        if isinstance(regulators, str):
-            regulators = self.model.get(regulators)
+        if len(regulators) == 1:
             return self._optimize_ko(probabilities=initial_state,
-                                     regulator=regulators,
+                                     regulator=regulators[0],
                                      reference=reference,
                                      max_rates=max_rates,
                                      to_solver=to_solver,
@@ -248,7 +248,6 @@ class PROM(FBA):
         # multiple regulator knockouts
         kos = {}
         for regulator in regulators:
-            regulator = self.model.get(regulator)
             ko_solution = self._optimize_ko(probabilities=initial_state,
                                             regulator=regulator,
                                             reference=reference,
@@ -298,6 +297,11 @@ class PROM(FBA):
 
         if not regulators:
             regulators = list(self.model.yield_regulators())
+        else:
+            if isinstance(regulators, str):
+                regulators = [regulators]
+
+            regulators = [self.model.get(regulator) for regulator in regulators]
 
         if not solver_kwargs:
             solver_kwargs = {}

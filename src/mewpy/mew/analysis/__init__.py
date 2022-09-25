@@ -8,8 +8,9 @@ from .prom import PROM
 from .coregflux import CoRegFlux
 from .metabolic_analysis import slim_fba, slim_pfba, fva, single_gene_deletion, single_reaction_deletion
 from .regulatory_analysis import regulatory_truth_table
-from .integrated_analysis import (slim_rfba, slim_srfba, ifva, isingle_regulator_deletion, isingle_reaction_deletion,
-                                  isingle_gene_deletion, find_conflicts)
+from .integrated_analysis import (slim_rfba, slim_srfba, slim_prom, slim_coregflux,
+                                  ifva, isingle_regulator_deletion, isingle_reaction_deletion, isingle_gene_deletion,
+                                  find_conflicts)
 
 
 class Analysis(Enum):

@@ -74,7 +74,7 @@ def slim_srfba(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
 
 
 def slim_prom(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
-              initial_state: Dict[str, float] = None,
+              initial_state: Dict[Tuple[str, str], float] = None,
               regulator: str = None,
               objective: Union[str, Dict[str, float]] = None,
               constraints: Dict[str, Tuple[float, float]] = None) -> Optional[float]:
