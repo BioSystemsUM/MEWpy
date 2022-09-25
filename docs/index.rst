@@ -16,6 +16,7 @@ MEWpy's documentation
    optimization.md
    evaluation.md
    problems.md
+   mew.md
    options.md
    modules
 
