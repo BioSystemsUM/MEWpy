@@ -75,7 +75,8 @@ class Regulator(Variable, variable_type='regulator', register=True, constructor=
         html_dict = {'Coefficients': self.coefficients,
                      'Active': self.is_active,
                      'Interactions': ', '.join(self.interactions),
-                     'Targets': ', '.join(self.targets)}
+                     'Targets': ', '.join(self.targets),
+                     'Environmental stimulus': self.environmental_stimulus}
         return html_dict
 
     # -----------------------------------------------------------------------------
