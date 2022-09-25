@@ -169,12 +169,6 @@ class Regulator(Variable, variable_type='regulator', register=True, constructor=
         if self.types == {'regulator'}:
             return True
 
-        elif self.is_regulator() and self.is_metabolite():
-            return True
-
-        elif self.is_regulator() and self.is_reaction():
-            return True
-
         return False
 
     # -----------------------------------------------------------------------------

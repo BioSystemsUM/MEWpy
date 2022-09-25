@@ -239,6 +239,28 @@ class RegulatoryModel(Model, model_type='regulatory', register=True, constructor
         return {reg_id: regulator for reg_id, regulator in self.regulators.items()
                 if regulator.environmental_stimulus}
 
+    @property
+    def regulatory_reactions(self) -> Dict[str, 'Regulator']:
+        """
+        It returns a dictionary with the regulatory reactions of the model. The keys are the identifiers of the
+        regulatory reactions and the values are the `Regulator` objects. To retrieve an iterator with the regulatory
+        reactions, use the `yield_regulatory_reactions` method.
+        :return: a dictionary with the regulatory reactions of the model
+        """
+        return {reg_id: regulator for reg_id, regulator in self.regulators.items()
+                if regulator.is_reaction()}
+
+    @property
+    def regulatory_metabolites(self) -> Dict[str, 'Regulator']:
+        """
+        It returns a dictionary with the regulatory metabolites of the model. The keys are the identifiers of the
+        regulatory metabolites and the values are the `Regulator` objects. To retrieve an iterator with the regulatory
+        metabolites, use the `yield_regulatory_metabolites` method.
+        :return: a dictionary with the regulatory metabolites of the model
+        """
+        return {reg_id: regulator for reg_id, regulator in self.regulators.items()
+                if regulator.is_metabolite()}
+
     # -----------------------------------------------------------------------------
     # Generators
     # -----------------------------------------------------------------------------
@@ -248,6 +270,20 @@ class RegulatoryModel(Model, model_type='regulatory', register=True, constructor
         :return: a generator with the environmental stimuli of the model
         """
         return generator(self.environmental_stimuli)
+
+    def yield_regulatory_reactions(self) -> Generator['Regulator', None, None]:
+        """
+        It returns an iterator with the regulatory reactions of the model.
+        :return: a generator with the regulatory reactions of the model
+        """
+        return generator(self.regulatory_reactions)
+
+    def yield_regulatory_metabolites(self) -> Generator['Regulator', None, None]:
+        """
+        It returns an iterator with the regulatory metabolites of the model.
+        :return: a generator with the regulatory metabolites of the model
+        """
+        return generator(self.regulatory_metabolites)
 
     def yield_interactions(self) -> Generator['Interaction', None, None]:
         """

@@ -438,68 +438,196 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
         """
         It returns a html representation of the gene.
         """
+
+        objective = getattr(self, 'objective', None)
+        if objective:
+            objective = next(iter(objective)).id
+        else:
+            objective = None
+
         if self.is_metabolic() and self.is_regulatory():
-            return f"""<div>
-            <h3>Model {self.id}</h3>
-            <br>
-            <h4>Name: {self.name}</h4>
-            <h4>Types: {self.types}</h4>
-            <h4>Metabolic model</h4>
-            <ul>
-                <li>Reactions: {len(self.reactions)}</li>
-                <li>Metabolites: {len(self.metabolites)}</li>
-                <li>Genes: {len(self.genes)}</li>
-                <li>Compartments: {list(self.compartments)}</li>
-                <li>Exchange reactions: {len(self.exchanges)}</li>
-                <li>Objective: {self.objective}</li>
-            </ul>
-            <h4>Regulatory model</h4>
-            <ul>
-                <li>Regulators: {len(self.regulators)}</li>
-                <li>Targets: {len(self.targets)}</li>
-                <li>Regulatory interactions: {len(self.interactions)}</li>
-                <li>Environmental stimuli: {len(self.environmental_stimuli)}</li>
-            </ul>
-            </div>
+            return f"""
+            <table>
+                <tr>
+                    <th><b>Model</b></th>
+                    <td>{self.id}</td>
+                </tr>
+                <tr>
+                    <th>Name</th>
+                    <td>{self.name}</td>
+                </tr>
+                <tr>
+                    <th>Types</th>
+                    <td>{', '.join(self.types)}</td>
+                </tr>
+                <tr>
+                    <th>Compartments</th>
+                    <td>{', '.join(self.compartments)}</td>
+                </tr>
+                <tr>
+                    <th>Reactions</th>
+                    <td>{len(self.reactions)}</td>
+                </tr>
+                <tr>
+                    <th>Metabolites</th>
+                    <td>{len(self.metabolites)}</td>
+                </tr>
+                <tr>
+                    <th>Genes</th>
+                    <td>{len(self.genes)}</td>
+                </tr>
+                <tr>
+                    <th>Exchanges</th>
+                    <td>{len(self.exchanges)}</td>
+                </tr>
+                <tr>
+                    <th>Demands</th>
+                    <td>{len(self.demands)}</td>
+                </tr>
+                <tr>
+                    <th>Sinks</th>
+                    <td>{len(self.sinks)}</td>
+                </tr>
+                <tr>
+                    <th>Objective</th>
+                    <td>{objective}</td>
+                </tr>
+                <tr>
+                    <th>Regulatory interactions</th>
+                    <td>{len(self.interactions)}</td>
+                </tr>
+                <tr>
+                    <th>Targets</th>
+                    <td>{len(self.targets)}</td>
+                </tr>
+                <tr>
+                    <th>Regulators</th>
+                    <td>{len(self.regulators)}</td>
+                </tr>
+                <tr>
+                    <th>Regulatory reactions</th>
+                    <td>{len(self.regulatory_reactions)}</td>
+                </tr>
+                <tr>
+                    <th>Regulatory metabolites</th>
+                    <td>{len(self.regulatory_metabolites)}</td>
+                </tr>
+                <tr>
+                    <th>Environmental stimuli</th>
+                    <td>{len(self.environmental_stimuli)}</td>
+                </tr>
+            </table>
             """
         elif self.is_metabolic():
-            return f"""<div>
-            <h3>Model {self.id}</h3>
-            <br>
-            <h4>Name: {self.name}</h4>
-            <h4>Types: {self.types}</h4>
-            <ul>
-                <li>Reactions: {len(self.reactions)}</li>
-                <li>Metabolites: {len(self.metabolites)}</li>
-                <li>Genes: {len(self.genes)}</li>
-                <li>Compartments: {list(self.compartments)}</li>
-                <li>Exchange reactions: {len(self.exchanges)}</li>
-                <li>Objective: {self.objective}</li>
-            </ul>
-            </div>
+            return f"""
+            <table>
+                <tr>
+                    <th><b>Model</b></th>
+                    <td>{self.id}</td>
+                </tr>
+                <tr>
+                    <th>Name</th>
+                    <td>{self.name}</td>
+                </tr>
+                <tr>
+                    <th>Types</th>
+                    <td>{', '.join(self.types)}</td>
+                </tr>
+                <tr>
+                    <th>Compartments</th>
+                    <td>{', '.join(self.compartments)}</td>
+                </tr>
+                <tr>
+                    <th>Reactions</th>
+                    <td>{len(self.reactions)}</td>
+                </tr>
+                <tr>
+                    <th>Metabolites</th>
+                    <td>{len(self.metabolites)}</td>
+                </tr>
+                <tr>
+                    <th>Genes</th>
+                    <td>{len(self.genes)}</td>
+                </tr>
+                <tr>
+                    <th>Exchanges</th>
+                    <td>{len(self.exchanges)}</td>
+                </tr>
+                <tr>
+                    <th>Demands</th>
+                    <td>{len(self.demands)}</td>
+                </tr>
+                <tr>
+                    <th>Sinks</th>
+                    <td>{len(self.sinks)}</td>
+                </tr>
+                <tr>
+                    <th>Objective</th>
+                    <td>{objective}</td>
+                </tr>
+            </table>
             """
         elif self.is_regulatory():
-            return f"""<div>
-            <h3>Model {self.id}</h3>
-            <br>
-            <h4>Name: {self.name}</h4>
-            <h4>Types: {self.types}</h4>
-            <ul>
-                <li>Regulators: {len(self.regulators)}</li>
-                <li>Targets: {len(self.targets)}</li>
-                <li>Regulatory interactions: {len(self.interactions)}</li>
-                <li>Compartments: {list(self.compartments)}</li>
-                <li>Environmental stimuli: {len(self.environmental_stimuli)}</li>
-            </ul>
-            </div>
+            return f"""
+            <table>
+                <tr>
+                    <th><b>Model</b></th>
+                    <td>{self.id}</td>
+                </tr>
+                <tr>
+                    <th>Name</th>
+                    <td>{self.name}</td>
+                </tr>
+                <tr>
+                    <th>Types</th>
+                    <td>{', '.join(self.types)}</td>
+                </tr>
+                <tr>
+                    <th>Compartments</th>
+                    <td>{', '.join(self.compartments)}</td>
+                </tr>
+                <tr>
+                    <th>Regulatory interactions</th>
+                    <td>{len(self.interactions)}</td>
+                </tr>
+                <tr>
+                    <th>Targets</th>
+                    <td>{len(self.targets)}</td>
+                </tr>
+                <tr>
+                    <th>Regulators</th>
+                    <td>{len(self.regulators)}</td>
+                </tr>
+                <tr>
+                    <th>Regulatory reactions</th>
+                    <td>{len(self.regulatory_reactions)}</td>
+                </tr>
+                <tr>
+                    <th>Regulatory metabolites</th>
+                    <td>{len(self.regulatory_metabolites)}</td>
+                </tr>
+                <tr>
+                    <th>Environmental stimuli</th>
+                    <td>{len(self.environmental_stimuli)}</td>
+                </tr>
+            </table>
             """
-        return f"""<div>
-        <h3>Model {self.id}</h3>
-        <br>
-        <h4>Name: {self.name}</h4>
-        <h4>Types: {self.types}</h4>
-        </div>
-        """
+        return f"""
+                <table>
+                    <tr>
+                        <th><b>Model</b></th>
+                        <td>{self.id}</td>
+                    </tr>
+                    <tr>
+                        <th>Name</th>
+                        <td>{self.name}</td>
+                    </tr>
+                    <tr>
+                        <th>Types</th>
+                        <td>{', '.join(self.types)}</td>
+                    </tr>
+                </table>
+                """
 
     # -----------------------------------------------------------------------------
     # Model type manager
