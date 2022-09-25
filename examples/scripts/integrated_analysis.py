@@ -146,7 +146,7 @@ def read_imc1010():
     reg_path = path.joinpath('models', 'regulation')
 
     # E. coli core constraint-based model directory
-    cbm_model_f = str(reg_path.joinpath('iJR904_srfba.xml'))
+    cbm_model_f = str(reg_path.joinpath('iJR904.xml'))
 
     # E. coli core Transcriptional Regulatory Network directory
     reg_model_f = str(reg_path.joinpath('iMC1010.csv'))
