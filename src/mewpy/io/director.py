@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import Union, TYPE_CHECKING, Tuple
 
 from mewpy.mew.models import Model
-from .engines import JSON
+from .engines import JSON, MetabolicSBML
 
 if TYPE_CHECKING:
     from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
@@ -71,6 +71,8 @@ class Director:
 
         # Fifth, the model is created, as we now know the model types.
         model = Model.from_types(types=types, identifier='model')
+        model_id = None
+        model_name = None
 
         for builder in self.builders:
 
@@ -99,13 +101,23 @@ class Director:
             # (a multi-type variable). This variable contains all attributes of a Target, Regulator and Metabolite
             engine.read(model=model, variables=variables)
 
+            # update model id and name
+            if isinstance(engine, MetabolicSBML):
+                model_id = engine.dto.id
+                model_name = engine.dto.name
+
             # Seventh, cleaning the data transfer object In detail, when the open and parse methods of an engine are
             # used, the data transfer object is populated with records. Then, it is no longer required for this
             # object to live in memory
             engine.clean()
 
-        model.clean_history()
+        if model_id:
+            model._id = model_id
 
+        if model_name:
+            model.name = model_name
+
+        model.clean_history()
         return model
 
     def write(self):

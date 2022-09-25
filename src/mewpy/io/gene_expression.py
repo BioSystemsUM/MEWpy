@@ -24,6 +24,7 @@ def read_gene_expression_dataset(path,
     if filter_nan:
         return df.dropna()
 
+    df.columns = [str(col) for col in df.columns]
     return df
 
 

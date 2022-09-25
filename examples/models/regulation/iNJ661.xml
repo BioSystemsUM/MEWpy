@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version2" xmlns:groups="http://www.sbml.org/sbml/level3/version1/groups/version1" level="3" version="1" fbc:required="false" groups:required="false">
-  <model metaid="iNJ661_biomass9_plus_vitamins_0.052_flux" id="COBRAModel" name="Model Exported from COBRA Toolbox" fbc:strict="true">
+  <model metaid="iNJ661_biomass9_plus_vitamins_0.052_flux" id="iNJ661" name="M. tuberculosis iNJ661 model - Jamshidi et al 2007" fbc:strict="true">
     <listOfUnitDefinitions>
       <unitDefinition id="mmol_per_gDW_per_hr">
         <listOfUnits>
