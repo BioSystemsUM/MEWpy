@@ -5,7 +5,7 @@ from mewpy.mew.analysis.analysis_utils import biomass_yield_to_rate, \
     CoRegMetabolite, CoRegBiomass, metabolites_constraints, gene_state_constraints, system_state_update, \
     build_metabolites, build_biomass, CoRegResult
 from mewpy.mew.solution import ModelSolution, DynamicSolution
-from mewpy.solvers.solution import Solution
+from mewpy.solvers.solution import Solution, Status
 from mewpy.solvers.solver import Solver
 from mewpy.util.constants import ModelConstants
 
@@ -38,7 +38,7 @@ def result_to_solution(result: CoRegResult, model: 'Model', to_solver: bool = Fa
     :return: the ModelSolution object
     """
     if to_solver:
-        return Solution(status='Optimal', fobj=result.objective_value, values=result.values)
+        return Solution(status=Status.OPTIMAL, fobj=result.objective_value, values=result.values)
 
     solution = ModelSolution(method='CoRegFlux',
                              x=result.values,
@@ -283,6 +283,7 @@ class CoRegFlux(FBA):
 
         if not solver_kwargs:
             solver_kwargs = {}
+        solver_kwargs['get_values'] = True
 
         if not initial_state:
             initial_state = {}

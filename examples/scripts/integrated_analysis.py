@@ -7,7 +7,7 @@ from mewpy.omics import ExpressionSet
 from mewpy.io import read_model, Engines, Reader, read_gene_expression_dataset
 from mewpy.mew.analysis import (FBA, pFBA, fva, single_reaction_deletion, single_gene_deletion, SRFBA, RFBA, ifva,
                                 isingle_reaction_deletion, isingle_gene_deletion, isingle_regulator_deletion, PROM,
-                                CoRegFlux)
+                                CoRegFlux, slim_prom, slim_coregflux)
 from mewpy.omics.preprocessing import quantile_preprocessing_pipeline, target_regulator_interaction_probability
 from mewpy.simulation import get_simulator
 
@@ -264,6 +264,76 @@ def iMC1010_integrated_analysis():
     sol = ifva(model, method='srfba', reactions=list(model.reactions.keys())[0:10])
 
 
+def iNJ661_integrated_analysis():
+    """
+    Performs an integrated analysis of the iNJ661 integrated model.
+    :return:
+    """
+    # current directory
+    path = Path(os.path.dirname(os.path.realpath(__file__))).parent
+    reg_path = path.joinpath('models', 'regulation')
+
+    # iJN661 constraint-based model directory
+    cbm_model_f = str(reg_path.joinpath('iNJ661.xml'))
+
+    # iJN661 Transcriptional Regulatory Network directory
+    reg_model_f = str(reg_path.joinpath('iNJ661_trn.csv'))
+
+    # reader for the metabolic model
+    metabolic_reader = Reader(Engines.MetabolicSBML, cbm_model_f)
+
+    # reader for the regulatory model
+    regulatory_reader = Reader(Engines.TargetRegulatorRegulatoryCSV,
+                               io=reg_model_f,
+                               sep=';',
+                               target_col=0,
+                               regulator_col=1,
+                               header=None)
+
+    # reading the integrated metabolic-regulatory model
+    model = read_model(metabolic_reader, regulatory_reader)
+
+    # composition of integrated metabolic-regulatory model
+    print(f'Model types: {model.types}')
+    print(f'Model current simulators: {model.simulators}')
+
+    print(f'Model interactions: {len(model.interactions)}')
+    print(f'Model targets: {len(model.targets)}')
+    print(f'Model regulators: {len(model.regulators)}')
+    print(f'Model environmental stimuli: {len(model.environmental_stimuli)}')
+
+    print(f'Model objective: {model.objective}')
+    print(f'Model reactions: {len(model.reactions)}')
+    print(f'Model metabolites: {len(model.metabolites)}')
+    print(f'Model genes: {len(model.genes)}')
+    print(f'Model sinks: {len(model.sinks)}')
+    print(f'Model demands: {len(model.demands)}')
+    print(f'Model exchanges: {len(model.exchanges)}')
+
+    print(f'Model compartments: {model.compartments}')
+    print(f'Model external compartment: {model.external_compartment}')
+
+    # computing PROM target-regulator interaction probabilities using quantile preprocessing pipeline
+    expression_file = reg_path.joinpath('iNJ661_gene_expression.csv')
+    expression = read_gene_expression_dataset(expression_file, sep=';', gene_col=0, header=None)
+    quantile_expression, binary_expression = quantile_preprocessing_pipeline(expression)
+    initial_state, _ = target_regulator_interaction_probability(model,
+                                                                expression=quantile_expression,
+                                                                binary_expression=binary_expression)
+
+    prom = PROM(model).build()
+    sol = prom.optimize(initial_state=initial_state)
+
+    sol = slim_prom(model, initial_state=initial_state, regulator='Rv0001')
+
+    # using the omics package
+    # expression set conditions must be strings (not integers)
+    expression.columns = [str(col) for col in expression.columns]
+    expr = ExpressionSet.from_dataframe(expression)
+    from mewpy.omics import PROM as OmicsPROM
+    sol = OmicsPROM(model, expr, regulator='Rv0001')
+
+
 def iMM904_integrated_analysis():
     """
     Performs an integrated analysis of the iMM904 integrated model.
@@ -349,8 +419,13 @@ def iMM904_integrated_analysis():
                                                               gene_col=0,
                                                               header=0)
 
+    initial_state = gene_expression_prediction.iloc[:, 0].to_dict()
     co_reg_flux = CoRegFlux(model).build()
+    sol = co_reg_flux.optimize(initial_state=initial_state)
 
+    sol = slim_coregflux(model, initial_state=initial_state)
+
+    co_reg_flux = CoRegFlux(model).build()
     initial_state = gene_expression_prediction.iloc[:, 0].to_dict()
     metabolites = {'glc__D_e': 16.6, 'etoh_e': 0}
     growth_rate = 0.45
@@ -367,76 +442,8 @@ def iMM904_integrated_analysis():
     sol = OmicsCoRegFlux(model, expr, condition=gene_expression_prediction.columns[0])
 
 
-def iNJ661_integrated_analysis():
-    """
-    Performs an integrated analysis of the iNJ661 integrated model.
-    :return:
-    """
-    # current directory
-    path = Path(os.path.dirname(os.path.realpath(__file__))).parent
-    reg_path = path.joinpath('models', 'regulation')
-
-    # iJN661 constraint-based model directory
-    cbm_model_f = str(reg_path.joinpath('iNJ661.xml'))
-
-    # iJN661 Transcriptional Regulatory Network directory
-    reg_model_f = str(reg_path.joinpath('iNJ661_trn.csv'))
-
-    # reader for the metabolic model
-    metabolic_reader = Reader(Engines.MetabolicSBML, cbm_model_f)
-
-    # reader for the regulatory model
-    regulatory_reader = Reader(Engines.TargetRegulatorRegulatoryCSV,
-                               io=reg_model_f,
-                               sep=';',
-                               target_col=0,
-                               regulator_col=1,
-                               header=None)
-
-    # reading the integrated metabolic-regulatory model
-    model = read_model(metabolic_reader, regulatory_reader)
-
-    # composition of integrated metabolic-regulatory model
-    print(f'Model types: {model.types}')
-    print(f'Model current simulators: {model.simulators}')
-
-    print(f'Model interactions: {len(model.interactions)}')
-    print(f'Model targets: {len(model.targets)}')
-    print(f'Model regulators: {len(model.regulators)}')
-    print(f'Model environmental stimuli: {len(model.environmental_stimuli)}')
-
-    print(f'Model objective: {model.objective}')
-    print(f'Model reactions: {len(model.reactions)}')
-    print(f'Model metabolites: {len(model.metabolites)}')
-    print(f'Model genes: {len(model.genes)}')
-    print(f'Model sinks: {len(model.sinks)}')
-    print(f'Model demands: {len(model.demands)}')
-    print(f'Model exchanges: {len(model.exchanges)}')
-
-    print(f'Model compartments: {model.compartments}')
-    print(f'Model external compartment: {model.external_compartment}')
-
-    # computing PROM target-regulator interaction probabilities using quantile preprocessing pipeline
-    expression_file = reg_path.joinpath('iNJ661_gene_expression.csv')
-    expression = read_gene_expression_dataset(expression_file, sep=';', gene_col=0, header=None)
-    quantile_expression, binary_expression = quantile_preprocessing_pipeline(expression)
-    initial_state, _ = target_regulator_interaction_probability(model,
-                                                                expression=quantile_expression,
-                                                                binary_expression=binary_expression)
-
-    prom = PROM(model).build()
-    sol = prom.optimize(initial_state=initial_state)
-
-    # using the omics package
-    # expression set conditions must be strings (not integers)
-    expression.columns = [str(col) for col in expression.columns]
-    expr = ExpressionSet.from_dataframe(expression)
-    from mewpy.omics import PROM as OmicsPROM
-    sol = OmicsPROM(model, expr, regulator=next(iter(model.regulators)))
-
-
 if __name__ == '__main__':
-    # ecoli_core_integrated_analysis()
+    ecoli_core_integrated_analysis()
     iMC1010_integrated_analysis()
-    # iMM904_integrated_analysis()
-    # iNJ661_integrated_analysis()
+    iNJ661_integrated_analysis()
+    iMM904_integrated_analysis()

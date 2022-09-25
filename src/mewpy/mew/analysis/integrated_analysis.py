@@ -130,7 +130,6 @@ def slim_coregflux(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
     :return: the objective value of the simulation
     """
     co_reg_flux = CoRegFlux(model).build()
-
     objective_value, _ = run_method_and_decode(method=co_reg_flux, objective=objective, constraints=constraints,
                                                initial_state=initial_state)
     return objective_value
