@@ -4,9 +4,6 @@ MEWpy supports the integration of metabolic and regulatory models at the genome-
 An integrated model in MEWpy is called **MEW** model. 
 Hence, all tools required to build, simulate, and analyze MEW models are available in the `mewpy.mew` module.
 
-
-## MEW model
-
 An integrated model includes a standard Genome-Scale Metabolic (**GEM**) model. 
 The GEM model comprehends reactions (w/ GPRs), metabolites and genes. 
 It also includes exchange reactions defining the environmental conditions of the system.
@@ -15,9 +12,20 @@ The TRN comprehends interactions (w/ boolean algebra expressions), target genes 
 It also includes external stimuli (effectors), regulatory metabolites, and regulatory reactions.
 GEM models and TRNs are often linked by the target genes of the TRN and the genes of the GEM model.
 
-![](mewpy-arch.png)
+MEWpy supports several methods to perform phenotype simulations using integrated MEW models.
+The following simulation methods are available in **`mewpy.mew.analysis`** module:
+- **`FBA`** - Metabolic model only
+- **`pFBA`** - Metabolic model only
+- **`RFBA`** - Regulatory-Metabolic model
+- **`SRFBA`** - Regulatory-Metabolic model
+- **`PROM`** - Regulatory-Metabolic model
+- **`CoRegFlux`** - Regulatory-Metabolic model
 
-### Reading MEW models
+![](mew_overview.png)
+
+In addition, **`FBA`** and **`pFBA`** simulation methods are available in the MEWpy **`Simulator`** object.
+
+## Reading MEW models
 In this example, we will be using the integrated _E. coli_ core model published by 
 [Orth _et al_, 2010](https://doi.org/10.1128/ecosalplus.10.2.1).
 
@@ -127,29 +135,29 @@ model
 
 Although `mewpy.io.read_model` function is the preferred interface for reading models, MEWpy contains other read/write methods available at `mewpy.io`.
 
-### Working with MEW models
+## Working with MEW models
 
-A MEW model contains relevant **metabolic** information:
-- `objective` - Attribute with the current objective function; a dictionary of type variable-coefficient
-- `reactions` - Attribute/container with the model reactions; a dictionary of type reaction identifier-reaction variable
-- `metabolites` - Attribute/container with the model metabolites; a dictionary of type metabolite identifier-metabolite variable
-- `genes` - Attribute/container with the model genes; a dictionary of type gene identifier-gene variable
-- `gprs` - Attribute/container with the model GPRs; a dictionary of type reaction identifier-GPR expression
-- `compartments` - Attribute/container with the model compartments; a dictionary of type compartment identifier-compartment name
-- `exchanges` - Attribute/container with the model exchanges; a dictionary of type reaction identifier-reaction variable
-- `demands` - Attribute/container with the model demands; a dictionary of type reaction identifier-reaction variable
-- `sinks` - Attribute/container with the model sinks; a dictionary of type reaction identifier-reaction variable
-- `external_compartment` - Attribute with the model external compartment - compartment having larger number of exchange reactions
+A MEW model contains the following **metabolic** information:
+- `objective` - variable/coefficient dictionary
+- `reactions` - identifier/reaction dictionary
+- `metabolites` - identifier/metabolite dictionary
+- `genes` - identifier/gene dictionary
+- `gprs` - identifier/GPR expression dictionary
+- `compartments` - identifier/compartment dictionary
+- `exchanges` - identifier/reaction dictionary
+- `demands` - identifier/reaction dictionary
+- `sinks` - identifier/reaction dictionary
+- `external_compartment` - Compartment with most exchange reactions
 
-A MEW model contains relevant **regulatory** information:
-- `interactions` - Attribute/container with the model interactions; a dictionary of type interaction identifier-interaction variable
-- `targets` - Attribute/container with the model targets; a dictionary of type target identifier-target variable
-- `regulators` - Attribute/container with the model regulators; a dictionary of type regulator identifier-regulator variable
-- `regulatory_reactions` - Attribute/container with the model regulatory reactions; a dictionary of type reaction identifier-reaction variable
-- `regulatory_metabolites` - Attribute/container with the model regulatory metabolites; a dictionary of type metabolite identifier-metabolite variable
-- `environmental_stimuli` - Attribute/container with the model stimuli; a dictionary of type variable identifier-variable variable.
+A MEW model contains the following **regulatory** information:
+- `interactions` - identifier/interaction dictionary
+- `targets` - identifier/target dictionary
+- `regulators` - identifier/regulator dictionary
+- `regulatory_reactions` - identifier/reaction dictionary
+- `regulatory_metabolites` - identifier/metabolite dictionary
+- `environmental_stimuli` - identifier/regulator dictionary
 
-One can inspect the model attributes easily in Jupyter notebooks:
+One can inspect model attributes in Jupyter notebooks:
 ```python
 model.objective
 ```
@@ -174,8 +182,9 @@ model.interactions
     'b0115_interaction': b0115 || 1 = (( ~ b0113) | b3261),
     ...
 
-A MEW model container is a regular Python dictionary that can be used to obtain `model.reactions['MY_REACTION']`.
-One can also yield variables from the model using `yield_...`-like methods, such as `model.yield_regulators()`
+A MEW model container is a regular Python dictionary. They can be used to access variables in the model (e.g., 
+`model.reactions['MY_REACTION']`).
+One can also yield variables from the model using `yield_...`-like methods, such as `model.yield_regulators()`.
 
 ```python
 # get PDH reaction from the model
@@ -197,17 +206,18 @@ for regulator in model.yield_regulators():
 ---
 **NOTE**
 
-It is possible to add or remove variables in the model dictionaries (e.g., `model.reactions['MY_REACTION'] = my_reaction`), 
-but this is not recommended. The model dictionaries are used to keep track of the model variables and should not be modified directly.
-To add or remove variables, use the `model.add()` and `model.remove()` methods documented bellow, as these methods 
-will perform the necessary updates in the model dictionaries.
+It is possible to add variables to the model dictionaries (e.g., `model.reactions['MY_REACTION'] = my_reaction`), 
+but this is not recommended. The model dictionaries are used to keep track of the model variables 
+and should not be modified directly.
+To add or remove variables, use the `model.add()` and `model.remove()` methods documented bellow. These methods 
+will perform the required updates in the model.
 
 ---
 
 A MEW model supports the following operations:
-- `get(identifier, default=None)` - It retrieves the variable by its identifier
-- `add(variables)` - It adds new variables to the model; variables are added to containers according to the variable types
-- `remove(variables)` - It removes variables from the model; variables are removed from containers according to the variable types
+- `get(identifier, default=None)` - It retrieves the variable using its identifier
+- `add(variables)` - It adds new variables to the model; variables will be added to model containers according to their types
+- `remove(variables)` - It removes variables from the model; variables will be removed from model containers according to their types
 - `update(variables, objective, ...)` - It updates variables, compartments, objective, etc, in the model
 - `copy()` - It makes a shallow copy of the model
 - `deepcopy()` - It makes a deep copy of the model
@@ -262,8 +272,8 @@ model_dict = model.to_dict()
 model_dict
 ```
 
-MEW models support **temporary changes** using the `with model` context manager. 
-In addition, one can manually `undo()`, `redo()`, `reset()` and `restore()` a MEW model.
+A MEW model supports **temporary changes** using the `with model` context manager. 
+In addition, one can manually `undo()` and `redo()` the last operations or `reset()` and `restore()` a MEW model.
     
 ```python
 # make a temporary change to the model
@@ -275,16 +285,13 @@ with model:
 
 print('Has PFK removal been reverted?', 'PFK' in model.reactions)
 ```
-```
-Is PFK in the model? False
-Has PFK removal been reverted? True
-```
+    Is PFK in the model? False
+    Has PFK removal been reverted? True
 
-A MEW model is by default a multi-type model supporting manipulation of both a **metabolic** and **regulatory** model 
-at the same time. However, one can manipulate a **single** regulatory or metabolic model.
+A MEW model is by default a multi-type model. This means that one can manipulate both a **metabolic** and **regulatory** model 
+at the same time. Alternatively, one can manipulate a **single** regulatory or metabolic model.
 
-MEWpy allows building single- or multi-type models easily. One can check `model.types` or use type checkers, 
-such as `model.is_regulatory()`
+MEWpy allows building single- or multi-type models easily:
 
 ```python
 from mewpy.mew.models import RegulatoryModel
@@ -296,6 +303,7 @@ reg_model
 <table>
 <tr><th><b>Model</b></th><td>my_regulatory_model</td></tr><tr><th>Name</th><td>my_regulatory_model</td></tr><tr><th>Types</th><td>regulatory</td></tr><tr><th>Compartments</th><td></td></tr><tr><th>Regulatory interactions</th><td>0</td></tr><tr><th>Targets</th><td>0</td></tr><tr><th>Regulators</th><td>0</td></tr><tr><th>Regulatory reactions</th><td>0</td></tr><tr><th>Regulatory metabolites</th><td>0</td></tr><tr><th>Environmental stimuli</th><td>0</td></tr>
 </table>
+
 ```python
 # check if the model is metabolic
 reg_model.is_metabolic()
@@ -317,9 +325,9 @@ met_mode
 <tr><th><b>Model</b></th><td>my_metabolic_model</td></tr><tr><th>Name</th><td>my_metabolic_model</td></tr><tr><th>Types</th><td>metabolic</td></tr><tr><th>Compartments</th><td></td></tr><tr><th>Reactions</th><td>1</td></tr><tr><th>Metabolites</th><td>5</td></tr><tr><th>Genes</th><td>2</td></tr><tr><th>Exchanges</th><td>0</td></tr><tr><th>Demands</th><td>0</td></tr><tr><th>Sinks</th><td>0</td></tr><tr><th>Objective</th><td>None</td></tr>
 </table>
 
-### Working with MEW variables
+## Working with MEW variables
 
-MEWpy contains several **metabolic** and **regulatory** variables having the following main attributes:
+MEWpy includes the following **metabolic** and **regulatory** variables:
 - `Reaction` - Object to represent metabolic reactions having bounds, stoichiometry (metabolite/coefficient) and GPRs
 - `Metabolite` - Object to represent metabolic compounds having charge, compartment, formula and reactions
 - `Gene` - Object to represent metabolic genes having coefficients and reactions (found in GPR expressions)
@@ -327,17 +335,17 @@ MEWpy contains several **metabolic** and **regulatory** variables having the fol
 - `Target` - Object to represent regulatory targets having coefficients and interaction
 - `Regulator` - Object to represent regulatory having coefficients and interactions
 
-Variables have different attributes that can be inspected and changed using several methods. 
+Variables have different attributes that can be inspected and changed. 
 Variables are often connected to other variables and have special attributes, such as boolean expressions, 
 coefficients and dictionaries of metabolites (stoichiometry).
 
-Variables also have some interfaces of the MEW models. All MEW variables support:
+All MEW variables support:
 - `copy()` - It makes a shallow copy of the model
 - `deepcopy()` - It makes a deep copy of the model
 - **Temporary changes** using `with`, `undo()`, `redo()`, `reset()`, `restore()`,
 - **yield linked variables**, such as `yield_metabolites()`
 
-#### Reactions, Metabolites and Genes
+### Reactions, Metabolites and Genes
 
 **Reactions** have the following **attributes**:
 - identifier - id of the variable
@@ -466,7 +474,7 @@ rxn3.gpr.evaluate(values={'b0001': 100, 'b0002': 50}, operators={And: min})
 
 
 
-#### Interactions, Targets and Regulators
+### Interactions, Targets and Regulators
 
 **Interactions** have the following **attributes**:
 - identifier - id of the variable
@@ -519,7 +527,8 @@ sdhc_interaction
 <tr><th>Identifier</th><td>b0721_interaction</td></tr><tr><th>Name</th><td>b0721_interaction</td></tr><tr><th>Aliases</th><td>b0721</td></tr><tr><th>Model</th><td>e_coli_core</td></tr><tr><th>Types</th><td>interaction</td></tr><tr><th>Target</th><td>b0721 || 1 = (( ~ (b4401 | b1334)) | b3357 | b3261)</td></tr><tr><th>Regulators</th><td>b4401, b1334, b3357, b3261</td></tr><tr><th>Regulatory events</th><td>1 = (( ~ (b4401 | b1334)) | b3357 | b3261)</td></tr>
 </table>
 
-The regulatory truth table is a table with the possible coefficients of the target variable according to the regulatory events and regulators' coefficients.
+The regulatory truth table is a table with the possible coefficients of the target variable 
+according to the regulatory events and regulators' coefficients.
 
 ```python
 # inspecting the regulatory truth table
@@ -574,6 +583,7 @@ b0004_interaction
 </table>
 
 One can change the outcome of a regulatory expression by changing the coefficients of the regulators.
+
 ```python
 # changing the regulatory expression by altering the regulators coefficients
 b0005 = b0004_interaction.regulators['b0005']
@@ -583,6 +593,9 @@ b0007 = b0004_interaction.regulators['b0007']
 b0007.coefficients = (0,)
 b0004_interaction.regulatory_truth_table
 ```
+
+It is also possible to evaluate the regulatory expression with different coefficients 
+without changing the regulators' coefficients.
 
 ```python
 # evaluating the regulatory expression with different regulators coefficients 
@@ -626,19 +639,7 @@ from mewpy.mew.variables import Variable
 Variable.from_types(types=('target', 'gene'), identifier='b0001')
 ```
 
-## MEW analysis
-MEWpy supports several methods to perform phenotype simulations using integrated MEW models.
-The following simulation methods are available in **`mewpy.mew.analysis`** module:
-- **`FBA`** - Metabolic model only
-- **`pFBA`** - Metabolic model only
-- **`RFBA`** - Regulatory-Metabolic model
-- **`SRFBA`** - Regulatory-Metabolic model
-- **`PROM`** - Regulatory-Metabolic model
-- **`CoRegFlux`** - Regulatory-Metabolic model
-
-In addition, **`FBA`** and **`pFBA`** simulation methods are available in the MEWpy **`Simulator`** object.
-
-### MEW analysis examples
+## MEW examples
 Example of the integrated _E. coli_ core model published by [Orth _et al_, 2010](https://doi.org/10.1128/ecosalplus.10.2.1). 
 More information regarding this model is available in `examples.mew_models.ipynb` notebook.
 
@@ -690,7 +691,7 @@ imm904_trn_reader = Reader(Engines.CoExpressionRegulatoryCSV,
                            'iMM904_trn.csv', sep=',', target_col=2, co_activating_col=3, co_repressing_col=4, header=0)
 ```
 
-### Phenotype simulation using MEW analysis
+## MEW analysis
 In the `mewpy.mew.analysis` module, simulation methods are derived from **`LinearProblem`** and have the following attributes and methods:
 - `method` - the name of the simulation method
 - `model` - the model used to build the linear problem
@@ -765,7 +766,7 @@ summary.metabolic
 summary.regulatory
 ```
 
-### MEW phenotype simulation workflow
+## Phenotype simulation workflow
 A phenotype simulation method must be initialized with a MEW model. A common workflow to work with MEW models and simulation methods is suggested as follows:
 1. `model = read_model(reader1, reader2)` - read the model
 2. `rfba = RFBA(model)` - initialize the simulation method
@@ -861,7 +862,7 @@ print('SRFBA WT growth rate:', srfba.optimize().objective_value)
     SRFBA WT growth rate: 0.8739215069684986
 
 
-### FBA and pFBA
+## FBA and pFBA
 MEWpy supports **`FBA`** and **`pFBA`** simulation methods using MEW models.
 **`FBA`** and **`pFBA`** are both available in the **`mewpy.mew.analysis`** package. 
 Alternatively, one can use the simple and optimized versions **`slim_fba`** and **`slim_pfba`**. 
@@ -899,7 +900,7 @@ pFBA(met_model).build().optimize().objective_value
     93768.8478640836
 
 
-### FVA and deletions
+## FVA and deletions
 The **`mewpy.mew.analysis`** module includes the **`FVA`** method to inspect the solution space of a GEM model.
 This module also includes **`single_gene_deletion`** and **`single_reaction_deletion`** methods to inspect 
 _in silico_ genetic strategies. 
@@ -933,7 +934,8 @@ reg_model = read_model(core_trn_reader)
 regulatory_truth_table(reg_model)
 ```
 
-### RFBA
+
+## RFBA
 **`RFBA`** is a phenotype simulation method based on the integration of a GEM model with a TRN at the genome-scale. 
 In **`RFBA`**, a synchronous evaluation of all regulatory interactions in the regulatory model is performed first. 
 This first simulation is used to retrieve the regulatory state (regulators' coefficients). 
@@ -972,7 +974,7 @@ namely the absolute value of the lower bound.
 Likewise, the initial state of a regulatory reaction is inferred from its upper bound. 
 Even so, this initial state is likely to yield infeasible solutions.
 
-#### Find conflicts
+### Find conflicts
 To mitigate these conflicts between the regulatory and metabolic state, one can use the **`mewpy.mew.analysis.find_conflicts()`** method 
 to ease the set-up of the initial state. 
 This method can be used to find regulatory states that affect the growth of the cell. 
@@ -1018,7 +1020,7 @@ solution
 <table>            <tr><td>Method</td><td>RFBA</td></tr><tr><td>Model</td><td>Model iJR904 - Reed2003 - Genome-scale metabolic network of Escherichia coli (iJR904)</td></tr><tr><th>Objective</th><td>BiomassEcoli</td></tr><tr><th>Objective value</th><td>0.8517832811766279</td></tr><tr><th>Status</th><td>optimal</td></tr>        </table>
 
 
-### SRFBA
+## SRFBA
 **`SRFBA`** is a phenotype simulation method based on the integration of a GEM model with a TRN at the genome-scale. 
 **`SRFBA`** performs a single steady-state simulation using both metabolic and regulatory constraints found in the integrated model. 
 This method uses Mixed-Integer Linear Programming to solve nested boolean algebra expressions formulated from 
@@ -1054,7 +1056,7 @@ solution
 <table>            <tr><td>Method</td><td>SRFBA</td></tr><tr><td>Model</td><td>Model iJR904 - Reed2003 - Genome-scale metabolic network of Escherichia coli (iJR904)</td></tr><tr><th>Objective</th><td>BiomassEcoli</td></tr><tr><th>Objective value</th><td>0.8218562176868295</td></tr><tr><th>Status</th><td>optimal</td></tr>        </table>
 
 
-### iFVA and iDeletions
+## iFVA and iDeletions
 The `mewpy.mew.analysis` module includes an integrated version of the **`FVA`** method named **`iFVA`**. 
 This method can be used to inspect the solution space of an integrated MEW model.
 **`iFVA`** computes the minimum and maximum possible fluxes of each reaction in a metabolic model 
@@ -1071,7 +1073,7 @@ ifva(model, fraction=0.9, reactions=reactions_ids, method='srfba')
 ```
 
 
-### PROM
+## PROM
 **`PROM`** is a probabilistic-based phenotype simulation method for integrated models. 
 This method circumvents discrete constraints created by **`RFBA`** and **`SRFBA`** 
 using a continuous approach: reactions' constraints are proportional to the probabilities of related genes being active. 
@@ -1148,7 +1150,7 @@ solution.solutions
     ...
 
 
-### CoRegFlux
+## CoRegFlux
 **`CoRegFlux`** is a linear regression-based phenotype simulation method for integrated models. 
 This method circumvents discrete constraints created by **`RFBA`** and **`SRFBA`** using a continuous approach: 
 reactions' constraints are proportional (using soft plus activation function) to the predicted expression of related genes. 
