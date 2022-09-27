@@ -23,8 +23,6 @@ The following simulation methods are available in **`mewpy.mew.analysis`** modul
 
 ![](mew_overview.png)
 
-In addition, **`FBA`** and **`pFBA`** simulation methods are available in the MEWpy **`Simulator`** object.
-
 ## Reading MEW models
 In this example, we will be using the integrated _E. coli_ core model published by 
 [Orth _et al_, 2010](https://doi.org/10.1128/ecosalplus.10.2.1).
@@ -36,14 +34,14 @@ _E. coli_ integrated model is available in two separate files:
 To assemble an integrated MEW model, we use `mewpy.io.read_model` function. 
 This function accepts multiple readers having different engines.
 MEWpy contains the following engines that can be used in the `Reader` object:
-- `BooleanRegulatoryCSV`
-- `CoExpressionRegulatoryCSV`
-- `TargetRegulatorRegulatoryCSV`
-- `RegulatorySBML`
-- `MetabolicSBML`
-- `CobraModel`
-- `ReframedModel`
-- `JSON`
+- `BooleanRegulatoryCSV` - reads a TRN from a CSV file - regulatory interactions: `target, (regulator1 and regulator2)` 
+- `CoExpressionRegulatoryCSV` - reads a TRN from a CSV file - regulatory interactions: `target, co-activator1 co-activator2, co-repressor2`
+- `TargetRegulatorRegulatoryCSV` - reads a TRN from a CSV file - regulatory interactions: `target, regulator1`
+- `RegulatorySBML` - reads a TRN from a SBML file using the SBML-QUAL plugin
+- `MetabolicSBML` - reads a GEM from a SBML file
+- `CobraModel` - reads a GEM from a COBRApy model
+- `ReframedModel` - reads a GEM from a Reframed model
+- `JSON` - reads a MEW model from a JSON file
 
 In addition, the `Reader` accepts other arguments such as the `filename`, `sep`, among others.
 
@@ -63,74 +61,7 @@ model = read_model(gem_reader, trn_reader)
 model
 ```
 <table>
-    <tr>
-        <th><b>Model</b></th>
-        <td>e_coli_core</td>
-    </tr>
-    <tr>
-        <th>Name</th>
-        <td>E. coli core model - Orth et al 2010</td>
-    </tr>
-    <tr>
-        <th>Types</th>
-        <td>metabolic, regulatory</td>
-    </tr>
-    <tr>
-        <th>Compartments</th>
-        <td>c, e</td>
-    </tr>
-    <tr>
-        <th>Reactions</th>
-        <td>95</td>
-    </tr>
-    <tr>
-        <th>Metabolites</th>
-        <td>72</td>
-    </tr>
-    <tr>
-        <th>Genes</th>
-        <td>137</td>
-    </tr>
-    <tr>
-        <th>Exchanges</th>
-        <td>20</td>
-    </tr>
-    <tr>
-        <th>Demands</th>
-        <td>0</td>
-    </tr>
-    <tr>
-        <th>Sinks</th>
-        <td>0</td>
-    </tr>
-    <tr>
-        <th>Objective</th>
-        <td>Biomass_Ecoli_core</td>
-    </tr>
-    <tr>
-        <th>Regulatory interactions</th>
-        <td>159</td>
-    </tr>
-    <tr>
-        <th>Targets</th>
-        <td>159</td>
-    </tr>
-    <tr>
-        <th>Regulators</th>
-        <td>45</td>
-    </tr>
-    <tr>
-        <th>Regulatory reactions</th>
-        <td>12</td>
-    </tr>
-    <tr>
-        <th>Regulatory metabolites</th>
-        <td>11</td>
-    </tr>
-    <tr>
-        <th>Environmental stimuli</th>
-        <td>0</td>
-    </tr>
+<tr><th><b>Model</b></th><td>e_coli_core</td></tr><tr><th>Name</th><td>E. coli core model - Orth et al 2010</td></tr><tr><th>Types</th><td>regulatory, metabolic</td></tr><tr><th>Compartments</th><td>e, c</td></tr><tr><th>Reactions</th><td>95</td></tr><tr><th>Metabolites</th><td>72</td></tr><tr><th>Genes</th><td>137</td></tr><tr><th>Exchanges</th><td>20</td></tr><tr><th>Demands</th><td>0</td></tr><tr><th>Sinks</th><td>0</td></tr><tr><th>Objective</th><td>Biomass_Ecoli_core</td></tr><tr><th>Regulatory interactions</th><td>159</td></tr><tr><th>Targets</th><td>159</td></tr><tr><th>Regulators</th><td>45</td></tr><tr><th>Regulatory reactions</th><td>12</td></tr><tr><th>Regulatory metabolites</th><td>11</td></tr><tr><th>Environmental stimuli</th><td>0</td></tr>
 </table>
 
 Although `mewpy.io.read_model` function is the preferred interface for reading models, MEWpy contains other read/write methods available at `mewpy.io`.
@@ -158,7 +89,15 @@ A MEW model contains the following **regulatory** information:
 - `environmental_stimuli` - identifier/regulator dictionary
 
 One can inspect model attributes in Jupyter notebooks:
+
 ```python
+# read E. coli core model
+from mewpy.io import Reader, Engines, read_model
+
+gem_reader = Reader(Engines.MetabolicSBML, 'e_coli_core.xml')
+trn_reader = Reader(Engines.BooleanRegulatoryCSV, 'e_coli_core_trn.csv',
+                    sep=',', id_col=0, rule_col=2, aliases_cols=[1], header=0)
+model = read_model(gem_reader, trn_reader)
 model.objective
 ```
     {Biomass_Ecoli_core || 1.496 3pg_c + ...
@@ -214,6 +153,7 @@ will perform the required updates in the model.
 
 ---
 
+### MEW model operations
 A MEW model supports the following operations:
 - `get(identifier, default=None)` - It retrieves the variable using its identifier
 - `add(variables)` - It adds new variables to the model; variables will be added to model containers according to their types
@@ -249,27 +189,22 @@ model.add(crp)
 ```python
 # shallow copy only performs a copy of the containers
 model_copy = model.copy()
-model is model_copy
-```
-    False
+print(model is model_copy)
 
-```python
-# variables are still the same
+# but variables are still the same
 crp is model_copy.regulators['b3357']
-```
-    True
 
-```python
 # deep copy performs a copy of the containers and variables
 model_copy = model.deepcopy()
 crp is model_copy.regulators['b3357']
 ```
     False
+    True
+    False
 
 ```python
 # export the model to a dictionary
-model_dict = model.to_dict()
-model_dict
+model.to_dict()
 ```
 
 A MEW model supports **temporary changes** using the `with model` context manager. 
@@ -319,7 +254,7 @@ pfk = model.get('PFK').deepcopy()
 met_model = Model.from_types(('metabolic', ), 
                              identifier='my_metabolic_model', 
                              reactions={'pfk': pfk})
-met_mode
+met_model
 ```
 <table>
 <tr><th><b>Model</b></th><td>my_metabolic_model</td></tr><tr><th>Name</th><td>my_metabolic_model</td></tr><tr><th>Types</th><td>metabolic</td></tr><tr><th>Compartments</th><td></td></tr><tr><th>Reactions</th><td>1</td></tr><tr><th>Metabolites</th><td>5</td></tr><tr><th>Genes</th><td>2</td></tr><tr><th>Exchanges</th><td>0</td></tr><tr><th>Demands</th><td>0</td></tr><tr><th>Sinks</th><td>0</td></tr><tr><th>Objective</th><td>None</td></tr>
@@ -401,6 +336,16 @@ and the following **methods**:
 Bold-italicized properties can be set with new values (e.g., `reaction.bounds = (0, 1000)`).
 
 ```python
+# read E. coli core model
+from mewpy.io import Reader, Engines, read_model
+
+gem_reader = Reader(Engines.MetabolicSBML, 'e_coli_core.xml')
+trn_reader = Reader(Engines.BooleanRegulatoryCSV, 'e_coli_core_trn.csv',
+                    sep=',', id_col=0, rule_col=2, aliases_cols=[1], header=0)
+model = read_model(gem_reader, trn_reader)
+```
+
+```python
 # inspecting a reaction
 ack = model.get('ACKr')
 ack
@@ -472,8 +417,6 @@ rxn3.gpr.evaluate(values={'b0001': 100, 'b0002': 50}, operators={And: min})
 ```
     50
 
-
-
 ### Interactions, Targets and Regulators
 
 **Interactions** have the following **attributes**:
@@ -534,6 +477,7 @@ according to the regulatory events and regulators' coefficients.
 # inspecting the regulatory truth table
 sdhc_interaction.regulatory_truth_table
 ```
+<div><style scoped>  .dataframe tbody tr th:only-of-type {      vertical-align: middle;  }  .dataframe tbody tr th {      vertical-align: top;  }  .dataframe thead th {      text-align: right;  }</style><table border=\"1\" class=\"dataframe\"><thead>  <tr style=\"text-align: right;\">    <th></th>    <th>result</th>    <th>b4401</th>    <th>b1334</th>    <th>b3357</th>    <th>b3261</th>  </tr></thead><tbody>  <tr>    <th>b0721</th>    <td>0</td>    <td>NaN</td>    <td>NaN</td>    <td>NaN</td>    <td>NaN</td>  </tr>  <tr>    <th>b0721</th>    <td>1</td>    <td>1.0</td>    <td>1.0</td>    <td>1.0</td>    <td>1.0</td>  </tr></tbody></table></div>
 
 One can create Interactions, Targets and Regulators using the objects mentioned above.
 
@@ -594,6 +538,8 @@ b0007.coefficients = (0,)
 b0004_interaction.regulatory_truth_table
 ```
 
+<div><style scoped>.dataframe tbody tr th:only-of-type {  vertical-align: middle;}.dataframe tbody tr th {  vertical-align: top;}.dataframe thead th {  text-align: right;}</style><table class=\"dataframe\"><thead><tr><th></th><th>b0005</th><th>b0006</th><th>b0007</th><th>result</th></tr></thead><tbody><tr><th>b0004</th><td>0</td><td>1.0</td><td>0</td><td>0</td></tr></tbody></table></div>
+
 It is also possible to evaluate the regulatory expression with different coefficients 
 without changing the regulators' coefficients.
 
@@ -625,12 +571,8 @@ for gene in pdh.yield_genes():
     if gene.is_target():
         pdh_regulators.extend(gene.yield_regulators())
 print('PDH regulators: ', ', '.join(reg.id for reg in pdh_regulators))
-pdh_regulators[0]
 ```
     PDH regulators:  b0113, b3261, b0113, b3261
-<table>
-<tr><th>Identifier</th><td>b0001</td></tr><tr><th>Name</th><td></td></tr><tr><th>Aliases</th><td></td></tr><tr><th>Model</th><td>None</td></tr><tr><th>Types</th><td>target, gene</td></tr><tr><th>Coefficients</th><td>(0.0, 1.0)</td></tr><tr><th>Active</th><td>True</td></tr><tr><th>Interaction</th><td>None</td></tr><tr><th>Regulators</th><td></td></tr><tr><th>Reactions</th><td></td></tr>
-</table>
 
 ```python
 from mewpy.mew.variables import Variable
@@ -639,60 +581,9 @@ from mewpy.mew.variables import Variable
 Variable.from_types(types=('target', 'gene'), identifier='b0001')
 ```
 
-## MEW examples
-Example of the integrated _E. coli_ core model published by [Orth _et al_, 2010](https://doi.org/10.1128/ecosalplus.10.2.1). 
-More information regarding this model is available in `examples.mew_models.ipynb` notebook.
-
-Example of the integrated _E. coli_ iMC1010 model published by [Covert _et al_, 2004](https://doi.org/10.1038/nature02456). 
-This model consists of the _E. coli_ iJR904 GEM model published by [Reed _et al_, 2003](https://doi.org/10.1186/gb-2003-4-9-r54) 
-and _E. coli_ iMC1010 TRN published by [Covert _et al_, 2004](https://doi.org/10.1038/nature02456). 
-This model includes 904 metabolic genes, 931 unique biochemical reactions, and a TRN having 1010 regulatory interactions 
-(target-regulators using boolean logic).
-
-Example of the integrated _M. tuberculosis_ iNJ661 model published by [Chandrasekaran _et al_, 2010](https://doi.org/10.1073/pnas.1005139107). 
-This model consists of the _M. tuberculosis_ iNJ661 GEM model published by [Jamshidi _et al_, 2007](https://doi.org/10.1186/1752-0509-1-26), 
-_M. tuberculosis_ TRN published by [Balazsi _et al_, 2008](https://doi.org/10.1038/msb.2008.63), 
-and gene expression dataset published by [Chandrasekaran _et al_, 2010](https://doi.org/10.1073/pnas.1005139107). 
-This model includes 691 metabolic genes, 1028 unique biochemical reactions, and a TRN having 2018 regulatory interactions 
-(target-regulator).
-
-Example of the integrated _S. cerevisae_ iMM904 model published by [Banos _et al_, 2017](https://doi.org/10.1186/s12918-017-0507-0). 
-This model consists of the _S. cerevisae_ iMM904 GEM model published by [Mo _et al_, 2009](https://doi.org/10.1186/1752-0509-3-37), 
-_S. cerevisae_ TRN inferred by CoRegNet published by [Nicolle _et al_, 2015](https://doi.org/10.1093/bioinformatics/btv305), 
-and gene expression datasets published by [Brauer _et al_, 2005](https://doi.org/10.1091/mbc.e04-11-0968) 
-and [DeRisi _et al_, 1997](https://doi.org/10.1126/science.278.5338.680). 
-This model includes 904 metabolic genes, 1557 unique biochemical reactions, and a TRN having 3748 regulatory interactions 
-(target-regulators separated in co-activators and co-repressors).
-
-```python
-# imports
-from mewpy.io import Engines, Reader, read_model, read_gene_expression_dataset
-from mewpy.mew.analysis import *
-
-# readers
-# E. coli core
-core_gem_reader = Reader(Engines.MetabolicSBML, 'e_coli_core.xml')
-core_trn_reader = Reader(Engines.BooleanRegulatoryCSV,
-                         'e_coli_core_trn.csv', sep=',', id_col=0, rule_col=2, aliases_cols=[1], header=0)
-
-# E. coli iMC1010
-imc1010_gem_reader = Reader(Engines.MetabolicSBML, 'iJR904.xml')
-imc1010_trn_reader = Reader(Engines.BooleanRegulatoryCSV,
-                            'iMC1010.csv', sep=',', id_col=0, rule_col=4, aliases_cols=[1, 2, 3], header=0)
-
-# M. tuberculosis iNJ661
-inj661_gem_reader = Reader(Engines.MetabolicSBML, 'iNJ661.xml')
-inj661_trn_reader = Reader(Engines.TargetRegulatorRegulatoryCSV,
-                           'iNJ661_trn.csv', sep=';', target_col=0, regulator_col=1, header=None)
-
-# S. cerevisae iMM904
-imm904_gem_reader = Reader(Engines.MetabolicSBML, 'iMM904.xml')
-imm904_trn_reader = Reader(Engines.CoExpressionRegulatoryCSV,
-                           'iMM904_trn.csv', sep=',', target_col=2, co_activating_col=3, co_repressing_col=4, header=0)
-```
-
-## MEW analysis
-In the `mewpy.mew.analysis` module, simulation methods are derived from **`LinearProblem`** and have the following attributes and methods:
+## Working with MEW analysis
+In the `mewpy.mew.analysis` module, simulation methods are derived from **`LinearProblem`**. 
+A phenotype simulation method includes the following **attributes**:
 - `method` - the name of the simulation method
 - `model` - the model used to build the linear problem
 - `solver` - a MEWpy solver instance having the linear programming implementation of variables and constraints in the selected solver. The following solvers are available: _CPLEX_; _GUROBI_; _OPTLANG_
@@ -700,15 +591,20 @@ In the `mewpy.mew.analysis` module, simulation methods are derived from **`Linea
 - `variables` - The representation of the system variables to be implemented in the solver instance using linear programming
 - `objective` - A linear representation of the objective function associated with the linear problem
 
-A simulation method includes two important methods:
+And the following **methods**:
 - **`build`** - the build method is responsible for retrieving variables and constraints from a MEW model according to the mathematical formulation of each simulation method
 - **`optimize`** - the optimize method is responsible for solving the linear problem using linear programming or mixed-integer linear programming. 
 This method accepts method-specific arguments (initial state, dynamic, etc) and solver-specific arguments (linear, minimize, constraints, get_values, etc). 
-- These arguments can override **temporarily** some constraints or variables during the optimization.
+These arguments can override **temporarily** some constraints or variables during the optimization.
 
 ```python
-# showcase of a simulation method
+from mewpy.io import Reader, Engines, read_model
+from mewpy.mew.analysis import SRFBA
+
 # reading the E. coli core model
+core_gem_reader = Reader(Engines.MetabolicSBML, 'e_coli_core.xml')
+core_trn_reader = Reader(Engines.BooleanRegulatoryCSV,
+                         'e_coli_core_trn.csv', sep=',', id_col=0, rule_col=2, aliases_cols=[1], header=0)
 model = read_model(core_gem_reader, core_trn_reader)
 
 # initialization does not build the model automatically
@@ -733,8 +629,7 @@ solution
 </table>
 
 One can generate a pandas `DataFrame` using the **`to_frame()`** method of the **`ModelSolution`** object.
-This data frame contains the obtained expression coefficients 
-for the regulatory environmental stimuli linked to the metabolic model and exchange fluxes.
+This `DataFrame` includes coefficients of regulatory environmental stimuli linked to the exchange fluxes.
 
 ```python
 # a solution can be converted into a df
@@ -743,8 +638,8 @@ solution.to_frame()
 
 One can generate a **`Summary`** object using the **`to_summary()`** method of the **`ModelSolution`** object.
 This summary contains the following data:
-- `inputs` - regulatory and metabolic inputs for the simulation method
-- `outputs` - regulatory and metabolic inputs for the simulation method
+- `inputs` - regulatory and metabolic inputs of the solution
+- `outputs` - regulatory and metabolic inputs of the solution
 - `metabolic` - values of the metabolic variables
 - `regulatory` - values of the regulatory variables
 - `objective` - the objective value
@@ -766,7 +661,35 @@ summary.metabolic
 summary.regulatory
 ```
 
-## Phenotype simulation workflow
+All phenotype simulation methods have a fast one-line code function to run the simulation. These functions return only
+the objective value of the solution.
+```python
+from mewpy.mew.analysis import slim_fba
+
+# using slim FBA analysis
+slim_fba(model)
+```
+    0.8739215069684303
+
+### MEWpy phenotype simulation using MEW models
+**`FBA`** and **`pFBA`** are also available in MEWpy's **`Simulator`**, 
+which is the common interface to perform simulations using MEW models, COBRApy models, and Reframed models 
+(see [Phenotype Simulation](https://mewpy.readthedocs.io/en/latest/simulation.html) section).
+
+```python
+from mewpy.simulation import get_simulator
+
+# using MEWpy simulator
+simulator = get_simulator(model)
+simulator.simulate()
+```
+    objective: 0.8739215069684303
+    Status: OPTIMAL
+    Constraints: OrderedDict()
+    Method: SimulationMethod.FBA
+
+
+### MEW model and phenotype simulation workflow
 A phenotype simulation method must be initialized with a MEW model. A common workflow to work with MEW models and simulation methods is suggested as follows:
 1. `model = read_model(reader1, reader2)` - read the model
 2. `rfba = RFBA(model)` - initialize the simulation method
@@ -775,11 +698,10 @@ A phenotype simulation method must be initialized with a MEW model. A common wor
 5. `model.reactions['MY_REACTION'].bounds = (0, 0)` - make changes to the model
 6. `solution = RFBA(model).build().optimize()` - initialize, build and optimize the simulation method
 
-In this workflow, _model_ and _rfba_ instances are not connected with each other. 
-Future rfba's optimization will generate the same output even if we make changes to the model. 
-That is, _model_ and _rfba_ are not synchronized and attached to each other.
+In this workflow, _model_ and _rfba_ instances are not synchronized, as rfba's optimization will generate the same output even if we make changes to the model.
+To address the latest changes in the model, one must initialize, build and optimize `RFBA` again.
 
-Although building linear problems is considerably fast for most models, there is a second workflow to work with MEW models and simulation methods:
+A different workflow consists of attaching phenotype simulation methods to MEW models as follows:
 1. `model = read_model(reader1, reader2)` - read the model
 2. `rfba = RFBA(model, attach=True)` - initialize the simulation method and attach it to the model
 3. `rfba.build()` - build the linear problem
@@ -787,38 +709,35 @@ Although building linear problems is considerably fast for most models, there is
 5. `model.reactions['MY_REACTION'].bounds = (0, 0)` - make changes to the model
 6. `rxn_ko_solution = rfba.optimize()` - perform the optimization again but this time with the reaction deletion
 
-```python
-# read, build, optimize
-model = read_model(core_gem_reader, core_trn_reader)
-srfba = SRFBA(model).build()
-solution = srfba.optimize()
-solution
-```
-<table>
-<tr><td>Method</td><td>SRFBA</td></tr><tr><td>Model</td><td>Model e_coli_core - E. coli core model - Orth et al 2010</td></tr><tr><th>Objective</th><td>Biomass_Ecoli_core</td></tr><tr><th>Objective value</th><td>0.8739215069684986</td></tr><tr><th>Status</th><td>optimal</td></tr>
-</table>
+The second workflow is simpler and should be used for minor changes in the model. 
+In this workflow, rfba's optimizations will use the latest state of the model. 
 
 ```python
-# make changes and then build, optimize
-model.regulators['b3261'].ko()
+# First workflow: build and optimize
 srfba = SRFBA(model).build()
 solution = srfba.optimize()
-solution
+print('Wild-type growth rate', solution.objective_value)
+
+# making changes (temporarily) and then build, optimize
+with model:    
+    model.regulators['b3261'].ko()
+    srfba = SRFBA(model).build()
+    solution = srfba.optimize()
+print('KO growth rate', solution.objective_value)
 ```
-<table>
-<tr><td>Method</td><td>SRFBA</td></tr><tr><td>Model</td><td>Model e_coli_core - E. coli core model - Orth et al 2010</td></tr><tr><th>Objective</th><td>Biomass_Ecoli_core</td></tr><tr><th>Objective value</th><td>1e-10</td></tr><tr><th>Status</th><td>optimal</td></tr>
-</table>
+    Wild-type growth rate 0.8739215069684303
+    KO growth rate 1e-10
 
 ```python
-# second workflow
-model = read_model(core_gem_reader, core_trn_reader)
+# second workflow build and optimize
 srfba = SRFBA(model, attach=True).build()
 solution = srfba.optimize()
 print('Wild-type growth rate', solution.objective_value)
 
-# applying the knockout
-model.regulators['b3261'].ko()
-solution = srfba.optimize()
+# applying the knockout and optimize (no build required)
+with model:
+    model.regulators['b3261'].ko()
+    solution = srfba.optimize()
 print('KO growth rate', solution.objective_value)
 ```
     Wild-type growth rate 0.8739215069684986
@@ -829,11 +748,9 @@ This behavior eases the comparison between simulation methods.
     
 ```python
 # many simulation methods attached
-model = read_model(core_gem_reader, core_trn_reader)
 fba = FBA(model, attach=True).build()
 pfba = pFBA(model, attach=True).build()
 rfba = RFBA(model, attach=True).build()
-srfba = SRFBA(model, attach=True).build()
 
 # applying the knockout
 model.regulators['b3261'].ko()
@@ -861,47 +778,34 @@ print('SRFBA WT growth rate:', srfba.optimize().objective_value)
     RFBA WT growth rate: 0.8513885233462081
     SRFBA WT growth rate: 0.8739215069684986
 
-
 ## FBA and pFBA
-MEWpy supports **`FBA`** and **`pFBA`** simulation methods using MEW models.
 **`FBA`** and **`pFBA`** are both available in the **`mewpy.mew.analysis`** package. 
 Alternatively, one can use the simple and optimized versions **`slim_fba`** and **`slim_pfba`**. 
-Likewise, **`FBA`** and **`pFBA`** are available in MEWpy's **`Simulator`**, 
-which is the common interface to perform simulations using MEW models, COBRApy models, and Reframed models.
-    
+
 ```python
+from mewpy.io import Reader, Engines, read_model
+from mewpy.mew.analysis import FBA
+
+# reading the E. coli core model
+core_gem_reader = Reader(Engines.MetabolicSBML, 'e_coli_core.xml')
+model = read_model(core_gem_reader)
+
 # using FBA analysis
-met_model = read_model(core_gem_reader)
-FBA(met_model).build().optimize()
+FBA(model).build().optimize()
 ```
-<table>            <tr><td>Method</td><td>FBA</td></tr><tr><td>Model</td><td>Model e_coli_core - E. coli core model - Orth et al 2010</td></tr><tr><th>Objective</th><td>Biomass_Ecoli_core</td></tr><tr><th>Objective value</th><td>0.8739215069684303</td></tr><tr><th>Status</th><td>optimal</td></tr>        </table>
-
-```python
-# using slim FBA analysis
-slim_fba(met_model)
-```
-    0.8739215069684303
-
-```python
-# using MEWpy simulator
-from mewpy.simulation import get_simulator
-simulator = get_simulator(met_model)
-simulator.simulate()
-```
-    objective: 0.8739215069684303
-    Status: OPTIMAL
-    Constraints: OrderedDict()
-    Method: SimulationMethod.FBA
+<table>
+<tr><td>Method</td><td>FBA</td></tr><tr><td>Model</td><td>Model e_coli_core - E. coli core model - Orth et al 2010</td></tr><tr><th>Objective</th><td>Biomass_Ecoli_core</td></tr><tr><th>Objective value</th><td>0.8739215069684303</td></tr><tr><th>Status</th><td>optimal</td></tr>
+</table>
 
 ```python
 # using pFBA analysis
-pFBA(met_model).build().optimize().objective_value
+pFBA(model).build().optimize().objective_value
 ```
     93768.8478640836
 
-
 ## FVA and deletions
-The **`mewpy.mew.analysis`** module includes the **`FVA`** method to inspect the solution space of a GEM model.
+The **`mewpy.mew.analysis`** module includes **`FVA`** method to inspect the solution space of a GEM model.
+
 This module also includes **`single_gene_deletion`** and **`single_reaction_deletion`** methods to inspect 
 _in silico_ genetic strategies. 
 These methods perform an FBA phenotype simulation of a single reaction deletion or gene knockout 
@@ -909,42 +813,56 @@ for all reactions and genes in the metabolic model.
 These methods are faster than iterating through the model reactions or genes using the `ko()` method.
 
 ```python
+from mewpy.io import Reader, Engines, read_model
+from mewpy.mew.analysis import fva, single_gene_deletion, single_reaction_deletion
+
+# reading the E. coli core model
+core_gem_reader = Reader(Engines.MetabolicSBML, 'e_coli_core.xml')
+model = read_model(core_gem_reader)
+
 # FVA returns the DataFrame with minium and maximum values of each reaction
-fva(met_model)
-```
-```python
+fva(model)
+
 # single reaction deletion
-single_reaction_deletion(met_model)
-```
-```python
+single_reaction_deletion(model)
+
 # single gene deletion for specific genes
-single_gene_deletion(met_model, genes=met_model.reactions['ACONTa'].genes)
+single_gene_deletion(model, genes=model.reactions['ACONTa'].genes)
 ```
-<div><style scoped>    .dataframe tbody tr th:only-of-type {        vertical-align: middle;    }    .dataframe tbody tr th {        vertical-align: top;    }    .dataframe thead th {        text-align: right;    }</style><table border=\"1\" class=\"dataframe\">  <thead>    <tr style=\"text-align: right;\">      <th></th>      <th>growth</th>      <th>status</th>    </tr>  </thead>  <tbody>    <tr>      <th>b0118</th>      <td>0.873922</td>      <td>Optimal</td>    </tr>    <tr>      <th>b1276</th>      <td>0.873922</td>      <td>Optimal</td>    </tr>  </tbody></table></div>
 
-### Regulatory truth table
-The regulatory truth table of a regulatory model contains the evaluation of all regulatory interactions.
-The **`mewpy.mew.analysis.regulatory_truth_table`** method creates the combination between the regulators 
-and target genes given a regulatory model. 
-This function returns a pandas `DataFrame` having the regulators' values in the columns and targets' outcome in the index.
+<div><style scoped>    .dataframe tbody tr th:only-of-type {        vertical-align: middle;    }    .dataframe tbody tr th {        vertical-align: top;    }    .dataframe thead th {        text-align: right;    }</style><table class=\"dataframe\">  <thead>    <tr>      <th></th>      <th>growth</th>      <th>status</th>    </tr>  </thead>  <tbody>    <tr>      <th>b0118</th>      <td>0.873922</td>      <td>Optimal</td>    </tr>    <tr>      <th>b1276</th>      <td>0.873922</td>      <td>Optimal</td>    </tr>  </tbody></table></div>
+
+## Regulatory truth table
+The regulatory truth table evaluates all regulatory interactions using their regulatory events (expressions). 
+A regulatory expression is a boolean expression that evaluates to `1` or `0` depending on the regulatory state.
+**`mewpy.mew.analysis.regulatory_truth_table`** creates a pandas `DataFrame` having regulators' values in the columns 
+and targets' outcome in the index.
 
 ```python
-# regulatory truth table for the regulatory model
-reg_model = read_model(core_trn_reader)
-regulatory_truth_table(reg_model)
-```
+from mewpy.io import Reader, Engines, read_model
+from mewpy.mew.analysis import regulatory_truth_table
 
+# reading the E. coli core model
+core_trn_reader = Reader(Engines.BooleanRegulatoryCSV,
+                         'e_coli_core_trn.csv', sep=',', id_col=0, rule_col=2, aliases_cols=[1], header=0)
+model = read_model(core_trn_reader)
+
+# regulatory truth table for the regulatory model
+model = read_model(core_trn_reader)
+regulatory_truth_table(model)
+```
 
 ## RFBA
 **`RFBA`** is a phenotype simulation method based on the integration of a GEM model with a TRN at the genome-scale. 
-In **`RFBA`**, a synchronous evaluation of all regulatory interactions in the regulatory model is performed first. 
-This first simulation is used to retrieve the regulatory state (regulators' coefficients). 
+**`RFBA`** performs first a synchronous evaluation of all regulatory interactions in the regulatory model. 
+This simulation is used to retrieve the regulatory state (regulators' coefficients). 
 Then, the regulatory state is translated into a metabolic state (metabolic genes' coefficients) 
-by performing another synchronous evaluation of all regulatory interactions in the regulatory model. 
-Finally, the resulting metabolic state is used to decode the constraints imposed by the regulatory model 
-upon evaluation of the reactions' GPRs with the targets' state.
+by performing a second synchronous evaluation of all regulatory interactions in the regulatory model. 
+Finally, the resulting metabolic state is used to decode metabolic constraints upon evaluation of the reactions' GPRs 
+with the targets' state.
 
-**`RFBA`** supports steady-state or dynamic phenotype simulations. 
+**`RFBA`** supports steady-state or dynamic phenotype simulations.
+
 Dynamic **`RFBA`** simulation performs sequential optimizations while the regulatory state is updated each time 
 using the reactions and metabolites coefficients of the previous optimization. 
 Dynamic **`RFBA`** simulation stops when two identical solutions are found.
@@ -954,20 +872,35 @@ Alternatively, one can use the simple and optimized version **`slim_rfba`**.
 
 For more details consult: [https://doi.org/10.1038/nature02456](https://doi.org/10.1038/nature02456).
 
-For this example we will be using _E. coli_ iMC1010 model available at 
+In this example we will be using _E. coli_ iMC1010 model available at 
 _examples/models/regulation/iJR904_srfba.xml_ and _examples/models/regulation/iMC1010.csv_
 
-```python
-# loading model
-model = read_model(imc1010_gem_reader, imc1010_trn_reader)
-```
+The integrated _E. coli_ iMC1010 model was published by [Covert _et al_, 2004](https://doi.org/10.1038/nature02456). 
+This model consists of the _E. coli_ iJR904 GEM model published by [Reed _et al_, 2003](https://doi.org/10.1186/gb-2003-4-9-r54) 
+and _E. coli_ iMC1010 TRN published by [Covert _et al_, 2004](https://doi.org/10.1038/nature02456). 
+This model includes 904 metabolic genes, 931 unique biochemical reactions, and a TRN having 1010 regulatory interactions 
+(target-regulators using boolean logic).
 
-**`RFBA`** can be simulated using an initial regulatory state. 
-This initial state will be considered during the synchronous evaluation of all regulatory interactions in the regulatory model and determine the metabolic state. 
-The set-up of the regulators' initial state in integrated models is a difficult task. 
+```python
+from mewpy.io import Reader, Engines, read_model
+
+# loading E. coli iMC1010 model
+imc1010_gem_reader = Reader(Engines.MetabolicSBML, 'iJR904.xml')
+imc1010_trn_reader = Reader(Engines.BooleanRegulatoryCSV,
+                            'iMC1010.csv', sep=',', id_col=0, rule_col=4, aliases_cols=[1, 2, 3], header=0)
+model = read_model(imc1010_gem_reader, imc1010_trn_reader)
+model
+```
+<table>
+<tr><th><b>Model</b></th><td>iJR904</td></tr><tr><th>Name</th><td>Reed2003 - Genome-scale metabolic network of Escherichia coli (iJR904)</td></tr><tr><th>Types</th><td>regulatory, metabolic</td></tr><tr><th>Compartments</th><td>e, c</td></tr><tr><th>Reactions</th><td>1083</td></tr><tr><th>Metabolites</th><td>768</td></tr><tr><th>Genes</th><td>904</td></tr><tr><th>Exchanges</th><td>150</td></tr><tr><th>Demands</th><td>0</td></tr><tr><th>Sinks</th><td>0</td></tr><tr><th>Objective</th><td>BiomassEcoli</td></tr><tr><th>Regulatory interactions</th><td>1010</td></tr><tr><th>Targets</th><td>1010</td></tr><tr><th>Regulators</th><td>232</td></tr><tr><th>Regulatory reactions</th><td>22</td></tr><tr><th>Regulatory metabolites</th><td>96</td></tr><tr><th>Environmental stimuli</th><td>11</td></tr>
+</table>
+
+**`RFBA`** can be simulated using an initial regulatory state that will be used 
+during synchronous evaluation of all regulatory interactions. 
+However, setting up the regulators' initial state is a difficult task. 
 Most of the time, the initial state is not known and hinders feasible solutions during simulation. 
-If the initial state is not provided to RFBA, this method will consider that all regulators are active. 
-However, this initial state is clearly not the best, as many essential reactions can be switched off.
+If the initial state is not provided to **`RFBA`**, this method will consider that all regulators are active. 
+This initial state is clearly not the best, as many essential reactions can be switched off.
 
 To relax some constraints, the initial state of a regulatory metabolite is inferred from its exchange reaction, 
 namely the absolute value of the lower bound. 
@@ -975,20 +908,21 @@ Likewise, the initial state of a regulatory reaction is inferred from its upper 
 Even so, this initial state is likely to yield infeasible solutions.
 
 ### Find conflicts
-To mitigate these conflicts between the regulatory and metabolic state, one can use the **`mewpy.mew.analysis.find_conflicts()`** method 
-to ease the set-up of the initial state. 
-This method can be used to find regulatory states that affect the growth of the cell. 
-It tries to find the regulatory states that lead to knockouts of essential genes and deletion of essential reactions.
+To mitigate conflicts between the regulatory and metabolic states, 
+one can use the **`mewpy.mew.analysis.find_conflicts()`** method. 
+This method can find regulatory states that lead to knockouts of essential genes and deletion of essential reactions.
 Note that, **`find_conflicts()`** results should be carefully analyzed, as this method does not detect indirect conflicts. 
 Please consult the method for more details and the example bellow.
 
 ```python
+from mewpy.mew.analysis import find_conflicts
+
 # we can see that 3 regulators are affecting the following essential genes: b2574; b1092; b3730
 repressed_genes, repressed_reactions = find_conflicts(model)
 repressed_genes
 ```
 
-<div><style scoped>    .dataframe tbody tr th:only-of-type {        vertical-align: middle;    }    .dataframe tbody tr th {        vertical-align: top;    }    .dataframe thead th {        text-align: right;    }</style><table border=\"1\" class=\"dataframe\">  <thead>    <tr style=\"text-align: right;\">      <th></th>      <th>interaction</th>      <th>Stringent</th>      <th>b0676</th>      <th>b4390</th>    </tr>  </thead>  <tbody>    <tr>      <th>b1092</th>      <td>b1092 || 1 = ( ~ Stringent)</td>      <td>1.0</td>      <td>NaN</td>      <td>NaN</td>    </tr>    <tr>      <th>b3730</th>      <td>b3730 || 1 = b0676</td>      <td>NaN</td>      <td>0.0</td>      <td>NaN</td>    </tr>    <tr>      <th>b2574</th>      <td>b2574 || 1 = ( ~ b4390)</td>      <td>NaN</td>      <td>NaN</td>      <td>1.0</td>    </tr>  </tbody></table></div>
+<div><style scoped>    .dataframe tbody tr th:only-of-type {        vertical-align: middle;    }    .dataframe tbody tr th {        vertical-align: top;    }    .dataframe thead th {        text-align: right;    }</style><table class=\"dataframe\">  <thead>    <tr>      <th></th>      <th>interaction</th>      <th>Stringent</th>      <th>b0676</th>      <th>b4390</th>    </tr>  </thead>  <tbody>    <tr>      <th>b1092</th>      <td>b1092 || 1 = ( ~ Stringent)</td>      <td>1.0</td>      <td>NaN</td>      <td>NaN</td>    </tr>    <tr>      <th>b3730</th>      <td>b3730 || 1 = b0676</td>      <td>NaN</td>      <td>0.0</td>      <td>NaN</td>    </tr>    <tr>      <th>b2574</th>      <td>b2574 || 1 = ( ~ b4390)</td>      <td>NaN</td>      <td>NaN</td>      <td>1.0</td>    </tr>  </tbody></table></div>
 
 **`find_conflicts()`** suggests that three essential genes (_b2574_; _b1092_; _b3730_) are being affected 
 by three regulators (_b4390_, _Stringent_, _b0676_). However, some regulators do not affect growth directly, 
@@ -998,13 +932,15 @@ as they are being regulated by other regulators, environmental stimuli, metaboli
 # regulator-target b4390 is active in high-NAD conditions (environmental stimuli)
 model.get('b4390')
 ```
-<table><tr><th>Identifier</th><td>b4390</td></tr><tr><th>Name</th><td>b4390</td></tr><tr><th>Aliases</th><td>nadR, b4390, NadR, nadr</td></tr><tr><th>Model</th><td>iJR904</td></tr><tr><th>Types</th><td>regulator, target</td></tr><tr><th>Coefficients</th><td>(0.0, 1.0)</td></tr><tr><th>Active</th><td>True</td></tr><tr><th>Interactions</th><td>b0931_interaction, b2574_interaction</td></tr><tr><th>Targets</th><td>b0931, b2574</td></tr><tr><th>Environmental stimulus</th><td>False</td></tr><tr><th>Interaction</th><td>b4390 || 1 = high-NAD</td></tr><tr><th>Regulators</th><td>high-NAD</td></tr>            </table>
+<table>
+<tr><th>Identifier</th><td>b4390</td></tr><tr><th>Name</th><td>b4390</td></tr><tr><th>Aliases</th><td>nadR, b4390, NadR, nadr</td></tr><tr><th>Model</th><td>iJR904</td></tr><tr><th>Types</th><td>regulator, target</td></tr><tr><th>Coefficients</th><td>(0.0, 1.0)</td></tr><tr><th>Active</th><td>True</td></tr><tr><th>Interactions</th><td>b0931_interaction, b2574_interaction</td></tr><tr><th>Targets</th><td>b0931, b2574</td></tr><tr><th>Environmental stimulus</th><td>False</td></tr><tr><th>Interaction</th><td>b4390 || 1 = high-NAD</td></tr><tr><th>Regulators</th><td>high-NAD</td></tr>
+</table>
 
-Now, we can infer a more realistic initial state for the model and run **`RFBA`**.
+Now, we can infer a feasible initial state for the model and run **`RFBA`**.
 
 ```python
-model.get('b0676')
-#%%
+from mewpy.mew.analysis import RFBA
+
 # initial state inferred from the find_conflicts method.
 initial_state = {
     'Stringent': 0.0,
@@ -1017,16 +953,17 @@ rfba = RFBA(model).build()
 solution = rfba.optimize(initial_state=initial_state)
 solution
 ```
-<table>            <tr><td>Method</td><td>RFBA</td></tr><tr><td>Model</td><td>Model iJR904 - Reed2003 - Genome-scale metabolic network of Escherichia coli (iJR904)</td></tr><tr><th>Objective</th><td>BiomassEcoli</td></tr><tr><th>Objective value</th><td>0.8517832811766279</td></tr><tr><th>Status</th><td>optimal</td></tr>        </table>
-
+<table>
+<tr><td>Method</td><td>RFBA</td></tr><tr><td>Model</td><td>Model iJR904 - Reed2003 - Genome-scale metabolic network of Escherichia coli (iJR904)</td></tr><tr><th>Objective</th><td>BiomassEcoli</td></tr><tr><th>Objective value</th><td>0.8517832811766279</td></tr><tr><th>Status</th><td>optimal</td></tr>
+</table>
 
 ## SRFBA
 **`SRFBA`** is a phenotype simulation method based on the integration of a GEM model with a TRN at the genome-scale. 
 **`SRFBA`** performs a single steady-state simulation using both metabolic and regulatory constraints found in the integrated model. 
-This method uses Mixed-Integer Linear Programming to solve nested boolean algebra expressions formulated from 
+This method uses Mixed-Integer Linear Programming (MILP) to solve nested boolean algebra expressions formulated from 
 the structure of the regulatory layer (regulatory interactions) and metabolic layer (GPR rules). 
-Hence, this method adds auxiliary variables representing intermediate boolean variables and operators. 
-Finally, the linear problem also includes a boolean variable and constraint for each reaction linking the outcome 
+For that, **`SRFBA`** adds auxiliary variables representing intermediate boolean variables and operators. 
+The resulting linear problem also includes a boolean variable and constraint for each reaction linking the outcome 
 of the interactions and GPR constraints to the mass balance constraints.
 
 **`SRFBA`** only supports steady-state simulations.
@@ -1036,25 +973,33 @@ Alternatively, one can use the simple and optimized version **`slim_srfba`**.
 
 For more details consult: [https://doi.org/10.1038%2Fmsb4100141](https://doi.org/10.1038%2Fmsb4100141).
 
-For this example we will be using _E. coli_ iMC1010 model available at _models/regulation/iJR904_srfba.xml_ 
-and _models/regulation/iMC1010.csv_
+In this example we will be using _E. coli_ iMC1010 model available at _models/regulation/iJR904_srfba.xml_ 
+and _models/regulation/iMC1010.csv_. This is the model used in the [RFBA example](https://mewpy.readthedocs.io/en/latest/mew.html#RFBA).
 
 ```python
-# loading model
+from mewpy.io import Reader, Engines, read_model
+
+# loading E. coli iMC1010 model
+imc1010_gem_reader = Reader(Engines.MetabolicSBML, 'iJR904.xml')
+imc1010_trn_reader = Reader(Engines.BooleanRegulatoryCSV,
+                            'iMC1010.csv', sep=',', id_col=0, rule_col=4, aliases_cols=[1, 2, 3], header=0)
 model = read_model(imc1010_gem_reader, imc1010_trn_reader)
 ```
 
-**`SRFBA`** does not need an initial state in most cases, as this method performs a steady-state simulation using MILP. The solver tries to find the regulatory state favoring reactions that contribute to faster growth rates. 
+**`SRFBA`** does not need an initial state in most cases, as this method can perform a steady-state simulation using MILP. 
+The solver tries to find a regulatory state favoring reactions that contribute to faster growth rates. 
 Accordingly, regulatory variables can take values between zero and one.
 
 ```python
+from mewpy.analysis import SRFBA
 # steady-state SRFBA
 srfba = SRFBA(model).build()
 solution = srfba.optimize()
 solution
 ```
-<table>            <tr><td>Method</td><td>SRFBA</td></tr><tr><td>Model</td><td>Model iJR904 - Reed2003 - Genome-scale metabolic network of Escherichia coli (iJR904)</td></tr><tr><th>Objective</th><td>BiomassEcoli</td></tr><tr><th>Objective value</th><td>0.8218562176868295</td></tr><tr><th>Status</th><td>optimal</td></tr>        </table>
-
+<table>
+<tr><td>Method</td><td>SRFBA</td></tr><tr><td>Model</td><td>Model iJR904 - Reed2003 - Genome-scale metabolic network of Escherichia coli (iJR904)</td></tr><tr><th>Objective</th><td>BiomassEcoli</td></tr><tr><th>Objective value</th><td>0.8218562176868295</td></tr><tr><th>Status</th><td>optimal</td></tr>
+</table>
 
 ## iFVA and iDeletions
 The `mewpy.mew.analysis` module includes an integrated version of the **`FVA`** method named **`iFVA`**. 
@@ -1067,39 +1012,64 @@ The `mewpy.mew.analysis` module also includes **`isingle_gene_deletion`**, **`is
 and **`isingle_regulator_deletion`** methods to inspect _in silico_ genetic strategies in integrated MEW models.
 
 ```python
+from mewpy.io import Reader, Engines, read_model
+from mewpy.mew.analysis import ifva
+
+# loading E. coli iMC1010 model
+imc1010_gem_reader = Reader(Engines.MetabolicSBML, 'iJR904.xml')
+imc1010_trn_reader = Reader(Engines.BooleanRegulatoryCSV,
+                            'iMC1010.csv', sep=',', id_col=0, rule_col=4, aliases_cols=[1, 2, 3], header=0)
+model = read_model(imc1010_gem_reader, imc1010_trn_reader)
+
 # iFVA of the first fifteen reactions using srfba (the default method). Fraction inferior to 1 (default) to relax the constraints
 reactions_ids = list(model.reactions)[:15]
 ifva(model, fraction=0.9, reactions=reactions_ids, method='srfba')
 ```
 
+<div><style scoped>.dataframe tbody tr th:only-of-type {  vertical-align: middle;}.dataframe tbody tr th {  vertical-align: top;}.dataframe thead th {  text-align: right;}</style><table class=\"dataframe\"><thead><tr><th></th><th>minimum</th><th>maximum</th></tr></thead><tbody><tr><th>12PPDt</th><td>0.000000e+00</td><td>0.000000</td></tr><tr><th>2DGLCNRx</th><td>0.000000e+00</td><td>0.000000</td></tr><tr><th>2DGLCNRy</th><td>0.000000e+00</td><td>0.000000</td></tr><tr><th>2DGULRx</th><td>0.000000e+00</td><td>0.000000</td></tr><tr><th>2DGULRy</th><td>0.000000e+00</td><td>0.000000</td></tr><tr><th>3HCINNMH</th><td>0.000000e+00</td><td>0.000000</td></tr><tr><th>3HPPPNH</th><td>0.000000e+00</td><td>0.000000</td></tr><tr><th>4HTHRS</th><td>0.000000e+00</td><td>0.000000</td></tr><tr><th>5DGLCNR</th><td>-1.319152e+00</td><td>0.000000</td></tr><tr><th>A5PISO</th><td>3.106617e-02</td><td>0.034518</td></tr><tr><th>AACPS1</th><td>-7.177128e-12</td><td>0.055426</td></tr><tr><th>AACPS2</th><td>-1.794282e-11</td><td>0.138565</td></tr><tr><th>AACPS3</th><td>-1.291883e-10</td><td>0.997670</td></tr><tr><th>AACPS4</th><td>-2.511995e-11</td><td>0.193991</td></tr><tr><th>AACPS5</th><td>-1.794282e-10</td><td>1.385652</td></tr></tbody></table></div>
 
 ## PROM
-**`PROM`** is a probabilistic-based phenotype simulation method for integrated models. 
-This method circumvents discrete constraints created by **`RFBA`** and **`SRFBA`** 
-using a continuous approach: reactions' constraints are proportional to the probabilities of related genes being active. 
+**`PROM`** is a probabilistic-based phenotype simulation method. 
+This method circumvents discrete constraints created by **`RFBA`** and **`SRFBA`** using a continuous approach: 
+reactions' constraints are proportional to the probabilities of related genes being active. 
 
 **`PROM`** performs a single steady-state simulation using the probabilistic-based constraints to limit flux through some reactions. 
-This method cannot perform wild-type phenotype simulations though, 
-as probabilities are calculated for single regulator deletion. 
+This method cannot perform wild-type phenotype simulations though, as probabilities are calculated for single regulator deletion. 
 Hence, **`PROM`** is adequate to predict the effect of regulator perturbations.
 
 **`PROM`** can generate a **`KOSolution`** containing the solution of each regulator knock-out.
 
 **`PROM`** is available in the **`mewpy.mew.analysis`** package. 
-Alternatively, one can use the simple and optimized version **`slim_prom`** 
-or the omics package **`mewpy.omics.PROM`**.
+Alternatively, one can use the simple version **`mewpy.mew.analysis.slim_prom`** or the omics package **`mewpy.omics.PROM`**.
 
 For more details consult: [https://doi.org/10.1073/pnas.1005139107](https://doi.org/10.1073/pnas.1005139107).
 
-For this example we will be using _M. tuberculosis_ iNJ661 model available at _examples/models/regulation/iNJ661.xml_, 
+In this example, we will be using _M. tuberculosis_ iNJ661 model available at _examples/models/regulation/iNJ661.xml_, 
 _examples/models/regulation/iNJ661_trn.csv_, 
 and _examples/models/regulation/iNJ661_gene_expression.csv_.
 
+The integrated _M. tuberculosis_ iNJ661 model was published by [Chandrasekaran _et al_, 2010](https://doi.org/10.1073/pnas.1005139107).
+This model consists of the _M. tuberculosis_ iNJ661 GEM model published by [Jamshidi _et al_, 2007](https://doi.org/10.1186/1752-0509-1-26),
+_M. tuberculosis_ TRN published by [Balazsi _et al_, 2008](https://doi.org/10.1038/msb.2008.63),
+and gene expression dataset published by [Chandrasekaran _et al_, 2010](https://doi.org/10.1073/pnas.1005139107).
+This model includes 691 metabolic genes, 1028 unique biochemical reactions, and a TRN having 2018 regulatory interactions
+(target-regulator).
+
 ```python
-# loading model
+from mewpy.io import Reader, Engines, read_model
+# loading M. tuberculosis iNJ661 model
+inj661_gem_reader = Reader(Engines.MetabolicSBML, 'iNJ661.xml')
+inj661_trn_reader = Reader(Engines.TargetRegulatorRegulatoryCSV,
+                           'iNJ661_trn.csv', sep=';', target_col=0, regulator_col=1, header=None)
 model = read_model(inj661_gem_reader, inj661_trn_reader)
+model
 ```
 
+<table>
+<tr><th><b>Model</b></th><td>iNJ661</td></tr><tr><th>Name</th><td>M. tuberculosis iNJ661 model - Jamshidi et al 2007</td></tr><tr><th>Types</th><td>regulatory, metabolic</td></tr><tr><th>Compartments</th><td>c, e</td></tr><tr><th>Reactions</th><td>1028</td></tr><tr><th>Metabolites</th><td>828</td></tr><tr><th>Genes</th><td>661</td></tr><tr><th>Exchanges</th><td>88</td></tr><tr><th>Demands</th><td>0</td></tr><tr><th>Sinks</th><td>0</td></tr><tr><th>Objective</th><td>biomass_Mtb_9_60atp_test_NOF</td></tr><tr><th>Regulatory interactions</th><td>178</td></tr><tr><th>Targets</th><td>178</td></tr><tr><th>Regulators</th><td>30</td></tr><tr><th>Regulatory reactions</th><td>0</td></tr><tr><th>Regulatory metabolites</th><td>0</td></tr><tr><th>Environmental stimuli</th><td>29</td></tr>
+</table>
+
+### Infer probabilities
 **`PROM`** phenotype simulation requires an initial state that must be inferred from the TRN and gene expression dataset.
 Besides, the format of the initial state is slightly different from **`RFBA`** and **`SRFBA`** initial states. 
 
@@ -1111,9 +1081,10 @@ Besides, the format of the initial state is slightly different from **`RFBA`** a
 These methods are based on quantile preprocessing of the gene expression dataset.
 
 ```python
-# computing PROM target-regulator interaction probabilities using quantile preprocessing pipeline
+from mewpy.io import read_gene_expression_dataset
 from mewpy.omics.preprocessing import quantile_preprocessing_pipeline, target_regulator_interaction_probability
 
+# computing PROM target-regulator interaction probabilities using quantile preprocessing pipeline
 expression = read_gene_expression_dataset('iNJ661_gene_expression.csv', sep=';', gene_col=0, header=None)
 quantile_expression, binary_expression = quantile_preprocessing_pipeline(expression)
 initial_state, _ = target_regulator_interaction_probability(model,
@@ -1133,6 +1104,8 @@ initial_state
 Now we can perform the **`PROM`** simulation.
 
 ```python
+from mewpy.mew.analysis import PROM
+
 # using PROM
 prom = PROM(model).build()
 solution = prom.optimize(initial_state=initial_state)
@@ -1149,15 +1122,16 @@ solution.solutions
       Status: optimal,
     ...
 
-
 ## CoRegFlux
-**`CoRegFlux`** is a linear regression-based phenotype simulation method for integrated models. 
+**`CoRegFlux`** is a linear regression-based phenotype simulation method. 
 This method circumvents discrete constraints created by **`RFBA`** and **`SRFBA`** using a continuous approach: 
 reactions' constraints are proportional (using soft plus activation function) to the predicted expression of related genes. 
 
-**`CoRegFlux`** performs a single steady-state simulation using the linear regression model predictions to limit flux through some reactions. 
-Hence, this method can predict the phenotypic behavior of an organism in all environmental conditions available in the gene expression dataset. 
+**`CoRegFlux`** performs a single steady-state simulation using predicted gene expression data (estimated with a linear regression model) 
+to limit flux through some reactions. 
+Hence, this method can predict the phenotypic behavior of an organism for all environmental conditions of the gene expression dataset. 
 However, this method must use a different training dataset to infer regulators' influence scores and train the linear regression models. 
+
 **`CoRegFlux`** can also perform dynamic simulations for a series of time steps. 
 At each time step, dynamic **`CoRegFlux`** updates metabolite concentrations and biomass yield using the euler function. 
 These values are then translated into additional constraints to be added to the steady-state simulation.
@@ -1166,23 +1140,41 @@ These values are then translated into additional constraints to be added to the 
 In addition, **`CoRegFlux`** can generate a **`DynamicSolution`** containing time-step solutions for a single environmental condition in the experiment dataset.
 
 **`CoRegFlux`** is available in the **`mewpy.mew.analysis`** package. 
-Alternatively, one can use the simple and optimized version **`slim_coregflux`** 
-or the omics package **`mewpy.omics.CoRegFlux`**.
+Alternatively, one can use the simple version **`slim_coregflux`** or the omics package **`mewpy.omics.CoRegFlux`**.
 
 For more details consult: [https://doi.org/10.1186/s12918-017-0507-0](https://doi.org/10.1186/s12918-017-0507-0).
 
-For this example we will be using the following models and data:
+In this example we will be using the following models and data:
 - _S. cerevisae_ iMM904 model available at _examples/models/regulation/iMM904.xml_,
 - _S. cerevisae_ TRN inferred with CoRegNet and available at _examples/models/regulation/iMM904_trn.csv_,
 - _S. cerevisae_ training gene expression dataset available at _examples/models/regulation/iMM904_gene_expression.csv_,
 - _S. cerevisae_ influence scores inferred with CoRegNet in the gene expression dataset available at _examples/models/regulation/iMM904_influence.csv_,
 - _S. cerevisae_ experiments gene expression dataset available at _examples/models/regulation/iMM904_experiments.csv_.
 
+The integrated _S. cerevisae_ iMM904 model was published by [Banos _et al_, 2017](https://doi.org/10.1186/s12918-017-0507-0).
+This model consists of the _S. cerevisae_ iMM904 GEM model published by [Mo _et al_, 2009](https://doi.org/10.1186/1752-0509-3-37),
+_S. cerevisae_ TRN inferred by CoRegNet published by [Nicolle _et al_, 2015](https://doi.org/10.1093/bioinformatics/btv305),
+and gene expression datasets published by [Brauer _et al_, 2005](https://doi.org/10.1091/mbc.e04-11-0968)
+and [DeRisi _et al_, 1997](https://doi.org/10.1126/science.278.5338.680).
+This model includes 904 metabolic genes, 1557 unique biochemical reactions, and a TRN having 3748 regulatory interactions
+(target-regulators separated in co-activators and co-repressors).
+
 ```python
-# loading model
+from mewpy.io import Reader, Engines, read_model
+
+# loading S. cerevisae iMM904 model
+imm904_gem_reader = Reader(Engines.MetabolicSBML, 'iMM904.xml')
+imm904_trn_reader = Reader(Engines.CoExpressionRegulatoryCSV,
+                           'iMM904_trn.csv', sep=',', target_col=2, co_activating_col=3, co_repressing_col=4, header=0)
 model = read_model(imm904_gem_reader, imm904_trn_reader)
+model
 ```
 
+<table>
+<tr><th><b>Model</b></th><td>iMM904</td></tr><tr><th>Name</th><td>S. cerevisae iMM904 model - Mo et al 2009</td></tr><tr><th>Types</th><td>regulatory, metabolic</td></tr><tr><th>Compartments</th><td>c, e, m, x, r, v, g, n</td></tr><tr><th>Reactions</th><td>1577</td></tr><tr><th>Metabolites</th><td>1226</td></tr><tr><th>Genes</th><td>905</td></tr><tr><th>Exchanges</th><td>164</td></tr><tr><th>Demands</th><td>0</td></tr><tr><th>Sinks</th><td>0</td></tr><tr><th>Objective</th><td>BIOMASS_SC5_notrace</td></tr><tr><th>Regulatory interactions</th><td>3748</td></tr><tr><th>Targets</th><td>3748</td></tr><tr><th>Regulators</th><td>201</td></tr><tr><th>Regulatory reactions</th><td>0</td></tr><tr><th>Regulatory metabolites</th><td>0</td></tr><tr><th>Environmental stimuli</th><td>199</td></tr>
+</table>
+
+### Predicting gene expression
 **`CoRegFlux`** phenotype simulation requires an initial state that must be inferred from the TRN, gene expression dataset, 
 influence score matrix and experiments gene expression dataset. 
 This initial state contains the predicted gene expression of target metabolic genes available in the GEM model.
@@ -1190,8 +1182,8 @@ This initial state contains the predicted gene expression of target metabolic ge
 These methods create the linear regression models to predict targets' expression according to the experiments gene expression dataset.
 
 HINT: the `predict_gene_expression` method might be time-consuming for some gene expression datasets. 
-One can save the predictions into a CSV file and then load it afterwards using the `read_gene_expression_dataset` 
-method of the **`mewpy.io`** package.
+One can save the predictions into a _CSV_ file and then load it afterwards using the `read_gene_expression_dataset` 
+method from the **`mewpy.io`** module.
 
 ```python
 from mewpy.omics.preprocessing import predict_gene_expression
@@ -1202,22 +1194,26 @@ from mewpy.io import read_gene_expression_dataset, read_coregflux_influence_matr
 # gene_expression_prediction = read_gene_expression_dataset(path.joinpath('iMM904_gene_expression_prediction.csv'),
 #                                                           sep=',', gene_col=0, header=0)
 
-expression = read_gene_expression_dataset(path.joinpath('iMM904_gene_expression.csv'), sep=';', gene_col=0, header=0)
-influence = read_coregflux_influence_matrix(path.joinpath('iMM904_influence.csv'), sep=';', gene_col=0, header=0)
-experiments = read_coregflux_influence_matrix(path.joinpath('iMM904_experiments.csv'), sep=';', gene_col=0, header=0)
+expression = read_gene_expression_dataset('iMM904_gene_expression.csv', sep=';', gene_col=0, header=0)
+influence = read_coregflux_influence_matrix('iMM904_influence.csv', sep=';', gene_col=0, header=0)
+experiments = read_coregflux_influence_matrix('iMM904_experiments.csv', sep=';', gene_col=0, header=0)
 
 gene_expression_prediction = predict_gene_expression(model=model, influence=influence, expression=expression,
                                                      experiments=experiments)
 ```
 
-Now we can perform the **`CoRegFlux`** simulation.
+Now we can perform **`CoRegFlux`** simulation.
 
 ```python
+from mewpy.mew.analysis import CoRegFlux
+
 # steady-state simulation only requires the initial state of a given experiment (the first experiment in this case)
 initial_state = gene_expression_prediction.iloc[:, 0].to_dict()
 co_reg_flux = CoRegFlux(model).build()
 solution = co_reg_flux.optimize(initial_state=initial_state)
 solution
 ```
-<table>            <tr><td>Method</td><td>CoRegFlux</td></tr><tr><td>Model</td><td>Model iMM904 - S. cerevisae iMM904 model - Mo et al 2009</td></tr><tr><th>Objective</th><td>BIOMASS_SC5_notrace</td></tr><tr><th>Objective value</th><td>0.28786570373177145</td></tr><tr><th>Status</th><td>optimal</td></tr>        </table>
+<table>
+<tr><td>Method</td><td>CoRegFlux</td></tr><tr><td>Model</td><td>Model iMM904 - S. cerevisae iMM904 model - Mo et al 2009</td></tr><tr><th>Objective</th><td>BIOMASS_SC5_notrace</td></tr><tr><th>Objective value</th><td>0.28786570373177145</td></tr><tr><th>Status</th><td>optimal</td></tr>
+</table>
 
