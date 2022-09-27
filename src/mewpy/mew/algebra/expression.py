@@ -330,7 +330,7 @@ class Expression:
         elif strategy == 'all':
             variables = list(self.variables.keys())
 
-            for mid_state in product(*state):
+            for mid_state in product(*state.values()):
                 mid_state = dict(list(zip(variables, mid_state)))
 
                 mid_state['result'] = self.evaluate(values=mid_state,

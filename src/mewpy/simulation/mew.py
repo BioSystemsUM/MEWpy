@@ -735,8 +735,7 @@ class Simulation(MewModel, Simulator):
         solution = fva(model=self.model,
                        fraction=obj_frac,
                        reactions=reactions,
-                       constraints=simulation_constraints,
-                       to_dict=format == 'dict')
+                       constraints=simulation_constraints)
 
         if format == 'df':
             df = pd.concat([pd.DataFrame(solution.index), solution], axis=1)
@@ -744,4 +743,4 @@ class Simulation(MewModel, Simulator):
 
             return df
 
-        return solution
+        return solution.to_dict()

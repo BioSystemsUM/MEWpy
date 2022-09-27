@@ -20,7 +20,7 @@ def coefficients_setter(instance: 'Variable', value: Union[Tuple[float, float], 
     elif len(value) == 1:
         value = (value[0], value[0])
 
-    elif len(value) == 2:
+    elif len(value) > 1:
         value = tuple(value)
 
     else:

@@ -458,7 +458,7 @@ class TestMewModel(unittest.TestCase):
         self.assertEqual(len(model.interactions), 36)
         self.assertEqual(len(model.targets), 36)
         self.assertEqual(len(model.regulators), 19)
-        self.assertEqual(len(model.environmental_stimuli), 5)
+        self.assertEqual(len(model.environmental_stimuli), 1)
 
         self.assertEqual(model.objective, {model.get('r11'): 1})
         self.assertEqual(len(model.reactions), 17)
@@ -602,7 +602,7 @@ class TestMewModel(unittest.TestCase):
             # a gene ko does not change the bounds of the associated reactions
             model.get('g14').ko()
 
-            self.assertEqual(model.get('g14').coefficients, (0.0,))
+            self.assertEqual(model.get('g14').coefficients, (0.0, 0.0))
             self.assertEqual(model.get('r8').bounds, (lb, ub))
 
             fba_sol = fba.optimize()
@@ -792,7 +792,7 @@ class TestMewModel(unittest.TestCase):
         self.assertEqual(len(model.interactions), 38)
         self.assertEqual(len(model.targets), 38)
         self.assertEqual(len(model.regulators), 21)
-        self.assertEqual(len(model.environmental_stimuli), 7)
+        self.assertEqual(len(model.environmental_stimuli), 3)
 
         self.assertEqual(model.objective, {model.get('r11'): 1})
         self.assertEqual(len(model.reactions), 20)
