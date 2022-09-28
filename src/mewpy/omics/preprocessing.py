@@ -1,4 +1,3 @@
-import warnings
 from typing import Tuple, Dict, Union, TYPE_CHECKING, List
 
 import numpy as np
@@ -7,34 +6,6 @@ import pandas as pd
 if TYPE_CHECKING:
     from mewpy.mew.variables import Gene, Target
     from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
-
-try:
-
-    # noinspection PyPackageRequirements
-    from sklearn.impute import KNNImputer
-    # noinspection PyPackageRequirements
-    from sklearn.preprocessing import quantile_transform
-    # noinspection PyPackageRequirements
-    from sklearn.linear_model import LinearRegression
-
-except ImportError as exc:
-
-    warnings.warn('The package scikit-learn is not installed. '
-                  'To preprocess gene expression data, please install scikit-learn (pip install scikit-learn).')
-
-    raise exc
-
-try:
-
-    # noinspection PyPackageRequirements
-    from scipy.stats import ks_2samp
-
-except ImportError as exc:
-
-    warnings.warn('The package scipy is not installed. '
-                  'To preprocess gene expression data, please install scipy (pip install scipy).')
-
-    raise exc
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -61,6 +32,13 @@ def knn_imputation(expression: np.ndarray,
     the euclidean distance ignoring missing values. Consult sklearn documentation for more information.
     :return: Imputed expression matrix
     """
+    try:
+        # noinspection PyPackageRequirements
+        from sklearn.impute import KNNImputer
+    except ImportError:
+        raise ImportError('The package scikit-learn is not installed. '
+                          'To preprocess gene expression data, please install scikit-learn (pip install scikit-learn).')
+
     if missing_values is None:
         missing_values = np.nan
 
@@ -89,6 +67,13 @@ def quantile_transformation(expression: np.ndarray, n_quantiles: int = None) -> 
     :param n_quantiles: Number of quantiles to be computed. It corresponds to the number of landmarks used to discretize
     :return: Quantile transformed expression matrix
     """
+    try:
+        # noinspection PyPackageRequirements
+        from sklearn.preprocessing import quantile_transform
+    except ImportError:
+        raise ImportError('The package scikit-learn is not installed. '
+                          'To preprocess gene expression data, please install scikit-learn (pip install scikit-learn).')
+
     if n_quantiles is None:
         n_quantiles = expression.shape[1]
 
@@ -172,6 +157,13 @@ def target_regulator_interaction_probability(model: Union['Model', 'MetabolicMod
     :return: Dictionary with the conditional probability of a target gene being active when the regulator is inactive,
     Dictionary with missed interactions
     """
+    try:
+        # noinspection PyPackageRequirements
+        from scipy.stats import ks_2samp
+    except ImportError:
+        raise ImportError('The package scipy is not installed. '
+                          'To compute the probability of target-regulator interactions, please install scipy '
+                          '(pip install scipy).')
     missed_interactions = {}
     interactions_probabilities = {}
 
@@ -265,6 +257,14 @@ def _predict_experiment(interactions: Dict[str, List[str]],
                         influence: pd.DataFrame,
                         expression: pd.DataFrame,
                         experiment: pd.Series) -> pd.Series:
+    try:
+        # noinspection PyPackageRequirements
+        from sklearn.linear_model import LinearRegression
+    except ImportError:
+        raise ImportError('The package sklearn is not installed. '
+                          'To compute the probability of target-regulator interactions, please install sklearn '
+                          '(pip install sklearn).')
+
     predictions = {}
 
     for target, regulators in interactions.items():
