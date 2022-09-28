@@ -4,8 +4,8 @@ from .fba import FBA
 from .pfba import pFBA
 from .rfba import RFBA
 from .srfba import SRFBA
-from .prom import PROM
-from .coregflux import CoRegFlux
+from .prom import PROM, target_regulator_interaction_probability
+from .coregflux import CoRegFlux, predict_gene_expression
 from .metabolic_analysis import slim_fba, slim_pfba, fva, single_gene_deletion, single_reaction_deletion
 from .regulatory_analysis import regulatory_truth_table
 from .integrated_analysis import (slim_rfba, slim_srfba, slim_prom, slim_coregflux,

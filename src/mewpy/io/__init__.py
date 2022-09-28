@@ -16,7 +16,6 @@ from .engines import (Engines,
                       JSON,
                       RegulatorySBML,
                       MetabolicSBML)
-from .gene_expression import read_gene_expression_dataset, read_coregflux_influence_matrix
 
 
 if TYPE_CHECKING:

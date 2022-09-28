@@ -1040,7 +1040,7 @@ Hence, **`PROM`** is adequate to predict the effect of regulator perturbations.
 **`PROM`** can generate a **`KOSolution`** containing the solution of each regulator knock-out.
 
 **`PROM`** is available in the **`mewpy.mew.analysis`** package. 
-Alternatively, one can use the simple version **`mewpy.mew.analysis.slim_prom`** or the omics package **`mewpy.omics.PROM`**.
+Alternatively, one can use the simple version **`mewpy.mew.analysis.slim_prom`**.
 
 For more details consult: [https://doi.org/10.1073/pnas.1005139107](https://doi.org/10.1073/pnas.1005139107).
 
@@ -1077,16 +1077,16 @@ Besides, the format of the initial state is slightly different from **`RFBA`** a
 - keys -> tuple of regulator and target gene identifiers
 - value -> probability of this regulatory interaction inferred from the gene expression dataset
 
-**`mewpy.omics`** package contains the required methods to infer **`PROM`**'s initial state. 
-These methods are based on quantile preprocessing of the gene expression dataset.
+**`mewpy.omics`** package contains the required methods to perform a quantile preprocessing of the gene expression dataset. 
+Then, one can use the `mewpy.mew.analysis.prom.target_regulator_interaction_probability()` method to infer **`PROM`**'s initial state
 
 ```python
-from mewpy.io import read_gene_expression_dataset
-from mewpy.omics.preprocessing import quantile_preprocessing_pipeline, target_regulator_interaction_probability
+from mewpy.omics import ExpressionSet
+from mewpy.mew.analysis import target_regulator_interaction_probability
 
 # computing PROM target-regulator interaction probabilities using quantile preprocessing pipeline
-expression = read_gene_expression_dataset('iNJ661_gene_expression.csv', sep=';', gene_col=0, header=None)
-quantile_expression, binary_expression = quantile_preprocessing_pipeline(expression)
+expression = ExpressionSet.from_csv(file_path='iNJ661_gene_expression.csv', sep=';', index_col=0, header=None)
+quantile_expression, binary_expression = expression.quantile_pipeline()
 initial_state, _ = target_regulator_interaction_probability(model,
                                                             expression=quantile_expression,
                                                             binary_expression=binary_expression)
@@ -1140,7 +1140,7 @@ These values are then translated into additional constraints to be added to the 
 In addition, **`CoRegFlux`** can generate a **`DynamicSolution`** containing time-step solutions for a single environmental condition in the experiment dataset.
 
 **`CoRegFlux`** is available in the **`mewpy.mew.analysis`** package. 
-Alternatively, one can use the simple version **`slim_coregflux`** or the omics package **`mewpy.omics.CoRegFlux`**.
+Alternatively, one can use the simple version **`slim_coregflux`**.
 
 For more details consult: [https://doi.org/10.1186/s12918-017-0507-0](https://doi.org/10.1186/s12918-017-0507-0).
 
@@ -1178,25 +1178,26 @@ model
 **`CoRegFlux`** phenotype simulation requires an initial state that must be inferred from the TRN, gene expression dataset, 
 influence score matrix and experiments gene expression dataset. 
 This initial state contains the predicted gene expression of target metabolic genes available in the GEM model.
-**`mewpy.omics`** package contains the required methods to infer **`CoRegFlux`**'s initial state. 
-These methods create the linear regression models to predict targets' expression according to the experiments gene expression dataset.
+
+**`mewpy.mew.analysis.coregflux`** module includes the tools to infer **`CoRegFlux`**'s initial state. 
+These methods create the linear regression models to predict targets' expression according to the experiments gene expression dataset. 
+One just have to load expression, influence and experiments CSV files using `mewpy.omics.ExpressionSet`.
 
 HINT: the `predict_gene_expression` method might be time-consuming for some gene expression datasets. 
-One can save the predictions into a _CSV_ file and then load it afterwards using the `read_gene_expression_dataset` 
-method from the **`mewpy.io`** module.
+One can save the predictions into a CSV file and then load it afterwards using `mewpy.omics.ExpressionSet.from_csv()`.
 
 ```python
-from mewpy.omics.preprocessing import predict_gene_expression
-from mewpy.io import read_gene_expression_dataset, read_coregflux_influence_matrix
+from mewpy.omics import ExpressionSet
+from mewpy.mew.analysis import predict_gene_expression
 
 # HINT: you can uncomment the following line to load pre-computed gene expression predictions.
 # Do not forget to comment the remaining lines in this cell.
 # gene_expression_prediction = read_gene_expression_dataset(path.joinpath('iMM904_gene_expression_prediction.csv'),
 #                                                           sep=',', gene_col=0, header=0)
 
-expression = read_gene_expression_dataset('iMM904_gene_expression.csv', sep=';', gene_col=0, header=0)
-influence = read_coregflux_influence_matrix('iMM904_influence.csv', sep=';', gene_col=0, header=0)
-experiments = read_coregflux_influence_matrix('iMM904_experiments.csv', sep=';', gene_col=0, header=0)
+expression = ExpressionSet.from_csv('iMM904_gene_expression.csv', sep=';', index_col=0, header=0).dataframe
+influence = ExpressionSet.from_csv('iMM904_influence.csv', sep=';', index_col=0, header=0).dataframe
+experiments = ExpressionSet.from_csv('iMM904_experiments.csv', sep=';', index_col=0, header=0).dataframe
 
 gene_expression_prediction = predict_gene_expression(model=model, influence=influence, expression=expression,
                                                      experiments=experiments)
@@ -1216,4 +1217,3 @@ solution
 <table>
 <tr><td>Method</td><td>CoRegFlux</td></tr><tr><td>Model</td><td>Model iMM904 - S. cerevisae iMM904 model - Mo et al 2009</td></tr><tr><th>Objective</th><td>BIOMASS_SC5_notrace</td></tr><tr><th>Objective value</th><td>0.28786570373177145</td></tr><tr><th>Status</th><td>optimal</td></tr>
 </table>
-

@@ -1,10 +1,14 @@
-from typing import TYPE_CHECKING, Union, Dict, Sequence, List
+from typing import TYPE_CHECKING, Union, Dict, Sequence, List, Tuple
+
+import numpy as np
+import pandas as pd
 
 from mewpy.mew.analysis import FBA
 from mewpy.mew.analysis.analysis_utils import biomass_yield_to_rate, \
     CoRegMetabolite, CoRegBiomass, metabolites_constraints, gene_state_constraints, system_state_update, \
     build_metabolites, build_biomass, CoRegResult
 from mewpy.mew.solution import ModelSolution, DynamicSolution
+from mewpy.mew.variables import Gene, Target
 from mewpy.solvers.solution import Solution, Status
 from mewpy.solvers.solver import Solver
 from mewpy.util.constants import ModelConstants
@@ -306,3 +310,145 @@ class CoRegFlux(FBA):
                               soft_plus=soft_plus,
                               tolerance=tolerance,
                               scale=scale)
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Preprocessing using LinearRegression to predict genes expression from regulators co-expression
+# Useful for CoRegFlux method
+# ----------------------------------------------------------------------------------------------------------------------
+def _get_target_regulators(gene: Union['Gene', 'Target'] = None) -> List[str]:
+    """
+    It returns the list of regulators of a target gene
+    :param gene: Target gene
+    :return: List of regulators of the target gene
+    """
+    if gene is None:
+        return []
+
+    if gene.is_target():
+        return [regulator.id for regulator in gene.yield_regulators()]
+
+    return []
+
+
+def _filter_influence_and_expression(interactions: Dict[str, List[str]],
+                                     influence: pd.DataFrame,
+                                     expression: pd.DataFrame,
+                                     experiments: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """
+    It filters influence, expression and experiments matrices to keep only the targets and their regulators.
+    :param interactions: Dictionary with the interactions between targets and regulators
+    :param influence: Influence matrix
+    :param expression: Expression matrix
+    :param experiments: Experiments matrix
+    :return: Filtered influence matrix, filtered expression matrix, filtered experiments matrix
+    """
+    targets = pd.Index(set(interactions.keys()))
+    regulators = pd.Index(set([regulator for regulators in interactions.values() for regulator in regulators]))
+
+    # filter the expression matrix for the target genes only
+    expression = expression.loc[expression.index.intersection(targets)].copy()
+    influence = influence.loc[influence.index.intersection(regulators)].copy()
+    experiments = experiments.loc[experiments.index.intersection(regulators)].copy()
+    return influence, expression, experiments
+
+
+def _predict_experiment(interactions: Dict[str, List[str]],
+                        influence: pd.DataFrame,
+                        expression: pd.DataFrame,
+                        experiment: pd.Series) -> pd.Series:
+    try:
+        # noinspection PyPackageRequirements
+        from sklearn.linear_model import LinearRegression
+    except ImportError:
+        raise ImportError('The package sklearn is not installed. '
+                          'To compute the probability of target-regulator interactions, please install sklearn '
+                          '(pip install sklearn).')
+
+    predictions = {}
+
+    for target, regulators in interactions.items():
+
+        if not regulators:
+            predictions[target] = np.nan
+            continue
+
+        if target not in expression.index:
+            predictions[target] = np.nan
+            continue
+
+        if not set(regulators).issubset(influence.index):
+            predictions[target] = np.nan
+            continue
+
+        if not set(regulators).issubset(experiment.index):
+            predictions[target] = np.nan
+            continue
+
+        # a linear regression model is trained for
+        # y = expression of the target gene for all samples
+        # x1 = influence score of the regulator 1 in the train data set
+        # x2 = influence score of the regulator 2 in the train data set
+        # x3 ...
+
+        x = influence.loc[regulators].transpose().to_numpy()
+        y = expression.loc[target].to_numpy()
+
+        regressor = LinearRegression()
+        regressor.fit(x, y)
+
+        # the expression of the target gene is predicted for the experiment
+        x_pred = experiment.loc[regulators].to_frame().transpose().to_numpy()
+        predictions[target] = regressor.predict(x_pred)[0]
+
+    return pd.Series(predictions)
+
+
+def predict_gene_expression(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
+                            influence: pd.DataFrame,
+                            expression: pd.DataFrame,
+                            experiments: pd.DataFrame) -> pd.DataFrame:
+    """
+    It predicts the expression of genes in the experiments set using the co-expression of regulators
+    in the expression and influence datasets.
+    Adapted from CoRegFlux docs:
+        - A GEM model containing GPRs
+        - A TRN network containing target genes and the co-activators and co-repressors of each target gene
+        - GEM genes and TRN targets must match
+        - An influence dataset containing the influence scores of the regulators. Influence score is similar to a
+        correlation score between the expression of the regulator and the expression of the target gene.
+        Influence dataset format: (rows: regulators, columns: samples). Influence scores are calculated using the
+        CoRegNet algorithm in the gene expression dataset.
+        - A gene expression dataset containing the expression of the genes. Also called the training dataset.
+        The gene expression dataset format: (rows: genes, columns: samples)
+        - An experiments dataset containing the influence scores of the regulators in the experiments. These experiments
+        are not used for training the linear regression model (the gene state predictor).
+        These experiments are condition-specific environmental or genetic conditions that can be used
+        to perform phenotype simulations.
+        Experiments dataset format: (rows: regulators, columns: experiments/conditions)
+
+    The result is a matrix of predicted gene expression values for each experiment.
+    :param model: an integrated Metabolic-Regulatory model aka a MEW model
+    :param influence: Influence scores of the regulators in the train data set
+    :param expression: Expression of the genes in the train data set
+    :param experiments: Influence scores of the regulators in the test data set
+    :return: Predicted expression of the genes in the test data set
+    """
+    # Filtering only the gene expression and influences data of metabolic genes available in the model
+    interactions = {target.id: _get_target_regulators(target) for target in model.yield_targets()}
+    influence, expression, experiments = _filter_influence_and_expression(interactions=interactions,
+                                                                          influence=influence,
+                                                                          expression=expression,
+                                                                          experiments=experiments)
+
+    predictions = []
+    for column in experiments.columns:
+        experiment_prediction = _predict_experiment(interactions=interactions,
+                                                    influence=influence,
+                                                    expression=expression,
+                                                    experiment=experiments[column])
+        predictions.append(experiment_prediction)
+
+    predictions = pd.concat(predictions, axis=1)
+    predictions.columns = experiments.columns
+    return predictions.dropna()

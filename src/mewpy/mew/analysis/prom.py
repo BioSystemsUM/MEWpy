@@ -1,5 +1,7 @@
 from typing import Union, Dict, TYPE_CHECKING, Any, Sequence, Tuple
 
+import pandas as pd
+
 from mewpy.mew.analysis import FBA
 from mewpy.mew.solution import ModelSolution, KOSolution
 from mewpy.solvers.solution import Solution, Status
@@ -316,3 +318,78 @@ class PROM(FBA):
             return solutions
 
         return KOSolution(solutions)
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Probability of Target-Regulator interactions
+# ----------------------------------------------------------------------------------------------------------------------
+def target_regulator_interaction_probability(model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
+                                             expression: pd.DataFrame,
+                                             binary_expression: pd.DataFrame) -> Tuple[Dict[Tuple[str, str], float],
+                                                                                       Dict[Tuple[str, str], float]]:
+    """
+    It computes the conditional probability of a target gene being active when the regulator is inactive.
+    It uses the following formula:
+        P(target = 1 | regulator = 0) = count(target = 1, regulator = 0) / # samples
+    This probability is computed for each combination of target-regulator.
+    This method is used in PROM analysis.
+
+    :param model: an integrated Metabolic-Regulatory model aka a MEW model
+    :param expression: Quantile preprocessed expression matrix
+    :param binary_expression: Quantile preprocessed expression matrix binarized
+    :return: Dictionary with the conditional probability of a target gene being active when the regulator is inactive,
+    Dictionary with missed interactions
+    """
+    try:
+        # noinspection PyPackageRequirements
+        from scipy.stats import ks_2samp
+    except ImportError:
+        raise ImportError('The package scipy is not installed. '
+                          'To compute the probability of target-regulator interactions, please install scipy '
+                          '(pip install scipy).')
+    missed_interactions = {}
+    interactions_probabilities = {}
+
+    for interaction in model.yield_interactions():
+
+        target = interaction.target
+
+        if not interaction.regulators or target.id not in expression.index:
+            missed_interactions[(target.id, target.id)] = 1
+            interactions_probabilities[(target.id, target.id)] = 1
+            continue
+
+        target_expression = expression.loc[target.id]
+        target_binary = binary_expression.loc[target.id]
+
+        for regulator in interaction.yield_regulators():
+
+            if regulator.id not in expression.index:
+                missed_interactions[(target.id, regulator.id)] = 1
+                interactions_probabilities[(target.id, regulator.id)] = 1
+                continue
+
+            regulator_binary = binary_expression.loc[regulator.id]
+
+            target_expression_1_regulator = target_expression[regulator_binary == 1]
+            target_expression_0_regulator = target_expression[regulator_binary == 0]
+
+            if len(target_expression_1_regulator) == 0 and len(target_expression_0_regulator) == 0:
+                missed_interactions[(target.id, regulator.id)] = 1
+                interactions_probabilities[(target.id, regulator.id)] = 1
+                continue
+
+            _, p_val = ks_2samp(target_expression_1_regulator, target_expression_0_regulator)
+            if p_val < 0.05:
+                target_binary_0_regulator = target_binary[regulator_binary == 0]
+
+                probability = sum(target_binary_0_regulator) / len(target_binary_0_regulator)
+
+                interactions_probabilities[(target.id, regulator.id)] = probability
+                missed_interactions[(target.id, regulator.id)] = 0
+
+            else:
+                missed_interactions[(target.id, regulator.id)] = 1
+                interactions_probabilities[(target.id, regulator.id)] = 1
+
+    return interactions_probabilities, missed_interactions

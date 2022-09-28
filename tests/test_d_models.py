@@ -296,16 +296,18 @@ class TestMewModel(unittest.TestCase):
         model.objective = {'Biomass_Ecoli_core': 1}
 
         # fba
-        from mewpy.mew.analysis import FBA
+        from mewpy.mew.analysis import FBA, slim_fba
         simulator = FBA(model)
         sol = simulator.optimize()
         self.assertGreater(sol.objective_value, 0)
+        self.assertGreater(slim_fba(model), 0)
 
         # pfba
-        from mewpy.mew.analysis import pFBA
+        from mewpy.mew.analysis import pFBA, slim_pfba
         simulator = pFBA(model)
         sol = simulator.optimize()
         self.assertGreater(sol.objective_value, 0)
+        self.assertGreater(slim_pfba(model), 0)
 
         # deletions
         from mewpy.mew.analysis import single_reaction_deletion, single_gene_deletion
@@ -342,27 +344,15 @@ class TestMewModel(unittest.TestCase):
         model = read_model(regulatory_reader, metabolic_reader)
 
         _BIOMASS_ID = 'r11'
-        # _O2 = 'r0'
-        # _GLC = 'EX_glc__D_e'
-        # _FUM = 'EX_fum_e'
-        #
-        # constraints = {_GLC: (-10.0, 100000.0), _O2: (-30, 100000.0), _FUM: (-10, 100000.0)}
-        #
-        # for rxn, bds in constraints.items():
-        #     model.get(rxn).bounds = bds
 
         model.objective = {_BIOMASS_ID: 1}
         model.get('pH').coefficients = (0, 14)
 
-        from mewpy.mew.analysis import SRFBA
-        simulator = SRFBA(model)
-        sol = simulator.optimize()
-        self.assertGreater(sol.objective_value, 0)
+        from mewpy.mew.analysis import slim_srfba
+        self.assertGreater(slim_srfba(model), 0)
 
-        from mewpy.mew.analysis import RFBA
-        simulator = RFBA(model)
-        sol = simulator.optimize()
-        self.assertIsNotNone(sol)
+        from mewpy.mew.analysis import slim_rfba
+        self.assertIsNotNone(slim_rfba(model))
 
         sol = simulator.optimize(dynamic=True)
         self.assertIsNotNone(sol)
@@ -412,7 +402,7 @@ class TestMewModel(unittest.TestCase):
         from mewpy.mew.analysis import PROM
         simulator = PROM(model).build()
         sol = simulator.optimize(initial_state=probabilities, regulators=['g29', 'g30', 'g35'])
-        self.assertGreater(sol.ko_g35.objective_value, 0)
+        self.assertGreater(sol.solutions['ko_g35'].objective_value, 0)
 
         predicted_expression = {
             'g10': 2,
