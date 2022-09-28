@@ -36,6 +36,7 @@ class TestExpressionSet(unittest.TestCase):
         from mewpy.omics import iMAT
         iMAT(self.sim, self.expr)
 
+    @unittest.skip("Skipping PROM test as it requires sklearn")
     def test_PROM(self):
         from mewpy.omics import PROM
         from mewpy.io import Reader, Engines, read_model
@@ -50,6 +51,7 @@ class TestExpressionSet(unittest.TestCase):
         model = read_model(regulatory_reader, metabolic_reader)
         PROM(model, self.expr, regulator=next(iter(model.regulators)))
 
+    @unittest.skip("Skipping CoRegFlux test as it requires sklearn")
     def test_CoRegFlux(self):
         from mewpy.omics import CoRegFlux
         from mewpy.io import Reader, Engines, read_model
