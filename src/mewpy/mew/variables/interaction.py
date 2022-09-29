@@ -1,19 +1,10 @@
 from typing import Any, TYPE_CHECKING, Dict, Union, Generator, Tuple
 
-# TODO: this module depends on pandas dataframes. Should it be set as package requirement?
-try:
-    # noinspection PyPackageRequirements
-    from pandas import concat, DataFrame
-
-except ImportError:
-
-    concat = False
-    DataFrame = False
+import pandas as pd
 
 from mewpy.mew.algebra import Expression, parse_expression
-from mewpy.mew.lp import Notification
 from mewpy.util.utilities import generator
-from mewpy.util.serialization import serialize
+from mewpy.mew.models.serialization import serialize
 from mewpy.util.history import recorder
 from mewpy.io.engines.engines_utils import expression_warning
 from .variable import Variable, variables_from_symbolic
@@ -23,10 +14,9 @@ from .variable import Variable, variables_from_symbolic
 if TYPE_CHECKING:
     from .regulator import Regulator
     from .target import Target
-    from mewpy.model import Model, MetabolicModel, RegulatoryModel
+    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
 
 
-# TODO: methods stubs
 class Interaction(Variable, variable_type='interaction', register=True, constructor=True, checker=True):
 
     def __init__(self,
@@ -46,14 +36,13 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
 
         The set of regulators is inferred from the regulatory events.
         Also, the regulatory events are used to generate a regulatory table,
-        namely the possible coefficients of the target for the active (or not) coefficients of the regulators.
+        namely the possible coefficients of the target for the default (or not) coefficients of the regulators.
 
         :param identifier: the interaction identifier
         :param target: the target variable that is regulated by the regulators/expressions logic
         :param regulatory_events: A dictionary comprehending coefficient-expression pairs.
         The expression when evaluated to true results into the corresponding coefficient
         that must be associated with the target coefficients
-
         """
 
         if not target:
@@ -82,10 +71,8 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
     # -----------------------------------------------------------------------------
     # Variable type manager
     # -----------------------------------------------------------------------------
-
     @property
     def types(self):
-
         # noinspection PyUnresolvedReferences
         _types = {Interaction.variable_type}
 
@@ -96,44 +83,69 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
     # -----------------------------------------------------------------------------
     # Built-in
     # -----------------------------------------------------------------------------
-
     def __str__(self):
 
         if self.target:
-            string_repr = f'{self.target.id}: '
+            target_str = f'{self.target.id} || '
 
         else:
-            string_repr = ''
+            target_str = ''
 
-        for expression in self.yield_expressions():
-            string_repr += expression.to_string()
+        expression_str = ' + '.join([f'{coefficient} = {expression.to_string()}'
+                                     for coefficient, expression in self.regulatory_events.items()
+                                     if not expression.is_none])
 
-        return string_repr
+        return target_str + expression_str
+
+    def _interaction_to_html(self):
+        """
+        It returns a html dict representation.
+        """
+        html_dict = {'Target': self.target,
+                     'Regulators': ', '.join(self.regulators),
+                     'Regulatory events': ', '.join([f'{coefficient} = {expression.to_string()}'
+                                                     for coefficient, expression in self.regulatory_events.items()
+                                                     if not expression.is_none])}
+        return html_dict
 
     # -----------------------------------------------------------------------------
     # Static attributes
     # -----------------------------------------------------------------------------
-
     @serialize('regulatory_events', 'regulatory_events', '_regulatory_events')
     @property
     def regulatory_events(self) -> Dict[Union[float, int], Expression]:
+        """
+        A dictionary comprehending coefficient-expression key-value pairs.
+        The expression when evaluated to true results into the corresponding coefficient that must be associated
+        with the target coefficients
+        """
         return self._regulatory_events.copy()
 
     @serialize('target', 'target', '_target')
     @property
     def target(self) -> 'Target':
+        """
+        The target variable that is regulated by the regulators/expressions logic
+        """
         return self._target
 
     # -----------------------------------------------------------------------------
     # Static attributes setters
     # -----------------------------------------------------------------------------
-
     @regulatory_events.setter
     @recorder
     def regulatory_events(self, value: Dict[Union[float, int], Expression]):
+        """
+        Setting a dictionary comprehending coefficient-expression key-value pairs
+        to replace the current regulatory events.
+        This setter adds and removes regulatory events.
+        It also handles the linear problems associated to this interaction
+        """
+        if not value:
+            value = {0.0: Expression()}
 
         for coefficient, expression in self.regulatory_events.items():
-            self.remove_regulatory_event(coefficient=coefficient, expression=expression,
+            self.remove_regulatory_event(coefficient=coefficient,
                                          remove_orphans=True, history=False)
 
         for coefficient, expression in value.items():
@@ -142,84 +154,100 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
     @target.setter
     @recorder
     def target(self, value: 'Target'):
-
+        """
+        Setting a new Target variable.
+        This setter adds and removes target variable.
+        It also handles the linear problems associated to this interaction
+        """
         self.remove_target(remove_from_model=True, history=False)
         self.add_target(value, history=False)
 
     # -----------------------------------------------------------------------------
     # Dynamic attributes
     # -----------------------------------------------------------------------------
-
     @property
     def regulators(self) -> Dict[str, 'Regulator']:
-
+        """
+        It returns a dictionary with the regulators associated to this interaction
+        """
         return {reg_id: regulator
                 for expression in self.yield_expressions()
                 for reg_id, regulator in expression.variables.items()}
 
-    def _compute_regulatory_table(self, active_states=True):
+    @property
+    def regulatory_truth_table(self) -> pd.DataFrame:
+        """
+        It calculates the truth table for this interaction based on the regulatory events.
+        The truth table is composed by the combination of values taken by empty, numeric and symbolic variables
+        available in the regulatory events of this interaction.
+        That is, the regulatory table is a pandas DataFrame with the possible coefficients
+        of the target variable for the default (or not) coefficients of the regulators.
 
-        if concat is False:
-            raise RuntimeError('pandas must be installed to compute regulatory tables')
-
+        :return: It returns a pandas DataFrame with the truth table
+        """
         truth_tables = []
 
         for coefficient, expression in self._regulatory_events.items():
-            df = expression.truth_table(active_states=active_states, coefficient=coefficient)
+            df = expression.truth_table(strategy='max', coefficient=coefficient)
 
             df.index = [self.target.id if self.target else 'result'] * df.shape[0]
 
             truth_tables.append(df)
 
-        # noinspection PyCallingNonCallable
-        regulatory_events = concat(truth_tables)
-
-        regulatory_events = regulatory_events[['result'] + [col for col in regulatory_events.columns
-                                                            if col != 'result']]
+        regulatory_events = pd.concat(truth_tables)
 
         return regulatory_events
-
-    @property
-    def regulatory_table(self) -> DataFrame:
-
-        return self._compute_regulatory_table(active_states=True)
-
-    def full_regulatory_table(self) -> DataFrame:
-
-        return self._compute_regulatory_table(active_states=False)
 
     # -----------------------------------------------------------------------------
     # Generators
     # -----------------------------------------------------------------------------
-
     def yield_regulatory_events(self) -> Generator[Tuple[Union[float, int], Expression], None, None]:
-
+        """
+        It yields all regulatory events
+        """
         return ((coefficient, expression) for coefficient, expression in self._regulatory_events.items())
 
     def yield_expressions(self) -> Generator[Expression, None, None]:
-
+        """
+        It yields all expressions
+        """
         return generator(self._regulatory_events)
 
     def yield_regulators(self) -> Generator['Regulator', None, None]:
-
+        """
+        It yields all regulators
+        """
         return generator(self.regulators)
 
     # -----------------------------------------------------------------------------
     # Polymorphic constructors
     # -----------------------------------------------------------------------------
-
     @classmethod
     def from_string(cls,
                     identifier: Any,
-                    stringify_rule: str,
+                    rule: str,
                     target: 'Target',
                     coefficient: Union[float, int] = 1.0,
                     model: Union['Model', 'MetabolicModel', 'RegulatoryModel'] = None,
                     **kwargs) -> 'Interaction':
+        """
+        A regulatory interaction is regularly associated with a target and the regulatory
+        events modelling the coefficients of this target variable.
 
+        A regulatory interaction can be assembled from a string object encoding an algebra expression
+
+        :param identifier: The interaction identifier
+        :param rule: A string object encoding an algebra expression
+        :param target: The target variable that is regulated by the regulators/expressions logic
+        :param coefficient: the coefficient that should be taken by the target
+        whether this expression is evaluated positively
+        :param model: If a model is provided, this interaction will be associated to the model
+        :param kwargs: Additional arguments
+        :return: A new interaction object
+        """
         try:
 
-            symbolic = parse_expression(stringify_rule)
+            symbolic = parse_expression(rule)
 
             regulators = variables_from_symbolic(symbolic=symbolic, types=('regulator',), model=model)
 
@@ -227,7 +255,7 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
 
         except SyntaxError as exc:
 
-            expression_warning(f'{stringify_rule} cannot be parsed')
+            expression_warning(f'{rule} cannot be parsed')
 
             raise exc
 
@@ -248,6 +276,22 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
                         model: Union['Model', 'MetabolicModel', 'RegulatoryModel'] = None,
                         **kwargs) -> 'Interaction':
 
+        """
+        A regulatory interaction is regularly associated with a target and the regulatory
+        events modelling the coefficients of this target variable.
+
+        A regulatory interaction can be assembled from an expression object encoding an algebra expression
+
+        :param identifier: The interaction identifier
+        :param expression: An expression object encoding an algebra expression
+        :param target: The target variable that is regulated by the regulators/expressions logic
+        :param coefficient: the coefficient that should be taken by the target
+        whether this expression is evaluated positively
+        :param model: If a model is provided, this interaction will be associated to the model
+        :param kwargs: Additional arguments
+        :return: A new interaction object
+        """
+
         if not isinstance(expression, Expression):
             raise TypeError(f'expression must be an {Expression} object')
 
@@ -262,12 +306,26 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
     # -----------------------------------------------------------------------------
     # Operations/Manipulations
     # -----------------------------------------------------------------------------
-
     def update(self,
                regulatory_events: Dict[Union[float, int], Expression] = None,
                target: 'Target' = None,
                **kwargs):
+        """
+        It performs an update operation to this interaction.
+        The update operation is similar to a dictionary update.
 
+        It also handles the linear problems associated to this interaction
+
+        Note that, some update operations are not registered in history.
+        It is strongly advisable to use update outside history context manager
+
+        :param target: the target variable that is regulated by the regulators/expressions logic
+        :param regulatory_events: A dictionary comprehending coefficient-expression pairs.
+        The expression when evaluated to true results into the corresponding coefficient
+        that must be associated with the target coefficients
+        :param kwargs: Other arguments for the base variable, such as identifier, name, etc
+        :return:
+        """
         super(Interaction, self).update(**kwargs)
 
         if target is not None:
@@ -277,7 +335,17 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
             self.regulatory_events: Dict[Union[float, int], Expression] = regulatory_events
 
     def add_target(self, target: 'Target', history=True):
+        """
+        It adds a new target to this regulatory interaction.
+        If a target is already associated with this interaction, the current target will be removed and replaced by the
+        new target.
 
+        It also handles the linear problems associated to this interaction
+
+        This operation can be reverted using the model history
+        :param target: the target variable that is regulated by the regulators/expressions logic
+        :param history: Whether to register this operation in the model history
+        """
         if history:
             self.history.queue_command(undo_func=self.remove_target,
                                        undo_kwargs={'remove_from_model': True,
@@ -297,16 +365,21 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
             self.target._interaction = self
 
             if self.model:
-                self.model.add((self.target,), 'target', comprehensive=False, history=False)
+                self.model.add(self.target, comprehensive=False, history=False)
 
-                notification = Notification(content=(self,),
-                                            content_type='interactions',
-                                            action='add')
-
-                self.model.notify(notification)
+                self.model.notify()
 
     def remove_target(self, remove_from_model=True, history=True):
+        """
+        It removes the current target of this regulatory interaction.
 
+        It also handles the linear problems associated to this interaction
+
+        This operation can be reverted using the model history
+        :param remove_from_model: Whether this operation should be reflected in the model too.
+        It is usually advisable to remove a target from the interaction and model at the same time
+        :param history: Whether to register this operation in the model history
+        """
         if history:
             self.history.queue_command(undo_func=self.add_target,
                                        undo_kwargs={'target': self.target,
@@ -324,18 +397,27 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
             if self.model:
 
                 if remove_from_model:
-                    self.model.remove((target,), 'target', remove_orphans=False, history=False)
+                    self.model.remove(target, remove_orphans=False, history=False)
 
-                notification = Notification(content=(self,),
-                                            content_type='interactions',
-                                            action='add')
-
-                self.model.notify(notification)
+                self.model.notify()
 
     def add_regulatory_event(self,
                              coefficient: Union[float, int],
                              expression: Expression,
                              history=True):
+        """
+        It adds a new regulatory event to this interaction.
+        If a regulatory event with the same coefficient is already associated with this interaction, the current
+        regulatory event will be removed and replaced by the new regulatory event.
+
+        It also handles the linear problems associated to this interaction
+
+        This operation can be reverted using the model history
+        :param coefficient: the coefficient that should be taken by the target for this expression
+        :param expression: An expression object encoding an algebra expression
+        :param history: Whether to register this operation in the model history
+        :return: None
+        """
 
         if not isinstance(expression, Expression):
             raise TypeError(f'expression must be an {Expression} object. '
@@ -365,19 +447,29 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
         self._regulatory_events[coefficient] = expression
 
         if self.model:
-            self.model.add(to_add, 'regulator', comprehensive=False, history=False)
+            self.model.add(*to_add, comprehensive=False, history=False)
 
-            notification = Notification(content=(self,),
-                                        content_type='interactions',
-                                        action='add')
-
-            self.model.notify(notification)
+            self.model.notify()
 
     def remove_regulatory_event(self,
                                 coefficient: Union[float, int],
-                                expression: Expression,
                                 remove_orphans=True,
                                 history=True):
+        """
+        It removes a regulatory event from this interaction.
+        If the expression is not associated with the coefficient, nothing will happen.
+
+        It also handles the linear problems associated to this interaction
+
+        This operation can be reverted using the model history
+        :param coefficient: the coefficient that should be taken by the target for this expression
+        :param remove_orphans: Whether to remove orphaned regulators from the model
+        :param history: Whether to register this operation in the model history
+        :return:
+        """
+        expression = self.regulatory_events.get(coefficient)
+        if expression is None:
+            raise ValueError(f'No regulatory event associated with coefficient {coefficient}')
 
         if not isinstance(expression, Expression):
             raise TypeError(f'expression must be an {Expression} object. '
@@ -390,7 +482,6 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
                                                     'history': False},
                                        func=self.remove_regulatory_event,
                                        kwargs={'coefficient': coefficient,
-                                               'expression': expression,
                                                'remove_orphans': remove_orphans,
                                                'history': history})
 
@@ -410,10 +501,6 @@ class Interaction(Variable, variable_type='interaction', register=True, construc
         if self.model:
 
             if remove_orphans:
-                self.model.remove(to_remove, 'regulator', remove_orphans=False, history=False)
+                self.model.remove(*to_remove, remove_orphans=False, history=False)
 
-            notification = Notification(content=(self,),
-                                        content_type='interactions',
-                                        action='add')
-
-            self.model.notify(notification)
+            self.model.notify()

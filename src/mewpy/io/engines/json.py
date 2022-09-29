@@ -2,23 +2,21 @@ import json
 import os
 from typing import Union, TYPE_CHECKING
 
-from mewpy.model import Model
+from mewpy.mew.models import Model
 from mewpy.io.dto import DataTransferObject
 
 from .engine import Engine
 
 if TYPE_CHECKING:
-    from mewpy.model import RegulatoryModel, Model, MetabolicModel
+    from mewpy.mew.models import RegulatoryModel, Model, MetabolicModel
 
 
 class JSON(Engine):
-
     def __init__(self, io, config, model=None):
 
         """
         Engine for JSON files
         """
-
         super().__init__(io, config, model)
 
     @property

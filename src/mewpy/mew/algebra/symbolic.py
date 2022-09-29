@@ -1,29 +1,34 @@
 import abc
+from typing import List, Any, Dict, Callable, Union, Tuple
 
-from .algebra_utils import solution_decode
-
-
-def _walk(symbolic, reverse=False):
-    if reverse:
-
-        for child in symbolic.variables:
-            for subtree in _walk(child, reverse):
-                yield subtree
-
-        yield symbolic
-
-    else:
-
-        yield symbolic
-
-        for child in symbolic.variables:
-            yield from _walk(child, reverse)
+from .algebra_utils import solution_decode, _walk
 
 
-# TODO: methods stubs and type hinting
 class Symbolic:
 
     def __init__(self, value=None, variables=None):
+
+        """
+        The Symbolic object implements the base logic for symbolic algebra manipulation and evaluation.
+        Symbolic is the base class that provides the abstraction and tools for a given variable or operator be handled
+        as an algebra operand or operator, respectively.
+
+        Operators and Operands that inherit from Symbolic implement python dunder methods (e.g. __add__), so that they
+        can be used in python evaluation method (eval) during binary string evaluation
+
+        Symbolic objects can represent either atoms (e.g. Symbol) or nodes (e.g. And)
+        of a binary Abstract Syntax Tree (AST). Thus, each symbolic-object can hold a given value (e.g. Symbol('x'))
+        or hold variables/children (e.g. And(variables=[Symbol('x'), Symbol('y')])).
+
+        The symbolic object at the root of the algebra expression (AST) holds the variables and subsequent descents.
+
+        A symbolic object is usually assembled during parsing of an algebra expression encoded into a string object.
+
+        :param value: The value that the symbolic operand is representing in the algebra expression.
+        It can either be a numeric or variable value
+        :param variables: The variables/children that the symbolic operator is holding in the algebra expression.
+        It can either be a Symbol, Numeric, Boolean, or other atoms.
+        """
 
         if not variables:
             variables = []
@@ -32,6 +37,7 @@ class Symbolic:
         self.variables = variables
 
         self._name = None
+        self.mew_variable = None
 
         self.is_boolean = False
         self.is_true = False
@@ -61,10 +67,12 @@ class Symbolic:
         self.is_none = False
 
     @property
-    def name(self):
+    def name(self) -> str:
+        """
+        String representation of the symbolic object value
+        """
 
         if self._name is None:
-
             return str(self.value)
 
         return self._name
@@ -77,8 +85,21 @@ class Symbolic:
 
         self._name = value
 
-    def key(self):
+    @property
+    def bounds(self) -> Tuple[float, float]:
+        """
+        Returns the bounds of the symbolic object
+        """
+        if self.mew_variable:
+            if hasattr(self.mew_variable, 'bounds'):
+                return self.mew_variable.bounds
 
+            if hasattr(self.mew_variable, 'coefficients'):
+                return min(self.mew_variable.coefficients), max(self.mew_variable.coefficients)
+
+        return 0, 1
+
+    def key(self):
         return self.to_string().replace(' ', '')
 
     def __repr__(self):
@@ -170,7 +191,10 @@ class Symbolic:
 
         return string_repr
 
-    def to_string(self):
+    def to_string(self) -> str:
+        """
+        String representation of this Symbolic object
+        """
         return self.__str__()
 
     def __iter__(self):
@@ -190,7 +214,13 @@ class Symbolic:
 
         raise StopIteration
 
-    def atoms(self, symbols_only=False):
+    def atoms(self, symbols_only=False) -> List['Symbolic']:
+        """
+        It returns all symbolic atoms associated with this symbolic object
+
+        :param symbols_only: Whether to return only symbols or not
+        :return: It returns a list of symbolic atoms
+        """
 
         symbols = list(_walk(self))
 
@@ -224,7 +254,32 @@ class Symbolic:
 
         return left
 
-    def evaluate(self, values=None, operators=None, default=0, **kwargs):
+    def evaluate(self,
+                 values: Dict[str, Any] = None,
+                 operators: Dict[str, Callable] = None,
+                 default=0,
+                 **kwargs) -> Union[float, int, Any]:
+
+        """
+        Evaluate a Symbolic algebra expression based on the coefficients/values of the symbols or atoms contained
+        in the expression.
+
+        The symbolic expression can be evaluated according to the custom values
+        assigned to the symbols in the values' dictionary. Likewise, operators evaluation can also be altered
+        by passing a callable to a given operator in the operators' dictionary.
+
+        A symbol is also a callable.
+
+        :param values: A dictionary of values that the symbols names must take during expression evaluation
+        :param operators: A dictionary of custom operators. That is, python operators-based evaluation
+        (e.g. 3 > 2 yield True) can be replaced by custom callable objects such as functions. For instance,
+        3 > 2 can be evaluated with max, and thus max(3, 2) yields 3 now.
+        :param default: The default value of a given symbol/variable.
+        The default value is used if a given variable/symbol is missing in the values dictionary.
+        :param kwargs: Additional keyword arguments for Symbolic evaluate method
+
+        :return: The solution of the Symbolic expression evaluation as int, float or Any type.
+        """
 
         if not values:
             values = {}
@@ -274,6 +329,9 @@ class Boolean(Symbolic):
 
 
 class BoolFalse(Boolean):
+    """
+    Atomic Boolean False value
+    """
 
     def __init__(self, *args, **kwargs):
         if args:
@@ -295,6 +353,9 @@ class BoolFalse(Boolean):
 
 
 class BoolTrue(Boolean):
+    """
+    Atomic Boolean True value
+    """
 
     def __init__(self, *args, **kwargs):
         if args:
@@ -316,6 +377,9 @@ class BoolTrue(Boolean):
 
 
 class And(Boolean):
+    """
+    Boolean Operator AND
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -343,6 +407,9 @@ class And(Boolean):
 
 
 class Or(Boolean):
+    """
+    Boolean Operator OR
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -370,6 +437,9 @@ class Or(Boolean):
 
 
 class Not(Boolean):
+    """
+    Boolean Operator NOT
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -404,6 +474,9 @@ class Relational(Boolean):
 
 
 class Equal(Relational):
+    """
+    Relational Operator EQUAL
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -425,6 +498,9 @@ class Equal(Relational):
 
 
 class NotEqual(Relational):
+    """
+    Relational Operator NOT EQUAL
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -467,6 +543,9 @@ class Inequality(Relational):
 
 
 class Greater(Relational):
+    """
+    Relational Operator Greater
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -488,6 +567,9 @@ class Greater(Relational):
 
 
 class GreaterEqual(Relational):
+    """
+    Relational Operator Greater Equal
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -509,6 +591,9 @@ class GreaterEqual(Relational):
 
 
 class Less(Relational):
+    """
+    Relational Operator Less
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -530,6 +615,9 @@ class Less(Relational):
 
 
 class LessEqual(Relational):
+    """
+    Relational Operator Less Equal
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -612,6 +700,9 @@ class Number(AtomNumber):
 
 
 class Integer(Number):
+    """
+    Atomic Numeric value Integer
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -625,6 +716,9 @@ class Integer(Number):
 
 
 class Float(Number):
+    """
+    Atomic Numeric value Float
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -638,6 +732,9 @@ class Float(Number):
 
 
 class Zero(Boolean, AtomNumber):
+    """
+    Atomic Numeric value Zero
+    """
 
     def __init__(self, *args, **kwargs):
         if args:
@@ -657,6 +754,9 @@ class Zero(Boolean, AtomNumber):
 
 
 class One(Boolean, AtomNumber):
+    """
+    Atomic Numeric value One
+    """
 
     def __init__(self, *args, **kwargs):
         if args:
@@ -676,6 +776,9 @@ class One(Boolean, AtomNumber):
 
 
 class Symbol(AtomNumber, Boolean):
+    """
+    Atomic Symbolic Variable
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -686,11 +789,24 @@ class Symbol(AtomNumber, Boolean):
         self.is_symbol = True
 
     def _evaluate(self, values=None, default=0, **kwargs):
-
-        if not values:
+        if values is None:
             values = {}
 
-        value = values.get(self.name, default)
+        if self.name in values:
+            value = values[self.name]
+
+        elif self.mew_variable:
+            if hasattr(self.mew_variable, 'bounds'):
+                value = max(self.mew_variable.bounds)
+
+            elif hasattr(self.mew_variable, 'coefficients'):
+                value = max(self.mew_variable.coefficients)
+
+            else:
+                value = default
+
+        else:
+            value = default
 
         if not isinstance(value, (int, float, bool, AtomNumber)):
             raise ValueError(f'cannot evaluate {self.name} for {value}')
@@ -699,6 +815,9 @@ class Symbol(AtomNumber, Boolean):
 
 
 class NoneAtom(Symbol):
+    """
+    Atomic Symbolic Empty value
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

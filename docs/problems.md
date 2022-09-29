@@ -196,3 +196,40 @@ from mewpy.optimization import EA
 ea = EA(problem, max_generations=100, mp=True)
 final_pop = ea.run()
 ```
+
+
+### OptORF Example
+
+```python
+from mewpy.io import Reader, Engines, read_model
+from mewpy.optimization import EA, BPCY, WYIELD
+from mewpy.problems import OptORFProblem
+
+# load an integrated MEW model. Consult the documentation (mewpy.mew) for more details
+metabolic_reader = Reader(Engines.MetabolicSBML, 'iJR904.xml')
+regulatory_reader = Reader(Engines.BooleanRegulatoryCSV, 'iMC1010.csv',
+                           sep=',', id_col=0, rule_col=4, aliases_cols=[1, 2, 3], header=0)
+model = read_model(metabolic_reader, regulatory_reader)
+
+BIOMASS_ID = 'BiomassEcoli'
+GLC = 'EX_glc_DASH_D_e'
+PRODUCT_ID = 'EX_succ_e'
+
+# OptORF can be used with an initial state of the regulatory network.
+initial_state = {
+    'Stringent': 0.0,
+    'high-NAD': 0.0,
+    'AGDC': 0.0,
+}
+
+model.objective = {BIOMASS_ID: 1}
+model.get(GLC).bounds = (-18.5, 0.0)
+model.get(BIOMASS_ID).lower_bound = 0.1
+
+evaluator_1 = BPCY(BIOMASS_ID, PRODUCT_ID)
+evaluator_2 = WYIELD(BIOMASS_ID, PRODUCT_ID)
+problem = OptORFProblem(model, [evaluator_1, evaluator_2], initial_state=initial_state, candidate_max_size=6)
+
+ea = EA(problem, max_generations=10, mp=True)
+final_pop = ea.run()
+```

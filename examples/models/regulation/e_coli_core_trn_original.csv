@@ -1,0 +1,160 @@
+﻿bNum,Gene,Rule
+b0008,b0008,TRUE
+b0080,FruR,NOT surplusFDP
+b0113,PdhR,NOT surplusPYR
+b0114,aceE, NOT PdhR OR Fis
+b0115,aceF, NOT PdhR OR Fis
+b0116,b0116,TRUE
+b0118,b0118,TRUE
+b0351,b0351,TRUE
+b0356,b0356,TRUE
+b0399,PhoB,PhoR
+b0400,PhoR,(NOT (pi_e > 0))
+b0451,b0451,TRUE
+b0474,b0474,TRUE
+b0485,b0485,TRUE
+b0720,b0720,TRUE
+b0721,sdhC, (NOT (ArcA OR Fnr)) OR Crp OR Fis
+b0722,sdhD, (NOT (ArcA OR Fnr)) OR Crp OR Fis
+b0723,sdhA, (NOT (ArcA OR Fnr)) OR Crp OR Fis
+b0724,sdhB, (NOT (ArcA OR Fnr)) OR Crp OR Fis
+b0726,b0726,TRUE
+b0727,b0727,TRUE
+b0728,b0728,TRUE
+b0729,b0729,TRUE
+b0733,cydA, (NOT Fnr) OR ArcA
+b0734,cydB, (NOT Fnr) OR ArcA
+b0755,b0755,TRUE
+b0767,b0767,TRUE
+b0809,b0809,TRUE
+b0810,b0810,TRUE
+b0811,b0811,TRUE
+b0875,b0875,TRUE
+b0902,pflA, ArcA OR (Fnr AND Crp)
+b0903,pflB, ArcA OR (Fnr AND Crp)
+b0904,focA, ArcA OR (Fnr AND Crp)
+b0978,b0978,TRUE
+b0979,b0979,TRUE
+b1101,ptsG, (NOT Mlc) OR (NOT FruR)
+b1136,b1137,TRUE
+b1187,FadR,(glc__D_e > 0) OR (NOT ((ac_e > 0)))
+b1241,adhE, (NOT (o2_e > 0)) OR (NOT ((o2_e > 0) AND FruR)) OR Fis
+b1276,b1276,TRUE
+b1297,b1297,TRUE
+b1334,Fnr,NOT (o2_e > 0)
+b1380,b1380,TRUE
+b1478,b1478,TRUE
+b1479,b1479,TRUE
+b1524,yneH, (NOT (glc__D_e > 0)) OR ((nh4_e > 0) AND (NOT Crp))
+b1594,Mlc,(NOT (glc__D_e > 0))
+b1602,b1602,TRUE
+b1603,b1603,TRUE
+b1611,fumC, NOT ArcA
+b1612,fumA, NOT (ArcA OR Fnr)
+b1621,b1622,TRUE
+b1676,pykF, NOT FruR
+b1702,pps, FruR
+b1723,b1724,TRUE
+b1761,gdhA,NOT (Nac OR (glu__L_e > 0))
+b1773,b1773,TRUE
+b1779,b1779,TRUE
+b1812,b1812,TRUE
+b1817,manX,CRPnoGLM OR (NOT Mlc)
+b1818,manY,CRPnoGLM OR (NOT Mlc)
+b1819,manZ,CRPnoGLM OR (NOT Mlc)
+b1849,b1849,TRUE
+b1852,b1852,TRUE
+b1854,b1854,TRUE
+b1988,Nac,NRI_low
+b2029,b2029,TRUE
+b2097,b2097,TRUE
+b2133,b2133,TRUE
+b2276,nuoN, (NOT (ArcA OR Fnr))
+b2277,nuoM, (NOT (ArcA OR Fnr))
+b2278,nuoL, (NOT (ArcA OR Fnr))
+b2279,nuoK, (NOT (ArcA OR Fnr))
+b2280,nuoJ, (NOT (ArcA OR Fnr))
+b2281,nuoI, (NOT (ArcA OR Fnr))
+b2282,nuoH, (NOT (ArcA OR Fnr))
+b2283,nuoG, (NOT (ArcA OR Fnr))
+b2284,nuoF, (NOT (ArcA OR Fnr))
+b2285,nuoE, (NOT (ArcA OR Fnr))
+b2286,nuoC, (NOT (ArcA OR Fnr))
+b2287,nuoB, (NOT (ArcA OR Fnr))
+b2288,nuoA, (NOT (ArcA OR Fnr))
+b2296,b2296,TRUE
+b2297,b2297,TRUE
+b2415,b2415,TRUE
+b2416,b2416,TRUE
+b2417,b2417,TRUE
+b2458,b2458,TRUE
+b2463,b2463,TRUE
+b2464,b2464,TRUE
+b2465,b2465,TRUE
+b2492,focB, ArcA OR (Fnr AND Crp)
+b2579,b2579,TRUE
+b2587,b2587,TRUE
+b2779,b2779,TRUE
+b2914,b2914,TRUE
+b2925,b2925,TRUE
+b2926,b2926,TRUE
+b2935,b2935,TRUE
+b2975,glcA, (NOT ArcA) AND GlcC
+b2976,glcB, (NOT ArcA) AND GlcC
+b2980,GlcC,(ac_e > 0)
+b2987,pitB, NOT PhoB
+b3114,tdcE, Crp OR Fnr
+b3115,tdcD, Crp OR Fnr
+b3212,gltB, (NOT (NRI_hi AND (glu__L_e > 0)))
+b3213,gltD, (NOT (NRI_hi AND (glu__L_e > 0)))
+b3236,mdh, NOT ArcA
+b3261,Fis,(Biomass_Ecoli_core > 0)
+b3357,Crp,CRPnoGLC
+b3386,b3386,TRUE
+b3403,b3403,TRUE
+b3493,b3493,TRUE
+b3528,dctA,CRPnoGLM AND (NOT ArcA) AND DcuR
+b3603,lldP, NOT ArcA
+b3612,b3612,TRUE
+b3731,b3731,TRUE
+b3732,b3732,TRUE
+b3733,b3733,TRUE
+b3734,b3734,TRUE
+b3735,b3735,TRUE
+b3736,b3736,TRUE
+b3737,b3737,TRUE
+b3738,b3738,TRUE
+b3739,b3739,TRUE
+b3868,GlnG,NOT (nh4_e > 0)
+b3870,glnA,Crp
+b3916,b3916,TRUE
+b3919,b3919,TRUE
+b3925,b3925,TRUE
+b3951,pflD, ArcA OR Fnr
+b3952,pflC, ArcA OR Fnr
+b3956,b3956,TRUE
+b3962,b3962,TRUE
+b4014,aceB, (NOT IclR) AND ((NOT ArcA) OR FruR)
+b4015,aceA, (NOT IclR) AND ((NOT ArcA) OR FruR)
+b4018,IclR,FadR
+b4025,b4025,TRUE
+b4077,b4077,TRUE
+b4090,b4090,TRUE
+b4122,fumB, Fnr OR Crp OR DcuR
+b4124,DcuR,DcuS
+b4125,DcuS,(succ_e > 0) OR (fum_e > 0) OR (mal__L_e > 0)
+b4151,frdD, Fnr OR DcuR
+b4152,frdC, Fnr OR DcuR
+b4153,frdB, Fnr OR DcuR
+b4154,frdA, Fnr OR DcuR
+b4232,b4232,TRUE
+b4301,b4301,TRUE
+b4395,b4395,TRUE
+b4401,ArcA,NOT (o2_e > 0)
+s0001,s0001,TRUE
+CRPnoGLC,CRPnoGLC,(NOT (glc__D_e > 0))
+CRPnoGLM,CRPnoGLM,NOT ((glc__D_e > 0) OR (mal__L_e > 0) OR (lac__D_e > 0))
+NRI_hi,NRI_hi,NRI_low
+NRI_low,NRI_low,GlnG
+surplusFDP,surplusFDP,((NOT (FBP > 0)) AND (NOT ((TKT2 > 0) OR (TALA > 0) OR (PGI > 0)))) OR (fru_e > 0)
+surplusPYR,surplusPYR,(NOT ((ME2 > 0) OR (ME1 > 0))) AND (NOT ((GLCpts > 0) OR (PYK > 0) OR (PFK > 0) OR (LDH_D > 0) OR (SUCCt2_2 > 0)))

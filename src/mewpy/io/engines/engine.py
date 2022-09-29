@@ -1,31 +1,14 @@
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 
-from typing import Union, TYPE_CHECKING, Dict
+from typing import Union, TYPE_CHECKING, Dict, Optional
 
 if TYPE_CHECKING:
-
-    from mewpy.model import RegulatoryModel, MetabolicModel, Model
+    from mewpy.mew.models import RegulatoryModel, MetabolicModel, Model
     from mewpy.io.dto import DataTransferObject
-
     from io import TextIOWrapper
-
-    try:
-        # noinspection PyPackageRequirements
-        from cobra import Model as CobraModel
-
-    except ImportError:
-
-        CobraModel = str
-
-    try:
-
-        # noinspection PyPackageRequirements
-        from reframed import CBModel as ReframedModel
-
-    except ImportError:
-
-        ReframedModel = str
+    from cobra import Model as CobraModel
+    from reframed import CBModel as ReframedModel
 
 
 class Engine(metaclass=ABCMeta):
@@ -34,7 +17,6 @@ class Engine(metaclass=ABCMeta):
                  io: Union[str, 'TextIOWrapper', 'CobraModel', 'ReframedModel'],
                  config: dict,
                  model: Union['Model', 'MetabolicModel', 'RegulatoryModel'] = None):
-
         """
         The engine interface for reading/writing models. The abstract properties and methods should be fully
         implemented in the concrete engines.
@@ -69,31 +51,26 @@ class Engine(metaclass=ABCMeta):
         For reading files in stages, multiple readers must be created and the director must be used to merge all the
         readers into a single model
 
-        # The only difference between the builders and the engines is that engines write the model in four steps:
-        #             - open
-        #             - write
-        #             - close
-        #             - clean
+        The only difference between the builders and the engines is that engines write the model in four steps:
+                    - open
+                    - write
+                    - close
+                    - clean
 
-        # Builders, on the other hand, just write and thus performing all operations at once.
-        # This is important for writing multiple files out of a single model.
-        #
-        # For writing files in stages, multiple writers must be created and the director must be used to merge all the
-        # writers into a single model
+        Builders, on the other hand, just write and thus performing all operations at once.
+        This is important for writing multiple files out of a single model.
 
-        :type io: Union[str, 'TextIOWrapper', 'CobraModel', 'ReframedModel']
-        :type config: dict
-        :type model: Union['Model', 'MetabolicModel', 'RegulatoryModel']
+        For writing files in stages, multiple writers must be created and the director must be used to merge all the
+        writers into a single model
 
         :param io: file path, file handler or cbm model object from cobrapy or reframed
         :param config: dictionary of multiple configurations to be used when reading
         :param model: in case of writing, a mewpy model must be provided
         """
-
         self._io = io
         self._config = config
         self._model = model
-        self._dto: 'DataTransferObject' = None
+        self._dto = None
         self._variables = defaultdict(set)
         self._warnings = []
 
@@ -111,7 +88,7 @@ class Engine(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def model_type(self) -> str:
+    def model_type(self) -> Optional[str]:
         return
 
     @property
@@ -128,11 +105,9 @@ class Engine(metaclass=ABCMeta):
 
     @abstractmethod
     def open(self, mode: str = 'r'):
-
         """
         Open makes the preparation for reading or writing
 
-        :type mode: str
         :param mode: One of the following: r - read; w - write;
         :return:
         """
@@ -158,9 +133,6 @@ class Engine(metaclass=ABCMeta):
 
         Reading is performed from the middle DataTransferObject
 
-        :type variables: dict
-        :type model: Union['Model', 'MetabolicModel', 'RegulatoryModel']
-
         :param model: A valid mewpy model
         :param variables: A dictionary of variables already built to be updated during reading
         :return: mewpy model
@@ -169,10 +141,8 @@ class Engine(metaclass=ABCMeta):
 
     @abstractmethod
     def write(self):
-
         """
         Writes a mewpy model.
-
         :return:
         """
 
@@ -180,20 +150,16 @@ class Engine(metaclass=ABCMeta):
 
     @abstractmethod
     def close(self):
-
         """
         Closes the engine.
-
         :return:
         """
         pass
 
     @abstractmethod
     def clean(self):
-
         """
         Cleans the engine.
-
         :return:
         """
         pass

@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import Union, List, Iterable
 
 from mewpy.solvers.solver import VarType
 
@@ -190,7 +190,15 @@ class ConstraintContainer:
         return Node(value=self.name, length=len(self.coefs))
 
 
-def concat_constraints(constraints, name=None):
+def concat_constraints(constraints: Iterable[ConstraintContainer], name: str = None):
+    """
+    Internal use only.
+
+    Concatenates a list of constraints into a single constraint container.
+    :param constraints: a list of constraint containers
+    :param name: the name of the new constraint container
+    :return: a new constraint container
+    """
     coefs = []
     lbs = []
     ubs = []

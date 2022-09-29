@@ -1,99 +1,26 @@
-from abc import ABCMeta, abstractmethod
-from typing import Union, TYPE_CHECKING, Tuple, Dict, Set, List
+from abc import abstractmethod
+from typing import Union, TYPE_CHECKING, Tuple, Dict, Any
 
 from numpy import zeros
 
-from mewpy.solvers import get_default_solver
-from mewpy.solvers.sglobal import __MEWPY_solvers__ as solvers
-from mewpy.solvers.solution import Solution
-from mewpy.solvers.solver import Solver, VarType
 from mewpy.mew.solution import ModelSolution
-
+from mewpy.solvers.solution import Solution
+from mewpy.solvers.solver import Solver
 from .linear_containers import ConstraintContainer, VariableContainer
-from .notification import Notification
-from .linear_utils import LinkedList, Node, integer_coefficients
+from .linear_utils import LinkedList, Node, get_solver_instance
 
 if TYPE_CHECKING:
-    from mewpy.model import Model, MetabolicModel, RegulatoryModel
+    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
 
 
-class LinearProblemInterface(metaclass=ABCMeta):
-    """
-
-    Interface for a Linear Problem. The following attributes and methods must be implemented to set up alternative
-    problems
-
-    """
-
-    @property
-    @abstractmethod
-    def model(self):
-        return
-
-    @property
-    @abstractmethod
-    def constraints(self):
-        return
-
-    @property
-    @abstractmethod
-    def variables(self):
-        return
-
-    @property
-    @abstractmethod
-    def objective(self):
-        return
-
-    @property
-    @abstractmethod
-    def minimize(self):
-        return
-
-    @property
-    @abstractmethod
-    def solver(self):
-        return
-
-    @abstractmethod
-    def notification(self, notification: Notification):
-        pass
-
-    @abstractmethod
-    def optimize(self):
-        pass
-
-    @abstractmethod
-    def build(self):
-        pass
-
-    @abstractmethod
-    def clean(self):
-        pass
-
-    @abstractmethod
-    def add(self, items):
-        pass
-
-    @abstractmethod
-    def remove(self, items):
-        pass
-
-    @abstractmethod
-    def update(self):
-        pass
-
-
-# TODO: missing documentation and typing
-class LinearProblem(LinearProblemInterface):
+class LinearProblem:
 
     def __init__(self,
                  model: Union['Model', 'MetabolicModel', 'RegulatoryModel'],
                  solver: Union[str, Solver] = None,
-                 build: bool = True,
+                 build: bool = False,
                  attach: bool = False):
         """
-
         Linear programing base implementation. A mewpy model is converted into a linear problem using reframed/mewpy
         solver interface. Both CPLEX and Gurobi solvers are currently supported. Other solvers may also be supported
         using an additional OptLang solver interface. However, CPLEX and Gurobi are recommended for certain problems.
@@ -104,33 +31,38 @@ class LinearProblem(LinearProblemInterface):
         Each implementation of a linear problem (e.g. FBA, RFBA, SRFBA, etc) is responsible
         for processing the notifications in the correct way.
 
-        A linear problem has one and only one solver object that connect with each other via synchronous updates.
-        That is, alterations to a linear problem are directly reflected in the solver.
+        A linear problem has one and only one solver object.
+        Alterations to a linear problem are promptly forced in the solver by building a new solver instance.
         Alternatively, one can impose temporary constraints during problem optimization
         (see the method for further details)
 
+        Notes for developers:
+        A linear problem object is an observer (observer pattern) of a mew model.
+        A notification with model changes is sent to all observers (linear problems).
+        The linear problem implementation specific for each method processes the notification accordingly.
+        Finally, when the linear problem is updated,
+        all variables and constraints added to the linear problem are implemented and kept in sync with the solver
+        This can avoid consecutive building of the solver, namely a lazy loading
+
         :param model: a mewpy Model, MetabolicModel, RegulatoryModel or all. The model is used to retrieve
         variables and constraints to the linear problem
-
         :param solver: A Solver, CplexSolver, GurobiSolver or OptLangSolver instance.
         Alternatively, the name of the solver is also accepted.
         The solver interface will be used to load and solve a linear problem in a given solver.
-        If none, a new solver is instantiated. An instantiated solver may be used but it will be overwritten
-        if build is true.
-
+        If none, a new solver is instantiated. An instantiated solver may be used,
+        but it will be overwritten if build is true.
         :param build: Whether to build the linear problem upon instantiation. Default: False
         :param attach: Whether to attach the linear problem to the model upon instantiation. Default: False
-
         """
         if not model:
             raise ValueError('A valid model must be provided')
 
         self._model = model
 
-        # this is usefull to restore the linear problem to the point of init
+        # this is useful to restore the linear problem to the point of init
         self._initial_solver = solver
-
-        self._solver = self.mewpy_solver(solver)
+        self._solver = None
+        self._synchronized = False
 
         # Simulator index engine uses a linked list with a built-in dictionary. This allows fast access to the index
         # of a given variable or constraint.
@@ -152,20 +84,6 @@ class LinearProblem(LinearProblemInterface):
         self._quadratic_objective = {}
         self._minimize = True
 
-        # Observer pattern: a linear problem object is an observer of a mewpy model.
-        # When the model is changed, a notification with the change is sent to all observers (linear problems).
-        # The linear problem implementation specific for each method processes the notification accordingly.
-        # Finally, when the linear problem is updated,
-        # all variables and constraints added to the linear problem are implemented and kept in sync with the solver
-        # This can avoid consecutive building of the solver, namely a lazy loading
-
-        # a dictionary may be too much to store pending changes, but we only want to hold the latest alterations.
-        # Thus, old pending constraints or variables are replaced by the recent ones.
-        # This allows the last optimization to be a direct reflection of the model latest state
-        # Note that, adding and removing items from a set can be an overhead
-        self._variables_queue: Dict[str, VariableContainer] = {}
-        self._constraints_queue: Dict[str, ConstraintContainer] = {}
-
         if build:
             self.build()
 
@@ -173,103 +91,110 @@ class LinearProblem(LinearProblemInterface):
             self.model.attach(self)
 
     # -----------------------------------------------------------------------------
-    # Correct solver helper
-    # -----------------------------------------------------------------------------
-    @staticmethod
-    def mewpy_solver(solver):
-
-        if solver is None:
-            solver_name = get_default_solver()
-
-            SolverType = solvers[solver_name]
-
-            solver = SolverType()
-
-        elif isinstance(solver, str):
-
-            SolverType = solvers.get(solver, None)
-
-            if SolverType is None:
-                raise ValueError(f'{solver} is not listed as valid solver. Check the valid solvers: {solvers}')
-
-            solver = SolverType()
-
-        elif isinstance(solver, Solver):
-
-            pass
-
-        else:
-            raise ValueError(f'Invalid solver {solver}. Check the valid solvers: {solvers}')
-
-        return solver
-
-    # -----------------------------------------------------------------------------
     # Built-in
     # -----------------------------------------------------------------------------
-
     def __str__(self):
         return f"{self.method} for {self.model.id}"
 
     def __repr__(self):
-        return f"{self.method}: {self.model.id}"
+        return self.__str__()
+
+    def _repr_html_(self):
+        """
+        It returns a html representation of the linear problem
+        :return:
+        """
+        if self.solver:
+            solver = self.solver.__class__.__name__
+        else:
+            solver = 'None'
+
+        return f"""
+        <table>
+            <tr>
+                <td>Method</td>
+                <td>{self.method}</td>
+            </tr>
+            <tr>
+                <td>Model</td>
+                <td>{self.model}</td>
+            </tr>
+            <tr>
+                <th>Variables</th>
+                <td>{len(self.variables)}</td>
+            </tr>
+            <tr>
+                <th>Constraints</th>
+                <td>{len(self.constraints)}</td>
+            </tr>
+            <tr>
+                <th>Objective</th>
+                <td>{self.objective}</td>
+            </tr>
+            <tr>
+                <th>Solver</th>
+                <td>{solver}</td>
+            </tr>
+            <tr>
+                <th>Synchronized</th>
+                <td>{self.synchronized}</td>
+            </tr>
+        </table>
+        """
 
     # -----------------------------------------------------------------------------
     # Static attributes
     # -----------------------------------------------------------------------------
-
     @property
     def method(self) -> str:
         """
         Name of the method implementation to build and solve the linear problem
-
         :return: the name of the class
         """
-
         return self.__class__.__name__
 
     @property
     def model(self) -> Union['Model', 'MetabolicModel', 'RegulatoryModel']:
         """
-
-        mewpy model of this simulator
-
+        Mew model of this simulator
         :return: a mewpy Model, MetabolicModel, RegulatoryModel or all
         """
-
         return self._model
 
     @property
     def solver(self) -> Solver:
         """
         mewpy solver instance for this linear problem. It contains an interface for the concrete solver
-
         :return: A Solver, CplexSolver, GurobiSolver or OptLangSolver instance
         """
-
         return self._solver
+
+    @property
+    def synchronized(self) -> bool:
+        """
+        Whether the linear problem is synchronized with the model
+        :return:
+        """
+        return self._synchronized
 
     @property
     def constraints(self) -> Dict[str, ConstraintContainer]:
         """
-        A copy of the constraints container.
+        A copy of the constraints' container.
         This container holds all ConstraintContainer objects for this linear problem.
         Note that, a constraint container can hold several constraints/rows
-
         :return: copy of the constraints dictionary
         """
-
         return self._constraints.copy()
 
     @property
     def variables(self) -> Dict[str, VariableContainer]:
         """
-        A copy of the variables container.
+        A copy of the variables' container.
         This container holds all VariableContainer objects for this linear problem.
         Note that, a variable container can hold several variables/columns
-
         :return: copy of the variables dictionary
         """
-
         return self._variables.copy()
 
     @property
@@ -279,122 +204,256 @@ class LinearProblem(LinearProblemInterface):
         Values are the corresponding coefficients
         Note that, linear and quadratic objectives can be encoded in the objective dictionary.
         See the set_objective method for further detail
-
         :return: copy of the objective dictionary
         """
-
         return {**self._linear_objective, **self._quadratic_objective}
 
     @property
     def minimize(self) -> bool:
         """
-
         The linear problem objective sense/direction
-
         :return: a boolean whether the linear problem objective sense/direction is minimization
         """
-
         return bool(self._minimize)
 
     # -----------------------------------------------------------------------------
     # Dynamic attributes
     # -----------------------------------------------------------------------------
-
     @property
     def matrix(self):
+        """
+        The linear problem matrix
+        :return: a matrix as numpy array
+        """
         return self._get_matrix()
 
     @property
     def bounds(self):
+        """
+        The linear problem bounds
+        :return: bounds as list of tuples
+        """
         return self.get_bounds(as_list=True)
 
     @property
     def b_bounds(self):
+        """
+        The linear problem b bounds (constraints bounds)
+        :return: b bounds as list of tuples
+        """
         return self.get_bounds(b_bounds=True, as_list=True)
 
     @property
     def shape(self):
+        """
+        The linear problem shape
+        :return: a tuple with the number of rows and columns
+        """
         return int(len(self._rows)), int(len(self._cols))
 
     # -----------------------------------------------------------------------------
-    # Observer pattern - Model notification system
+    # MEWpy solver
     # -----------------------------------------------------------------------------
-
-    def notification(self, notification: Notification):
-
-        if notification.content_type == 'coefficients' and notification.action == 'set':
-
-            variable = notification.content.id
-            lb, ub = notification.content.bounds
-
-            return self.set_bounds(variable=variable, lb=lb, ub=ub)
-
-        elif notification.content_type == 'objectives' and notification.action == 'set':
-
-            return self.set_objective(**notification.content)
-
-        return
-
-    # -----------------------------------------------------------------------------
-    # Objective
-    # -----------------------------------------------------------------------------
-
-    def _set_objective(self,
-                       linear: Union[str, Dict[str, Union[float, int]]] = None,
-                       quadratic: Dict[Tuple[str, str], Union[float, int]] = None,
-                       minimize: bool = True):
+    def build_solver(self, variables: bool = True, constraints: bool = True, objective: bool = True):
         """
-
-        INTERNAL USE ONLY. See set_objective method
-
-        :param linear:
-        :param quadratic:
-        :param minimize:
+        It creates a new solver instance and adds the current state (variables, constraints) of the linear problem
+        to the solver.
+        :param variables: Whether to add variables to the solver. Default: True
+        :param constraints: Whether to add constraints to the solver. Default: True
+        :param objective: Whether to add the objective to the solver. Default: True
         :return:
         """
+        if variables or constraints:
+            self._solver = get_solver_instance(self._initial_solver)
 
-        # This helper method verify inputs and sets the objective in the linear problem object
+        if variables:
+            for variable in self._variables.values():
 
-        linear_objective = {}
+                # Using mewpy/reframed solver interface ...
+                for name, (lb, ub, var_type) in variable.items():
+                    self.solver.add_variable(var_id=name, lb=lb, ub=ub, vartype=var_type, update=False)
 
-        if linear:
+            self.solver.update()
 
-            if isinstance(linear, str):
+        if constraints:
+            for i, constraint in enumerate(self._constraints.values()):
 
-                linear = {linear: 1.0}
+                # Using mewpy/reframed solver interface ...
+                for j, (coef, lb, ub) in constraint.items():
 
-            else:
+                    cnt_id = str(i + j)
 
-                for k, _ in linear.items():
+                    if lb == ub:
+                        rhs = lb
+                        self.solver.add_constraint(constr_id=cnt_id, lhs=coef, sense='=', rhs=rhs, update=False)
+
+                    else:
+                        cnt_id_f = f'{cnt_id}_forward'
+                        rhs = lb
+                        self.solver.add_constraint(constr_id=cnt_id_f, lhs=coef, sense='>', rhs=rhs, update=False)
+
+                        cnt_id_r = f'{cnt_id}_reverse'
+                        rhs = ub
+                        self.solver.add_constraint(constr_id=cnt_id_r, lhs=coef, sense='<', rhs=rhs, update=False)
+
+            self.solver.update()
+
+        if objective:
+            linear_objective = {}
+
+            if self._linear_objective:
+
+                for k, v in self._linear_objective.items():
 
                     if k not in self._cols and k not in self._sub_cols:
                         raise ValueError(f'{k} is not a variable of this linear problem')
 
-            linear_objective = linear
+                    linear_objective[k] = v
 
-        if linear_objective:
-            self._linear_objective = linear_objective
+            quadratic_objective = {}
 
-        quadratic_objective = {}
+            if self._quadratic_objective:
 
-        if quadratic:
+                for (k1, k2), v in self._quadratic_objective.items():
 
-            for (k1, k2), _ in quadratic.items():
+                    if k1 not in self._cols and k1 not in self._sub_cols:
+                        raise ValueError(f'{k1} is not a variable of this linear problem')
 
-                if k1 not in self._cols and k1 not in self._sub_cols:
-                    raise ValueError(f'{k1} is not a variable of this linear problem')
+                    if k2 not in self._cols and k2 not in self._sub_cols:
+                        raise ValueError(f'{k2} is not a variable of this linear problem')
 
-                if k2 not in self._cols and k2 not in self._sub_cols:
-                    raise ValueError(f'{k2} is not a variable of this linear problem')
+                    quadratic_objective[(k1, k2)] = v
 
-            quadratic_objective = quadratic
+            self.solver.set_objective(linear_objective, quadratic_objective, self._minimize)
+            self.solver.update()
 
-        if quadratic_objective:
-            self._quadratic_objective = quadratic_objective
+    # -----------------------------------------------------------------------------
+    # Clean
+    # -----------------------------------------------------------------------------
+    def clean(self):
+        """
+        It cleans the linear problem object by removing all variables and constraints
+        :return:
+        """
+        self._synchronized = False
+        self._solver = get_solver_instance(self._initial_solver)
+        self._cols = LinkedList()
+        self._rows = LinkedList()
+        self._sub_cols = LinkedList()
+        self._constraints = {}
+        self._variables = {}
+        self._linear_objective = {}
+        self._quadratic_objective = {}
+        self._minimize = True
+        return
 
-        if minimize is not None and minimize != self._minimize:
-            self._minimize = minimize
+    # -----------------------------------------------------------------------------
+    # Build
+    # -----------------------------------------------------------------------------
+    @abstractmethod
+    def _build(self):
+        """
+        Abstract method for the concrete build method
+        :return:
+        """
+        pass
 
+    def build(self) -> 'LinearProblem':
+        """
+        Abstract implementation
+        :return:
+        """
+        # clean first
+        self.clean()
+
+        # concrete build
+        self._build()
+
+        # build solver
+        self.build_solver(variables=True, constraints=True, objective=True)
+
+        # update status
+        self._synchronized = True
+        return self
+
+    # -----------------------------------------------------------------------------
+    # Optimization
+    # -----------------------------------------------------------------------------
+    @abstractmethod
+    def _optimize(self, solver_kwargs: Dict[str, Any] = None, **kwargs) -> Solution:
+        """
+        Abstract method for the concrete optimization method
+        :param solver_kwargs: solver specific keyword arguments
+        :param kwargs: keyword arguments
+        :return:
+        """
+        pass
+
+    def optimize(self,
+                 to_solver: bool = False,
+                 solver_kwargs: Dict[str, Any] = None,
+                 **kwargs) -> Union[ModelSolution, Solution]:
+        """
+        It solves the linear problem. The linear problem is solved using the solver interface.
+
+        The optimize method allows setting temporary changes to the linear problem. The changes are
+        applied to the linear problem reverted to the original state afterward.
+        Objective, constraints and solver parameters can be set temporarily.
+
+        The solution is returned as a ModelSolution instance, unless to_solver is True. In this case,
+        the solution is returned as a SolverSolution instance.
+
+        :param to_solver: Whether to return the solution as a SolverSolution instance. Default: False.
+        Otherwise, a ModelSolution is returned.
+        :param solver_kwargs: Solver parameters to be set temporarily.
+            - linear: A dictionary of linear coefficients to be set temporarily. The keys are the variable names
+            and the values are the coefficients. Default: None
+            - quadratic: A dictionary of quadratic coefficients to be set temporarily. The keys are tuples of
+            variable names and the values are the coefficients. Default: None
+            - minimize: Whether to minimize the objective. Default: False
+            - constraints: A dictionary with the constraints bounds. The keys are the constraint ids and the values
+            are tuples with the lower and upper bounds. Default: None
+            - get_values: Whether to retrieve the solution values. Default: True
+            - shadow_prices: Whether to retrieve the shadow prices. Default: False
+            - reduced_costs: Whether to retrieve the reduced costs. Default: False
+            - pool_size: The size of the solution pool. Default: 0
+            - pool_gap: The gap between the best solution and the worst solution in the pool. Default: None
+        :return: A ModelSolution instance or a SolverSolution instance if to_solver is True.
+        """
+        # build solver if out of sync
+        if not self.synchronized:
+            self.build()
+
+        if not solver_kwargs:
+            solver_kwargs = {}
+
+        # concrete optimize
+        solution = self._optimize(solver_kwargs=solver_kwargs, **kwargs)
+
+        if to_solver:
+            return solution
+
+        minimize = solver_kwargs.get('minimize', self._minimize)
+        return ModelSolution.from_solver(method=self.method, solution=solution, model=self.model,
+                                         minimize=minimize)
+
+    # -----------------------------------------------------------------------------
+    # Update - Observer interface
+    # -----------------------------------------------------------------------------
+    def update(self):
+        """
+        It updates the linear problem object by adding/removing variables and constraints
+        Note that linear problems are not updated after each addition/removal of a variable or constraint to the model.
+        This is done to avoid unnecessary updates of the solver. Instead, the update is done when the method
+        `build` is called. If required, this method is called by the simulation methods (e.g. fba, pfba, etc) before the
+        optimization process in the `optimize` method.
+        :return:
+        """
+        self._synchronized = False
+
+    # -----------------------------------------------------------------------------
+    # Objective
+    # -----------------------------------------------------------------------------
     def set_objective(self,
                       linear: Union[str, Dict[str, Union[float, int]]] = None,
                       quadratic: Dict[Tuple[str, str], Union[float, int]] = None,
@@ -409,234 +468,133 @@ class LinearProblem(LinearProblemInterface):
         :param quadratic: a dictionary of quadratic coefficients.
         Note that keys must be a tuple of reaction pairs to be summed up to a quadratic objective function
         :param minimize: whether to solve a minimization problem. This parameter is True by default
-
         :return:
         """
+        if linear is None:
+            linear = {}
 
-        # This helper method verify inputs and sets the objective in the linear problem object
-        self._set_objective(linear=linear, quadratic=quadratic, minimize=minimize)
+        if quadratic is None:
+            quadratic = {}
 
-        # If the inputs are correct, the objective is set in the solver
-        self._solver.set_objective(linear=linear, quadratic=quadratic, minimize=minimize)
+        if isinstance(linear, str):
+            linear = {linear: 1}
 
-    def set_bounds(self, variable: str, lb: Union[float, int], ub: Union[float, int]):
-        """
-        Set the bounds of a given linear variable available in the linear problem.
-        Note that, only the bounds of atom variables can be set
+        if not isinstance(linear, dict):
+            raise TypeError(f'linear objective must be a dictionary, not {type(linear)}')
 
-        :param variable: the variable identifier
-        :param lb: lower bound value
-        :param ub: upper bound value
+        if not isinstance(quadratic, dict):
+            raise TypeError(f'quadratic objective must be a dictionary, not {type(quadratic)}')
 
-        :return:
-        """
+        if not isinstance(minimize, bool):
+            raise TypeError(f'minimize must be a boolean, not {type(minimize)}')
 
-        # Either the variable is not available in the model or it is not a variable of this lp.
-        # The later can occur if a multi type model has for instance an fba simulator attached
-        # but a the bounds of a regulator are changed
-        if variable not in self._cols and variable not in self._sub_cols:
-            return
-
-        old_lb, old_ub = self._get_variable_bounds(variable=variable)
-
-        if len(old_lb) > 1:
-            raise ValueError(f'{variable} bounds cannot be set')
-
-        else:
-            old_lb = old_lb[0]
-            old_ub = old_ub[0]
-
-        lb = lb if lb is not None else old_lb
-        ub = ub if ub is not None else old_ub
-
-        if (lb, ub) in integer_coefficients:
-            var_type = VarType.INTEGER
-
-        else:
-            var_type = VarType.CONTINUOUS
-
-        var = self._variables[variable]
-        var.lbs = [lb]
-        var.ubs = [ub]
-        var.variables_type = [var_type]
-
-        self.add([var])
+        self._linear_objective = linear
+        self._quadratic_objective = quadratic
+        self._minimize = minimize
+        self.build_solver(objective=True)
 
     # -----------------------------------------------------------------------------
-    # Optimization
+    # Operations/Manipulations - add/remove variables and constraints
     # -----------------------------------------------------------------------------
+    def add_constraints(self, *constraints: ConstraintContainer):
+        for constraint in constraints:
+            if constraint.name in self._rows:
+                # The constraint is replaced, as the linear problem behaves like a set
+                # This also mimics the solver interface behavior
 
-    def optimize(self, *args, **kwargs) -> Union[ModelSolution, Solution]:
-        """
+                old_constraint = self._constraints[constraint.name]
 
-        Abstract implementation
+                self.remove_constraints(old_constraint)
 
-        :return: ModelSolution or Solution (from solver) objects
-        """
+            node = constraint.to_node()
 
-        # The concrete implementation is defined by each simulation method, e.g. fba, pfba, etc
+            self._rows.add(node)
 
-    # -----------------------------------------------------------------------------
-    # Operations/Manipulations - build and clean
-    # -----------------------------------------------------------------------------
+            self._update_constraint_coefs(constraint)
 
-    @abstractmethod
-    def build(self):
-        """
+            self._constraints[constraint.name] = constraint
 
-        Abstract implementation
+    def remove_constraints(self, *constraints: ConstraintContainer):
+        for constraint in constraints:
+            if constraint.name in self._rows:
+                self._rows.pop(constraint.name)
+                self._constraints.pop(constraint.name)
 
-        :return:
-        """
+    def add_variables(self, *variables: VariableContainer):
+        for variable in variables:
+            if variable.name in self._cols:
+                # The variable is replaced, as the linear problem behaves like a set
+                # This also mimics the solver interface behavior
 
-        # The concrete implementation is defined by each simulation method, e.g. fba, pfba, etc
+                old_variable = self._variables[variable.name]
 
-    def build_solver(self):
-        """
+                self.remove_variables(old_variable)
 
-        It creates an new solver instance and adds the current state (variables, constraints) of the linear problem
+            node = variable.to_node()
 
-        :return:
-        """
+            self._cols.add(node)
 
-        self._solver = self.mewpy_solver(self._initial_solver)
+            self._variables[variable.name] = variable
 
-        for variable in self._variables.values():
+            for sub_variable in variable.keys():
+                sub_node = Node(value=sub_variable, length=1)
 
-            # Using mewpy/reframed solver interface ...
-            for name, (lb, ub, var_type) in variable.items():
-                self._solver.add_variable(var_id=name, lb=lb, ub=ub, vartype=var_type, update=False)
+                self._sub_cols.add(sub_node)
 
-        self.solver.update()
+    def remove_variables(self, *variables: VariableContainer):
+        for variable in variables:
+            if variable.name in self._cols:
 
-        for i, constraint in enumerate(self._constraints.values()):
+                self._cols.pop(variable.name)
+                self._variables.pop(variable.name)
 
-            # Using mewpy/reframed solver interface ...
-            for j, (coef, lb, ub) in constraint.items():
+                for sub_variable in variable.keys():
+                    self._sub_cols.pop(sub_variable)
 
-                cnt_id = str(i + j)
+    def _update_constraint_coefs(self, constraint: ConstraintContainer):
 
-                if lb == ub:
-                    rhs = lb
-                    self._solver.add_constraint(constr_id=cnt_id, lhs=coef, sense='=', rhs=rhs, update=False)
+        # some constraint coefficients might have keys that refer to the variable name and not sub-variable name.
+        # Since only sub-variable names are added to the solvers,
+        # these keys must be updated to the last sub-variable name. Note that, the last sub-variable name is regularly
+        # the one that matters, as the initial sub-variables regularly decide the outcome of the last one.
+
+        new_coefs = []
+
+        for coefficient in constraint:
+
+            new_coef = {}
+
+            for var, coef in coefficient.items():
+
+                if var in self._sub_cols:
+
+                    sub_var = var
 
                 else:
-                    cnt_id_f = f'{cnt_id}_forward'
-                    rhs = lb
-                    self._solver.add_constraint(constr_id=cnt_id_f, lhs=coef, sense='>', rhs=rhs, update=False)
 
-                    cnt_id_r = f'{cnt_id}_reverse'
-                    rhs = ub
-                    self._solver.add_constraint(constr_id=cnt_id_r, lhs=coef, sense='<', rhs=rhs, update=False)
+                    variable = self._variables[var]
 
-        self.solver.update()
+                    sub_var = variable.sub_variables[-1]
 
-        self.set_objective(linear=self._linear_objective,
-                           quadratic=self._quadratic_objective,
-                           minimize=self._minimize)
+                new_coef[sub_var] = coef
 
-    def clean(self):
+            new_coefs.append(new_coef)
 
-        self._solver = self.mewpy_solver(self._initial_solver)
-        self._cols = LinkedList()
-        self._rows = LinkedList()
-        self._sub_cols = LinkedList()
-        self._constraints = {}
-        self._variables = {}
-        self._linear_objective = {}
-        self._quadratic_objective = {}
-        self._minimize = True
-        self._variables_queue: Dict[str, VariableContainer] = {}
-        self._constraints_queue: Dict[str, ConstraintContainer] = {}
+        constraint.coefs = new_coefs
 
     # -----------------------------------------------------------------------------
-    # Operations/Manipulations - add, remove
+    # Getters
     # -----------------------------------------------------------------------------
-
-    def stack_container(self, container, addition):
-
-        if isinstance(container, ConstraintContainer):
-            self._constraints_queue[container.name] = (container, addition)
-
-        if isinstance(container, VariableContainer):
-            self._variables_queue[container.name] = (container, addition)
-
-    def add(self, containers: Union[List[Union[VariableContainer, ConstraintContainer]],
-                                    Set[Union[VariableContainer, ConstraintContainer]],
-                                    Tuple[Union[VariableContainer, ConstraintContainer]]]):
-
-        for container in containers:
-            self.stack_container(container, addition=True)
-
-    def remove(self, containers: Union[List[Union[VariableContainer, ConstraintContainer]],
-                                       Set[Union[VariableContainer, ConstraintContainer]],
-                                       Tuple[Union[VariableContainer, ConstraintContainer]]]):
-
-        for container in containers:
-            self.stack_container(container, addition=False)
-
-    # -----------------------------------------------------------------------------
-    # Operations/Manipulations - Update
-    # -----------------------------------------------------------------------------
-
-    def update(self):
-
-        build_problem = False
-
-        if self._constraints_queue or self._variables_queue:
-            build_problem = True
-
-        build_new_objective = False
-
-        for container, addition in self._variables_queue.values():
-
-            if addition:
-                self._add_variable(container)
-
-            else:
-
-                build_new_objective = True
-
-                self._remove_variable(container)
-
-        for container, addition in self._constraints_queue.values():
-
-            if addition:
-                self._add_constraint(container)
-
-            else:
-                self._remove_constraint(container)
-
-        self._variables_queue: Dict[str, VariableContainer] = {}
-        self._constraints_queue: Dict[str, ConstraintContainer] = {}
-
-        if build_new_objective:
-
-            new_linear = {}
-            new_quadratic = {}
-
-            for k, val in self._linear_objective.items():
-
-                if k in self._cols or k in self._sub_cols:
-                    new_linear[k] = val
-
-            for (k1, k2), val in self._quadratic_objective.items():
-
-                if (k1 in self._cols or k1 in self._sub_cols) and (k2 in self._cols or k2 in self._sub_cols):
-                    new_quadratic[(k1, k2)] = val
-
-            self.set_objective(linear=new_linear, quadratic=new_quadratic, minimize=self.minimize)
-
-        # updating the solver with new constraints is horrible!!! It sometimes yields infeasible solutions
-        if build_problem:
-            self.build_solver()
-
-    # -----------------------------------------------------------------------------
-    # Operations/Manipulations - LinearProblem getters
-    # -----------------------------------------------------------------------------
-
     def index(self, variable=None, constraint=None, as_list=False, as_int=False, default=None):
-
+        """
+        It returns the index of a variable or constraint
+        :param variable: a variable container
+        :param constraint: a constraint container
+        :param as_list: a boolean indicating whether the index should be returned as a list
+        :param as_int: a boolean indicating whether the index should be returned as an integer
+        :param default: a default value to be returned if the variable or constraint is not found
+        :return: the index of the variable or constraint
+        """
         if variable is None and constraint is None:
             raise ValueError('Please provide a variable or constraint')
 
@@ -759,9 +717,16 @@ class LinearProblem(LinearProblemInterface):
                    constraint=None,
                    b_bounds=False,
                    as_list=False,
-                   as_tuples=False
-                   ):
-
+                   as_tuples=False):
+        """
+        It returns the bounds of a variable or constraint
+        :param variable: a variable container
+        :param constraint: a constraint container
+        :param b_bounds: a boolean indicating whether the bounds of the constraints should be returned
+        :param as_list: a boolean indicating whether the bounds should be returned as a list
+        :param as_tuples: a boolean indicating whether the bounds should be returned as a tuple
+        :return: the bounds of the variable or constraint
+        """
         if variable is not None:
 
             return self._get_variable_bounds(variable=variable)
@@ -776,93 +741,3 @@ class LinearProblem(LinearProblemInterface):
 
         else:
             return self._get_bounds(as_list=as_list, as_tuples=as_tuples)
-
-    # -----------------------------------------------------------------------------
-    # Operations/Manipulations - LinearProblem add/remove variables and constraints
-    # -----------------------------------------------------------------------------
-
-    def _update_constraint_coefs(self, constraint: ConstraintContainer):
-
-        # some constraint coefficients might have keys that refer to the variable name and not sub-variable name.
-        # Since only sub-variable names are added to the solvers,
-        # these keys must be updated to the last sub-variable name. Note that, the last sub-variable name is regularly
-        # the one that matters, as the initial sub-variables regularly decide the outcome of the last one.
-
-        new_coefs = []
-
-        for coefficient in constraint:
-
-            new_coef = {}
-
-            for var, coef in coefficient.items():
-
-                if var in self._sub_cols:
-
-                    sub_var = var
-
-                else:
-
-                    variable = self._variables[var]
-
-                    sub_var = variable.sub_variables[-1]
-
-                new_coef[sub_var] = coef
-
-            new_coefs.append(new_coef)
-
-        constraint.coefs = new_coefs
-
-    def _add_constraint(self, constraint: ConstraintContainer):
-
-        if constraint.name in self._rows:
-            # The constraint is replaced, as the linear problem behaves like a set
-            # This also mimics the solver interface behavior
-
-            old_constraint = self._constraints[constraint.name]
-
-            self._remove_constraint(old_constraint)
-
-        node = constraint.to_node()
-
-        self._rows.add(node)
-
-        self._update_constraint_coefs(constraint)
-
-        self._constraints[constraint.name] = constraint
-
-    def _remove_constraint(self, constraint: ConstraintContainer):
-
-        if constraint.name in self._rows:
-            self._rows.pop(constraint.name)
-            self._constraints.pop(constraint.name)
-
-    def _add_variable(self, variable: VariableContainer):
-
-        if variable.name in self._cols:
-            # The variable is replaced, as the linear problem behaves like a set
-            # This also mimics the solver interface behavior
-
-            old_variable = self._variables[variable.name]
-
-            self._remove_variable(old_variable)
-
-        node = variable.to_node()
-
-        self._cols.add(node)
-
-        self._variables[variable.name] = variable
-
-        for sub_variable in variable.keys():
-            sub_node = Node(value=sub_variable, length=1)
-
-            self._sub_cols.add(sub_node)
-
-    def _remove_variable(self, variable: VariableContainer):
-
-        if variable.name in self._cols:
-
-            self._cols.pop(variable.name)
-            self._variables.pop(variable.name)
-
-            for sub_variable in variable.keys():
-                self._sub_cols.pop(sub_variable)

@@ -1,11 +1,11 @@
 from collections import defaultdict
 from typing import Union, TYPE_CHECKING, Tuple
 
-from mewpy.model import Model
-from .engines import JSON
+from mewpy.mew.models import Model
+from .engines import JSON, MetabolicSBML
 
 if TYPE_CHECKING:
-    from mewpy.model import Model, MetabolicModel, RegulatoryModel
+    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
     from .builder import Builder
     from .reader import Reader
     from .writer import Writer
@@ -15,13 +15,10 @@ class Director:
 
     def __init__(self, *builders: Union['Builder', 'Reader', 'Writer']):
         """
-
         Director is responsible for managing builders. It gives instructions to the builders on how to read or write
         a multi-type model properly
 
         To understand how reading and writing are proceeded, see the read and write methods
-
-        :type builders: Union['Builder', 'Reader', 'Writer']
 
         :param builders: builders for reading models, files or IOs. builders for writing files using mewpy models
         """
@@ -29,19 +26,17 @@ class Director:
 
     @property
     def builders(self) -> Tuple[Union['Builder', 'Reader', 'Writer']]:
-
         """
         Returns the builders associated with this director
+        :return: tuple of builders
         """
-
         return self._builders
 
     def read(self) -> Union['Model', 'RegulatoryModel', 'MetabolicModel']:
-
         """
         Reading a mewpy model, namely metabolic, regulatory or both encoded into one or more file types.
         Reading is performed step-wise according to the builders order.
-
+        :return: mew metabolic, regulatory or both model
         """
 
         types = set()
@@ -76,6 +71,8 @@ class Director:
 
         # Fifth, the model is created, as we now know the model types.
         model = Model.from_types(types=types, identifier='model')
+        model_id = None
+        model_name = None
 
         for builder in self.builders:
 
@@ -104,13 +101,23 @@ class Director:
             # (a multi-type variable). This variable contains all attributes of a Target, Regulator and Metabolite
             engine.read(model=model, variables=variables)
 
+            # update model id and name
+            if isinstance(engine, MetabolicSBML):
+                model_id = engine.dto.id
+                model_name = engine.dto.name
+
             # Seventh, cleaning the data transfer object In detail, when the open and parse methods of an engine are
             # used, the data transfer object is populated with records. Then, it is no longer required for this
             # object to live in memory
             engine.clean()
 
-        model.clean_history()
+        if model_id:
+            model._id = model_id
 
+        if model_name:
+            model.name = model_name
+
+        model.clean_history()
         return model
 
     def write(self):
@@ -118,9 +125,8 @@ class Director:
         """
         Writing a mewpy model, namely metabolic, regulatory or both to one or more file types.
         Writing is performed step-wise according to the builders order.
-
+        :return:
         """
-
         for builder in self.builders:
 
             engine = builder.engine
@@ -140,12 +146,10 @@ class Director:
             engine.clean()
 
     def warn(self):
-
         """
         Launch warnings stored in the builders.
-
+        :return:
         """
-
         # warnings and even small errors are all collected with partial pattern and then launched, as printing to the
         # console takes time
 
