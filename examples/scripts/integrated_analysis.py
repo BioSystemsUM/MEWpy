@@ -4,11 +4,8 @@ from pathlib import Path
 import numpy as np
 from mewpy.omics import ExpressionSet
 
-from mewpy.io import read_model, Engines, Reader, read_gene_expression_dataset
-from mewpy.mew.analysis import (FBA, pFBA, fva, single_reaction_deletion, single_gene_deletion, SRFBA, RFBA, ifva,
-                                isingle_reaction_deletion, isingle_gene_deletion, isingle_regulator_deletion, PROM,
-                                CoRegFlux, slim_prom, slim_coregflux)
-from mewpy.omics.preprocessing import quantile_preprocessing_pipeline, target_regulator_interaction_probability
+from mewpy.io import read_model, Engines, Reader
+from mewpy.mew.analysis import *
 from mewpy.simulation import get_simulator
 
 
@@ -44,6 +41,7 @@ def read_ecoli_core():
     return model
 
 
+# noinspection DuplicatedCode
 def ecoli_core_integrated_analysis():
     """
     Performs an integrated analysis of the E. coli core integrated model.
@@ -84,56 +82,56 @@ def ecoli_core_integrated_analysis():
     simulator = get_simulator(model)
 
     # retrieving essential reactions or genes
-    essential_reactions = simulator.essential_reactions()
-    essential_genes = simulator.essential_genes()
+    simulator.essential_reactions()
+    simulator.essential_genes()
 
     # FBA (default method of the simulator)
-    sol = simulator.simulate()
+    simulator.simulate()
 
     # pFBA (default method of the simulator)
-    sol = simulator.simulate(method='pFBA')
+    simulator.simulate(method='pFBA')
 
     # FBA
     simulator = FBA(model)
-    sol = simulator.optimize()
+    simulator.optimize()
 
     # pFBA
     simulator = pFBA(model)
-    sol = simulator.optimize()
+    simulator.optimize()
 
     # simulating reaction deletions using pFBA
-    reactions_deletion = single_reaction_deletion(model=model,
-                                                  reactions=list(model.reactions.keys())[0:10])
+    single_reaction_deletion(model=model,
+                             reactions=list(model.reactions.keys())[0:10])
 
     # simulating genes deletions using FBA
-    genes_deletion = single_gene_deletion(model=model,
-                                          genes=list(model.genes.keys())[0:10])
+    single_gene_deletion(model=model,
+                         genes=list(model.genes.keys())[0:10])
 
     # simulating FVA
-    fva_sol = fva(model=model, fraction=0.9, reactions=list(model.reactions.keys())[0:10])
+    fva(model=model, fraction=0.9, reactions=list(model.reactions.keys())[0:10])
 
     # simulating Steady-State Regulatory FBA
     simulator = SRFBA(model)
-    sol = simulator.optimize()
+    simulator.optimize()
 
     # simulating Regulatory FBA
     simulator = RFBA(model)
     # simulating Steady State Regulatory FBA
-    sol = simulator.optimize()
+    simulator.optimize()
     # simulating Dynamic Regulatory FBA
-    sol = simulator.optimize(dynamic=True)
+    simulator.optimize(dynamic=True)
 
     # Integrated reaction deletion using SRFBA
-    sol = isingle_reaction_deletion(model, method='srfba', reactions=list(model.reactions.keys())[0:10])
+    isingle_reaction_deletion(model, method='srfba', reactions=list(model.reactions.keys())[0:10])
 
     # Integrated gene deletion using SRFBA
-    sol = isingle_gene_deletion(model, method='srfba', genes=list(model.genes.keys())[0:10])
+    isingle_gene_deletion(model, method='srfba', genes=list(model.genes.keys())[0:10])
 
     # Integrated regulator deletion using SRFBA
-    sol = isingle_regulator_deletion(model, method='srfba', regulators=list(model.regulators.keys())[0:10])
+    isingle_regulator_deletion(model, method='srfba', regulators=list(model.regulators.keys())[0:10])
 
     # Integrated FVA using SRFBA
-    sol = ifva(model, method='srfba', reactions=list(model.reactions.keys())[0:10])
+    ifva(model, method='srfba', reactions=list(model.reactions.keys())[0:10])
 
 
 def read_imc1010():
@@ -168,6 +166,7 @@ def read_imc1010():
     return model
 
 
+# noinspection DuplicatedCode
 def iMC1010_integrated_analysis():
     """
     Performs an integrated analysis of the E. coli iMC1010 integrated model.
@@ -208,14 +207,14 @@ def iMC1010_integrated_analysis():
     simulator = get_simulator(model)
 
     # retrieving essential reactions or genes
-    essential_reactions = simulator.essential_reactions()
-    essential_genes = simulator.essential_genes()
+    simulator.essential_reactions()
+    simulator.essential_genes()
 
     # FBA (default method of the simulator)
-    sol = simulator.simulate()
+    simulator.simulate()
 
     # pFBA (default method of the simulator)
-    sol = simulator.simulate(method='pFBA')
+    simulator.simulate(method='pFBA')
 
     # FBA
     simulator = FBA(model)
@@ -228,15 +227,15 @@ def iMC1010_integrated_analysis():
     print(sol.objective_value)
 
     # simulating reaction deletions using pFBA
-    reactions_deletion = single_reaction_deletion(model=model,
-                                                  reactions=list(model.reactions.keys())[0:10])
+    single_reaction_deletion(model=model,
+                             reactions=list(model.reactions.keys())[0:10])
 
     # simulating genes deletions using FBA
-    genes_deletion = single_gene_deletion(model=model,
-                                          genes=list(model.genes.keys())[0:10])
+    single_gene_deletion(model=model,
+                         genes=list(model.genes.keys())[0:10])
 
     # simulating FVA
-    fva_sol = fva(model=model, fraction=0.9, reactions=list(model.reactions.keys())[0:10])
+    fva(model=model, fraction=0.9, reactions=list(model.reactions.keys())[0:10])
 
     # simulating Steady-State Regulatory FBA
     simulator = SRFBA(model)
@@ -249,21 +248,22 @@ def iMC1010_integrated_analysis():
     sol = simulator.optimize()
     print(sol.objective_value)
     # simulating Dynamic Regulatory FBA
-    sol = simulator.optimize(dynamic=True)
+    simulator.optimize(dynamic=True)
 
     # Integrated reaction deletion using SRFBA
-    sol = isingle_reaction_deletion(model, method='srfba', reactions=list(model.reactions.keys())[0:10])
+    isingle_reaction_deletion(model, method='srfba', reactions=list(model.reactions.keys())[0:10])
 
     # Integrated gene deletion using SRFBA
-    sol = isingle_gene_deletion(model, method='srfba', genes=list(model.genes.keys())[0:10])
+    isingle_gene_deletion(model, method='srfba', genes=list(model.genes.keys())[0:10])
 
     # Integrated regulator deletion using SRFBA
-    sol = isingle_regulator_deletion(model, method='srfba', regulators=list(model.regulators.keys())[0:10])
+    isingle_regulator_deletion(model, method='srfba', regulators=list(model.regulators.keys())[0:10])
 
     # Integrated FVA using SRFBA
-    sol = ifva(model, method='srfba', reactions=list(model.reactions.keys())[0:10])
+    ifva(model, method='srfba', reactions=list(model.reactions.keys())[0:10])
 
 
+# noinspection DuplicatedCode
 def iNJ661_integrated_analysis():
     """
     Performs an integrated analysis of the iNJ661 integrated model.
@@ -315,25 +315,19 @@ def iNJ661_integrated_analysis():
 
     # computing PROM target-regulator interaction probabilities using quantile preprocessing pipeline
     expression_file = reg_path.joinpath('iNJ661_gene_expression.csv')
-    expression = read_gene_expression_dataset(expression_file, sep=';', gene_col=0, header=None)
-    quantile_expression, binary_expression = quantile_preprocessing_pipeline(expression)
+    expression = ExpressionSet.from_csv(file_path=expression_file, sep=';', index_col=0, header=None)
+    quantile_expression, binary_expression = expression.quantile_pipeline()
     initial_state, _ = target_regulator_interaction_probability(model,
                                                                 expression=quantile_expression,
                                                                 binary_expression=binary_expression)
 
-    prom = PROM(model).build()
-    sol = prom.optimize(initial_state=initial_state)
+    prom_ = PROM(model).build()
+    prom_.optimize(initial_state=initial_state)
 
-    sol = slim_prom(model, initial_state=initial_state, regulator='Rv0001')
-
-    # using the omics package
-    # expression set conditions must be strings (not integers)
-    expression.columns = [str(col) for col in expression.columns]
-    expr = ExpressionSet.from_dataframe(expression)
-    from mewpy.omics import PROM as OmicsPROM
-    sol = OmicsPROM(model, expr, regulator='Rv0001')
+    slim_prom(model, initial_state=initial_state, regulator='Rv0001')
 
 
+# noinspection DuplicatedCode
 def iMM904_integrated_analysis():
     """
     Performs an integrated analysis of the iMM904 integrated model.
@@ -392,54 +386,38 @@ def iMM904_integrated_analysis():
     # It is commented because it takes around 1 minute to run.
     # Results are stored in the file 'iMM904_gene_expression_prediction.csv'
 
-    # expression_file = reg_path.joinpath('iMM904_gene_expression.csv')
-    # influence_file = reg_path.joinpath('iMM904_influence.csv')
-    # experiments_file = reg_path.joinpath('iMM904_experiments.csv')
-    # expression = read_gene_expression_dataset(expression_file,
-    #                                           sep=';',
-    #                                           gene_col=0,
-    #                                           header=0)
-    #
-    # influence = read_coregflux_influence_matrix(influence_file,
-    #                                             sep=';',
-    #                                             gene_col=0,
-    #                                             header=0)
-    #
-    # experiments = read_coregflux_influence_matrix(experiments_file,
-    #                                               sep=';',
-    #                                               gene_col=0,
-    #                                               header=0)
+    # expression = ExpressionSet.from_csv(reg_path.joinpath('iMM904_gene_expression.csv'),
+    #                                     sep=';', index_col=0, header=0).dataframe
+    # influence = ExpressionSet.from_csv(reg_path.joinpath('iMM904_influence.csv'),
+    #                                    sep=';', index_col=0, header=0).dataframe
+    # experiments = ExpressionSet.from_csv(reg_path.joinpath('iMM904_experiments.csv'),
+    #                                      sep=';', index_col=0, header=0).dataframe
     #
     # gene_expression_prediction = predict_gene_expression(model=model, influence=influence, expression=expression,
     #                                                      experiments=experiments)
 
     gene_expression_prediction_f = reg_path.joinpath('iMM904_gene_expression_prediction.csv')
-    gene_expression_prediction = read_gene_expression_dataset(gene_expression_prediction_f,
-                                                              sep=',',
-                                                              gene_col=0,
-                                                              header=0)
+    gene_expression_prediction = ExpressionSet.from_csv(gene_expression_prediction_f,
+                                                        sep=',',
+                                                        index_col=0,
+                                                        header=0).dataframe
 
     initial_state = gene_expression_prediction.iloc[:, 0].to_dict()
     co_reg_flux = CoRegFlux(model).build()
-    sol = co_reg_flux.optimize(initial_state=initial_state)
+    co_reg_flux.optimize(initial_state=initial_state)
 
-    sol = slim_coregflux(model, initial_state=initial_state)
+    slim_coregflux(model, initial_state=initial_state)
 
     co_reg_flux = CoRegFlux(model).build()
     initial_state = gene_expression_prediction.iloc[:, 0].to_dict()
     metabolites = {'glc__D_e': 16.6, 'etoh_e': 0}
     growth_rate = 0.45
     time_steps = np.arange(1, 20, 1)
-    sol = co_reg_flux.optimize(initial_state=initial_state,
-                               metabolites=metabolites,
-                               growth_rate=growth_rate,
-                               dynamic=True,
-                               time_steps=time_steps)
-
-    # using the omics package
-    expr = ExpressionSet.from_dataframe(gene_expression_prediction)
-    from mewpy.omics import CoRegFlux as OmicsCoRegFlux
-    sol = OmicsCoRegFlux(model, expr, condition=gene_expression_prediction.columns[0])
+    co_reg_flux.optimize(initial_state=initial_state,
+                         metabolites=metabolites,
+                         growth_rate=growth_rate,
+                         dynamic=True,
+                         time_steps=time_steps)
 
 
 if __name__ == '__main__':

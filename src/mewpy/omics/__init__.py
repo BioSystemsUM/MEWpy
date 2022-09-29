@@ -2,5 +2,3 @@ from .expression import ExpressionSet, gene_to_reaction_expression, Preprocessin
 from .integration.gimme import GIMME
 from .integration.eflux import eFlux
 from .integration.imat import iMAT
-from .integration.prom import PROM
-from .integration.coregflux import CoRegFlux
