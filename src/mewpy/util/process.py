@@ -6,13 +6,17 @@ from .constants import EAConstants, ModelConstants
 
 MP_Evaluators = []
 
+from multiprocessing import Process
+from multiprocessing.pool import Pool as MPPool
+MP_Evaluators.append('nodaemon')
 
 # pathos
 try:
-    import pathos.multiprocesssing as multiprocessing
+    import pathos.multiprocessing as multiprocessing
     from pathos.multiprocessing import Pool
     MP_Evaluators.append('mp')
-except ImportError:
+
+except ImportError as e:
     import multiprocessing
     from multiprocessing.pool import Pool
     MP_Evaluators.append('mp')
@@ -28,6 +32,18 @@ try:
     MP_Evaluators.append('spark')
 except ImportError:
     pass
+
+
+class NoDaemonProcess(Process):
+
+    def _get_daemon(self):
+        return False
+    def _set_daemon(self,value):
+        pass
+    daemon = property(_get_daemon, _set_daemon)
+
+class NoDaemonProcessPool(MPPool):
+    Process = NoDaemonProcess
 
 
 def cpu_count():
@@ -76,6 +92,31 @@ class MultiProcessorEvaluator(Evaluator):
         self.pool = Pool(mp_num_cpus)
         self.evaluator = evaluator
         self.__name__ = self.__class__.__name__
+
+    def evaluate(self, candidates, args):
+        """
+        Values in args will be ignored and not passed to the evaluator to avoid unnecessary pickling in inspyred.
+        """
+        results = self.pool.map(self.evaluator, candidates)
+        return results
+
+    def __call__(self, candidates, args):
+        return self.evaluate(candidates, args)
+
+
+class NoDaemonMultiProcessorEvaluator(Evaluator):
+
+    def __init__(self, evaluator, mp_num_cpus):
+        """A multiprocessing evaluator
+
+        Args:
+            evaluator(function): Evaluation function.
+            mp_num_cpus(int): Number of CPUs
+        """
+        self.pool = NoDaemonProcessPool(mp_num_cpus)
+        self.evaluator = evaluator
+        self.__name__ = self.__class__.__name__
+        print('nodaemon')
 
     def evaluate(self, candidates, args):
         """
@@ -244,6 +285,8 @@ def get_evaluator(problem, n_mp=cpu_count(), evaluator=ModelConstants.MP_EVALUAT
     """
     if evaluator == 'ray' and 'ray' in MP_Evaluators:
         return RayEvaluator(problem, n_mp)
+    elif evaluator == 'nodaemon' and 'nodaemon' in MP_Evaluators:
+        return NoDaemonMultiProcessorEvaluator(problem,n_mp) 
     elif evaluator == 'dask' and 'dask' in MP_Evaluators:
         return DaskEvaluator(problem.evaluate, n_mp)
     elif evaluator == 'spark' and 'spark' in MP_Evaluators:
@@ -266,6 +309,8 @@ def get_fevaluator(func, n_mp=cpu_count(), evaluator=ModelConstants.MP_EVALUATOR
     """
     if evaluator == 'ray' and 'ray' in MP_Evaluators:
         return RayEvaluator(func, n_mp, isfunc=True)
+    elif evaluator == 'nodaemon' and 'nodaemon' in MP_Evaluators:
+        return NoDaemonMultiProcessorEvaluator(func,n_mp) 
     elif evaluator == 'dask' and 'dask' in MP_Evaluators:
         return DaskEvaluator(func, n_mp)
     elif evaluator == 'spark' and 'spark' in MP_Evaluators:
