@@ -10,12 +10,12 @@ class KineticKOProblem(AbstractKOProblem):
         super(KineticKOProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
         kinetic_parameters = kwargs.get('kparam', None)
-        tSteps = kwargs.get('tSteps', None)
+        t_points = kwargs.get('t_points', None)
         timeout = kwargs.get('timeout', KineticConfigurations.SOLVER_TIMEOUT)
         self.kinetic_sim = KineticSimulation(model, 
                                              parameters=kinetic_parameters,
                                              timeout=timeout,
-                                             tSteps=tSteps)
+                                             t_points=t_points)
         for f in self.fevaluation:
             if isinstance(f,KineticEvaluationFunction):
                 f.kinetic = True
@@ -51,12 +51,12 @@ class KineticOUProblem(AbstractOUProblem):
         super(KineticOUProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
         kinetic_parameters = kwargs.get('kparam', None)
-        tSteps = kwargs.get('tSteps', None)
+        t_points = kwargs.get('t_points', None)
         timeout = kwargs.get('timeout', KineticConfigurations.SOLVER_TIMEOUT)
         self.kinetic_sim = KineticSimulation(model, 
                                              parameters=kinetic_parameters,
                                              timeout=timeout,
-                                             tSteps=tSteps)
+                                             t_points=t_points)
         for f in self.fevaluation:
             if isinstance(f,KineticEvaluationFunction):
                 f.kinetic = True

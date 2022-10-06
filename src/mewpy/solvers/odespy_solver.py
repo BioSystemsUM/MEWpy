@@ -39,13 +39,9 @@ class ODESpySolver(ODESolver):
     def set_initial_condition(self, initial_condition):
         self.initial_condition = initial_condition
 
-    def solve(self, y0, t_span, **kwargs):
+    def solve(self, y0, t_points, **kwargs):
         """
-        Returns the solver method from odespy package.
-
-        :param func: function with ODE system.
-        :return: an instance of odeSolver
-
+        Solves the ODE
         """
         def f(u, t):
             return self.func(t, u)
@@ -57,7 +53,7 @@ class ODESpySolver(ODESolver):
                 solver = methods[self.method](f)
             
             # update default parameters
-            time_points = np.linspace(t_span[0], t_span[1], num=SolverConfigurations.N_STEPS, endpoint=True)
+            time_points = t_points
             solver.atol = SolverConfigurations.ABSOLUTE_TOL
             solver.rtol = SolverConfigurations.RELATIVE_TOL
             solver.set_initial_condition(y0)

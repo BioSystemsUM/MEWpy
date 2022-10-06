@@ -1,10 +1,10 @@
 from multiprocessing import Process, Manager
 from collections import OrderedDict
-import warnings
 from ..simulation.simulation import SimulationResult, SimulationInterface
 from ..model.kinetic import ODEModel
 from ..solvers import KineticConfigurations, SolverConfigurations, ODEStatus, ode_solver_instance
-
+import warnings
+import numpy as np
 
 def kinetic_solve(model, y0, time_steps, parameters=None, factors=None):
 
@@ -74,11 +74,12 @@ class KineticSimulationResult(SimulationResult):
 
 class KineticSimulation(SimulationInterface):
 
-    def __init__(self, model,  parameters=None, tSteps=[0, 1e9], timeout=KineticConfigurations.SOLVER_TIMEOUT):
+    def __init__(self, model,  parameters=None, t_points=[0, 1e9], 
+                 timeout=KineticConfigurations.SOLVER_TIMEOUT):
         if not isinstance(model, ODEModel):
             raise ValueError('model is not an instance of ODEModel.')
         self.model = model
-        self.tSteps = tSteps
+        self.t_points = t_points
         self.timeout = timeout
         self.parameters = parameters if parameters else dict()
 
@@ -92,15 +93,19 @@ class KineticSimulation(SimulationInterface):
                 values.append(None)
         return values
 
-    def get_time_steps(self):
-        return self.tSteps
+    def get_time_points(self):
+        return self.t_points
 
-    def simulate(self, parameters=None, initcon=None, factors=None):
+    def simulate(self, parameters=None, initcon=None, factors=None, t_points=None):
         """
-        This method preform the phenotype simulation of the kinetic model.
+        Solve an initial value problem for a system of ODEs.
+        
         :param dict parameters: Parameters to be modified. Default None
         :para dict initcon: initial conditions, metabolite concentrations. Default None
         :param dict factors: Modification over the kinetic model.
+        :param list t_points: Times at which to store the computed solution,\
+            must be sorted and lie within t_span. Default None, in which case the number of
+            time steps is defined by SolverConfigurations.N_STEPS.
         :returns: Returns a kineticSimulationResult with the steady-state flux distribution and concentrations.
         """
 
@@ -115,12 +120,20 @@ class KineticSimulation(SimulationInterface):
         params = self.parameters
         if parameters:
             params.update(parameters)
+        
+        time_steps = t_points if t_points else self.get_time_points()
+        
+        if len(time_steps)==2:
+            time_steps = np.linspace(time_steps[0], 
+                                     time_steps[1], 
+                                     num=SolverConfigurations.N_STEPS, 
+                                     endpoint=True)
 
         if self.timeout:
             try:
                 th = KineticThread(self.model,
                                    initial_concentrations=initConcentrations,
-                                   time_steps=self.get_time_steps(),
+                                   time_steps=time_steps,
                                    parameters=params,
                                    factors=_factors)
 
@@ -138,7 +151,7 @@ class KineticSimulation(SimulationInterface):
         else:
             status, sstateRates, sstateConc, t, y = kinetic_solve(self.model,
                                                             initConcentrations,
-                                                            self.get_time_steps(),
+                                                            time_steps,
                                                             params,
                                                             _factors)
 
