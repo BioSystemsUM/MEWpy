@@ -70,7 +70,46 @@ class KineticSimulationResult(SimulationResult):
         self.concentrations = concentrations
         self.t = t
         self.y = y
+        self.m_indexes = {k: v for v, k in enumerate(concentrations.keys())} 
 
+    def get_y(self, m_id):
+        if m_id in self.m_indexes:
+            return np.array(self.y).T[:,self.m_indexes[m_id]]
+        else:
+            raise ValueError(f"Unknown metabolite {m_id}")
+
+    def get_ss_concentrations(self, format=None):
+        if format and format=='df':
+            import pandas as pd
+            return pd.DataFrame(self.concentrations)
+        else:
+            return self.concentrations
+
+    def plot(self, met=None):    
+        import matplotlib.pyplot as plt
+        if not met:
+            _mets = list(self.concentrations.keys()) 
+        elif isinstance(met,str):
+            _mets =[met]
+        elif isinstance(met,list) and len(met)<=4:
+            _mets = met
+        else:
+            raise ValueError('fluxes should be a reaction identifier, a list of reaction identifiers or None.')
+        ax = plt.subplot(111)
+        if len(_mets)!=2: 
+            for k in _mets:
+                ax.plot(self.t, self.get_y(k), label=k)
+            ax.set_ylabel('rates')
+            plt.legend()
+        else:
+            ax.plot(self.t, self.get_y(_mets[0]), label=_mets[0])
+            ax2 = plt.twinx(ax)
+            ax2.plot(self.t, self.get_y(_mets[1]), label=_mets[1], color='r')
+            ax.set_ylabel(_mets[0], color='b')
+            ax2.set_ylabel(_mets[1], color='r')
+        
+        ax.set_xlabel('Time points')
+        return ax
 
 class KineticSimulation(SimulationInterface):
 
