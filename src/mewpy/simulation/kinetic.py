@@ -1,8 +1,8 @@
 from multiprocessing import Process, Manager
 from collections import OrderedDict
-from ..simulation.simulation import SimulationResult, SimulationInterface
-from ..model.kinetic import ODEModel
-from ..solvers import KineticConfigurations, SolverConfigurations, ODEStatus, ode_solver_instance
+from mewpy.simulation.simulation import SimulationResult, SimulationInterface
+from mewpy.model.kinetic import ODEModel
+from mewpy.solvers import KineticConfigurations, SolverConfigurations, ODEStatus, ode_solver_instance
 import warnings
 import numpy as np
 
@@ -85,8 +85,10 @@ class KineticSimulationResult(SimulationResult):
         else:
             return self.concentrations
 
-    def plot(self, met=None):    
+    def plot(self, met=None, size:tuple=None):    
         import matplotlib.pyplot as plt
+        if size:
+            plt.rcParams["figure.figsize"] = size
         if not met:
             _mets = list(self.concentrations.keys()) 
         elif isinstance(met,str):
@@ -95,20 +97,23 @@ class KineticSimulationResult(SimulationResult):
             _mets = met
         else:
             raise ValueError('fluxes should be a reaction identifier, a list of reaction identifiers or None.')
-        ax = plt.subplot(111)
+        ax = plt.subplot()
         if len(_mets)!=2: 
             for k in _mets:
                 ax.plot(self.t, self.get_y(k), label=k)
-            ax.set_ylabel('rates')
-            plt.legend()
+            if len(_mets)==1:
+                ax.set_ylabel(self.model.get_metabolite(_mets[0]).name)
+            else:        
+                ax.set_ylabel('Concentrations')
+                plt.legend()
         else:
             ax.plot(self.t, self.get_y(_mets[0]), label=_mets[0])
             ax2 = plt.twinx(ax)
             ax2.plot(self.t, self.get_y(_mets[1]), label=_mets[1], color='r')
-            ax.set_ylabel(_mets[0], color='b')
-            ax2.set_ylabel(_mets[1], color='r')
+            ax.set_ylabel(self.model.get_metabolite(_mets[0]).name, color='b')
+            ax2.set_ylabel(self.model.get_metabolite(_mets[1]).name, color='r')
         
-        ax.set_xlabel('Time points')
+        ax.set_xlabel('Time')
         return ax
 
 class KineticSimulation(SimulationInterface):
@@ -132,7 +137,20 @@ class KineticSimulation(SimulationInterface):
                 values.append(None)
         return values
 
+    def set_time(self, start, end, steps):
+        """
+        This function sets the time parameters for the model.  This is how long the model will simulate
+
+        Args:
+            start (int): the start time - usually 0
+            end (int): the end time (default is 100)
+            steps (int): the number of timepoints for the output
+        """
+        self.t_points = np.linspace(start, end, steps)
+
+
     def get_time_points(self):
+        """Returns the time point or span."""
         return self.t_points
 
     def simulate(self, parameters=None, initcon=None, factors=None, t_points=None):

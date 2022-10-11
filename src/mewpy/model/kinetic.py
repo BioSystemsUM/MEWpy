@@ -513,7 +513,11 @@ class ODEModel:
             v = coeff * f if coeff > 0 else coeff
             terms.append(f"{v:+g} * r['{r_id}']")
 
-        if f == 0 or len(terms) == 0 or (self.metabolites[m_id].constant and self.metabolites[m_id].boundary):
+        if ( f == 0 or 
+             len(terms) == 0 or 
+             ( self.metabolites[m_id].constant and 
+               self.metabolites[m_id].boundary
+             )):
             expr = "0"
         else:
             expr = f"1/p['{c_id}'] * ({' '.join(terms)})"
@@ -565,14 +569,38 @@ class ODEModel:
         return df
 
     def deriv(self, y, t):
+        """
+        deriv function called by integrate
+
+        For each step when the model is run, the rate for each reaction is calculated and changes in substrates and products calculated.
+        These are returned by this function as y_prime, which are added to y which is returned by run_model
+
+        Args:
+            y (list): ordered list of substrate values at this current timepoint. Has the same order as self.run_model_species_names
+            t (): time, not used in this function but required for some reason
+
+        Returns:
+            y_prime - ordered list the same as y, y_prime is the new set of y's for this timepoint.
+        """
         m_y = OrderedDict(zip(self.metabolites, y))
         yprime = np.zeros(len(y))
         for _, reaction in self.ratelaws.items():
             yprime += reaction.reaction(m_y, self.get_parameters())
         return yprime
 
-    def build_ode(self, factors=None, local=False):
+    def build_ode(self, factors:dict=None, local:bool=False) -> str:
+        """ 
+        Axiliary function to build the ODE as a string
+        to be evaluated by eval. Allows the inclusion of factors to
+        be applied to the parameters
 
+        Args:
+            factors (dict): factors to be applied to parameters
+            local (bool): enforces the usage of parameter values defined within
+            the reactions
+        Returns:
+            func_str the right-hand side of the system. 
+        """
         rmap = OrderedDict()
         m = {m_id: f"x[{i}]" for i, m_id in enumerate(self.metabolites)}
         c = {c_id: f"p['{c_id}']" for c_id in self.compartments}
