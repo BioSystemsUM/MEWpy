@@ -499,8 +499,8 @@ def simulate(model, envcond=None, objective=None, method=SimulationMethod.FBA, m
              solver=None, **kwargs):
     """Runs an FBA phenotype simulation.
 
-    :param model: cobrapy, reframed, mew constraint-base model
-    :param (dict )envcond : Environmental conditions, defaults to None
+    :param model: cobrapy, reframed, GERM constraint-base model
+    :param (dict ) envcond : Environmental conditions, defaults to None
     :param (dict) objective: the FBA objective , defaults to None
     :param method: The FBA method, defaults to SimulationMethod.FBA
     :param maximize: optimization sense, defaults to True

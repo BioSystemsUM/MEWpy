@@ -105,7 +105,7 @@ MEWpy enables strain optimization using Genome-scale models enhanced with enzyma
 
 
 
-The optimization API is common to the one defined for the optimization of metabolic constraints (Reactions and Genes),  . MEWpy automatically  selects the phenotype simulator for the loaded model.
+The optimization API is common to the one defined for the optimization of metabolic constraints (Reactions and Genes). MEWpy automatically  selects the phenotype simulator for the loaded model.
 
 ```python  
 # load the model
@@ -205,7 +205,7 @@ from mewpy.io import Reader, Engines, read_model
 from mewpy.optimization import EA, BPCY, WYIELD
 from mewpy.problems import OptORFProblem
 
-# load an integrated MEW model. Consult the documentation (mewpy.mew) for more details
+# load a GERM model. Consult the documentation (mewpy.germ) for more details
 metabolic_reader = Reader(Engines.MetabolicSBML, 'iJR904.xml')
 regulatory_reader = Reader(Engines.BooleanRegulatoryCSV, 'iMC1010.csv',
                            sep=',', id_col=0, rule_col=4, aliases_cols=[1, 2, 3], header=0)

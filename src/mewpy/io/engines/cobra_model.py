@@ -2,13 +2,13 @@ from functools import partial
 from typing import Union, TYPE_CHECKING
 
 from mewpy.io.dto import VariableRecord, DataTransferObject, CompartmentRecord, FunctionTerm
-from mewpy.mew.algebra import Expression
-from mewpy.mew.models import MetabolicModel
+from mewpy.germ.algebra import Expression
+from mewpy.germ.models import MetabolicModel
 from .engine import Engine
 from .engines_utils import build_symbolic, expression_warning, cobra_warning
 
 if TYPE_CHECKING:
-    from mewpy.mew.models import RegulatoryModel, Model, MetabolicModel
+    from mewpy.germ.models import RegulatoryModel, Model, MetabolicModel
 
 
 class CobraModel(Engine):

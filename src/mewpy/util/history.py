@@ -5,8 +5,8 @@ from functools import partial, wraps
 import pandas as pd
 
 if TYPE_CHECKING:
-    from mewpy.mew.models import Model
-    from mewpy.mew.variables import Variable
+    from mewpy.germ.models import Model
+    from mewpy.germ.variables import Variable
 
 
 class HistoryManager:

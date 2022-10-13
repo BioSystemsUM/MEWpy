@@ -2,13 +2,13 @@ import json
 import os
 from typing import Union, TYPE_CHECKING
 
-from mewpy.mew.models import Model
+from mewpy.germ.models import Model
 from mewpy.io.dto import DataTransferObject
 
 from .engine import Engine
 
 if TYPE_CHECKING:
-    from mewpy.mew.models import RegulatoryModel, Model, MetabolicModel
+    from mewpy.germ.models import RegulatoryModel, Model, MetabolicModel
 
 
 class JSON(Engine):
@@ -69,7 +69,7 @@ class JSON(Engine):
             self.close()
             self.clean()
 
-            raise OSError(f'{self.io} is not a valid json mewpy model')
+            raise OSError(f'{self.io} is not a valid json GERM model')
 
     def read(self,
              model: Union['Model', 'MetabolicModel', 'RegulatoryModel'] = None,

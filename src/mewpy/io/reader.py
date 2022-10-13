@@ -47,7 +47,7 @@ class Reader(Builder):
                  config: dict = None):
 
         """
-        Read a given file type (or model type) into a mewpy model (metabolic, regulatory, metabolic-regulatory).
+        Read a given file type (or model type) into a GERM model (metabolic, regulatory, regulatory-metabolic).
 
         It currently supports xml, sbml, json, csv and txt. It also supports parsing of cobrapy and reframed models.
 
@@ -132,7 +132,7 @@ class Reader(Builder):
     # to understand this read method, please consult the director, builder and reader init stubs
     def read(self, warnings: bool = True):
         """
-        Reading a mewpy model, namely metabolic, regulatory or both encoded into one file type
+        Reading a GERM model, namely metabolic, regulatory or both encoded into one file type
         (e.g. sbml, csv, cobrapy, reframed, json, etc).
         The file is closed upon reading or failure
 

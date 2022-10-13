@@ -1,7 +1,9 @@
-from collections import OrderedDict
-from libsbml import AssignmentRule, SBMLReader
-from math import inf, isinf, isnan
 import os
+from collections import OrderedDict
+from math import isinf, isnan
+
+from libsbml import AssignmentRule, SBMLReader
+
 from ..model.kinetic import ODEModel, Compartment, Metabolite, KineticReaction, Rule
 
 

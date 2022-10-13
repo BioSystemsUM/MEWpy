@@ -6,12 +6,12 @@ from pandas import DataFrame
 from cobra import Model as Cobra_Model
 from reframed import CBModel as Reframed_Model
 
-from mewpy.mew.algebra import Symbolic, NoneAtom
-from mewpy.mew.variables import Variable
+from mewpy.germ.algebra import Symbolic, NoneAtom
+from mewpy.germ.variables import Variable
 
 if TYPE_CHECKING:
-    from mewpy.mew.variables import Gene, Interaction, Metabolite, Reaction, Regulator, Target
-    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
+    from mewpy.germ.variables import Gene, Interaction, Metabolite, Reaction, Regulator, Target
+    from mewpy.germ.models import Model, MetabolicModel, RegulatoryModel
 
 
 @dataclass

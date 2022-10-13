@@ -16,8 +16,8 @@ from cobra.io import read_sbml_model
 model = read_sbml_model('iML1515.xml')
 ```
 
-In addition, our `mewpy.mew` module can be used to load metabolic models in SBML, JSON, COBRApy model or Reframed model formats. 
-Consult the [documentation](https://mewpy.readthedocs.io/en/latest/mew.html#mewpy-phenotype-simulation-using-mew-models) 
+In addition, our `mewpy.germ` module can be used to load metabolic models in SBML, JSON, COBRApy model or Reframed model formats. 
+Consult the [documentation](https://mewpy.readthedocs.io/en/latest/germ.html#mewpy-phenotype-simulation-using-germ-models) 
 for more information.
 
 A simulator object provides a common interface to realize the main phenotype analysis tasks. The *get_simulator* function returns a simulator, a wrapper,  for the provided model. The simulator interface remains the same regardless of how the model was loaded, using REFRAMED or COBRApy. This simplify the use of both environments and ease the management of future changes and deprecation on their APIs.

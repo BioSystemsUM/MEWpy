@@ -63,9 +63,9 @@ def load_gecko():
     simul.summary()
 
 
-def load_mew():
+def load_germ_model():
     """
-    Loads a mew model
+    Loads a GERM model
     """
     DIR = os.path.dirname(os.path.realpath(__file__))
     PATH = os.path.join(DIR, '../models/optram/')

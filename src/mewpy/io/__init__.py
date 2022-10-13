@@ -21,7 +21,7 @@ from .engines import (Engines,
 if TYPE_CHECKING:
     from io import TextIOWrapper
 
-    from mewpy.mew.models import Model, RegulatoryModel, MetabolicModel
+    from mewpy.germ.models import Model, RegulatoryModel, MetabolicModel
     from cobra import Model as Cobra_Model
     from reframed import CBModel as Reframed_Model
 
@@ -71,7 +71,7 @@ def load_gecko_simulator(filename, flavor='reframed', envcond=None):
 def read_model(*readers: Reader,
                warnings: bool = True) -> Union['Model', 'RegulatoryModel', 'MetabolicModel']:
     """
-    Reading a mewpy model encoded into one or more file types (e.g. sbml, csv, cobrapy, reframed, json, etc).
+    Reading a GERM model encoded into one or more file types (e.g. sbml, csv, cobrapy, reframed, json, etc).
     It can return a metabolic, regulatory or metabolic-regulatory model from multiple files.
 
     A reader must be provided for each file type.
@@ -79,7 +79,7 @@ def read_model(*readers: Reader,
 
     All files are closed upon reading or failure
 
-    :param readers: Multiple Reader instances that will be used to read multiple file types into a single mewpy model
+    :param readers: Multiple Reader instances that will be used to read multiple file types into a single GERM model
     :param warnings: Whether to launch warnings found during reading
     :return: mewpy metabolic, regulatory or both model
     """
@@ -99,7 +99,7 @@ def read_sbml(io: Union[str, Path, 'TextIOWrapper'],
               regulatory: bool = True,
               warnings: bool = True) -> Union['Model', 'RegulatoryModel', 'MetabolicModel']:
     """
-    Reading a mewpy model encoded into a SBML file.
+    Reading a GERM model encoded into a SBML file.
     It can return a metabolic, regulatory or metabolic-regulatory model from the SBML file according to the metabolic
     and regulatory flags.
 
@@ -235,10 +235,10 @@ def read_cbmodel(io: Union['Cobra_Model', 'Reframed_Model'],
 def read_json(io: Union[str, Path, 'TextIOWrapper'],
               warnings: bool = True) -> Union['Model', 'MetabolicModel', 'RegulatoryModel']:
     """
-    Reading a mewpy model encoded into a JSON file.
+    Reading a GERM model encoded into a JSON file.
     It can return a metabolic, regulatory or metabolic-regulatory model from the JSON file according to the JSON file.
 
-    Only one JSON file is accepted. The mewpy model is built according to the JSON file content.
+    Only one JSON file is accepted. The GERM model is built according to the JSON file content.
 
     The JSON file is closed upon reading or failure
 
@@ -256,7 +256,7 @@ def read_json(io: Union[str, Path, 'TextIOWrapper'],
 def write_model(*writers: Writer,
                 warnings=True) -> Union['Model', 'RegulatoryModel', 'MetabolicModel']:
     """
-    Writing a mewpy model into one or more file types (e.g. sbml, csv, cobrapy, reframed, json, etc).
+    Writing a GERM model into one or more file types (e.g. sbml, csv, cobrapy, reframed, json, etc).
     It can write a metabolic, regulatory or metabolic-regulatory model to multiple files.
 
     A writer must be provided for each file type.
@@ -264,7 +264,7 @@ def write_model(*writers: Writer,
 
     All files are closed upon writing or failure
 
-    :param writers: Multiple Writer instances that will be used to write multiple file types from a single mewpy model
+    :param writers: Multiple Writer instances that will be used to write multiple file types from a single GERM model
     :param warnings: Whether to launch warnings found during reading
     :return: mewpy metabolic, regulatory or both model
     """
