@@ -114,7 +114,7 @@ class Rule(object):
         """
         if not self._tree:
             self._tree = build_tree(self.law, Arithmetic)
-        return self._tree
+        return self._tree        
 
     def parse_parameters(self):
         """Returns the list of parameters within the rule.
@@ -123,6 +123,21 @@ class Rule(object):
             list: parameters
         """
         return list(self.tree.get_parameters())
+
+    def rename_parameter(self, old_parameter, new_parameter):
+        """Need to rename in the law, tree and parameters"""
+
+        if old_parameter in self.parse_parameters():
+            t = self.tree.replace({old_parameter:new_parameter})
+            self.law = t.to_infix()
+            self._tree = None
+        try:
+            self.parameters[new_parameter]=self.parameters[old_parameter]
+            del self.parameters[old_parameter]
+        except:
+            pass
+
+
 
     def get_parameters(self):
         return self.parameters
@@ -203,6 +218,18 @@ class KineticReaction(Rule):
     def products(self):
         return [k for k, v in self.stoichiometry.items() if v > 0]
 
+    def rename_parameter(self, old_parameter, new_parameter):
+        super().rename_parameter(old_parameter, new_parameter)
+
+        if old_parameter in self.modifiers:
+            self.modifiers.append(new_parameter)
+            self.modifiers.remove(old_parameter)
+
+        if old_parameter in self.parameter_distributions:
+            self.parameter_distributions[new_parameter] = self.parameter_distributions[old_parameter]
+            del self.parameter_distributions[old_parameter]
+        
+
     def set_parameter_distribution(self, param, dist):
         self.parameter_distributions[param]=dist
 
@@ -221,7 +248,7 @@ class KineticReaction(Rule):
         Returns:
             str: kinetic rule.
         """
-        m = {p_id: f"p['{self.id}_{p_id}']" for p_id in self.parameters.keys()}
+        m = {p_id: f"p['{p_id}']" for p_id in self.parameters.keys()}
         r_map = map.copy()
         r_map.update(m)
 
@@ -238,7 +265,6 @@ class KineticReaction(Rule):
         # user defined
         param.update(substrates)
         param.update(parameters)
-        
         s = set(self.parse_parameters())-set(param.keys())
         if s:
             # check for missing parameters distributions  
@@ -248,7 +274,6 @@ class KineticReaction(Rule):
             else:
                 for p in s:
                     param[p] = self.parameter_distributions[p].rvs()
-        
         t = self.replace(param)
         rate = eval(t)
         return rate
@@ -488,7 +513,12 @@ class ODEModel:
 
         for r_id, law in self.ratelaws.items():
             for p_id, value in law.parameters.items():
-                full_id = f"{r_id}_{p_id}"
+                
+                full_id = f"{p_id}"
+                if full_id in constants:
+                    warnings.warn(f'renaming {p_id} to {r_id}_{p_id}')
+                    full_id = f"{r_id}_{p_id}"
+                    law.rename_parameter(f"{p_id}",f"{r_id}_{p_id}")
                 constants[full_id] = value
 
         self._constants = constants
