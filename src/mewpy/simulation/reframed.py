@@ -268,7 +268,7 @@ class Simulation(CBModelContainer, Simulator):
             Defaults to True.
         """
         from reframed.core.cbmodel import CBReaction
-        reaction = CBReaction(rxn_id, stoichiometry=stoichiometry,name=name, lb=lb, ub=ub, gpr_association=gpr)
+        reaction = CBReaction(rxn_id, stoichiometry=stoichiometry,name=name, lb=lb, ub=ub, gpr_association=gpr,**kwargs)
         self.model.add_reaction(reaction, replace=replace)
 
     def remove_reaction(self, r_id):
