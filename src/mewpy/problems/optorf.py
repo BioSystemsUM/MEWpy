@@ -9,7 +9,7 @@ from .problem import AbstractKOProblem
 
 if TYPE_CHECKING:
     from mewpy.optimization import EvaluationFunction
-    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
+    from mewpy.germ.models import Model, MetabolicModel, RegulatoryModel
 
 
 def load_optorf(regulatory_model: Union[str, TextIOWrapper, Reader],
@@ -109,7 +109,7 @@ class OptORFProblem(AbstractKOProblem):
         """
         if isinstance(model, (Cobra_Model, Reframed_Model)):
             raise ValueError(f'OptORF is not available for a model of type {type(model)}.'
-                             f'Please use load_optorf() to retrieve an integrated mewpy model')
+                             f'Please use load_optorf() to retrieve an integrated GERM model')
 
         super(OptORFProblem, self).__init__(model, fevaluation, **kwargs)
 

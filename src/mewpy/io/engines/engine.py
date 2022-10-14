@@ -4,7 +4,7 @@ from collections import defaultdict
 from typing import Union, TYPE_CHECKING, Dict, Optional
 
 if TYPE_CHECKING:
-    from mewpy.mew.models import RegulatoryModel, MetabolicModel, Model
+    from mewpy.germ.models import RegulatoryModel, MetabolicModel, Model
     from mewpy.io.dto import DataTransferObject
     from io import TextIOWrapper
     from cobra import Model as CobraModel
@@ -21,7 +21,7 @@ class Engine(metaclass=ABCMeta):
         The engine interface for reading/writing models. The abstract properties and methods should be fully
         implemented in the concrete engines.
 
-        The concrete engines will open, parse and read specific types to a mewpy model,
+        The concrete engines will open, parse and read specific types to a GERM model,
         such as:
             - regulatory sbml
             - metabolic sbml
@@ -29,7 +29,7 @@ class Engine(metaclass=ABCMeta):
             - cbm models objects from external packages
             - json files
 
-        The concrete engines will also open and write specific types from an adequate mewpy model,
+        The concrete engines will also open and write specific types from an adequate GERM model,
         such as:
             - regulatory sbml
             - metabolic sbml
@@ -65,7 +65,7 @@ class Engine(metaclass=ABCMeta):
 
         :param io: file path, file handler or cbm model object from cobrapy or reframed
         :param config: dictionary of multiple configurations to be used when reading
-        :param model: in case of writing, a mewpy model must be provided
+        :param model: in case of writing, a GERM model must be provided
         """
         self._io = io
         self._config = config
@@ -127,22 +127,22 @@ class Engine(metaclass=ABCMeta):
              model: Union['Model', 'MetabolicModel', 'RegulatoryModel'] = None,
              variables: dict = None) -> Union['Model', 'MetabolicModel', 'RegulatoryModel']:
         """
-        Reads a model into a mewpy model. If a model is provided, the read method will increment further variables
+        Reads a model into a GERM model. If a model is provided, the read method will increment further variables
         If a variables dictionary is provided, multi-type variables can be built together with the ones available in
         the model
 
         Reading is performed from the middle DataTransferObject
 
-        :param model: A valid mewpy model
+        :param model: A valid GERM model
         :param variables: A dictionary of variables already built to be updated during reading
-        :return: mewpy model
+        :return: GERM model
         """
         pass
 
     @abstractmethod
     def write(self):
         """
-        Writes a mewpy model.
+        Writes a GERM model.
         :return:
         """
 

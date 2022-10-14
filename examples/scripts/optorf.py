@@ -13,7 +13,7 @@ def optorf_ec():
     for overproduction of succinate.
     :return:
     """
-    path = Path(__file__).parent.parent.joinpath('models', 'regulation')
+    path = Path(__file__).parent.parent.joinpath('models', 'germ')
     metabolic_reader = Reader(Engines.MetabolicSBML, path.joinpath('e_coli_core.xml'))
     regulatory_reader = Reader(Engines.BooleanRegulatoryCSV, path.joinpath('e_coli_core_trn.csv'),
                                sep=',', id_col=0, rule_col=2, aliases_cols=[1], header=0)
@@ -45,7 +45,7 @@ def optorf_imc():
     for overproduction of succinate.
     :return:
     """
-    path = Path(__file__).parent.parent.joinpath('models', 'regulation')
+    path = Path(__file__).parent.parent.joinpath('models', 'germ')
     metabolic_reader = Reader(Engines.MetabolicSBML, path.joinpath('iJR904.xml'))
     regulatory_reader = Reader(Engines.BooleanRegulatoryCSV, path.joinpath('iMC1010.csv'),
                                sep=',', id_col=0, rule_col=4, aliases_cols=[1, 2, 3], header=0)

@@ -49,11 +49,11 @@ map_model_simulator = {
     'geckopy.gecko.GeckoModel': ('mewpy.simulation.cobra', 'GeckoSimulation'),
     'mewpy.model.gecko.GeckoModel': ('mewpy.simulation.reframed', 'GeckoSimulation'),
     'mewpy.model.smoment.SMomentModel': ('mewpy.simulation.reframed', 'GeckoSimulation'),
-    'mewpy.mew.models.model.Model': ('mewpy.simulation.mew', 'Simulation'),
-    'mewpy.mew.models.metabolic.MetabolicModel': ('mewpy.simulation.mew', 'Simulation'),
-    'mewpy.mew.models.regulatory.RegulatoryModel': ('mewpy.simulation.mew', 'Simulation'),
-    'mewpy.mew.models.model.MetabolicRegulatoryModel': ('mewpy.simulation.mew', 'Simulation'),
-    'mewpy.mew.models.model.RegulatoryMetabolicModel': ('mewpy.simulation.mew', 'Simulation'),
+    'mewpy.germ.models.model.Model': ('mewpy.simulation.germ', 'Simulation'),
+    'mewpy.germ.models.metabolic.MetabolicModel': ('mewpy.simulation.germ', 'Simulation'),
+    'mewpy.germ.models.regulatory.RegulatoryModel': ('mewpy.simulation.germ', 'Simulation'),
+    'mewpy.germ.models.model.MetabolicRegulatoryModel': ('mewpy.simulation.germ', 'Simulation'),
+    'mewpy.germ.models.model.RegulatoryMetabolicModel': ('mewpy.simulation.germ', 'Simulation'),
 }
 
 
@@ -132,13 +132,13 @@ def get_container(model):
 
     """
 
-    from mewpy.mew.models import Model, RegulatoryModel, MetabolicModel
+    from mewpy.germ.models import Model, RegulatoryModel, MetabolicModel
 
     if isinstance(model, (Model, MetabolicModel, RegulatoryModel)):
 
-        from .mew import MewModel
+        from .germ import GERMModel
 
-        return MewModel(model)
+        return GERMModel(model)
 
     try:
         from reframed.core.cbmodel import CBModel

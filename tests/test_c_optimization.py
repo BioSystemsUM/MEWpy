@@ -75,8 +75,8 @@ class TestOptJMetal(TestOptInspyred):
             set_default_engine('jmetal')
 
 
-class TestMewOptInspyred(unittest.TestCase):
-    """ Unittests for Inspyred based optimizations using mew models.
+class TestGERMOptInspyred(unittest.TestCase):
+    """ Unittests for Inspyred based optimizations using germ models.
     """
 
     def setUp(self):
@@ -126,8 +126,8 @@ class TestMewOptInspyred(unittest.TestCase):
         self.assertEqual(ea.get_population_size(), 10)
 
 
-class TestMewOptJMetal(TestMewOptInspyred):
-    """ Unittests for JMetalPy based optimizations using mew models.
+class TestGERMOptJMetal(TestGERMOptInspyred):
+    """ Unittests for JMetalPy based optimizations using germ models.
     """
 
     def setUp(self):

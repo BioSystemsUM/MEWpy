@@ -6,13 +6,13 @@ import numpy as np
 import pandas as pd
 
 from mewpy.io.dto import VariableRecord, DataTransferObject, FunctionTerm
-from mewpy.mew.algebra import Expression, Symbol
-from mewpy.mew.models import RegulatoryModel
+from mewpy.germ.algebra import Expression, Symbol
+from mewpy.germ.models import RegulatoryModel
 from .engine import Engine
 from .engines_utils import csv_warning
 
 if TYPE_CHECKING:
-    from mewpy.mew.models import RegulatoryModel, Model, MetabolicModel
+    from mewpy.germ.models import RegulatoryModel, Model, MetabolicModel
 
 
 class TargetRegulatorRegulatoryCSV(Engine):

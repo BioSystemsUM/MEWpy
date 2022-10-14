@@ -6,7 +6,7 @@ from .engines import Engines
 
 if TYPE_CHECKING:
     from .engines.engine import Engine
-    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
+    from mewpy.germ.models import Model, MetabolicModel, RegulatoryModel
     from cobra import Model as CobraModel
     from reframed import CBModel as ReframedModel
 
@@ -48,7 +48,7 @@ class Writer(Builder):
         It will handle file writing
         :param io: A valid string path or IO is acceptable.
         Alternatively, it can also be provided a cobrapy and reframed model that will be filled
-        :param model: A valid metabolic, regulatory or both mewpy model
+        :param model: A valid metabolic, regulatory or both GERM model
         :param config: Dictionary with additional configurations
 
         """
@@ -59,7 +59,7 @@ class Writer(Builder):
             raise ValueError('Nothing to write. Please provide a path, file handler or model')
 
         if not model:
-            raise ValueError('Nothing to write. Please provide a mewpy model')
+            raise ValueError('Nothing to write. Please provide a GERM model')
 
         if isinstance(io, Path):
             io = str(io)
@@ -100,7 +100,7 @@ class Writer(Builder):
     # to understand this read method consult the director, builder and reader init stubs
     def write(self, warnings: bool = True):
         """
-        Writing a mewpy model, namely metabolic, regulatory or both to a file type
+        Writing a metabolic, regulatory or GERM model to a file type
         (e.g. sbml, json, cobrapy, reframed, etc).
         The file is closed upon writing or failure
 

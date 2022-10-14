@@ -15,3 +15,4 @@ examples/models/gecko/eciML1515_batch.xml
 htmlcov
 run_tox.sh
 tests/reports/
+.ipynb_checkpoints

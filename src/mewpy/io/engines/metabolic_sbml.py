@@ -3,8 +3,8 @@ from functools import partial
 from typing import Union, TYPE_CHECKING
 
 from mewpy.io.dto import DataTransferObject, VariableRecord, History, FunctionTerm, CompartmentRecord
-from mewpy.mew.algebra import Expression, Symbol, Or, And, NoneAtom
-from mewpy.mew.models import RegulatoryModel, MetabolicModel
+from mewpy.germ.algebra import Expression, Symbol, Or, And, NoneAtom
+from mewpy.germ.models import RegulatoryModel, MetabolicModel
 from mewpy.util.constants import ModelConstants
 from .engine import Engine
 from .engines_utils import (build_symbolic,
@@ -20,7 +20,7 @@ from .engines_utils import (build_symbolic,
                             expression_warning, sbml_warning)
 
 if TYPE_CHECKING:
-    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
+    from mewpy.germ.models import Model, MetabolicModel, RegulatoryModel
 
 
 class MetabolicSBML(Engine):

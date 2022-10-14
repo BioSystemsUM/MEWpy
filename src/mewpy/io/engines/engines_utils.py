@@ -8,8 +8,8 @@ from typing import Tuple
 import libsbml
 
 from mewpy.util.constants import ModelConstants
-from mewpy.mew.algebra import (And, Or, Not, Less, Greater, LessEqual, GreaterEqual, BoolFalse, BoolTrue,
-                           NoneAtom, Symbolic, Equal, parse_expression)
+from mewpy.germ.algebra import (And, Or, Not, Less, Greater, LessEqual, GreaterEqual, BoolFalse, BoolTrue,
+                                NoneAtom, Symbolic, Equal, parse_expression)
 
 
 def build_symbolic(expression) -> Tuple[Symbolic, str]:

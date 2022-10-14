@@ -1,11 +1,11 @@
 from collections import defaultdict
 from typing import Union, TYPE_CHECKING, Tuple
 
-from mewpy.mew.models import Model
+from mewpy.germ.models import Model
 from .engines import JSON, MetabolicSBML
 
 if TYPE_CHECKING:
-    from mewpy.mew.models import Model, MetabolicModel, RegulatoryModel
+    from mewpy.germ.models import Model, MetabolicModel, RegulatoryModel
     from .builder import Builder
     from .reader import Reader
     from .writer import Writer
@@ -34,9 +34,9 @@ class Director:
 
     def read(self) -> Union['Model', 'RegulatoryModel', 'MetabolicModel']:
         """
-        Reading a mewpy model, namely metabolic, regulatory or both encoded into one or more file types.
+        Reading a GERM model, namely metabolic, regulatory or both encoded into one or more file types.
         Reading is performed step-wise according to the builders order.
-        :return: mew metabolic, regulatory or both model
+        :return: metabolic, regulatory or germ model
         """
 
         types = set()
@@ -123,7 +123,7 @@ class Director:
     def write(self):
 
         """
-        Writing a mewpy model, namely metabolic, regulatory or both to one or more file types.
+        Writing a GERM model, namely metabolic, regulatory or both to one or more file types.
         Writing is performed step-wise according to the builders order.
         :return:
         """

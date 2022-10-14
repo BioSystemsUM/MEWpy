@@ -8,7 +8,7 @@ MEWpy is a Computational Strain Optimization (CSO) tool able to aggregate differ
 
 
 
-MEWPy currently supports [REFRAMED](<https://github.com/cdanielmachado/reframed>), [COBRApy](<https://opencobra.github.io/cobrapy/>), and MEW (in-house) phenotype simulators integrating both in a common API which enables different methods:
+MEWPy currently supports [REFRAMED](<https://github.com/cdanielmachado/reframed>), [COBRApy](<https://opencobra.github.io/cobrapy/>), and GERM model (in-house) phenotype simulators integrating both in a common API which enables different methods:
 
 - Flux Balance Analysis (FBA)
 - Parsimonious Flux Balance Analysis (pFBA)

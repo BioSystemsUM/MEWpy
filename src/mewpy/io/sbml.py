@@ -1,7 +1,9 @@
-from collections import OrderedDict
-from libsbml import AssignmentRule, SBMLReader
-from math import inf, isinf, isnan
 import os
+from collections import OrderedDict
+from math import isinf, isnan
+
+from libsbml import AssignmentRule, SBMLReader
+
 from ..model.kinetic import ODEModel, Compartment, Metabolite, KineticReaction, Rule
 
 
@@ -151,8 +153,10 @@ def _load_ratelaws(sbml_model, odemodel):
             m_id = modifier.getSpecies()
             modifiers.append(m_id)
 
-        law = KineticReaction(reaction.getId(), formula, stoichiometry=stoichiometry,
-                              parameters=parameters, modifiers=modifiers)
+        law = KineticReaction(reaction.getId(), formula, name=reaction.getName(), 
+                              stoichiometry=stoichiometry,
+                              parameters=parameters, modifiers=modifiers, 
+                              reversible=reaction.getReversible())
         odemodel.set_ratelaw(reaction.getId(), law)
 
 

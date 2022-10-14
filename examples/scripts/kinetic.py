@@ -24,8 +24,13 @@ def simulation():
     print("Metabolite concentrations:",model.concentrations)
     print()
     # Builds a simulator for kinetic models
-    # timeout is set in seconds
-    sim = KineticSimulation(model, timeout=60,tSteps=[0,1])
+    # - timeout is set in seconds
+    # - time points may be defined as a span, an array with the starting and end point 
+    #   (the number of time steps is defined in SolverConfigurations, see bellow)
+    #   or as time points [1,2,3,4,5,6,7,8,10]
+    #   from mewpy.solvers.ode import SolverConfigurations
+    #   SolverConfigurations.N_STEPS = 10
+    sim = KineticSimulation(model, timeout=60, t_points=[0,1])
     
     # simulation with defaults from the model
     res = sim.simulate()
@@ -33,14 +38,19 @@ def simulation():
     print('final rates:', res.fluxes)
     print('t=',res.t)
     print('y=',res.y)
-
+    print()
+    # Changing the time points
+    print('Kinetic simulation with time points:')
+    res = sim.simulate(t_points=[1,2,3,4,5,6,7,8,9,10])
+    print('t=',res.t)
+    print('y=',res.y)
+    print()
     # simulate with user defined initial concentrations
     consc ={k:5*v for k,v in model.concentrations.items()}
     print("Modified metabolite concentrations:",consc)
-    res = sim.simulate(initcon=consc)
     r1 = res.fluxes
     print(res.fluxes)
-    
+    print()
     # simulate with user defined folds of vMAXs
     # 0 folds are KO 
     factors = {'vPGI_rmaxPGI': 0, 
@@ -71,12 +81,12 @@ def optimization():
     # optimization problems:
 
     # Single objective
-    problem = KineticKOProblem(model,[f1], tSteps=[0, 1])
+    problem = KineticKOProblem(model,[f1], t_points=[0, 1e9])
     ea = EA(problem,max_generations=10)
     ea.run()    
 
     # Multi objective
-    problem = KineticOUProblem(model,[f1,f2],tSteps=[0, 1])
+    problem = KineticOUProblem(model,[f1,f2],t_points=[0, 1e9])
     ea = EA(problem,max_generations=10)
     ea.run()
     

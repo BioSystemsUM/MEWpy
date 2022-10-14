@@ -106,8 +106,8 @@ class TestCobra(TestReframedSimul):
         self.SUCC = 'EX_succ_e'
 
 
-class TestMew(TestReframedSimul):
-    """Tests Mew Simulator
+class TestGERM(TestReframedSimul):
+    """Tests GERM Simulator
     """
 
     def setUp(self):

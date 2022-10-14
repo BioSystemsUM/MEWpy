@@ -27,7 +27,7 @@ def sample(vmaxs, sigma=0.1):
 class HybridSimulation:
 
     def __init__(self, kmodel, cbmodel, gDW=564.0, envcond=dict(),
-                 mapping=dict(), tSteps=[0, 1e9],
+                 mapping=dict(), t_points=[0, 1e9],
                  timeout=KineticConfigurations.SOLVER_TIMEOUT):
 
         if not isinstance(kmodel, ODEModel):
@@ -40,7 +40,7 @@ class HybridSimulation:
 
         self.kmodel = kmodel
         self.mapping = mapping
-        self.tSteps = tSteps
+        self.t_points = t_points
         self.timeout = timeout
         self.models_verification()
         self.gDW = gDW
@@ -124,7 +124,7 @@ class HybridSimulation:
         """
         kmodel = self.get_kinetic_model()
         ksample = []
-        ksim = KineticSimulation(model=kmodel, tSteps=self.tSteps, timeout=self.timeout)
+        ksim = KineticSimulation(model=kmodel, t_points=self.t_points, timeout=self.timeout)
         for _ in tqdm(range(n)):
             v = sample(vmaxs, sigma=sigma)
             try:
@@ -162,7 +162,7 @@ class HybridSimulation:
         mapp = self.models_verification()
         kmodel = self.get_kinetic_model()
 
-        ksim = KineticSimulation(model=kmodel, tSteps=self.tSteps, timeout=self.timeout)
+        ksim = KineticSimulation(model=kmodel, t_points=self.t_points, timeout=self.timeout)
         result = ksim.simulate(parameters=parameters, initcon=initcond)
         fluxes = result.fluxes
         
