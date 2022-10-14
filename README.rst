@@ -1,9 +1,16 @@
 MEWpy
 ======
 
-Metabolic Engineering Workbench 
-The Python framework under development will allow the strain design of single and microbial community cultures.
-This documents presents a brief description of the framework and the main options taken during the development.
+MEWpy is an integrated Metabolic Engineering Workbench for strain design optimization. 
+It offers methods to explore different classes of constraint-based models (CBM) for:
+
+    - Simulation: allows to simulate steady-state metabolic models, considering different formulations 
+      (e.g., GECKO, ETFL) and kinetic models;
+    - Omics data integration (eFlux, GIMME, iMAT);
+    - Optimization: performs Evolutionary Computation based strain design optimization by knocking out (KO)
+      or over/under expressing (OU) reactions, genes or enzymes.
+
+MEWPy currently supports REFRAMED and COBRApy simulation environments. 
 
 Documentation
 ~~~~~~~~~~~~~
