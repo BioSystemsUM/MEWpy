@@ -153,7 +153,7 @@ class CoRegFlux(FBA):
     def _dynamic_optimize(self,
                           to_solver: bool = False,
                           solver_kwargs: Dict = None,
-                          initial_state: Dict[str, float] = None,
+                          initial_state: Sequence[Dict[str, float]] = None,
                           metabolites: Dict[str, CoRegMetabolite] = None,
                           biomass: CoRegBiomass = None,
                           time_steps: Sequence[float] = None,
@@ -163,11 +163,11 @@ class CoRegFlux(FBA):
         solutions = []
 
         previous_time_step = 0
-        for time_step in time_steps:
+        for i_initial_state, time_step in zip(initial_state, time_steps):
             time_step_diff = time_step - previous_time_step
 
             next_state = self.next_state(solver_kwargs=solver_kwargs,
-                                         state=initial_state,
+                                         state=i_initial_state,
                                          metabolites=metabolites,
                                          biomass=biomass,
                                          time_step=time_step_diff,
@@ -194,6 +194,7 @@ class CoRegFlux(FBA):
                                initial_state: Dict[str, float] = None,
                                metabolites: Dict[str, CoRegMetabolite] = None,
                                biomass: CoRegBiomass = None,
+                               time_step: float = 1,
                                soft_plus: float = 0,
                                tolerance: float = ModelConstants.TOLERANCE,
                                scale: bool = False) -> Union[ModelSolution, Solution]:
@@ -202,7 +203,7 @@ class CoRegFlux(FBA):
                                  state=initial_state,
                                  metabolites=metabolites,
                                  biomass=biomass,
-                                 time_step=1,
+                                 time_step=time_step,
                                  soft_plus=soft_plus,
                                  tolerance=tolerance,
                                  scale=scale)
@@ -211,8 +212,7 @@ class CoRegFlux(FBA):
     def _optimize(self,
                   to_solver: bool = False,
                   solver_kwargs: Dict = None,
-                  initial_state: Dict[str, float] = None,
-                  dynamic: bool = False,
+                  initial_state: Union[Dict[str, float], Sequence[Dict[str, float]]] = None,
                   metabolites: Dict[str, CoRegMetabolite] = None,
                   biomass: CoRegBiomass = None,
                   time_steps: Sequence[float] = None,
@@ -224,8 +224,7 @@ class CoRegFlux(FBA):
         It supports steady state and dynamic optimization.
         :param to_solver: Whether to return the solution as a SolverSolution instance. Default: False
         :param solver_kwargs: Keyword arguments to pass to the solver. See LinearProblem.optimize for details.
-        :param initial_state: a dictionary of targets ids and expression predictions to set as initial state
-        :param dynamic: If True, the model is simulated over a time course. Default: False
+        :param initial_state: a dictionary of targets ids and expression predictions to set as initial state.
         :param metabolites: a dictionary of metabolites ids and concentrations to set as initial state
         :param biomass: a float value to set as initial biomass
         :param time_steps: a list of time points to simulate the model over
@@ -235,31 +234,31 @@ class CoRegFlux(FBA):
         :return: a ModelSolution instance if dynamic is False,
         a DynamicSolution instance otherwise (if to_solver is False)
         """
-        if dynamic:
-            return self._dynamic_optimize(to_solver=to_solver,
-                                          solver_kwargs=solver_kwargs,
-                                          initial_state=initial_state,
-                                          metabolites=metabolites,
-                                          biomass=biomass,
-                                          time_steps=time_steps,
-                                          soft_plus=soft_plus,
-                                          tolerance=tolerance,
-                                          scale=scale)
+        if len(initial_state) == 1:
+            return self._steady_state_optimize(to_solver=to_solver,
+                                               solver_kwargs=solver_kwargs,
+                                               initial_state=initial_state[0],
+                                               metabolites=metabolites,
+                                               biomass=biomass,
+                                               time_step=time_steps[0],
+                                               soft_plus=soft_plus,
+                                               tolerance=tolerance,
+                                               scale=scale)
 
-        return self._steady_state_optimize(to_solver=to_solver,
-                                           solver_kwargs=solver_kwargs,
-                                           initial_state=initial_state,
-                                           metabolites=metabolites,
-                                           biomass=biomass,
-                                           soft_plus=soft_plus,
-                                           tolerance=tolerance,
-                                           scale=scale)
+        return self._dynamic_optimize(to_solver=to_solver,
+                                      solver_kwargs=solver_kwargs,
+                                      initial_state=initial_state,
+                                      metabolites=metabolites,
+                                      biomass=biomass,
+                                      time_steps=time_steps,
+                                      soft_plus=soft_plus,
+                                      tolerance=tolerance,
+                                      scale=scale)
 
     def optimize(self,
                  to_solver: bool = False,
                  solver_kwargs: Dict = None,
-                 initial_state: Dict[str, float] = None,
-                 dynamic: bool = False,
+                 initial_state: Union[Dict[str, float], Sequence[Dict[str, float]]] = None,
                  metabolites: Dict[str, float] = None,
                  growth_rate: float = None,
                  time_steps: Sequence[float] = None,
@@ -271,8 +270,8 @@ class CoRegFlux(FBA):
         It supports steady state and dynamic optimization.
         :param to_solver: Whether to return the solution as a SolverSolution instance. Default: False
         :param solver_kwargs: Keyword arguments to pass to the solver. See LinearProblem.optimize for details.
-        :param initial_state: a dictionary of targets ids and expression predictions to set as initial state
-        :param dynamic: If True, the model is simulated over a time course. Default: False
+        :param initial_state: a dictionary of targets ids and expression predictions to set as initial state. For dynamic
+        optimization, a list of such dictionaries can be provided to set the initial state at each time point.
         :param metabolites: a dictionary of metabolites ids and concentrations to set as initial state
         :param growth_rate: the initial growth rate to set as initial state
         :param time_steps: a list of time points to simulate the model over
@@ -282,15 +281,22 @@ class CoRegFlux(FBA):
         :return: a ModelSolution instance if dynamic is False,
         a DynamicSolution instance otherwise (if to_solver is False)
         """
-        if dynamic and len(time_steps) == 0:
-            raise ValueError('Time steps must be provided for dynamic optimization')
-
         if not solver_kwargs:
             solver_kwargs = {}
         solver_kwargs['get_values'] = True
 
+        if time_steps is None:
+            time_steps = [1]
+
         if not initial_state:
-            initial_state = {}
+            initial_state = [{}]
+
+        else:
+            if isinstance(initial_state, dict):
+                initial_state = [initial_state]
+
+        if len(initial_state) != len(time_steps):
+            raise ValueError("The number of time steps must match the number of initial states.")
 
         if not metabolites:
             metabolites = {}
@@ -303,7 +309,6 @@ class CoRegFlux(FBA):
         return self._optimize(to_solver=to_solver,
                               solver_kwargs=solver_kwargs,
                               initial_state=initial_state,
-                              dynamic=dynamic,
                               metabolites=metabolites,
                               biomass=biomass,
                               time_steps=time_steps,

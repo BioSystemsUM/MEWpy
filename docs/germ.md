@@ -1210,9 +1210,9 @@ Now we can perform **`CoRegFlux`** simulation.
 from mewpy.germ.analysis import CoRegFlux
 
 # steady-state simulation only requires the initial state of a given experiment (the first experiment in this case)
-initial_state = gene_expression_prediction.iloc[:, 0].to_dict()
+initial_state = list(gene_expression_prediction.to_dict().values())
 co_reg_flux = CoRegFlux(model).build()
-solution = co_reg_flux.optimize(initial_state=initial_state)
+solution = co_reg_flux.optimize(initial_state=initial_state[0])
 solution
 ```
 <table>

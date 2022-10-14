@@ -311,6 +311,7 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
 
         _Model = MetaModel('Model', types, {}, dynamic=True)
 
+        # noinspection PyTypeChecker
         return _Model
 
     # -----------------------------------------------------------------------------
@@ -705,12 +706,7 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
         return default
 
     def add(self,
-            *variables: Union['Gene',
-                              'Interaction',
-                              'Metabolite',
-                              'Reaction',
-                              'Regulator',
-                              'Target'],
+            *variables: 'Variable',
             comprehensive: bool = True,
             history: bool = True):
         """
@@ -731,48 +727,6 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
         :param history: if True, the changes will be recorded in the history
         :return:
         """
-        if self.is_a('metabolic'):
-
-            for variable in variables:
-
-                if 'gene' in variable.types:
-                    self._add_variable_to_container(variable, '_genes')
-
-                if 'metabolite' in variable.types:
-                    self._add_variable_to_container(variable, '_metabolites')
-
-                if 'reaction' in variable.types:
-                    if comprehensive:
-
-                        for metabolite in variable.yield_metabolites():
-                            self._add_variable_to_container(metabolite, '_metabolites')
-
-                        for gene in variable.yield_genes():
-                            self._add_variable_to_container(gene, '_genes')
-
-                    self._add_variable_to_container(variable, '_reactions')
-
-        if self.is_a('regulatory'):
-
-            for variable in variables:
-
-                if 'target' in variable.types:
-                    self._add_variable_to_container(variable, '_targets')
-
-                if 'regulator' in variable.types:
-                    self._add_variable_to_container(variable, '_regulators')
-
-                if 'interaction' in variable.types:
-                    if comprehensive:
-
-                        if variable.target is not None:
-                            self._add_variable_to_container(variable.target, '_targets')
-
-                        for regulator in variable.yield_regulators():
-                            self._add_variable_to_container(regulator, '_regulators')
-
-                    self._add_variable_to_container(variable, '_interactions')
-
         if history:
             self.history.queue_command(undo_func=self.remove,
                                        undo_args=variables,
@@ -786,13 +740,7 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
         self.notify()
 
     def remove(self,
-               *variables: Union['Gene',
-                                 'Interaction',
-                                 'Metabolite',
-                                 'Reaction',
-                                 'Regulator',
-                                 'Target',
-                                 'Variable'],
+               *variables: 'Variable',
                remove_orphans: bool = False,
                history: bool = True):
         """
@@ -814,65 +762,6 @@ class Model(Serializer, metaclass=MetaModel, factory=True):
         :param history: if True, the changes will be recorded in the history
         :return:
         """
-        if self.is_a('metabolic'):
-
-            reactions = set()
-
-            for variable in variables:
-
-                if 'gene' in variable.types:
-                    self._remove_variable_from_container(variable, '_genes')
-
-                if 'metabolite' in variable.types:
-                    self._remove_variable_from_container(variable, '_metabolites')
-
-                if 'reaction' in variable.types:
-                    self._remove_variable_from_container(variable, '_reactions')
-                    reactions.add(variable)
-
-            if remove_orphans:
-                orphan_metabolites = self._get_orphans(to_remove=reactions,
-                                                       first_container='metabolites',
-                                                       second_container='reactions')
-
-                for metabolite in orphan_metabolites:
-                    self._remove_variable_from_container(metabolite, '_metabolites')
-
-                orphan_genes = self._get_orphans(to_remove=reactions,
-                                                 first_container='genes',
-                                                 second_container='reactions')
-
-                for gene in orphan_genes:
-                    self._remove_variable_from_container(gene, '_genes')
-
-        if self.is_a('regulatory'):
-
-            interactions = set()
-
-            for variable in variables:
-
-                if 'target' in variable.types:
-                    self._remove_variable_from_container(variable, '_targets')
-
-                if 'regulator' in variable.types:
-                    self._remove_variable_from_container(variable, '_regulators')
-
-                if 'interaction' in variable.types:
-                    self._remove_variable_from_container(variable, '_interactions')
-                    interactions.add(variable)
-
-            if remove_orphans:
-                for interaction in interactions:
-                    if interaction.target:
-                        self._remove_variable_from_container(interaction.target, '_targets')
-
-                orphan_regulators = self._get_orphans(to_remove=interactions,
-                                                      first_container='regulators',
-                                                      second_container='interactions')
-
-                for regulator in orphan_regulators:
-                    self._remove_variable_from_container(regulator, '_regulators')
-
         if history:
             self.history.queue_command(undo_func=self.add,
                                        undo_args=variables,

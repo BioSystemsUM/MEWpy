@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 
-import numpy as np
 from mewpy.omics import ExpressionSet
 
 from mewpy.io import read_model, Engines, Reader
@@ -402,21 +401,20 @@ def iMM904_integrated_analysis():
                                                         index_col=0,
                                                         header=0).dataframe
 
-    initial_state = gene_expression_prediction.iloc[:, 0].to_dict()
+    initial_state = list(gene_expression_prediction.to_dict().values())
     co_reg_flux = CoRegFlux(model).build()
-    co_reg_flux.optimize(initial_state=initial_state)
+    co_reg_flux.optimize(initial_state=initial_state[0])
 
-    slim_coregflux(model, initial_state=initial_state)
+    slim_coregflux(model, initial_state=initial_state[0])
 
     co_reg_flux = CoRegFlux(model).build()
-    initial_state = gene_expression_prediction.iloc[:, 0].to_dict()
     metabolites = {'glc__D_e': 16.6, 'etoh_e': 0}
     growth_rate = 0.45
-    time_steps = np.arange(1, 20, 1)
+    # time steps in the dataset
+    time_steps = list(range(1, 14))
     co_reg_flux.optimize(initial_state=initial_state,
                          metabolites=metabolites,
                          growth_rate=growth_rate,
-                         dynamic=True,
                          time_steps=time_steps)
 
 

@@ -472,6 +472,107 @@ class MetabolicModel(Model, model_type='metabolic', register=True, constructor=T
         else:
             return super(MetabolicModel, self).get(identifier=identifier, default=default)
 
+    def add(self,
+            *variables: Union['Gene', 'Metabolite', 'Reaction'],
+            comprehensive: bool = True,
+            history: bool = True):
+        """
+        It adds the given variables to the model.
+        This method accepts a single variable or a list of variables to be added to specific containers in the model.
+        The containers to which the variables will be added are specified by the types.
+
+        For instance, if a variable is simultaneously a metabolite and regulator,
+        it will be added to the metabolites and regulators containers.
+
+        If comprehensive is True, the variables and their related variables will be added to the model too.
+        If history is True, the changes will be recorded in the history.
+
+        This method notifies all simulators with the recent changes.
+
+        :param variables: the variables to be added to the model
+        :param comprehensive: if True, the variables and their related variables will be added to the model too
+        :param history: if True, the changes will be recorded in the history
+        :return:
+        """
+        if self.is_a('metabolic'):
+
+            for variable in variables:
+
+                if 'gene' in variable.types:
+                    self._add_variable_to_container(variable, '_genes')
+
+                if 'metabolite' in variable.types:
+                    self._add_variable_to_container(variable, '_metabolites')
+
+                if 'reaction' in variable.types:
+                    if comprehensive:
+
+                        for metabolite in variable.yield_metabolites():
+                            self._add_variable_to_container(metabolite, '_metabolites')
+
+                        for gene in variable.yield_genes():
+                            self._add_variable_to_container(gene, '_genes')
+
+                    self._add_variable_to_container(variable, '_reactions')
+
+        return super(MetabolicModel, self).add(*variables, comprehensive=comprehensive, history=history)
+
+    def remove(self,
+               *variables: Union['Gene', 'Metabolite', 'Reaction'],
+               remove_orphans: bool = False,
+               history: bool = True):
+        """
+        It removes the given variables from the model.
+        This method accepts a single variable or a list of variables to be removed from specific containers
+        in the model.
+        The containers from which the variables will be removed are specified by the types.
+
+        For instance, if a variable is simultaneously a metabolite and regulator,
+        it will be removed from the metabolites and regulators containers.
+
+        If remove_orphans is True, the variables and their related variables will be removed from the model too.
+        If history is True, the changes will be recorded in the history.
+
+        This method notifies all simulators with the recent changes.
+
+        :param variables: the variables to be removed from the model
+        :param remove_orphans: if True, the variables and their related variables will be removed from the model too
+        :param history: if True, the changes will be recorded in the history
+        :return:
+        """
+        if self.is_a('metabolic'):
+
+            reactions = set()
+
+            for variable in variables:
+
+                if 'gene' in variable.types:
+                    self._remove_variable_from_container(variable, '_genes')
+
+                if 'metabolite' in variable.types:
+                    self._remove_variable_from_container(variable, '_metabolites')
+
+                if 'reaction' in variable.types:
+                    self._remove_variable_from_container(variable, '_reactions')
+                    reactions.add(variable)
+
+            if remove_orphans:
+                orphan_metabolites = self._get_orphans(to_remove=reactions,
+                                                       first_container='metabolites',
+                                                       second_container='reactions')
+
+                for metabolite in orphan_metabolites:
+                    self._remove_variable_from_container(metabolite, '_metabolites')
+
+                orphan_genes = self._get_orphans(to_remove=reactions,
+                                                 first_container='genes',
+                                                 second_container='reactions')
+
+                for gene in orphan_genes:
+                    self._remove_variable_from_container(gene, '_genes')
+
+        return super(MetabolicModel, self).remove(*variables, remove_orphans=remove_orphans, history=history)
+
     def update(self,
                compartments: Dict[str, str] = None,
                objective: Dict['Reaction', Union[float, int]] = None,

@@ -329,6 +329,104 @@ class RegulatoryModel(Model, model_type='regulatory', register=True, constructor
         else:
             return super(RegulatoryModel, self).get(identifier=identifier, default=default)
 
+    def add(self,
+            *variables: Union['Interaction', 'Regulator', 'Target'],
+            comprehensive: bool = True,
+            history: bool = True):
+        """
+        It adds the given variables to the model.
+        This method accepts a single variable or a list of variables to be added to specific containers in the model.
+        The containers to which the variables will be added are specified by the types.
+
+        For instance, if a variable is simultaneously a metabolite and regulator,
+        it will be added to the metabolites and regulators containers.
+
+        If comprehensive is True, the variables and their related variables will be added to the model too.
+        If history is True, the changes will be recorded in the history.
+
+        This method notifies all simulators with the recent changes.
+
+        :param variables: the variables to be added to the model
+        :param comprehensive: if True, the variables and their related variables will be added to the model too
+        :param history: if True, the changes will be recorded in the history
+        :return:
+        """
+        if self.is_a('regulatory'):
+
+            for variable in variables:
+
+                if 'target' in variable.types:
+                    self._add_variable_to_container(variable, '_targets')
+
+                if 'regulator' in variable.types:
+                    self._add_variable_to_container(variable, '_regulators')
+
+                if 'interaction' in variable.types:
+                    if comprehensive:
+
+                        if variable.target is not None:
+                            self._add_variable_to_container(variable.target, '_targets')
+
+                        for regulator in variable.yield_regulators():
+                            self._add_variable_to_container(regulator, '_regulators')
+
+                    self._add_variable_to_container(variable, '_interactions')
+
+        return super(RegulatoryModel, self).add(*variables, comprehensive=comprehensive, history=history)
+
+    def remove(self,
+               *variables: Union['Interaction', 'Regulator', 'Target'],
+               remove_orphans: bool = False,
+               history: bool = True):
+        """
+        It removes the given variables from the model.
+        This method accepts a single variable or a list of variables to be removed from specific containers
+        in the model.
+        The containers from which the variables will be removed are specified by the types.
+
+        For instance, if a variable is simultaneously a metabolite and regulator,
+        it will be removed from the metabolites and regulators containers.
+
+        If remove_orphans is True, the variables and their related variables will be removed from the model too.
+        If history is True, the changes will be recorded in the history.
+
+        This method notifies all simulators with the recent changes.
+
+        :param variables: the variables to be removed from the model
+        :param remove_orphans: if True, the variables and their related variables will be removed from the model too
+        :param history: if True, the changes will be recorded in the history
+        :return:
+        """
+        if self.is_a('regulatory'):
+
+            interactions = set()
+
+            for variable in variables:
+
+                if 'target' in variable.types:
+                    self._remove_variable_from_container(variable, '_targets')
+
+                if 'regulator' in variable.types:
+                    self._remove_variable_from_container(variable, '_regulators')
+
+                if 'interaction' in variable.types:
+                    self._remove_variable_from_container(variable, '_interactions')
+                    interactions.add(variable)
+
+            if remove_orphans:
+                for interaction in interactions:
+                    if interaction.target:
+                        self._remove_variable_from_container(interaction.target, '_targets')
+
+                orphan_regulators = self._get_orphans(to_remove=interactions,
+                                                      first_container='regulators',
+                                                      second_container='interactions')
+
+                for regulator in orphan_regulators:
+                    self._remove_variable_from_container(regulator, '_regulators')
+
+        return super(RegulatoryModel, self).remove(*variables, remove_orphans=remove_orphans, history=history)
+
     def update(self,
                compartments: Dict[str, str] = None,
                variables: Union[List[Union['Interaction', 'Regulator', 'Target']],
