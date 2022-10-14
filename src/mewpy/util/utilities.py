@@ -13,6 +13,41 @@ class AttrDict(dict):
         super(AttrDict, self).__init__(*args, **kwargs)
         self.__dict__ = self
 
+    def find(self, pattern=None, sort=False):
+        """A user friendly method to find metabolites, reactions or genes in the model.
+
+        :param pattern: The pattern which can be a regular expression, defaults to None in which case all entries are listed.
+        :type pattern: str, optional
+        :param sort: if the search results should be sorted, defaults to False
+        :type sort: bool, optional
+        :return: the search results
+        :rtype: pandas dataframe
+        """
+        values = list(self.keys())
+        if pattern:
+            import re
+            if isinstance(pattern, list):
+                patt = '|'.join(pattern)
+                re_expr = re.compile(patt)
+            else:
+                re_expr = re.compile(pattern)
+            values = [x for x in values if re_expr.search(x) is not None]
+        if sort:
+            values.sort()
+
+        import pandas as pd
+        data = [{'attribute':x,'value':self.get(x)} for x in values]
+        
+        if data:
+            df = pd.DataFrame(data)
+            df = df.set_index(df.columns[0])
+        else: 
+            df = pd.DataFrame()
+        return df
+
+    def __repr__(self) -> str:
+        return str(self.find())
+
 
 class TimerError(Exception):
     """A custom exception used to report errors in use of Timer class"""

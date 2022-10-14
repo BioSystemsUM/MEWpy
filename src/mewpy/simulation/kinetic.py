@@ -1,10 +1,10 @@
 from multiprocessing import Process, Manager
 from collections import OrderedDict
+from mewpy.simulation.simulation import SimulationResult, SimulationInterface
+from mewpy.model.kinetic import ODEModel
+from mewpy.solvers import KineticConfigurations, SolverConfigurations, ODEStatus, ode_solver_instance
 import warnings
-from ..simulation.simulation import SimulationResult, SimulationInterface
-from ..model.kinetic import ODEModel
-from ..solvers import KineticConfigurations, SolverConfigurations, ODEStatus, ode_solver_instance
-
+import numpy as np
 
 def kinetic_solve(model, y0, time_steps, parameters=None, factors=None):
 
@@ -70,15 +70,60 @@ class KineticSimulationResult(SimulationResult):
         self.concentrations = concentrations
         self.t = t
         self.y = y
+        self.m_indexes = {k: v for v, k in enumerate(concentrations.keys())} 
 
+    def get_y(self, m_id):
+        if m_id in self.m_indexes:
+            return np.array(self.y).T[:,self.m_indexes[m_id]]
+        else:
+            raise ValueError(f"Unknown metabolite {m_id}")
+
+    def get_ss_concentrations(self, format=None):
+        if format and format=='df':
+            import pandas as pd
+            return pd.DataFrame(self.concentrations)
+        else:
+            return self.concentrations
+
+    def plot(self, met=None, size:tuple=None):    
+        import matplotlib.pyplot as plt
+        if size:
+            plt.rcParams["figure.figsize"] = size
+        if not met:
+            _mets = list(self.concentrations.keys()) 
+        elif isinstance(met,str):
+            _mets =[met]
+        elif isinstance(met,list) and len(met)<=4:
+            _mets = met
+        else:
+            raise ValueError('fluxes should be a reaction identifier, a list of reaction identifiers or None.')
+        ax = plt.subplot()
+        if len(_mets)!=2: 
+            for k in _mets:
+                ax.plot(self.t, self.get_y(k), label=k)
+            if len(_mets)==1:
+                ax.set_ylabel(self.model.get_metabolite(_mets[0]).name)
+            else:        
+                ax.set_ylabel('Concentrations')
+                plt.legend()
+        else:
+            ax.plot(self.t, self.get_y(_mets[0]), label=_mets[0])
+            ax2 = plt.twinx(ax)
+            ax2.plot(self.t, self.get_y(_mets[1]), label=_mets[1], color='r')
+            ax.set_ylabel(self.model.get_metabolite(_mets[0]).name, color='b')
+            ax2.set_ylabel(self.model.get_metabolite(_mets[1]).name, color='r')
+        
+        ax.set_xlabel('Time')
+        return ax
 
 class KineticSimulation(SimulationInterface):
 
-    def __init__(self, model,  parameters=None, tSteps=[0, 1e9], timeout=KineticConfigurations.SOLVER_TIMEOUT):
+    def __init__(self, model,  parameters=None, t_points=[0, 1e9], 
+                 timeout=KineticConfigurations.SOLVER_TIMEOUT):
         if not isinstance(model, ODEModel):
             raise ValueError('model is not an instance of ODEModel.')
         self.model = model
-        self.tSteps = tSteps
+        self.t_points = t_points
         self.timeout = timeout
         self.parameters = parameters if parameters else dict()
 
@@ -92,15 +137,32 @@ class KineticSimulation(SimulationInterface):
                 values.append(None)
         return values
 
-    def get_time_steps(self):
-        return self.tSteps
-
-    def simulate(self, parameters=None, initcon=None, factors=None):
+    def set_time(self, start, end, steps):
         """
-        This method preform the phenotype simulation of the kinetic model.
+        This function sets the time parameters for the model.  This is how long the model will simulate
+
+        Args:
+            start (int): the start time - usually 0
+            end (int): the end time (default is 100)
+            steps (int): the number of timepoints for the output
+        """
+        self.t_points = np.linspace(start, end, steps)
+
+
+    def get_time_points(self):
+        """Returns the time point or span."""
+        return self.t_points
+
+    def simulate(self, parameters=None, initcon=None, factors=None, t_points=None):
+        """
+        Solve an initial value problem for a system of ODEs.
+        
         :param dict parameters: Parameters to be modified. Default None
         :para dict initcon: initial conditions, metabolite concentrations. Default None
         :param dict factors: Modification over the kinetic model.
+        :param list t_points: Times at which to store the computed solution,\
+            must be sorted and lie within t_span. Default None, in which case the number of
+            time steps is defined by SolverConfigurations.N_STEPS.
         :returns: Returns a kineticSimulationResult with the steady-state flux distribution and concentrations.
         """
 
@@ -115,12 +177,20 @@ class KineticSimulation(SimulationInterface):
         params = self.parameters
         if parameters:
             params.update(parameters)
+        
+        time_steps = t_points if t_points else self.get_time_points()
+        
+        if len(time_steps)==2:
+            time_steps = np.linspace(time_steps[0], 
+                                     time_steps[1], 
+                                     num=SolverConfigurations.N_STEPS, 
+                                     endpoint=True)
 
         if self.timeout:
             try:
                 th = KineticThread(self.model,
                                    initial_concentrations=initConcentrations,
-                                   time_steps=self.get_time_steps(),
+                                   time_steps=time_steps,
                                    parameters=params,
                                    factors=_factors)
 
@@ -138,7 +208,7 @@ class KineticSimulation(SimulationInterface):
         else:
             status, sstateRates, sstateConc, t, y = kinetic_solve(self.model,
                                                             initConcentrations,
-                                                            self.get_time_steps(),
+                                                            time_steps,
                                                             params,
                                                             _factors)
 

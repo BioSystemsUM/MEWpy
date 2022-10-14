@@ -19,7 +19,9 @@ class ODEMethod(Enum):
     RKFehlberg = 'RKFehlberg',
     Dopri5 = 'Dopri5',
     Vode = 'Vode',
+    CVode = 'cvode'
     Radau5 = 'Radau5',
+    Ida ='ida',
     AdamsBashforth2 = 'AdamsBashforth2',
     AdamsBashMoulton2 = 'AdamsBashMoulton2'
 
@@ -56,5 +58,5 @@ class ODEStatus(Enum):
 class ODESolver(ABC):
 
     @abstractmethod
-    def solve(self, y0, t_span, **kwargs):
+    def solve(self, y0, t_points, **kwargs):
         raise NotImplementedError
