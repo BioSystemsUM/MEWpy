@@ -2,17 +2,18 @@
 MEWpy examples
 ============
 
-
-This folder contains examples on how MEWpy can be used to perform phenotype simulations and Computational Strain Optimization. 
+This folder contains examples on how MEWpy can be used to perform phenotype simulations and Computational Strain Optimization.
 
 ## Jupyter Notebooks:
 
 - The [simulation](simulation.ipynb) and [optimization](optimization.ipynb) notebooks, illustrate how MEWpy may be used to perform basic analysis tasks, phenotype simulations and optimizations using GSMMs.
+- The [kinetic](kinetic.ipynb) illustrates how MEWpy may be use to load and work with kinetic models.
 - The [ROUProblem](ROUproblem.ipynb) example illustrates how MEWpy may be used to identify reaction bounds modifications that favor the production of the aromatic amino acid (AAA) L-tyrosine in yeast.
 - The [GOUProblem](GOUproblem.ipynb) example aims to increase the production of the same AAA in E. coli by modifying genes expression.
+- The [GeckoKOProblem](GeckoKOProblem.ipynb), also targets the same goal in yeast by exploiting a GECKO model and by deleting enzymatic
 - The [GERM_Models](GERM_Models.ipynb) example illustrates how to work with GERM models in MEWpy.
 - The [GERM_Models_analysis](GERM_Models_analysis.ipynb) example illustrates how to work with GERM models analysis in MEWpy.
-- The last example, [GeckoKOProblem](GeckoKOProblem.ipynb), also targets the same goal in yeast by exploiting a GECKO model and by deleting enzymatic proteins.
+proteins.
 
 ## Python scripts
 
@@ -28,6 +29,5 @@ This folder contains examples on how MEWpy can be used to perform phenotype simu
 - [optorf.py](scripts/): OptORF examples.
 - [optram.py](scripts/): OptRAM example.
 - [germ_models_analysis.py](scripts/): Examples on how to perform GERM Model analysis in MEWpy.
-
 
 More information can be found in the MEWpy documentation https://mewpy.readthedocs.io.
