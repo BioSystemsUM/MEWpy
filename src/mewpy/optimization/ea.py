@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 import signal
 import sys
-from ..util.constants import EAConstants
-from ..util.process import cpu_count
+from mewpy.util.constants import EAConstants
+from mewpy.util.process import cpu_count
+from typing import TYPE_CHECKING, Any, Dict, List, Union, Tuple
 
 
 class SolutionInterface(ABC):
@@ -25,7 +26,11 @@ class SolutionInterface(ABC):
 
 class Solution(SolutionInterface):
 
-    def __init__(self, values, fitness, constraints=None, is_maximize=True):
+    def __init__(self, 
+                 values:Any, 
+                 fitness:List[float], 
+                 constraints:Dict[str,Union[float,Tuple[float,float]]]=None, 
+                 is_maximize:bool=True):
         """
         EA Solution
 
@@ -40,55 +45,55 @@ class Solution(SolutionInterface):
         self.constraints = {} if constraints is None else constraints
         self._is_maximize = is_maximize
 
-    def get_fitness(self):
+    def get_fitness(self) -> List[float]:
         return self.fitness
 
-    def get_representation(self):
+    def get_representation(self) -> Any:
         return self.values
 
-    def get_constraints(self):
+    def get_constraints(self) -> Dict[str, Union[float, Tuple[float, float]]]:
         return self.constraints
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.fitness};{self.values}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.fitness};{self.values}"
 
-    def __eq__(self, solution):
+    def __eq__(self, solution:"Solution") -> bool:
         return set(self.values) == set(solution.values)
 
-    def __gt__(self, solution):
+    def __gt__(self, solution:"Solution") -> bool:
         if isinstance(solution, self.__class__):
             return dominance_test(self, solution, maximize=self._is_maximize) == 1
         return False
 
-    def __lt__(self, solution):
+    def __lt__(self, solution:"Solution") -> bool:
         if isinstance(solution, self.__class__):
             return dominance_test(self, solution, maximize=self._is_maximize) == -1
         return False
 
-    def __ge__(self, solution):
+    def __ge__(self, solution:"Solution") -> bool:
         if isinstance(solution, self.__class__):
             return dominance_test(self, solution, maximize=self._is_maximize) != -1
         return False
 
-    def __le__(self, solution):
+    def __le__(self, solution:"Solution") -> bool:
         if isinstance(solution, self.__class__):
             return dominance_test(self, solution, maximize=self._is_maximize) != 1
         return False
 
-    def __copy__(self):
+    def __copy__(self) -> "Solution":
         import copy
         values = copy.copy(self.values)
         fitness = self.fitness.copy()
         new_solution = Solution(values, fitness)
         return new_solution
 
-    def __hash__(self):
+    def __hash__(self) -> str:
         return hash(str(set(self.values)))
 
-    def toDict(self):
+    def to_dict(self) -> Dict[str, Any]:
         d = {'values': self.values,
              'fitness': self.fitness,
              'constraints': self.constraints}
@@ -97,8 +102,12 @@ class Solution(SolutionInterface):
 
 class AbstractEA(ABC):
 
-    def __init__(self, problem, initial_population=[], max_generations=EAConstants.MAX_GENERATIONS,
-                 mp=True, visualizer=False, **kwargs):
+    def __init__(self, problem, 
+                 initial_population=[], 
+                 max_generations:int=EAConstants.MAX_GENERATIONS,
+                 mp:bool=True, 
+                 visualizer:bool=False, 
+                 **kwargs):
 
         self.problem = problem
         self.initial_population = initial_population
@@ -165,7 +174,7 @@ class AbstractEA(ABC):
             print("Dumping current population.")
             try:
                 pop = self._get_current_population()
-                data = [s.toDict() for s in pop]
+                data = [s.to_dict() for s in pop]
                 import json
                 from datetime import datetime
                 now = datetime.now()
