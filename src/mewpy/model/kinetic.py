@@ -600,7 +600,7 @@ class ODEModel:
 
     def deriv(self, y, t):
         """
-        deriv function called by integrate
+        deriv function called by integrate to be used by dFBA
 
         For each step when the model is run, the rate for each reaction is calculated and changes in substrates and products calculated.
         These are returned by this function as y_prime, which are added to y which is returned by run_model
@@ -631,15 +631,12 @@ class ODEModel:
         Returns:
             func_str the right-hand side of the system. 
         """
-        rmap = OrderedDict()
+
         m = {m_id: f"x[{i}]" for i, m_id in enumerate(self.metabolites)}
         c = {c_id: f"p['{c_id}']" for c_id in self.compartments}
         p = {p_id: f"p['{p_id}']" for p_id in self.constant_params}
         v = {p_id: f"v['{p_id}']" for p_id in self.variable_params}
-        rmap.update(m)
-        rmap.update(c)
-        rmap.update(p)
-        rmap.update(v)
+        rmap = OrderedDict({**m, **c, **p, **v})
         
         parsed_rates = {r_id: ratelaw.parse_law(rmap, local=local)
                         for r_id, ratelaw in self.ratelaws.items()}

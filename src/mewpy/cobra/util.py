@@ -45,3 +45,4 @@ def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"]):
                 objective[rev_rxn_id] = -objective[r_id]
 
     sim.objective = objective
+    return sim

@@ -1,4 +1,3 @@
-import warnings
 from mewpy.model.kinetic import ODEModel
 from mewpy.solvers import KineticConfigurations
 from mewpy.simulation import get_simulator
@@ -8,6 +7,7 @@ from mewpy.solvers import solver_instance
 from mewpy.util.utilities import AttrDict
 from math import inf
 from collections import OrderedDict
+import warnings
 from warnings import warn
 import pandas as pd
 import numpy as np
@@ -19,7 +19,7 @@ from tqdm import tqdm
 warnings.filterwarnings('ignore', 'Timeout')
 
 
-def partial_lMOMA(model, reactions: dict, constraints=None):
+def _partial_lMOMA(model, reactions: dict, biomass: str, constraints=None):
     """
     Run a (linear version of) Minimization Of Metabolic Adjustment (lMOMA) 
     simulation using fluxes from the Kinetic Simulation:
@@ -47,22 +47,39 @@ def partial_lMOMA(model, reactions: dict, constraints=None):
 
     _reactions = {k: v for k, v in reactions.items()}
 
+    bio_ref = simul.simulate({biomass: 1}, constraints=constraints, slim=True)
+
     for r_id in _reactions.keys():
         d_pos, d_neg = r_id + '_d+', r_id + '_d-'
         solver.add_variable(d_pos, 0, inf, update=False)
         solver.add_variable(d_neg, 0, inf, update=False)
         solver.update()
+
+    bio_plus = biomass + '_d+'
+    bio_minus = biomass + '_d-'
+    solver.add_variable(bio_plus, 0, inf, update=False)
+    solver.add_variable(bio_minus, 0, inf, update=False)
+    solver.update()
+
     for r_id in _reactions.keys():
         d_pos, d_neg = r_id + '_d+', r_id + '_d-'
         solver.add_constraint('c' + d_pos, {r_id: -1, d_pos: 1}, '>', -_reactions[r_id], update=False)
         solver.add_constraint('c' + d_neg, {r_id: 1, d_neg: 1}, '>', _reactions[r_id], update=False)
         solver.update()
 
+    solver.add_constraint('c' + bio_plus, {biomass: -1, bio_plus: 1}, '>', -bio_ref, update=False)
+    solver.add_constraint('c' + bio_minus, {biomass: 1, bio_minus: 1}, '>', bio_ref, update=False)
+    solver.update()
+
+
     objective = dict()
     for r_id in _reactions.keys():
         d_pos, d_neg = r_id + '_d+', r_id + '_d-'
         objective[d_pos] = 1
         objective[d_neg] = 1
+
+    objective[bio_plus] = 1
+    objective[bio_minus] = 1
 
     solution = solver.solve(objective, minimize=True, constraints=constraints)
 
@@ -84,21 +101,21 @@ class HybridSimulation:
                  timeout=KineticConfigurations.SOLVER_TIMEOUT):
         """_summary_
 
-        :param kmodel: _description_
-        :type kmodel: _type_
-        :param cbmodel: _description_
-        :type cbmodel: _type_
-        :param gDW: _description_, defaults to 564.0
+        :param kmodel: The kinetic model
+        :type kmodel: ODEModel
+        :param cbmodel: The constraint-based model
+        :type cbmodel: A COBRApy or REFRAMED model
+        :param gDW: The volume of the organims, defaults to 564.0 to E. coli
         :type gDW: float, optional
-        :param envcond: _description_, defaults to dict()
-        :type envcond: _type_, optional
-        :param mapping: _description_, defaults to dict()
-        :type mapping: _type_, optional
-        :param t_points: _description_, defaults to [0, 1e9]
+        :param envcond: The medium, defaults to dict()
+        :type envcond: dict, optional
+        :param mapping: a mapping from kinetic to CB reactions, defaults to dict()
+        :type mapping: dict, optional
+        :param t_points: Time point or span for kinetic integration, defaults to [0, 1e9]
         :type t_points: list, optional
-        :param timeout: _description_, defaults to KineticConfigurations.SOLVER_TIMEOUT
-        :type timeout: _type_, optional
-        :raises ValueError: _description_
+        :param timeout: The ODE solver timeout, defaults to KineticConfigurations.SOLVER_TIMEOUT. If 0 no timeout is set.
+        :type timeout: int, optional
+        :raises ValueError: The models are not of the required types.
         """
 
         if not isinstance(kmodel, ODEModel):
@@ -234,42 +251,7 @@ class HybridSimulation:
         :type method: str. Default 'pFBA'
         :returns: Returns the solution of the hibridization.
         """
-        mapp = self.models_verification()
-        kmodel = self.get_kinetic_model()
-
-        ksim = KineticSimulation(model=kmodel, t_points=self.t_points, timeout=self.timeout)
-        result = ksim.simulate(parameters=parameters, initcon=initcond)
-        fluxes = result.fluxes
-        
-        if constraints is None:
-            constraints = dict()
-
-        if mapp:
-            _fluxes = self.mapping_conversion(fluxes)
-            if amplitude:
-                c = dict()
-                for k, v in _fluxes.items():
-                    a, _ = self.sim.get_reaction_bounds(k)
-                    lb = v-amplitude/2
-                    ub = v+amplitude/2
-                    if a < 0:
-                        c[k] = (lb, ub)
-                    else:
-                        c[k] = (max(0, lb), ub)
-            else:
-                s = partial_lMOMA(self.sim, reactions=_fluxes)
-                c = {k: s.values[k] for k in _fluxes.keys()}
-            constraints.update(c)
-        else:
-            raise ValueError('Could not mapp reactions.')
-
-
-
-        if objective:
-            solution = self.sim.simulate(objective= objective, method=method, constraints=constraints)
-        else:
-            solution = self.sim.simulate(method=method, constraints=constraints)
-        return solution
+        return None
 
 
     def simulate_distribution(self, df, q1=0.1, q2=0.9, objective=None, method='pFBA', constraints=None):
