@@ -20,8 +20,8 @@ def info():
     from mewpy.util.utilities import get_all_subclasses
     from mewpy.problems.problem import AbstractProblem
     c = get_all_subclasses(AbstractProblem)
-    print('Optimization Problems:',' '.join(sorted([x.__name__ for x in c])))
-    print()
+    print('Optimization Problems:',' '.join(sorted([x.__name__ for x in c])),'\n')
+    
     from mewpy.optimization import engines, get_default_engine, get_available_algorithms
     print('Available EA engines:',' '.join(list(engines.keys())))
     print('Default EA engine:', get_default_engine())

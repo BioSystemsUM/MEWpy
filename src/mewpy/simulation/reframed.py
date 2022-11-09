@@ -482,9 +482,12 @@ class Simulation(CBModelContainer, Simulator):
                                         if k not in list(self._environmental_conditions.keys())})
             else:
                 simul_constraints.update(constraints)
-    
-        a_solver = solver
-        if not self._reset_solver and not a_solver:
+
+        if solver is not None:
+            a_solver = solver
+        elif self._reset_solver:
+            a_solver = solver_instance(self.model)
+        else:
             if self.solver is None:
                 self.solver = solver_instance(self.model)
             a_solver = self.solver
