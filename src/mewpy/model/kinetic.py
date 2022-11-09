@@ -1,14 +1,22 @@
-from symbol import parameters
+"""Kinetic modeling module
+   Author: Vitor Pereira
+"""
 from mewpy.util.parsing import Arithmetic, build_tree
 from mewpy.util.utilities import AttrDict
 from collections import OrderedDict
 import warnings
 import numpy as np
+from typing import Dict, List, Any
+
 
 class Compartment(object):
-    """ class for modeling compartments. """
+    """ class for modeling compartments."""
 
-    def __init__(self, comp_id, name=None, external=False, size=1.0):
+    def __init__(self,
+                 comp_id: str,
+                 name: str = None,
+                 external: bool = False,
+                 size: float = 1.0):
         """
         Arguments:
             comp_id (str): a valid unique identifier
@@ -32,7 +40,10 @@ class Compartment(object):
 class Metabolite(object):
     """ class for modeling metabolites. """
 
-    def __init__(self, met_id, name=None, compartment=None):
+    def __init__(self,
+                 met_id: str,
+                 name: str = None,
+                 compartment: str = None):
         """
         Arguments:
             met_id (str): a valid unique identifier
@@ -51,7 +62,10 @@ class Metabolite(object):
         return str(self)
 
 
-def calculate_yprime(y, rate, substrates, products, substrate_names):
+def calculate_yprime(y,
+                     rate: np.array,
+                     substrates: List[str],
+                     products: List[str]):
     """
     It takes the numpy array for y_prime,
     and adds or subtracts the amount in rate to all the substrates or products listed
@@ -61,8 +75,6 @@ def calculate_yprime(y, rate, substrates, products, substrate_names):
         rate: the rate calculated by the user made rate equation
         substrates: list of substrates for which rate should be subtracted
         products: list of products for which rate should be added
-        substrate_names: the ordered list of substrate names in the model.\
-            Used to get the position of each substrate or product in y_prime
     Returns:
         y_prime: following the addition or subtraction of rate to the specificed substrates
     """
@@ -77,7 +89,7 @@ def calculate_yprime(y, rate, substrates, products, substrate_names):
     return y_prime
 
 
-def check_positive(y_prime):
+def check_positive(y_prime: List[float]):
     """
     Check that substrate values are not negative when they shouldnt be.
     """
@@ -93,7 +105,10 @@ class Rule(object):
     """Base class for kinetic rules.
     """
 
-    def __init__(self, r_id, law: str, parameters: dict = {}):
+    def __init__(self,
+                 r_id: str,
+                 law: str,
+                 parameters: Dict[str, float] = dict()):
         """Creates a new rule
 
         Args:
@@ -114,7 +129,7 @@ class Rule(object):
         """
         if not self._tree:
             self._tree = build_tree(self.law, Arithmetic)
-        return self._tree        
+        return self._tree
 
     def parse_parameters(self):
         """Returns the list of parameters within the rule.
@@ -124,25 +139,23 @@ class Rule(object):
         """
         return list(self.tree.get_parameters())
 
-    def rename_parameter(self, old_parameter, new_parameter):
+    def rename_parameter(self, old_parameter: str, new_parameter: str):
         """Need to rename in the law, tree and parameters"""
 
         if old_parameter in self.parse_parameters():
-            t = self.tree.replace({old_parameter:new_parameter})
+            t = self.tree.replace({old_parameter: new_parameter})
             self.law = t.to_infix()
             self._tree = None
         try:
-            self.parameters[new_parameter]=self.parameters[old_parameter]
+            self.parameters[new_parameter] = self.parameters[old_parameter]
             del self.parameters[old_parameter]
         except:
             pass
 
-
-
     def get_parameters(self):
         return self.parameters
 
-    def replace(self, parameters=None, local=True, infix=True):
+    def replace(self, parameters: Dict[str, Any] = None, local=True, infix=True):
         """Replaces parameters with values taken from a dictionary.
         If no parameter are given for replacement, returns the string representation of the rule
         built from the parsing tree.
@@ -176,22 +189,22 @@ class Rule(object):
         return rate
 
     def __str__(self):
-        return self.law.replace(' ','')
+        return self.law.replace(' ', '')
 
     def __repr__(self):
-        return self.replace().replace(' ','')
+        return self.replace().replace(' ', '')
 
 
 class KineticReaction(Rule):
 
-    def __init__(self, 
-                 r_id:str,
+    def __init__(self,
+                 r_id: str,
                  law: str,
-                 name:str=None, 
-                 stoichiometry: dict = {}, 
-                 parameters: dict = {}, 
+                 name: str = None,
+                 stoichiometry: dict = {},
+                 parameters: dict = {},
                  modifiers: list = [],
-                 reversible:bool=True):
+                 reversible: bool = True):
         """Kinetic reaction rule.
 
         Args:
@@ -228,13 +241,12 @@ class KineticReaction(Rule):
         if old_parameter in self.parameter_distributions:
             self.parameter_distributions[new_parameter] = self.parameter_distributions[old_parameter]
             del self.parameter_distributions[old_parameter]
-        
 
     def set_parameter_distribution(self, param, dist):
-        self.parameter_distributions[param]=dist
+        self.parameter_distributions[param] = dist
 
-    def sample_parameter(self,param):
-        dist = self.parameter_distributions.get(param,None)
+    def sample_parameter(self, param):
+        dist = self.parameter_distributions.get(param, None)
         if not dist:
             raise ValueError(f"The parameter {param} has no associated distribution.")
         return dist.rvs()
@@ -255,9 +267,9 @@ class KineticReaction(Rule):
         return self.replace(r_map, local=local)
 
     def calculate_rate(self, substrates={}, parameters={}):
-        
+
         param = dict()
-        # sets model defaults 
+        # sets model defaults
         param.update(self._model.get_concentrations())
         param.update(self._model.get_parameters())
         # set reaction defaults
@@ -267,7 +279,7 @@ class KineticReaction(Rule):
         param.update(parameters)
         s = set(self.parse_parameters())-set(param.keys())
         if s:
-            # check for missing parameters distributions  
+            # check for missing parameters distributions
             r = s - set(self.parameter_distributions.keys())
             if r:
                 raise ValueError(f"Missing values or distribuitions for parameters: {r}")
@@ -284,7 +296,7 @@ class KineticReaction(Rule):
             pass
 
         parameters = self.get_parameters(parameter_dict)
-        substrates =self.substrates
+        substrates = self.substrates
 
         if len(self.modifiers) != 0:
             # substrates, parameters = self.calculate_modifiers(substrates, parameters)
@@ -302,7 +314,7 @@ class KineticReaction(Rule):
 
     def set_parameter_defaults_to_mean(self):
         """Sets not defined parameters to the median of a distribution.
-        """ 
+        """
         for name in self.parameter_distributions:
             if name not in self.parameters:
                 if (type(self.parameter_distributions[name]) == list or
@@ -358,7 +370,8 @@ class ODEModel:
             raise RuntimeError(f"Metabolite {metabolite.id} already exists.")
 
         if metabolite.compartment not in self.compartments:
-            raise RuntimeError(f"Metabolite {metabolite.id} has invalid compartment {metabolite.compartment}.")
+            raise RuntimeError(f"Metabolite {metabolite.id} \
+                has invalid compartment {metabolite.compartment}.")
 
         self.metabolites[metabolite.id] = metabolite
 
@@ -366,37 +379,37 @@ class ODEModel:
     def reactions(self):
         return AttrDict(self.ratelaws)
 
-    def get_reaction(self,r_id):
+    def get_reaction(self, r_id):
         if r_id not in self.ratelaws:
             raise ValueError(f'Unknown reaction {r_id}')
         r = self.ratelaws[r_id]
-        d = {'id':r_id,
-             'name':r.name,
-             'stoichiometry':r.stoichiometry,
-             'law':r.law,
-             'reversible':r.reversible,
-             'parameters':r.parameters,
-             'modifiers':r.modifiers
-             } 
+        d = {'id': r_id,
+             'name': r.name,
+             'stoichiometry': r.stoichiometry,
+             'law': r.law,
+             'reversible': r.reversible,
+             'parameters': r.parameters,
+             'modifiers': r.modifiers
+             }
         return AttrDict(d)
 
-    def get_metabolite(self,m_id):
+    def get_metabolite(self, m_id):
         if m_id not in self.metabolites:
             raise ValueError(f'Unknown metabolite {m_id}')
-        d = { 'id':m_id,
-              'name': self.metabolites[m_id].name,
-              'compartment':self.metabolites[m_id].compartment,
-              'formula':self.metabolites[m_id].metadata.get('FORMULA',''),
-              'charge':self.metabolites[m_id].metadata.get('CHARGE',''),
-              'y0': self.concentrations[m_id]
-            }
+        d = {'id': m_id,
+             'name': self.metabolites[m_id].name,
+             'compartment': self.metabolites[m_id].compartment,
+             'formula': self.metabolites[m_id].metadata.get('FORMULA', ''),
+             'charge': self.metabolites[m_id].metadata.get('CHARGE', ''),
+             'y0': self.concentrations[m_id]
+             }
         return AttrDict(d)
-
 
     def find(self, pattern=None, sort=False):
         """A user friendly method to find reactionsin the model.
 
-        :param pattern: The pattern which can be a regular expression, defaults to None in which case all entries are listed.
+        :param pattern: The pattern which can be a regular expression, 
+            defaults to None in which case all entries are listed.
         :type pattern: str, optional
         :param sort: if the search results should be sorted, defaults to False
         :type sort: bool, optional
@@ -417,21 +430,22 @@ class ODEModel:
 
         import pandas as pd
         data = [self.get_reaction(x) for x in values]
-        
+
         if data:
             df = pd.DataFrame(data)
             df = df.set_index(df.columns[0])
-        else: 
+        else:
             df = pd.DataFrame()
         return df
 
     def find_reactions(self, pattern=None, sort=False):
-        return self.find(pattern,sort)
-    
+        return self.find(pattern, sort)
+
     def find_metabolites(self, pattern=None, sort=False):
         """A user friendly method to find metabolites in the model.
 
-        :param pattern: The pattern which can be a regular expression, defaults to None in which case all entries are listed.
+        :param pattern: The pattern which can be a regular expression, 
+            defaults to None in which case all entries are listed.
         :type pattern: str, optional
         :param sort: if the search results should be sorted, defaults to False
         :type sort: bool, optional
@@ -452,11 +466,11 @@ class ODEModel:
 
         import pandas as pd
         data = [self.get_metabolite(x) for x in values]
-        
+
         if data:
             df = pd.DataFrame(data)
             df = df.set_index(df.columns[0])
-        else: 
+        else:
             df = pd.DataFrame()
         return df
 
@@ -513,12 +527,12 @@ class ODEModel:
 
         for r_id, law in self.ratelaws.items():
             for p_id, value in law.parameters.items():
-                
+
                 full_id = f"{p_id}"
                 if full_id in constants:
                     warnings.warn(f'renaming {p_id} to {r_id}_{p_id}')
                     full_id = f"{r_id}_{p_id}"
-                    law.rename_parameter(f"{p_id}",f"{r_id}_{p_id}")
+                    law.rename_parameter(f"{p_id}", f"{r_id}_{p_id}")
                 constants[full_id] = value
 
         self._constants = constants
@@ -543,10 +557,10 @@ class ODEModel:
             v = coeff * f if coeff > 0 else coeff
             terms.append(f"{v:+g} * r['{r_id}']")
 
-        if ( f == 0 or 
-             len(terms) == 0 or 
-             ( self.metabolites[m_id].constant and 
-               self.metabolites[m_id].boundary
+        if (f == 0 or
+            len(terms) == 0 or
+            (self.metabolites[m_id].constant and
+             self.metabolites[m_id].boundary
              )):
             expr = "0"
         else:
@@ -568,7 +582,8 @@ class ODEModel:
     def find_parameters(self, pattern=None, sort=False):
         """A user friendly method to find parameters in the model.
 
-        :param pattern: The pattern which can be a regular expression, defaults to None in which case all entries are listed.
+        :param pattern: The pattern which can be a regular expression, 
+            defaults to None in which case all entries are listed.
         :type pattern: str, optional
         :param sort: if the search results should be sorted, defaults to False
         :type sort: bool, optional
@@ -589,12 +604,12 @@ class ODEModel:
             values.sort()
 
         import pandas as pd
-        data = [(x,params[x]) for x in values]
-        
+        data = [(x, params[x]) for x in values]
+
         if data:
-            df = pd.DataFrame(data,columns=['Parameter','Value'])
+            df = pd.DataFrame(data, columns=['Parameter', 'Value'])
             df = df.set_index(df.columns[0])
-        else: 
+        else:
             df = pd.DataFrame()
         return df
 
@@ -602,11 +617,14 @@ class ODEModel:
         """
         deriv function called by integrate to be used by dFBA
 
-        For each step when the model is run, the rate for each reaction is calculated and changes in substrates and products calculated.
-        These are returned by this function as y_prime, which are added to y which is returned by run_model
+        For each step when the model is run, the rate for each reaction is calculated
+        and changes in substrates and products calculated.
+        These are returned by this function as y_prime, which are added to y which is 
+        returned by run_model
 
         Args:
-            y (list): ordered list of substrate values at this current timepoint. Has the same order as self.run_model_species_names
+            y (list): ordered list of substrate values at this current timepoint. 
+               Has the same order as self.run_model_species_names
             t (): time, not used in this function but required for some reason
 
         Returns:
@@ -618,7 +636,7 @@ class ODEModel:
             yprime += reaction.reaction(m_y, self.get_parameters())
         return yprime
 
-    def build_ode(self, factors:dict=None, local:bool=False) -> str:
+    def build_ode(self, factors: dict = None, local: bool = False) -> str:
         """ 
         Axiliary function to build the ODE as a string
         to be evaluated by eval. Allows the inclusion of factors to
@@ -637,7 +655,7 @@ class ODEModel:
         p = {p_id: f"p['{p_id}']" for p_id in self.constant_params}
         v = {p_id: f"v['{p_id}']" for p_id in self.variable_params}
         rmap = OrderedDict({**m, **c, **p, **v})
-        
+
         parsed_rates = {r_id: ratelaw.parse_law(rmap, local=local)
                         for r_id, ratelaw in self.ratelaws.items()}
 
@@ -672,14 +690,14 @@ class ODEModel:
             p.update(params)
 
         if factors is not None:
-            for k,v in factors.items():
+            for k, v in factors.items():
                 if k in p.keys():
-                    p[k]= v * p[k] 
+                    p[k] = v * p[k]
 
         v = self.variable_params.copy()
         r = r_dict if r_dict is not None else dict()
-        
-        np.seterr(divide='ignore', invalid='ignore')         
+
+        np.seterr(divide='ignore', invalid='ignore')
         exec(self.build_ode(factors), globals())
         ode_func = eval('ode_func')
 
