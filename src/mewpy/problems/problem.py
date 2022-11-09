@@ -6,7 +6,6 @@ import numpy as np
 from ..optimization.ea import Solution, filter_duplicates
 from ..simulation import get_simulator
 from ..util.constants import EAConstants, ModelConstants
-from ..util.process import get_fevaluator
 
 
 class Strategy(Enum):
@@ -130,7 +129,7 @@ class AbstractProblem(ABC):
 
     @abstractmethod
     def encode(self, candidate):
-        """The generator function for the problem."""
+        """The encoder function for the problem."""
         raise NotImplementedError
 
     @abstractmethod
@@ -163,7 +162,25 @@ class AbstractProblem(ABC):
         return self._simul
 
     def simulate(self, *args, **kwargs):
-        return self._simul.simulate(*args, **kwargs)
+        '''
+        Simulates a phenotype when applying a set of constraints using the specified method.
+
+        :param dic objective: The simulation objective. If none, the model objective is considered.
+        :param str method: The SimulationMethod (FBA, pFBA, lMOMA, etc ...)
+        :param boolean maximize: The optimization direction
+        :param dict constraints: A dictionary of constraints to be applied to the model.
+        :param dict reference: A dictionary of reaction flux values.
+        :param float scalefactor: A positive scaling factor for the solver. Default None.
+        :param solver: An instance of the solver.
+        :param dict solution: A solution to be converted to constraints in the context of the problem.
+        '''
+        if 'solution' in kwargs:
+            constraints = self.solution_to_constraints(kwargs["solution"])
+            const = kwargs.get('constraints', dict())
+            const.update(constraints)
+            kwargs['constraints'] = const
+            del kwargs['solution']
+        return self.simulator.simulate(*args, **kwargs)
 
     def reset_simulator(self):
         self._simul = None
@@ -236,6 +253,7 @@ class AbstractProblem(ABC):
                 p.append(f.worst_fitness)
             if EAConstants.DEBUG:
                 warnings.warn(f"Solution couldn't be evaluated [{e}]\n {constraints}")
+        del simulation_results
         return p
 
     @property
@@ -276,7 +294,7 @@ class AbstractProblem(ABC):
         for entry in one_to_remove.keys():
             simul_enc_values.remove(entry)
 
-        # test all simultaneous removal
+        # test all simultaneous removals
         fit = self.evaluate_solution(simul_enc_values)
         diff = np.abs(np.array(fit) - np.array(fitness))
         is_equal = False
