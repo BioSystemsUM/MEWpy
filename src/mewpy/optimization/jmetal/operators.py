@@ -205,7 +205,7 @@ class UniformCrossoverOU(Crossover[OUSolution, OUSolution]):
         super(UniformCrossoverOU, self).__init__(probability=probability)
         self.max_size = max_size
 
-    def execute(self, parents: List[KOSolution]) -> List[KOSolution]:
+    def execute(self, parents: List[OUSolution]) -> List[OUSolution]:
         if len(parents) != 2:
             raise Exception('The number of parents is not two: {}'.format(len(parents)))
 
@@ -215,24 +215,30 @@ class UniformCrossoverOU(Crossover[OUSolution, OUSolution]):
                 offspring[0].number_of_variables > 1 or offspring[1].number_of_variables > 1):
             mom = set(copy.copy(offspring[0].variables))
             dad = set(copy.copy(offspring[1].variables))
+
             intersection = mom & dad
             otherElems = list((mom | dad).difference(intersection))
             child1 = copy.copy(intersection)
             child2 = copy.copy(intersection)
 
             while len(otherElems) > 0:
-                elemPosition = random.randint(0, len(otherElems) - 1) if len(otherElems) > 1 else 0
+                elem = otherElems.pop()
                 if len(child1) == self.max_size or len(child2) == 0:
-                    child2.add(otherElems[elemPosition])
+                    child2.add(elem)
                 elif len(child2) == self.max_size or len(child1) == 0:
-                    child1.add(otherElems[elemPosition])
+                    child1.add(elem)
                 else:
                     r = random.random()
                     if r <= 0.5:
-                        child1.add(otherElems[elemPosition])
+                        if elem[0] not in [x[0] for x in child1]:
+                            child1.add(elem)
+                        else:
+                            child2.add(elem)
                     else:
-                        child2.add(otherElems[elemPosition])
-                otherElems.pop(elemPosition)
+                        if elem[0] not in [x[0] for x in child2]:
+                            child2.add(elem)
+                        else:
+                            child1.add(elem)
 
             offspring[0].variables = list(child1)
             offspring[0].number_of_variables = len(child1)
@@ -316,6 +322,7 @@ class SingleMutationOULevel(Mutation[OUSolution]):
     def execute(self, solution: Solution) -> Solution:
         if random.random() <= self.probability:
             mutant = copy.copy(solution.variables)
+            x = len(mutant)
             index = random.randint(0, len(mutant) - 1)
             idx, idy = mutant[index]
             lv = random.randint(solution.lower_bound[1], solution.upper_bound[1])
@@ -357,6 +364,7 @@ class GaussianMutation(Mutation[Solution]):
     def get_name(self):
         return 'Gaussian Mutator'
 
+
 class UniformCrossover(Crossover[Solution, Solution]):
     """
         Uniform Crossover
@@ -384,7 +392,7 @@ class UniformCrossover(Crossover[Solution, Solution]):
                 else:
                     child1.append(dad[p])
                     child2.append(mom[p])
-                
+
             offspring[0].variables = list(child1)
             offspring[0].number_of_variables = len(child1)
             offspring[1].variables = list(child2)
@@ -399,7 +407,6 @@ class UniformCrossover(Crossover[Solution, Solution]):
 
     def get_name(self):
         return 'Uniform Crossover'
-
 
 
 class SingleRealMutation(Mutation[Solution]):
@@ -452,9 +459,10 @@ def build_ko_operators(problem):
 def build_ou_operators(problem):
     crossover = UniformCrossoverOU(0.5, problem.candidate_max_size)
     mutators = []
+
     _max = problem.candidate_max_size
     _min = problem.candidate_min_size
-    _t_size = problem.bounder.upper_bound[0]+1
+    _t_size = len(problem.target_list)
 
     # add shrink and growth mutation only if max size != min size
     # and do not add if single ou if  max size == min size == targets size

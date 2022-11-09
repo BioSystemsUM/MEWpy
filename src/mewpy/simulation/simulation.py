@@ -452,7 +452,7 @@ class SimulationResult(object):
 
         return left + " --> " + right
 
-    def get_metabolites_turnover(self):
+    def get_metabolites_turnover(self, format='df'):
         """ Calculate metabolite turnover.
 
         Arguments:
@@ -464,16 +464,46 @@ class SimulationResult(object):
         from . import get_simulator
         sim = get_simulator(self.model)
 
-        if not self.values:
+        if not self.fluxes:
             return None
 
         m_r_table = sim.metabolite_reaction_lookup()
-        t = {m_id: 0.5*sum([abs(coeff * self.fluxes[r_id]) for r_id, coeff in neighbours.items()])
+        data = {m_id: 0.5*sum([abs(coeff * self.fluxes[r_id]) for r_id, coeff in neighbours.items()])
              for m_id, neighbours in m_r_table.items()}
-        return t
+        if format == 'df':
+            import pandas as pd
+            df = pd.DataFrame(list(data.values()), index=list(data.keys()), columns=['Turnover'])
+            df.index.name = 'Metabolite'
+            return df
+        return data
+
+    def get_metabolite(self, met_id, format='df'):
+        """ Calculate metabolite turnover.
+
+        Arguments:
+            model: REFRAMED/Cobrapy model or Simulator that generated the solution
+
+        Returns:
+            dict: metabolite turnover rates
+        """
+        from . import get_simulator
+        sim = get_simulator(self.model)
+
+        if not self.fluxes:
+            return None
+
+        m_r = sim.metabolite_reaction_lookup()[met_id]
+        data = {r_id: coeff * self.fluxes[r_id] for r_id, coeff in m_r.items()}
+        if format == 'df':
+            import pandas as pd
+            df = pd.DataFrame(list(data.values()), index=list(data.keys()), columns=['Value'])
+            df.index.name = 'Reaction'
+            return df
+        return data
+
 
     @classmethod
-    def fromLinearSolver(cls, solution):
+    def from_linear_solver(cls, solution):
         """Converts a solver Solution object to a SolutionResult object.
 
         :param solution: solution to be converted

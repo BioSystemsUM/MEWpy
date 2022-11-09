@@ -1,3 +1,10 @@
+"""
+##############################################################################
+Multiprocessing module.
+
+Authors: Vitor Pereira
+##############################################################################
+"""
 import copy
 from abc import ABC, abstractmethod
 
@@ -88,8 +95,12 @@ class MultiProcessorEvaluator(Evaluator):
         Args:
             evaluator(function): Evaluation function.
             mp_num_cpus(int): Number of CPUs
+
+        When using COBRApy, mewmory resources are not released after each
+        pool map. As such, the pool needs to be instantiated and closed at
+        each iteration.
         """
-        self.pool = Pool(mp_num_cpus)
+        self.mp_num_cpus = mp_num_cpus
         self.evaluator = evaluator
         self.__name__ = self.__class__.__name__
 
@@ -97,7 +108,9 @@ class MultiProcessorEvaluator(Evaluator):
         """
         Values in args will be ignored and not passed to the evaluator to avoid unnecessary pickling in inspyred.
         """
-        results = self.pool.map(self.evaluator, candidates)
+        pool = Pool(self.mp_num_cpus)
+        results = pool.map(self.evaluator, candidates)
+        pool.close()
         return results
 
     def __call__(self, candidates, args):
@@ -113,16 +126,19 @@ class NoDaemonMultiProcessorEvaluator(Evaluator):
             evaluator(function): Evaluation function.
             mp_num_cpus(int): Number of CPUs
         """
-        self.pool = NoDaemonProcessPool(mp_num_cpus)
+        self.mp_num_cpus = mp_num_cpus
         self.evaluator = evaluator
         self.__name__ = self.__class__.__name__
         print('nodaemon')
 
     def evaluate(self, candidates, args):
         """
-        Values in args will be ignored and not passed to the evaluator to avoid unnecessary pickling in inspyred.
+        Values in args will be ignored and not passed to the evaluator 
+        to avoid unnecessary pickling in inspyred.
         """
-        results = self.pool.map(self.evaluator, candidates)
+        pool = NoDaemonProcessPool(self.mp_num_cpus)
+        results = pool.map(self.evaluator, candidates)
+        pool.close()
         return results
 
     def __call__(self, candidates, args):
@@ -183,7 +199,8 @@ else:
     @ray.remote
     class RayActor:
         """
-        Each actor (worker) has a solver instance to overcome the need to serialize solvers which may not be pickable.
+        Each actor (worker) has a solver instance to overcome the need 
+        to serialize solvers which may not be pickable.
         The solver is not reset before each evaluation.
         """
 
@@ -204,7 +221,8 @@ else:
     @ray.remote
     class RayActorF:
         """
-        Each actor (worker) has a solver instance to overcome the need to serialize solvers which may not be pickable.
+        Each actor (worker) has a solver instance to overcome the need to
+        serialize solvers which may not be pickable.
         The solver is not reset before each evaluation.
         """
 

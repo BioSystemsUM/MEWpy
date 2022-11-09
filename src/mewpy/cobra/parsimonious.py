@@ -1,5 +1,4 @@
 from math import inf
-from mewpy.solvers.solver import VarType
 from mewpy.solvers import solver_instance
 from mewpy.simulation import get_simulator, SStatus
 from mewpy.simulation.simulation import Simulator

@@ -15,7 +15,7 @@ MEWPy currently supports [REFRAMED](https://github.com/cdanielmachado/reframed) 
 
 ### Examples
 
-Examples are provided as [jupiter notebooks](examples) and as [python scripts](examples).
+Examples are provided as [jupyter notebooks](examples) and as [python scripts](examples).
 
 ### Documentation
 

@@ -257,18 +257,50 @@ class Simulation(CBModelContainer, Simulator):
         g = Gene(id,name)
         self.model.add_gene(g)
 
-    def add_reaction(self, rxn_id,  name=None, stoichiometry=None, lb=ModelConstants.REACTION_LOWER_BOUND,
-                     ub=ModelConstants.REACTION_UPPER_BOUND, gpr= None, replace=True, **kwargs):
+    def add_reaction(self, 
+                     rxn_id,
+                     name=None,
+                     stoichiometry=None,
+                     reversible=True,
+                     lb=ModelConstants.REACTION_LOWER_BOUND,
+                     ub=ModelConstants.REACTION_UPPER_BOUND, 
+                     gpr= None,
+                     objective=0,
+                     replace=True, **kwargs):
         """Adds a reaction to the model
 
-        Args:
-            rxn_id: The reaction identifier
-            stoichiometry: The reaction stoichiometry, a dictionary of species: coefficient
-            replace (bool, optional): If the reaction should be replaced in case it is already defined.\
-            Defaults to True.
+        :param rxn_id: The reaction identifier
+        :type rxn_id: str
+        :param name: The name of the reaction, defaults to None
+        :type name: str, optional
+        :param stoichiometry: The stoichiometry of the reaction, defaults to None
+        :type stoichiometry: dict[str,float], optional
+        :param reversible: If the reaction is reversible or not, defaults to True
+        :type reversible: bool, optional
+        :param lb: The reaction lower bound, defaults to ModelConstants.REACTION_LOWER_BOUND
+        :type lb: float, optional
+        :param ub: The reaction upper bound, defaults to ModelConstants.REACTION_UPPER_BOUND
+        :type ub: float, optional
+        :param gpr: The gene-protein-reactio rule, defaults to None
+        :type gpr: str, optional
+        :param objective: the objective coeficient, defaults to 0
+        :type objective: float, optional
+        :param replace: If replaces the reaction with a same identifier, defaults to True
+        :type replace: bool, optional
         """
         from reframed.core.cbmodel import CBReaction
-        reaction = CBReaction(rxn_id, stoichiometry=stoichiometry,name=name, lb=lb, ub=ub, gpr_association=gpr,**kwargs)
+        from reframed.io.sbml import parse_gpr_rule
+        if gpr and isinstance(gpr,str):
+            gpr = parse_gpr_rule(gpr)
+        reaction = CBReaction(rxn_id,
+                              stoichiometry=stoichiometry,
+                              name=name,
+                              lb=lb,
+                              ub=ub, 
+                              gpr_association=gpr,
+                              reversible=reversible,
+                              objective=objective)
+
         self.model.add_reaction(reaction, replace=replace)
 
     def remove_reaction(self, r_id):
@@ -383,17 +415,19 @@ class Simulation(CBModelContainer, Simulator):
         return lb if lb > -np.inf else ModelConstants.REACTION_LOWER_BOUND,\
             ub if ub < np.inf else ModelConstants.REACTION_UPPER_BOUND
 
-    def set_reaction_bounds(self, reaction, lb=None, ub=None):
+    def set_reaction_bounds(self, reaction, lb, ub, track=True):
         """
         Sets the bounds for a given reaction.
         :param reaction: str, reaction ID
         :param float lb: lower bound 
         :param float ub: upper bound
+        :param bool track: if the changes are to be logged. Default True
         """
-        if reaction in self.get_uptake_reactions():
-            self._environmental_conditions[reaction] = (lb, ub)
-        else:
-            self._constraints[reaction] = (lb, ub)
+        if track:
+            if reaction in self.get_uptake_reactions():
+                self._environmental_conditions[reaction] = (lb, ub)
+            else:
+                self._constraints[reaction] = (lb, ub)
         self.model.set_flux_bounds(reaction, lb, ub)
 
     def find_bounds(self):
@@ -448,9 +482,12 @@ class Simulation(CBModelContainer, Simulator):
                                         if k not in list(self._environmental_conditions.keys())})
             else:
                 simul_constraints.update(constraints)
-    
-        a_solver = solver
-        if not self._reset_solver and not a_solver:
+
+        if solver is not None:
+            a_solver = solver
+        elif self._reset_solver:
+            a_solver = solver_instance(self.model)
+        else:
             if self.solver is None:
                 self.solver = solver_instance(self.model)
             a_solver = self.solver
@@ -602,9 +639,12 @@ class GeckoSimulation(Simulation):
                     self._essential_proteins.append(rxn)
         return self._essential_proteins
 
-    def protein_reactions(self, protein):
+    def protein_reactions(self, protein:str):
         """
-        Returns the list of reactions associated to a protein
+        Returns the list of reactions associated with a protein.
+
+        :params (str) protein: The protein identifier.
+        :returns: A list of reaction identifiers
         """
         reactions = []
         for r_id, rxn in self.model.reactions.items():
@@ -614,11 +654,12 @@ class GeckoSimulation(Simulation):
                     reactions.append(r_id)
         return reactions
 
-    def reverse_reaction(self, reaction_id):
+    def reverse_reaction(self, reaction_id:str):
         """
         Identify if a reaction is reversible and returns the
         reverse reaction if it is the case.
 
+        :param (str) reaction_id: The reaction identifier.
         :returns: A reaction identifier or None.
         """
         f, d = zip(*self.model.protein_rev_reactions.values())
@@ -629,9 +670,23 @@ class GeckoSimulation(Simulation):
         else:
             return None
 
-    def getKcat(self, protein):
-        """ Returns a dictionary of reactions and respective Kcat for a specific enzyme·
+    def get_Kcats(self, protein):
+        """ 
+        Returns a dictionary of reactions and respective Kcat for a 
+        specific protein/enzyme·
+
+        :params (str) protein: the protein identifier.
+
+        :returns: A dictionary of reactions and respective Kcat values.
         """
-        m_r = self.metabolite_reaction_lookup()
-        r_d = m_r[protein]
-        return {k: v for k, v in r_d.items() if v < 0}
+        import re
+        re_expr = re.compile(f"{protein}_")
+        values = [x for x in self.metabolites if re_expr.search(x) is not None]
+        if len(values)==1:
+            m_r = self.metabolite_reaction_lookup()
+            r_d = m_r[values[0]]
+            return {k: -1/v for k, v in r_d.items()}
+        elif len(values)>1: 
+            raise ValueError(f"More than one protein match {values}")
+        else:
+            raise ValueError(f"Protein {protein} not founded.")

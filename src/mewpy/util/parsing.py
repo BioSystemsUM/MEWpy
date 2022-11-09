@@ -1,6 +1,6 @@
 """
 ##############################################################################
-File containing string exoression parsing utility functions.
+File containing string expression parsing utility functions.
 Expressions are decomposed into parsing trees for infix evaluation.
 
 Authors: Vitor Pereira
