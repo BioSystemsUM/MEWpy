@@ -1,3 +1,7 @@
+"""Hybrid kinetic/constraint-based simulation module
+   Author: Vitor Pereira
+   Contributors: Mariana Pereira
+"""
 from mewpy.model.kinetic import ODEModel
 from mewpy.solvers import KineticConfigurations
 from mewpy.simulation import get_simulator
@@ -14,6 +18,12 @@ import numpy as np
 from numpy.random import normal
 import itertools
 from tqdm import tqdm
+
+from typing import Tuple, Dict, Union, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cobra import Model
+    from reframed import CBModel
 
 
 warnings.filterwarnings('ignore', 'Timeout')
@@ -86,7 +96,7 @@ def _partial_lMOMA(model, reactions: dict, biomass: str, constraints=None):
     return solution
 
 
-def sample(vmaxs, sigma=0.1):
+def sample(vmaxs:Dict[str,float], sigma:float=0.1):
     k = vmaxs.keys()
     f = np.exp(normal(0, sigma, len(vmaxs)))
     v = np.array(list(vmaxs.values()))
@@ -96,9 +106,14 @@ def sample(vmaxs, sigma=0.1):
 
 class HybridSimulation:
 
-    def __init__(self, kmodel, cbmodel, gDW=564.0, envcond=dict(),
-                 mapping=dict(), t_points=[0, 1e9],
-                 timeout=KineticConfigurations.SOLVER_TIMEOUT):
+    def __init__(self, 
+                 kmodel: ODEModel,
+                 cbmodel: Union[Simulator,"Model","CBModel"],
+                 gDW: float=564.0,
+                 envcond: Dict[str,Union[float,Tuple[float,float]]] = dict(),
+                 mapping: Dict[str,Tuple[str,int]] = dict(),
+                 t_points: List[Union[float,int]] = [0, 1e9],
+                 timeout: int = KineticConfigurations.SOLVER_TIMEOUT):
         """_summary_
 
         :param kmodel: The kinetic model
@@ -251,7 +266,42 @@ class HybridSimulation:
         :type method: str. Default 'pFBA'
         :returns: Returns the solution of the hibridization.
         """
-        return None
+        mapp = self.models_verification()
+        kmodel = self.get_kinetic_model()
+
+        ksim = KineticSimulation(model=kmodel, t_points=self.t_points, timeout=self.timeout)
+        result = ksim.simulate(parameters=parameters, initcon=initcond)
+        fluxes = result.fluxes
+
+        if constraints is None:
+            constraints = dict()
+
+        if mapp:
+            _fluxes = self.mapping_conversion(fluxes)
+            if amplitude:
+                c = dict()
+                for k, v in _fluxes.items():
+                    a, _ = self.sim.get_reaction_bounds(k)
+                    lb = v-amplitude/2
+                    ub = v+amplitude/2
+                    if a < 0:
+                        c[k] = (lb, ub)
+                    else:
+                        c[k] = (max(0, lb), ub)
+            else:
+                # assumes growth as model objective
+                biomass = [*self.sim.objective][0]
+                s = _partial_lMOMA(self.sim, _fluxes, biomass)
+                c = {k: s.values[k] for k in _fluxes.keys()}
+            constraints.update(c)
+        else:
+            raise ValueError('Could not mapp reactions.')
+
+        if objective:
+            solution = self.sim.simulate(objective=objective, method=method, constraints=constraints)
+        else:
+            solution = self.sim.simulate(method=method, constraints=constraints)
+        return solution
 
 
     def simulate_distribution(self, df, q1=0.1, q2=0.9, objective=None, method='pFBA', constraints=None):
@@ -338,7 +388,7 @@ class Map(AttrDict):
         return combinations
 
 
-def read_map(jsonfile):
+def read_map(jsonfile:str):
     """
     Reads kinetic to GECKO mapping json files.
     
@@ -373,14 +423,15 @@ def hasNaN(values):
 
 class HybridGeckoSimulation:
 
-    def __init__(self, kmodel,
-                 cbmodel,
-                 gDW=564,
-                 envcond=None,
-                 enzyme_mapping=None,
-                 protein_prefix='R_draw_prot_',
-                 t_points=[0, 1e9],
-                 timeout=KineticConfigurations.SOLVER_TIMEOUT):
+    def __init__(self, 
+                 kmodel: ODEModel,
+                 cbmodel: Union[Simulator, "Model", "CBModel"],
+                 gDW: float = 564.0,
+                 envcond: Dict[str, Union[float, Tuple[float, float]]] = dict(),
+                 enzyme_mapping:Map=None,
+                 protein_prefix:str='R_draw_prot_',
+                 t_points: List[Union[float,int]] = [0, 1e9],
+                 timeout: int = KineticConfigurations.SOLVER_TIMEOUT):
         """
         Hybrid Gecko Simulation.
 
@@ -434,6 +485,14 @@ class HybridGeckoSimulation:
         :type constraints: dict, optional
         :param method: the phenotype simulation method
         :type method: str. Default 'pFBA'
+        :param maximize: The optimization direction (True: maximize, False:minimize).
+        :type maximize: bool. Default True.
+        :param apply_lb: If the lb of pseudo draw reactions are to be constrained using 
+            the kinetic flux rate values.
+        :type apply_lb: bool. Default True.
+        :param lb_tolerance: A tolerance for the lb, ie, the lb is set to the value obtained 
+            from the kinetic flux rate less the tolerance (or 0 if negative).
+        :type lb_tolerance: float. Default 0.05.         
         :returns: Returns the solution of the hibridization.
         """
 
