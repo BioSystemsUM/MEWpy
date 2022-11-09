@@ -13,6 +13,7 @@ from .simulation import Simulator, SimulationResult, ModelContainer
 from mewpy.util.constants import ModelConstants
 from mewpy.util.utilities import AttrDict
 from tqdm import tqdm
+
 from typing import (TYPE_CHECKING,
                     List,
                     Dict,
@@ -578,7 +579,9 @@ class Simulation(CobraModelContainer, Simulator):
 
         else:
             status = self.__status_mapping[solution.status]
-            result = SimulationResult(model, solution.objective_value, fluxes=solution.fluxes.to_dict(OrderedDict),
+            result = SimulationResult(model, 
+                                      solution.objective_value,
+                                      fluxes=solution.fluxes.to_dict(OrderedDict),
                                       status=status, envcond=self.environmental_conditions,
                                       model_constraints=self._constraints.copy(),
                                       simul_constraints=constraints,

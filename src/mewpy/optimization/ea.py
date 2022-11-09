@@ -5,6 +5,8 @@ from mewpy.util.constants import EAConstants
 from mewpy.util.process import cpu_count
 from typing import TYPE_CHECKING, Any, Dict, List, Union, Tuple
 
+if TYPE_CHECKING:
+    from mewpy.problems.problem import AbstractProblem
 
 class SolutionInterface(ABC):
     """ An interface for EA solutions.
@@ -102,8 +104,8 @@ class Solution(SolutionInterface):
 
 class AbstractEA(ABC):
 
-    def __init__(self, problem, 
-                 initial_population=[], 
+    def __init__(self, problem: "AbstractProblem",
+                 initial_population: List = [],
                  max_generations:int=EAConstants.MAX_GENERATIONS,
                  mp:bool=True, 
                  visualizer:bool=False, 
