@@ -264,6 +264,7 @@ class TestGERMModel(unittest.TestCase):
         """
 
         from mewpy.io import read_model, Writer, Engines, write_model
+        import os 
         model = read_model(self.regulatory_reader, self.metabolic_reader)
 
         # to sbml
@@ -276,6 +277,9 @@ class TestGERMModel(unittest.TestCase):
                                    model=model)
 
         write_model(regulatory_writer, metabolic_writer)
+        os.remove(MODELS_PATH.joinpath('e_coli_core_write.xml'))
+        os.remove(MODELS_PATH.joinpath('e_coli_lac_write.xml'))
+                  
 
         # to json
         model_writer = Writer(Engines.JSON,
@@ -283,6 +287,7 @@ class TestGERMModel(unittest.TestCase):
                               model=model)
 
         write_model(model_writer)
+        os.remove(MODELS_PATH.joinpath('e_coli_core_write.json'))
 
     def test_analysis(self):
         """
