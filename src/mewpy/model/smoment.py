@@ -1,5 +1,4 @@
 import copy
-
 from reframed.core.cbmodel import CBModel
 
 
@@ -12,8 +11,10 @@ class SMomentModel(CBModel):
         :param enzyme_reaction_prefix: str enzyme prefix
                    GECKO_ANALOGON: "R_ENZYME_DELIVERY_"
                    GECKO: "R__TG_ER_"
-
         """
+        # TODO: Define as an extension of simulator to be compatible with both
+        # COBRApy and REFRAMED.
+
         if isinstance(model, str):
             from reframed.io.sbml import load_cbmodel
             model = load_cbmodel(model)

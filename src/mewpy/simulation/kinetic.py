@@ -1,11 +1,18 @@
-""" Kinetic simulation module
-    Author: Vitor Pereira
+"""
+##############################################################################
+Kinetic simulation module
+
+Author: Vitor Pereira
+##############################################################################
 """
 from multiprocessing import Process, Manager
 from collections import OrderedDict
 from mewpy.simulation.simulation import SimulationResult, SimulationInterface
 from mewpy.model.kinetic import ODEModel
-from mewpy.solvers import KineticConfigurations, SolverConfigurations, ODEStatus, ode_solver_instance
+from mewpy.solvers import (KineticConfigurations,
+                           SolverConfigurations,
+                           ODEStatus,
+                           ode_solver_instance)
 import warnings
 import numpy as np
 from typing import List, Dict, Tuple, Union, TYPE_CHECKING
@@ -18,12 +25,13 @@ def kinetic_solve(model: ODEModel,
                   y0: List[float],
                   time_steps: List[float],
                   parameters: Dict[str, float] = None,
-                  factors: Dict[str, float] = None) -> Tuple[ODEStatus,
-                                                             Dict['str', float],
-                                                             Dict['str', float],
-                                                             List[float],
-                                                             List[float]]:
-    """_summary_
+                  factors: Dict[str, float] = None
+                  ) -> Tuple[ODEStatus,
+                             Dict['str', float],
+                             Dict['str', float],
+                             List[float],
+                             List[float]]:
+    """Kinetic solve method that invokes an available ODE solver. 
 
     :param model: The kinetic model
     :type model: ODEModel
@@ -50,15 +58,17 @@ def kinetic_solve(model: ODEModel,
             return ODEStatus.ERROR, {}, {}
 
     # values bellow solver precision will be set to 0
-    rates.update({k: 0 for k, v in rates.items() if
-                  v < SolverConfigurations.ABSOLUTE_TOL and v > - SolverConfigurations.ABSOLUTE_TOL})
+    rates.update({k: 0 for k, v in rates.items() if (
+                  v < SolverConfigurations.ABSOLUTE_TOL
+                  and v > - SolverConfigurations.ABSOLUTE_TOL)})
     conc = OrderedDict(zip(model.metabolites.keys(), C))
     return ODEStatus.OPTIMAL, rates, conc, t, y
 
 
 class KineticThread(Process):
     """
-    Solves the ODE inside a thread enabling to impose a timeout limit with thread.join(timeout)
+    Solves the ODE inside a thread enabling to impose a timeout limit
+    with thread.join(timeout)
     """
 
     def __init__(self,
@@ -67,6 +77,21 @@ class KineticThread(Process):
                  time_steps: List[float] = None,
                  parameters: Dict[str, float] = None,
                  factors: Dict[str, float] = None) -> None:
+        """
+        TSolves the ODE inside a thread enabling to impose a timeout limit
+        with thread.join(timeout)
+
+        :param model: The kinetic model
+        :type model: ODEModel
+        :param initial_concentrations: A list of initial concentrations, defaults to None
+        :type initial_concentrations: List[float], optional
+        :param time_steps: List of integration time steps, defaults to None
+        :type time_steps: List[float], optional
+        :param parameters: Kinetic parameters to be modified, defaults to None
+        :type parameters: Dict[str, float], optional
+        :param factors: Factors to be applied to kinetic parameters, defaults to None
+        :type factors: Dict[str, float], optional
+        """
 
         Process.__init__(self, daemon=False)
         self.model = model
@@ -109,7 +134,23 @@ class KineticSimulationResult(SimulationResult):
                  concentrations: List[float] = None,
                  t: List[float] = None,
                  y: List[float] = None) -> None:
+        """Result class of a kinetic simulation
 
+        :param model: The kinetic model
+        :type model: ODEModel
+        :param status: The solve status
+        :type status: ODEStatus
+        :param factors: factors used in the simulation, defaults to None
+        :type factors: Dict[str, float], optional
+        :param rates: _description_, defaults to None
+        :type rates: Dict[str, float], optional
+        :param concentrations: _description_, defaults to None
+        :type concentrations: List[float], optional
+        :param t: integration time points, defaults to None
+        :type t: List[float], optional
+        :param y: _description_, defaults to None
+        :type y: List[float], optional
+        """
         super(KineticSimulationResult, self).__init__(model, None, fluxes=rates, status=status)
         self.factors = factors
         self.concentrations = concentrations
@@ -148,7 +189,8 @@ class KineticSimulationResult(SimulationResult):
         elif isinstance(met, list) and len(met) <= 4:
             _mets = met
         else:
-            raise ValueError('fluxes should be a reaction identifier, a list of reaction identifiers or None.')
+            raise ValueError('fluxes should be a reaction identifier,' 
+                             'a list of reaction identifiers or None.')
         ax = plt.subplot()
         if len(_mets) != 2:
             for k in _mets:
@@ -176,7 +218,18 @@ class KineticSimulation(SimulationInterface):
                  parameters: Dict[str, float] = None,
                  t_points: List[float] = [0, 1e9],
                  timeout: int = KineticConfigurations.SOLVER_TIMEOUT) -> None:
+        """Class that runs kinetic simulations
 
+        :param model: The kinetic model
+        :type model: ODEModel
+        :param parameters: Dictionary of modified kinetic parameter, defaults to None
+             in which case the parameter values in the model are used.
+        :type parameters: Dict[str, float], optional
+        :param t_points: the integration time points or span, defaults to [0, 1e9]
+        :type t_points: List[float], optional
+        :param timeout: The integration timeout, defaults to KineticConfigurations.SOLVER_TIMEOUT
+        :type timeout: int, optional
+        """
         if not isinstance(model, ODEModel):
             raise ValueError('model is not an instance of ODEModel.')
         self.model = model
@@ -196,12 +249,11 @@ class KineticSimulation(SimulationInterface):
 
     def set_time(self, start: int, end: int, steps: int):
         """
-        This function sets the time parameters for the model.  This is how long the model will simulate
+        This function sets the time parameters for the model.
 
-        Args:
-            start (int): the start time - usually 0
-            end (int): the end time (default is 100)
-            steps (int): the number of timepoints for the output
+        :param int start: the start time - usually 0
+        :param int end: the end time (default is 100)
+        :param int steps: the number of timepoints for the output
         """
         self.t_points = np.linspace(start, end, steps)
 

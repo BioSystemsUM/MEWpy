@@ -1,4 +1,14 @@
-from typing import Tuple
+"""
+##############################################################################
+Expression set for omics data.
+
+Author: Vitor Pereira
+Contributors: Paulo Carvalhais
+              Fernando Cruz
+##############################################################################
+"""
+
+from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -6,9 +16,9 @@ from itertools import combinations
 
 from pandas._typing import FilePathOrBuffer
 
-from ..simulation import get_simulator
-from ..simulation.simulation import Simulator
-from ..util.parsing import Boolean, GeneEvaluator, build_tree
+from mewpy.simulation import get_simulator
+from mewpy.simulation.simulation import Simulator
+from mewpy.util.parsing import Boolean, GeneEvaluator, build_tree
 
 
 class ExpressionSet:
@@ -52,16 +62,17 @@ class ExpressionSet:
         """
         return self._expression.__getitem__(item)
 
-    def get_condition(self, condition=None, **kwargs):
+    def get_condition(self, condition:Union[int,str]=None, **kwargs):
+        """Retrieves the omics data for a specific condition
+
+        :param condition: the condition identifier, defaults to None in which case
+           all data is returned
+        :type condition: Union[int,str], optional
+
+        optional:
+        :param format: the output format, a dictionary ('dict' option) or a list ('list' option), default numpy.array
+
         """
-
-        Args:
-            condition ([type], optional): [description]. Defaults to None.
-
-        Returns:
-            [type]: [description]
-        """
-
         if isinstance(condition, int):
             values = self[:, condition]
         elif isinstance(condition, str):
@@ -91,7 +102,6 @@ class ExpressionSet:
         Returns:
             ExpressionSet: the expression dataset from the dataframe.
         """
-        # pandas columns might be integers only wich will cause problems in the p-value verification step
         columns = [str(x) for x in data_frame.columns]
         data_frame.columns = columns
 
@@ -268,94 +278,8 @@ class ExpressionSet:
 
         expression = pd.DataFrame(expression, self._identifiers, self._conditions)
         binary_expression = pd.DataFrame(binary_expression, self._identifiers, self._conditions)
+
         return expression, binary_expression
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Preprocessing using KNNImputer and Quantile transformation/binarization
-# ----------------------------------------------------------------------------------------------------------------------
-def knn_imputation(expression: np.ndarray,
-                   missing_values: float = None,
-                   n_neighbors: int = 5,
-                   weights: str = 'uniform',
-                   metric: str = 'nan_euclidean') -> np.ndarray:
-    """
-    KNN imputation of missing values in the expression matrix. It uses the scikit-learn KNNImputer (Consult sklearn
-    documentation for more information).
-    The default metric is nan_euclidean, which is the euclidean distance ignoring missing values.
-
-    :param expression: Expression matrix
-    :param missing_values: The placeholder for the missing values. All occurrences of missing_values will be imputed.
-    :param n_neighbors: Number of neighboring samples to use for imputation.
-    :param weights: Weight function used in prediction. Possible values:
-        - 'uniform': uniform weights. All points in each neighborhood are weighted equally.
-        - 'distance': weight points by the inverse of their distance. in this case, closer neighbors of a query point
-    :param metric: Metric used to compute the distance between samples. The default metric is nan_euclidean, which is
-    the euclidean distance ignoring missing values. Consult sklearn documentation for more information.
-    :return: Imputed expression matrix
-    """
-    try:
-        # noinspection PyPackageRequirements
-        from sklearn.impute import KNNImputer
-    except ImportError:
-        raise ImportError('The package scikit-learn is not installed. '
-                          'To preprocess gene expression data, please install scikit-learn (pip install scikit-learn).')
-
-    if missing_values is None:
-        missing_values = np.nan
-
-    if n_neighbors is None:
-        n_neighbors = 5
-
-    if weights is None:
-        weights = 'uniform'
-
-    if metric is None:
-        metric = 'nan_euclidean'
-
-    imputation = KNNImputer(missing_values=missing_values,
-                            n_neighbors=n_neighbors,
-                            weights=weights,
-                            metric=metric)
-
-    return imputation.fit_transform(expression)
-
-
-def quantile_transformation(expression: np.ndarray, n_quantiles: int = None) -> np.ndarray:
-    """
-    Quantile transformation of the expression matrix. It uses the scikit-learn quantile_transform (Consult sklearn
-    documentation for more information).
-    :param expression: Expression matrix
-    :param n_quantiles: Number of quantiles to be computed. It corresponds to the number of landmarks used to discretize
-    :return: Quantile transformed expression matrix
-    """
-    try:
-        # noinspection PyPackageRequirements
-        from sklearn.preprocessing import quantile_transform
-    except ImportError:
-        raise ImportError('The package scikit-learn is not installed. '
-                          'To preprocess gene expression data, please install scikit-learn (pip install scikit-learn).')
-
-    if n_quantiles is None:
-        n_quantiles = expression.shape[1]
-
-    return quantile_transform(expression, n_quantiles=n_quantiles, axis=0, random_state=0)
-
-
-def quantile_binarization(expression: np.ndarray, q: float = 0.33) -> np.ndarray:
-    """
-    It computes the q-th quantile of the expression matrix using np.quantile (consult numpy documentation for more
-    information). Then, it binarizes the expression matrix using the threshold computed.
-    :param expression: Expression matrix
-    :param q: Quantile to compute
-    :return: Binarized expression matrix
-    """
-    threshold = np.quantile(expression, q)
-
-    threshold_mask = expression >= threshold
-    expression[threshold_mask] = 1
-    expression[~threshold_mask] = 0
-    return expression
 
 
 def gene_to_reaction_expression(model, gene_exp, and_func=min, or_func=max):
@@ -461,3 +385,90 @@ class Preprocessing:
             coeffs = {r_id: threshold - val for r_id,
                                                 val in rxn_exp.items() if val < threshold}
         return coeffs, threshold
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Preprocessing using KNNImputer and Quantile transformation/binarization
+# ----------------------------------------------------------------------------------------------------------------------
+def knn_imputation(expression: np.ndarray,
+                   missing_values: float = None,
+                   n_neighbors: int = 5,
+                   weights: str = 'uniform',
+                   metric: str = 'nan_euclidean') -> np.ndarray:
+    """
+    KNN imputation of missing values in the expression matrix. It uses the scikit-learn KNNImputer (Consult sklearn
+    documentation for more information).
+    The default metric is nan_euclidean, which is the euclidean distance ignoring missing values.
+
+    :param expression: Expression matrix
+    :param missing_values: The placeholder for the missing values. All occurrences of missing_values will be imputed.
+    :param n_neighbors: Number of neighboring samples to use for imputation.
+    :param weights: Weight function used in prediction. Possible values:
+        - 'uniform': uniform weights. All points in each neighborhood are weighted equally.
+        - 'distance': weight points by the inverse of their distance. in this case, closer neighbors of a query point
+    :param metric: Metric used to compute the distance between samples. The default metric is nan_euclidean, which is
+    the euclidean distance ignoring missing values. Consult sklearn documentation for more information.
+    :return: Imputed expression matrix
+    """
+    try:
+        # noinspection PyPackageRequirements
+        from sklearn.impute import KNNImputer
+    except ImportError:
+        raise ImportError('The package scikit-learn is not installed. '
+                          'To preprocess gene expression data, please install scikit-learn (pip install scikit-learn).')
+
+    if missing_values is None:
+        missing_values = np.nan
+
+    if n_neighbors is None:
+        n_neighbors = 5
+
+    if weights is None:
+        weights = 'uniform'
+
+    if metric is None:
+        metric = 'nan_euclidean'
+
+    imputation = KNNImputer(missing_values=missing_values,
+                            n_neighbors=n_neighbors,
+                            weights=weights,
+                            metric=metric)
+
+    return imputation.fit_transform(expression)
+
+
+def quantile_transformation(expression: np.ndarray, n_quantiles: int = None) -> np.ndarray:
+    """
+    Quantile transformation of the expression matrix. It uses the scikit-learn quantile_transform (Consult sklearn
+    documentation for more information).
+    :param expression: Expression matrix
+    :param n_quantiles: Number of quantiles to be computed. It corresponds to the number of landmarks used to discretize
+    :return: Quantile transformed expression matrix
+    """
+    try:
+        # noinspection PyPackageRequirements
+        from sklearn.preprocessing import quantile_transform
+    except ImportError:
+        raise ImportError('The package scikit-learn is not installed. '
+                          'To preprocess gene expression data, please install scikit-learn (pip install scikit-learn).')
+
+    if n_quantiles is None:
+        n_quantiles = expression.shape[1]
+
+    return quantile_transform(expression, n_quantiles=n_quantiles, axis=0, random_state=0)
+
+
+def quantile_binarization(expression: np.ndarray, q: float = 0.33) -> np.ndarray:
+    """
+    It computes the q-th quantile of the expression matrix using np.quantile (consult numpy documentation for more
+    information). Then, it binarizes the expression matrix using the threshold computed.
+    :param expression: Expression matrix
+    :param q: Quantile to compute
+    :return: Binarized expression matrix
+    """
+    threshold = np.quantile(expression, q)
+
+    threshold_mask = expression >= threshold
+    expression[threshold_mask] = 1
+    expression[~threshold_mask] = 0
+    return expression

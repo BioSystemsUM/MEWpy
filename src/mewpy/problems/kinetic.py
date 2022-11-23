@@ -1,3 +1,10 @@
+"""
+##############################################################################
+Kinetic optimization problems.
+
+Author: Vitor Pereira
+##############################################################################
+"""
 from mewpy.problems.problem import AbstractKOProblem, AbstractOUProblem
 from mewpy.optimization.evaluation import KineticEvaluationFunction
 from mewpy.simulation.kinetic import KineticSimulation
@@ -23,13 +30,16 @@ class KineticKOProblem(AbstractKOProblem):
                 raise ValueError(f"The optimization function {f} is not intended for kinetic optimization.")
 
     def _build_target_list(self):
+        """ Generates a target list, set of Vmax variable.
+            It expects Vmax variables to be defined as "?max".
+        """
         p = list(self.model.get_parameters(exclude_compartments=True))
         target =[]
         for k in p:
             if search(r'(?i)[rv]max',k):
                 target.append(k)
         if self.non_target is not None:
-            target = target - set(self.non_target)
+            target = set(target) - set(self.non_target)
         self._trg_list = list(target)
 
     def decode(self, candidate):
@@ -64,6 +74,9 @@ class KineticOUProblem(AbstractOUProblem):
                 raise ValueError(f"The optimization function {f} is not intended for kinetic optimization.")
 
     def _build_target_list(self):
+        """ Generates a target list, set of Vmax variable.
+            It expect Vmax variables beeing defined as "?max".
+        """
         p = list(self.model.get_parameters(exclude_compartments=True))
         target =[]
         for k in p:

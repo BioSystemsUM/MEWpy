@@ -1,8 +1,15 @@
+"""
+##############################################################################
+Optimization Problems for GECKO models
+
+Author: Vitor Pereira
+##############################################################################
+"""
 import warnings
 
 from .problem import AbstractKOProblem, AbstractOUProblem
-from ..util.constants import ModelConstants
-from ..simulation import SStatus
+from mewpy.util.constants import ModelConstants
+from mewpy.simulation import SStatus
 
 
 class GeckoKOProblem(AbstractKOProblem):
@@ -112,6 +119,7 @@ class GeckoOUProblem(AbstractOUProblem):
     :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
     :param str prot_prefix: the protein draw reaction prefix. Default `draw_prot_`.
     :param boolean twostep: If deletions should be applied before identifiying reference flux values.
+    :param dict partial_solution: A partial solution to be appended to any other solution
 
     Note:
     Target as well as non target proteins are defined with their prot id, ex `P0351`, and with the associated reaction
@@ -189,7 +197,10 @@ class GeckoOUProblem(AbstractOUProblem):
                 return prot
             else:
                 return f"{self.prot_prefix}{prot}"
-
+            
+        if self._partial_solution:
+            candidate.update(self._partial_solution)
+            
         _candidate = {add_prefix(k): v for k, v in candidate.items()}
 
         reference = self.reference

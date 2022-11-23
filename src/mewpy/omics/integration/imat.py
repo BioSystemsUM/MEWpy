@@ -1,3 +1,11 @@
+"""
+##############################################################################
+iMAT algorithm
+
+Author: Vitor Pereira
+Contributors: Paulo Carvalhais
+##############################################################################   
+"""
 from math import inf
 
 from mewpy.solvers.solver import VarType

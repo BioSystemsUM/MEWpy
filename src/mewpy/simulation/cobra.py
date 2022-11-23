@@ -1,5 +1,10 @@
 """
-Simulation for COBRApy models
+##############################################################################
+Simulation for COBRApy models. Provide a wrapper with a common interface
+to COBRApy.
+
+Author: Vítor Pereira
+##############################################################################
 """
 import logging
 from collections import OrderedDict

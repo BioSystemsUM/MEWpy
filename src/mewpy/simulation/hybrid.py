@@ -1,6 +1,10 @@
-"""Hybrid kinetic/constraint-based simulation module
-   Author: Vitor Pereira
-   Contributors: Mariana Pereira
+"""
+##############################################################################
+Hybrid kinetic/constraint-based simulation module
+
+Author: Vitor Pereira
+Contributors: Mariana Pereira
+##############################################################################
 """
 from mewpy.model.kinetic import ODEModel
 from mewpy.solvers import KineticConfigurations

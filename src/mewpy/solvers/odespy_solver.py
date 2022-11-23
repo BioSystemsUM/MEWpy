@@ -1,4 +1,9 @@
-"""odespy ODE Solver
+"""
+##############################################################################
+Interface for odespy ODE Solver
+
+Author: Vitor Pereira
+##############################################################################
 """
 from .ode import ODEMethod, SolverConfigurations, ODESolver
 import numpy as np

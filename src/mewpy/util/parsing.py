@@ -1,7 +1,7 @@
 """
 ##############################################################################
 File containing string expression parsing utility functions.
-Expressions are decomposed into parsing trees for infix evaluation.
+Expressions are decomposed into binary parsed trees.
 
 Authors: Vitor Pereira
 ##############################################################################

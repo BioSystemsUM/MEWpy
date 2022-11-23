@@ -1,3 +1,10 @@
+"""
+##############################################################################
+Heuristic optimization abstract classes and interfaces
+
+Author: Vitor Pereira
+##############################################################################
+"""
 from abc import ABC, abstractmethod
 import signal
 import sys

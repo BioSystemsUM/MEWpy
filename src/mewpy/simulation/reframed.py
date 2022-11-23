@@ -1,5 +1,10 @@
-"""
-Simulation for REFRAMED models
+""" 
+##############################################################################
+Simulation for REFRAMED models, wraps a REFRAMED CBModel to share a common
+interface to be used by MEWpy.
+
+Author: Vítor Pereira    
+##############################################################################
 """
 
 import logging
@@ -612,7 +617,7 @@ class GeckoSimulation(Simulation):
                  reset_solver=ModelConstants.RESET_SOLVER, protein_prefix=None):
         super(GeckoSimulation, self).__init__(
             model, envcond, constraints, solver, reference, reset_solver)
-        self.protein_prefix = protein_prefix if protein_prefix else 'draw_prot_'
+        self.protein_prefix = protein_prefix if protein_prefix else 'R_draw_prot_'
         self._essential_proteins = None
 
     @property

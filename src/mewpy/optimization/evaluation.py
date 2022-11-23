@@ -1,3 +1,10 @@
+"""
+##############################################################################
+Fitness evaluation functions
+
+Author: Vitor Pereira
+##############################################################################
+"""
 import math
 import warnings
 from abc import ABCMeta, abstractmethod

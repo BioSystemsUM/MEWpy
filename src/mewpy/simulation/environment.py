@@ -1,3 +1,11 @@
+""" 
+##############################################################################
+Environment module
+Addapted from REFRAMED
+
+Author: Vitor Pereira
+##############################################################################
+"""
 from collections import OrderedDict
 from math import inf
 from types import FunctionType

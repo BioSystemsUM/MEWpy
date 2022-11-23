@@ -1,4 +1,11 @@
-""" Adapted from Daniel Machado's REFRAMED"""
+"""
+##############################################################################
+Gurobi solvers interface
+
+Adapted by Vitor Pereira from Daniel Machado's REFRAMED
+https://github.com/cdanielmachado/reframed
+##############################################################################
+"""
 from .solver import Solver, VarType, Parameter, default_parameters
 from .solution import Solution, Status
 from gurobipy import Model as GurobiModel, GRB, quicksum

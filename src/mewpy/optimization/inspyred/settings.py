@@ -1,4 +1,10 @@
+"""
+##############################################################################
+Settings for inspyred
 
+Authors: Vitor Pereira
+##############################################################################
+"""
 from .operators import (uniform_crossover_OU, grow_mutation_OU, shrink_mutation,
                         single_mutation_OU, uniform_crossover_KO, grow_mutation_KO,
                         single_mutation_KO)

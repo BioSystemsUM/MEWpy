@@ -1,5 +1,12 @@
+"""
+##############################################################################
+Inspyred Problems
+
+Authors: Vitor Pereira
+##############################################################################
+"""
 from inspyred.ec.emo import Pareto
-from ...util.process import Evaluable
+from mewpy.util.process import Evaluable
 
 
 class IntTuppleBounder(object):
@@ -11,7 +18,7 @@ class IntTuppleBounder(object):
 
     """
 
-    def __init__(self, lower_bound, upper_bound):
+    def __init__(self, lower_bound:int, upper_bound:int):
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
         self.range = [self.upper_bound[i] - self.lower_bound[i] +

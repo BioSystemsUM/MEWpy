@@ -1,5 +1,9 @@
-"""Kinetic modeling module
-   Author: Vitor Pereira
+"""
+##############################################################################
+Kinetic Modeling Module
+
+Authors: Vitor Pereira
+##############################################################################
 """
 from mewpy.util.parsing import Arithmetic, build_tree
 from mewpy.util.utilities import AttrDict

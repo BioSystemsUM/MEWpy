@@ -1,4 +1,11 @@
-""" Adapted from Daniel Machado's REFRAMED"""
+"""
+##############################################################################
+Optlang solvers interface
+
+Adapted by Vitor Pereira from Daniel Machado's REFRAMED
+https://github.com/cdanielmachado/reframed
+##############################################################################
+"""
 from optlang import Model, Variable, Constraint, Objective
 from optlang.symbolics import Zero, add
 from .solver import Solver, VarType, Parameter, default_parameters

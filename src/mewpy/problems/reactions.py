@@ -1,3 +1,11 @@
+"""
+##############################################################################
+Problems targeting modifications of reaction fluxes. The modifications are
+implemented changing the reaction bounds.
+
+Author: Vitor Pereira 
+##############################################################################
+"""
 import numpy as np
 from .problem import AbstractKOProblem, AbstractOUProblem
 from ..simulation import SStatus

@@ -1,3 +1,10 @@
+""" 
+##############################################################################
+EA Module for inspyred
+
+Authors: Vitor Pereira
+##############################################################################
+"""
 from random import Random
 from time import time
 
@@ -6,10 +13,12 @@ from .settings import get_population_size, KO, PARAMETERS, OU
 from .problem import InspyredProblem
 from .observers import results_observer, VisualizerObserver
 from .terminator import generation_termination
-from ..ea import AbstractEA, Solution
-from ...util.constants import EAConstants
-from ...util.process import get_evaluator, cpu_count
 from .operators import OPERATORS
+from ..ea import AbstractEA, Solution
+from mewpy.util.constants import EAConstants
+from mewpy.util.process import get_evaluator, cpu_count
+
+
 SOEA = {
     'GA': inspyred.ec.EvolutionaryComputation,
     'SA': inspyred.ec.SA

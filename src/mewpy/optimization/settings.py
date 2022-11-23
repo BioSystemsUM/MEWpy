@@ -1,3 +1,10 @@
+"""
+##############################################################################
+Global settings for Heuristic Optimizations
+
+Author: Vitor Pereira
+##############################################################################
+"""
 from ..util.utilities import Singleton
 
 

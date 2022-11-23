@@ -1,3 +1,10 @@
+"""
+##############################################################################
+Obverser module for EA optimization based on inspyred
+
+Authors: Vitor Pereira
+##############################################################################
+"""
 import numpy
 from inspyred.ec.emo import Pareto
 
