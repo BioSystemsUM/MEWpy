@@ -1,3 +1,11 @@
+""" 
+##############################################################################
+Defines an interface for the simulators, objects that wrap metabolic phenotipe
+simulation toolboxes.
+
+Author: Vitor Pereira
+##############################################################################
+"""
 from abc import abstractmethod, ABC
 from collections import OrderedDict
 from ..util.parsing import evaluate_expression_tree
@@ -18,6 +26,7 @@ class SimulationInterface(ABC):
 
         """
         raise NotImplementedError
+
 
 class ModelContainer(ABC):
     """Interface for Model container.
@@ -201,11 +210,11 @@ class Simulator(ModelContainer, SimulationInterface):
             data = [self.get_gene(x) for x in values]
         else:
             data = [self.get_reaction(x) for x in values]
-        
+
         if data:
             df = pd.DataFrame(data)
             df = df.set_index(df.columns[0])
-        else: 
+        else:
             df = pd.DataFrame()
         return df
 
@@ -219,7 +228,7 @@ class Simulator(ModelContainer, SimulationInterface):
         return self.find(pattern=pattern, sort=sort, find_in='r')
 
     def is_essential_reaction(self, rxn, min_growth=0.01):
-        res = self.simulate(constraints={rxn:0}, slim=True)
+        res = self.simulate(constraints={rxn: 0}, slim=True)
         return res is None or math.isnan(res) or res < min_growth
 
     def essential_reactions(self, min_growth=0.01):
@@ -234,7 +243,7 @@ class Simulator(ModelContainer, SimulationInterface):
             return essential
         essential = []
         for rxn in tqdm(self.reactions):
-            if self.is_essential_reaction(rxn,min_growth=min_growth):
+            if self.is_essential_reaction(rxn, min_growth=min_growth):
                 essential.append(rxn)
         self._essential_reactions = essential
         return self._essential_reactions
@@ -285,7 +294,7 @@ class Simulator(ModelContainer, SimulationInterface):
             return essential
         essential = []
         for g in tqdm(self.genes):
-            if self.is_essential_gene(g,min_growth=min_growth):
+            if self.is_essential_gene(g, min_growth=min_growth):
                 essential.append(g)
         self._essential_genes = essential
         return self._essential_genes
@@ -303,7 +312,7 @@ class Simulator(ModelContainer, SimulationInterface):
         self._reference = self.simulate(method="pFBA").fluxes
         return self._reference
 
-    def create_empty_model(self,model_id:str):
+    def create_empty_model(self, model_id: str):
         return NotImplementedError
 
     def get_external_metabolites(self):
@@ -314,7 +323,6 @@ class Simulator(ModelContainer, SimulationInterface):
                 external.append(m_id)
         return m_id
 
-    
 
 class SimulationResult(object):
     """Class that represents simulation results and performs operations over them."""
@@ -346,6 +354,7 @@ class SimulationResult(object):
         self.simulation_constraints = simul_constraints if simul_constraints else OrderedDict()
         self.method = method
         self.shadow_prices = shadow_prices
+
     def get_constraints(self):
         """
         :returns: All constraints applied during the simulation both persistent and simulation specific.
@@ -452,14 +461,14 @@ class SimulationResult(object):
 
         return left + " --> " + right
 
-    def get_metabolites_turnover(self, format='df'):
-        """ Calculate metabolite turnover.
+    def get_metabolites_turnover(self, pattern=None, format='df'):
+        """ Calculate metabolite turnovers.
 
-        Arguments:
-            model: REFRAMED/Cobrapy model or Simulator that generated the solution
+         :param str format: the display format (pandas.DataFrame or dict).
+             Default 'df' pandas.DataFrame
 
         Returns:
-            dict: metabolite turnover rates
+             dict or pandas.DataFrame: metabolite turnover rates
         """
         from . import get_simulator
         sim = get_simulator(self.model)
@@ -467,9 +476,23 @@ class SimulationResult(object):
         if not self.fluxes:
             return None
 
+        mets = None
+        if pattern:
+            import re
+            if isinstance(pattern, list):
+                patt = '|'.join(pattern)
+                re_expr = re.compile(patt)
+            else:
+                re_expr = re.compile(pattern)
+            mets = [x for x in sim.metabolites if re_expr.search(x) is not None]
+
         m_r_table = sim.metabolite_reaction_lookup()
+
         data = {m_id: 0.5*sum([abs(coeff * self.fluxes[r_id]) for r_id, coeff in neighbours.items()])
-             for m_id, neighbours in m_r_table.items()}
+                for m_id, neighbours in m_r_table.items()}
+        if mets is not None:
+            data = {k: v for k, v in data.items() if k in mets}
+
         if format == 'df':
             import pandas as pd
             df = pd.DataFrame(list(data.values()), index=list(data.keys()), columns=['Turnover'])
@@ -478,13 +501,15 @@ class SimulationResult(object):
         return data
 
     def get_metabolite(self, met_id, format='df'):
-        """ Calculate metabolite turnover.
+        """Displays the consumption/production of a metabolite in the reactions
+        it participates.
 
-        Arguments:
-            model: REFRAMED/Cobrapy model or Simulator that generated the solution
+        :param str met_id: the metabolite identifier.
+        :param str format: the display format (pandas.DataFrame or dict).
+             Default 'df' pandas.DataFrame
 
         Returns:
-            dict: metabolite turnover rates
+            dict or pandas.DataFrame: metabolite turnover rates
         """
         from . import get_simulator
         sim = get_simulator(self.model)
@@ -500,7 +525,6 @@ class SimulationResult(object):
             df.index.name = 'Reaction'
             return df
         return data
-
 
     @classmethod
     def from_linear_solver(cls, solution):
