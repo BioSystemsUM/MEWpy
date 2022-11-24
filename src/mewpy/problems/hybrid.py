@@ -164,7 +164,8 @@ class HybridGeckoOUProblem(GeckoOUProblem):
                 vmaxs.append(k)
         self.vmaxs = vmaxs[:]
         vmaxs = set(vmaxs)
-        proteins = set(self.simulator.proteins)
+        enz = self.enzyme_mapping.proteins
+        proteins = [x for x in self.simulator.proteins if x not in enz]
 
         # remove IDs defined as non modification targets
         if self.non_target:

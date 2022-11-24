@@ -403,6 +403,13 @@ class Map(AttrDict):
             if self.intersection(a, b):
                 combinations.append((a, b))
         return combinations
+    
+    @property
+    def proteins(self):
+        prots = []
+        for v in self.values():
+            prots.extend(v.proteins)
+        return prots
 
 
 def read_map(jsonfile:str):
