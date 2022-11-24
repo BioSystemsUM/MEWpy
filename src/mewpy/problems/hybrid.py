@@ -80,7 +80,7 @@ class HybridGeckoOUProblem(GeckoOUProblem):
 
     def __init__(self,
                  kmodel: "ODEModel",
-                 cbmodel: Union[Simulator, "Model", "CBModel"],
+                 cbmodel: Union["Simulator", "Model", "CBModel"],
                  enzyme_mapping: Map,
                  fevaluation=None,
                  gDW: float = 564.0,
@@ -90,7 +90,7 @@ class HybridGeckoOUProblem(GeckoOUProblem):
         """ Overrides GeckoOUProblem by applying constraints resulting from kinetic simulations.
         
         :param kmodel: The kinetic model.
-        :param cmodel: The constraint-based metabolic model.
+        :param cmodel: A GECKO model.
         :param Map enzyme_mapping: The mapping between kinetic and GECKO model 
             (instance of mewpy.simulation.hybrid.Map).
         :param list fevaluation: A list of callable EvaluationFunctions.
@@ -143,13 +143,13 @@ class HybridGeckoOUProblem(GeckoOUProblem):
             provide a target list that includes maximum velocities variables identifiers
             and genes associated to reactions not modeled by kinetic laws.
         """
-        p = list(self.hybrid_sim.kmodel.get_parameters(exclude_compartments=True))
-
+        p = list(self.kmodel.get_parameters(exclude_compartments=True))
+        print(p)
         vmaxs = []
         for k in p:
             if search(r'(?i)[rv]max', k):
                 vmaxs.append(k)
-        self.vmaxs = vmaxs
+        self.vmaxs = set(vmaxs)
         proteins = set(self.simulator.proteins)
 
         # remove IDs defined as non modification targets
@@ -163,9 +163,11 @@ class HybridGeckoOUProblem(GeckoOUProblem):
             proteins = proteins - set(self._partial_solution.keys())
 
         # the target list
-        self._trg_list = list(vmaxs).extend(list(proteins))
+        self._trg_list = list(vmaxs)+list(proteins)
 
-    def solution_to_constraints(self, candidate: Dict[str, float]) -> Dict[str, Union[float, Tuple(float, float)]]:
+    def solution_to_constraints(self, 
+                                candidate: Dict[str, float]
+                                ) -> Dict[str, Union[float, Tuple[float, float]]]:
         """Converts a dictionary of modifications to metabolic constraints.
 
         :param candidate: the genetic modifications 
