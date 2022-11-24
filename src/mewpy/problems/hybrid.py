@@ -144,7 +144,6 @@ class HybridGeckoOUProblem(GeckoOUProblem):
             and genes associated to reactions not modeled by kinetic laws.
         """
         p = list(self.kmodel.get_parameters(exclude_compartments=True))
-        print(p)
         vmaxs = []
         for k in p:
             if search(r'(?i)[rv]max', k):
