@@ -136,6 +136,20 @@ class HybridGeckoOUProblem(GeckoOUProblem):
 
         self.vmaxs = None
 
+    def decode(self, candidate):
+        """
+        Decodes a candidate, an integer set, into a dictionary of constraints
+        """
+        decoded_candidate = dict()
+        for idx, lv_idx in candidate:
+            try:
+                decoded_candidate[self.target_list[idx]] = self.levels[lv_idx]
+            except IndexError:
+                raise IndexError(
+                    f"Index out of range: {idx} from {len(self.target_list[idx])}")
+        return decoded_candidate
+
+
     def _build_target_list(self):
         """ Generates a target list, set of Vmax variables and proteins.
             It expects Vmax variables to be defined using "rmax"/"Rmax" or "vmar"/"Vmax"
@@ -148,7 +162,8 @@ class HybridGeckoOUProblem(GeckoOUProblem):
         for k in p:
             if search(r'(?i)[rv]max', k):
                 vmaxs.append(k)
-        self.vmaxs = set(vmaxs)
+        self.vmaxs = vmaxs[:]
+        vmaxs = set(vmaxs)
         proteins = set(self.simulator.proteins)
 
         # remove IDs defined as non modification targets
@@ -174,7 +189,9 @@ class HybridGeckoOUProblem(GeckoOUProblem):
         :return: a dictionary of metabolic constraints
         """
         # cb constraints
-        cb_candidate = {k: v for k, v in candidate.items() if k not in self.vmaxs}
+        cb_candidate = {"{}{}".format(self.prot_prefix, k): v 
+                          for k, v in candidate.items() 
+                          if k not in self.vmaxs}
         constraints = super().solution_to_constraints(cb_candidate)
 
         # kinetic modifications
@@ -212,7 +229,7 @@ class HybridGeckoOUProblem(GeckoOUProblem):
                         min_enzyme_usage = max(0, abs(flux) * 3600 / (kcat * self.gDW)-self.lb_tolerance)
                     else:
                         min_enzyme_usage = 0
-                    draw_p = f"{self.protein_prefix}{protein}"
+                    draw_p = f"{self.prot_prefix}{protein}"
 
                     # For promiscuous enzymes, the ub of enzyme usage is
                     # the sum of usages for each reaction, and the lb is
