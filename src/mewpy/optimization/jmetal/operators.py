@@ -302,7 +302,10 @@ class SingleMutationOU(Mutation[OUSolution]):
             if random.random() > 0.5:
                 idx = random.randint(solution.lower_bound[0], solution.upper_bound[0])
                 while idx in lix:
-                    idx = random.randint(solution.lower_bound[0], solution.upper_bound[0])
+                    # idx = random.randint(solution.lower_bound[0], solution.upper_bound[0])
+                    idx = idx+1
+                    if idx > solution.upper_bound[0]:
+                       idx = solution.lower_bound[0]
                 is_mutate_idx = True
             lv = random.randint(solution.lower_bound[1], solution.upper_bound[1])
             if not is_mutate_idx:
