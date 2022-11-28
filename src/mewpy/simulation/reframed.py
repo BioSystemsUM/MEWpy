@@ -20,9 +20,9 @@ from reframed.solvers.solution import Status as s_status
 
 from . import SimulationMethod, SStatus, get_default_solver
 from .simulation import Simulator, SimulationResult, ModelContainer
-from ..model.gecko import GeckoModel
-from ..util.constants import ModelConstants
-from ..util.utilities import elements, AttrDict
+from mewpy.model.gecko import GeckoModel
+from mewpy.util.constants import ModelConstants
+from mewpy.util.utilities import elements, AttrDict
 from tqdm import tqdm
 
 LOGGER = logging.getLogger(__name__)
@@ -396,15 +396,9 @@ class Simulation(CBModelContainer, Simulator):
         """ Return the network topology as a nested map from metabolite to reaction to coefficient.
         :return: a dictionary lookup table
         """
-
-        if not self._m_r_lookup or force_recalculate:
-            self._m_r_lookup = OrderedDict([(m_id, OrderedDict()) for m_id in self.metabolites])
-
-            for r_id, reaction in self.model.reactions.items():
-                for m_id, coeff in reaction.stoichiometry.items():
-                    self._m_r_lookup[m_id][r_id] = coeff
-
-        return self._m_r_lookup
+        if force_recalculate:
+            self.model._m_r_lookup=None
+        return self.model.metabolite_reaction_lookup()
 
     def metabolite_elements(self, metabolite_id):
         formula = self.model.metabolites[metabolite_id].metadata['FORMULA']
@@ -675,7 +669,7 @@ class GeckoSimulation(Simulation):
         else:
             return None
 
-    def get_Kcats(self, protein):
+    def get_Kcats(self, protein:str):
         """ 
         Returns a dictionary of reactions and respective Kcat for a 
         specific protein/enzyme·
@@ -695,3 +689,16 @@ class GeckoSimulation(Simulation):
             raise ValueError(f"More than one protein match {values}")
         else:
             raise ValueError(f"Protein {protein} not founded.")
+
+    def set_Kcat(self, protein:str, reaction:str, kcat:float):
+        rx = self.model.reactions[reaction]
+        st = rx.stoichiometry
+        mets =[x for x in list(st.keys()) if protein in x]
+        if len(mets)==1:
+            met=mets[0]
+            value = -1/kcat
+            st[met] = value
+            rx.stoichiometry = st
+            self.model._needs_update
+            self.solver=None
+ 

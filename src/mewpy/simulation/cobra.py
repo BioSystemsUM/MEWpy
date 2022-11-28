@@ -843,3 +843,6 @@ class GeckoSimulation(Simulation):
             raise ValueError(f"More than one protein match {values}")
         else:
             raise ValueError(f"Protein {protein} not founded.")
+
+    def set_Kcat(self, protein, reaction, kcat):
+        pass
