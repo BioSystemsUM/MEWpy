@@ -699,6 +699,8 @@ class GeckoSimulation(Simulation):
             value = -1/kcat
             st[met] = value
             rx.stoichiometry = st
-            self.model._needs_update
+            self.model._needs_update=True
             self.solver=None
+        else:
+            LOGGER.warn(f'Could not identify {protein} protein specie in reaction {reaction}')
  
