@@ -479,6 +479,8 @@ class AbstractOUProblem(AbstractProblem):
             model, fevaluation=fevaluation, **kwargs)
         self.strategy = Strategy.OU
         self.levels = kwargs.get('levels', EAConstants.LEVELS)
+        if not len(self.levels)>1:
+            raise ValueError('You need to provide mode that one expression folds.')
         self._reference = kwargs.get('reference', None)
         self.twostep = kwargs.get('twostep', False)
         self._partial_solution = kwargs.get('partial_solution', dict())
@@ -542,6 +544,9 @@ class AbstractOUProblem(AbstractProblem):
         else:
             solution_size = random.randint(
                 self.candidate_min_size, self.candidate_max_size)
+
+        if solution_size > len(self.target_list):
+            solution_size = len(self.target_list)
 
         keys = random.sample(range(len(self.target_list)), solution_size)
         values = random.choices(range(len(self.levels)), k=solution_size)
