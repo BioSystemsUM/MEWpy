@@ -507,11 +507,7 @@ class Simulation(CBModelContainer, Simulator):
                     else:
                         raise ValueError("Could not scale the model")
 
-        # TODO: I have implemented a single dispatch for this, so we can avoid coding long if else chains.
-        #  If it is too "obscure", a dictionary can be used, or a function like get_simulation_method.
-        #  Either way, I believe it would be maintainable to have a hidden method for each simulation method
-
-        # TODO: simplifly ...
+        # TODO: simplifly ...using python >=3.10 cases
         if method in [SimulationMethod.lMOMA, SimulationMethod.MOMA, SimulationMethod.ROOM] and reference is None:
             reference = self.reference
 
@@ -691,16 +687,27 @@ class GeckoSimulation(Simulation):
             raise ValueError(f"Protein {protein} not founded.")
 
     def set_Kcat(self, protein:str, reaction:str, kcat:float):
+        """Alters an enzyme kcat for a given reaction.
+
+        :param protein: The protein identifier
+        :type protein: str
+        :param reaction: The reaction identifier
+        :type reaction: str
+        :param kcat: The kcat value, a real positive value.
+        :type kcat: float
+        """
+        if kcat == 0:
+            raise ValueError('kcat value needs to be positive.')
         rx = self.model.reactions[reaction]
         st = rx.stoichiometry
         mets =[x for x in list(st.keys()) if protein in x]
         if len(mets)==1:
             met=mets[0]
-            value = -1/kcat
-            st[met] = value
+            st[met] = -1/kcat
             rx.stoichiometry = st
             self.model._needs_update=True
             self.solver=None
         else:
-            LOGGER.warn(f'Could not identify {protein} protein specie in reaction {reaction}')
+            LOGGER.warn(f'Could not identify {protein} ' 
+                        f'protein specie in reaction {reaction}')
  

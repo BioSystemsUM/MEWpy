@@ -304,8 +304,9 @@ def single_mutation_OU(random, candidate, args):
     if random.random() > 0.5:
         idx = random.randint(bounder.lower_bound[0], bounder.upper_bound[0])
         while idx in ml:
-            idx = random.randint(
-                bounder.lower_bound[0], bounder.upper_bound[0])
+            idx = idx + 1
+            if idx > bounder.upper_bound[0]:
+               idx = bounder.lower_bound[0]
         is_mutate_idx = True
     lv = random.randint(bounder.lower_bound[1], bounder.upper_bound[1])
     while not is_mutate_idx and lv == idy:

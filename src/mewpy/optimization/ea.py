@@ -72,6 +72,12 @@ class Solution(SolutionInterface):
     def __eq__(self, solution:"Solution") -> bool:
         return set(self.values) == set(solution.values)
 
+    def __ne__(self, solution: "Solution") -> bool:
+        if self.fitness != solution.fitness:
+            return True
+        else:
+            return set(self.values) != set(solution.values)
+
     def __gt__(self, solution:"Solution") -> bool:
         if isinstance(solution, self.__class__):
             return dominance_test(self, solution, maximize=self._is_maximize) == 1

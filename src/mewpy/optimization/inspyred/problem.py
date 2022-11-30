@@ -41,8 +41,9 @@ class InspyredProblem(Evaluable):
         :param problem: the optimization problem.
     """
 
-    def __init__(self, problem):
+    def __init__(self, problem, directions):
         self.problem = problem
+        self.direction = directions
 
     def evaluate(self, solution):
         """Evaluates a single solution
@@ -54,10 +55,11 @@ class InspyredProblem(Evaluable):
         p = self.problem.evaluate_solution(solution)
         # single objective
         if self.problem.number_of_objectives == 1:
-            return p[0]
+            return p[0]*self.direction[0]
         # multi objective
         else:
-            return Pareto(p)
+            v = [a*b for a, b in zip(p, self.direction)]
+            return Pareto(v)
 
     def evaluator(self, candidates, *args):
         """
