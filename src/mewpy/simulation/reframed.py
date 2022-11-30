@@ -696,7 +696,7 @@ class GeckoSimulation(Simulation):
         :param kcat: The kcat value, a real positive value.
         :type kcat: float
         """
-        if kcat == 0:
+        if kcat <= 0:
             raise ValueError('kcat value needs to be positive.')
         rx = self.model.reactions[reaction]
         st = rx.stoichiometry
