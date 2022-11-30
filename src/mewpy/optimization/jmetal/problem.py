@@ -1,4 +1,9 @@
-""" JMetal Problems
+"""
+##############################################################################
+JMetal Problems
+
+Authors: Vitor Pereira
+##############################################################################
 """
 import random
 from typing import Tuple, List

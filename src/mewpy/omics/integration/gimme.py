@@ -1,3 +1,11 @@
+"""
+##############################################################################
+GIMME algorithm
+
+Author: Vitor Pereira
+Contributors: Paulo Carvalhais
+##############################################################################
+"""
 from math import inf
 from mewpy.solvers.solution import to_simulation_result
 from mewpy.solvers import solver_instance

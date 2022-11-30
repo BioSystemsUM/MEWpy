@@ -1,3 +1,12 @@
+"""
+##############################################################################
+OptRAM Problem. Implementation of OptRAM: In-silico strain design via
+integrative regulatory-metabolic network modeling, 
+https://doi.org/10.1371/journal.pcbi.1006835
+
+Author: Vitor Pereira 
+##############################################################################   
+"""
 import math
 from collections import OrderedDict
 import numpy as np

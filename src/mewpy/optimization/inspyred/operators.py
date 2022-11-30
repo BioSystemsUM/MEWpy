@@ -1,4 +1,9 @@
-""" Inspyred Operators
+"""
+##############################################################################
+Genetic operators for inspyred
+
+Authors: Vitor Pereira
+##############################################################################
 """
 
 import copy
@@ -183,10 +188,12 @@ def grow_mutation_KO(random, candidate, args):
 
     mutant = copy.copy(candidate)
     if len(mutant) < maxSize:
-        newElem = random.randint(bounder.lower_bound, bounder.upper_bound)
-        while newElem in mutant:
-            newElem = random.randint(bounder.lower_bound, bounder.upper_bound)
-        mutant.add(newElem)
+        idx = random.randint(bounder.lower_bound, bounder.upper_bound)
+        while idx in mutant:
+            idx = idx + 1
+            if idx > bounder.upper_bound:
+                idx = bounder.lower_bound
+        mutant.add(idx)
     return mutant
 
 
@@ -221,10 +228,11 @@ def grow_mutation_OU(random, candidate, args):
     mutant = copy.copy(candidate)
     if len(mutant) < maxSize:
         idx = random.randint(bounder.lower_bound[0], bounder.upper_bound[0])
-        idxs = [a for (a, b) in mutant]
+        idxs = [a for (a, _) in mutant]
         while idx in idxs:
-            idx = random.randint(
-                bounder.lower_bound[0], bounder.upper_bound[0])
+            idx = idx + 1
+            if idx > bounder.upper_bound:
+                idx = bounder.lower_bound
         lv = random.randint(bounder.lower_bound[1], bounder.upper_bound[1])
         mutant.add((idx, lv))
     return mutant
@@ -251,11 +259,13 @@ def single_mutation_KO(random, candidate, args):
         return candidate
     mutant = copy.copy(candidate)
     index = random.randint(0, len(mutant) - 1) if len(mutant) > 1 else 0
-    newElem = random.randint(bounder.lower_bound, bounder.upper_bound)
-    while newElem in mutant:
-        newElem = random.randint(bounder.lower_bound, bounder.upper_bound)
+    idx = random.randint(bounder.lower_bound, bounder.upper_bound)
+    while idx in mutant:
+        idx = idx + 1
+        if idx > bounder.upper_bound:
+            idx = bounder.lower_bound
     mutantL = list(mutant)
-    mutantL[index] = newElem
+    mutantL[index] = idx
     mutant = set(mutantL)
     return mutant
 
@@ -299,8 +309,9 @@ def single_mutation_OU(random, candidate, args):
     if random.random() > 0.5:
         idx = random.randint(bounder.lower_bound[0], bounder.upper_bound[0])
         while idx in ml:
-            idx = random.randint(
-                bounder.lower_bound[0], bounder.upper_bound[0])
+            idx = idx + 1
+            if idx > bounder.upper_bound[0]:
+               idx = bounder.lower_bound[0]
         is_mutate_idx = True
     lv = random.randint(bounder.lower_bound[1], bounder.upper_bound[1])
     while not is_mutate_idx and lv == idy:

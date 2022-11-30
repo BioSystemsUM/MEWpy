@@ -1,3 +1,10 @@
+"""
+##############################################################################
+GECKO model to be used with REFRAMED
+
+Authors: Vitor Pereira
+##############################################################################
+"""
 import copy
 import logging
 import os
@@ -9,11 +16,11 @@ from math import isinf
 import numpy as np
 import pandas as pd
 from reframed.core.cbmodel import CBModel, CBReaction
-from reframed.core.model import AttrOrderedDict, Metabolite
+from reframed.core.model import AttrOrderedDict
 from reframed.io.sbml import load_cbmodel
 from six import iteritems, string_types
 
-from ..util.constants import ModelConstants
+from mewpy.util.constants import ModelConstants
 
 
 class ModelList(object):
@@ -111,7 +118,7 @@ class GeckoModel(CBModel):
 
     def __init__(self, model, protein_properties=None,
                  sigma=0.46, c_base=0.3855, gam=36.6, amino_acid_polymerization_cost=37.7,
-                 carbohydrate_polymerization_cost=12.8, biomass_reaction_id='r_4041',
+                 carbohydrate_polymerization_cost=12.8, biomass_reaction_id=None,
                  protein_reaction_id='r_4047', carbohydrate_reaction_id='r_4048',
                  protein_pool_exchange_id='prot_pool_exchange', common_protein_pool_id='prot_pool',
                  reaction_prefix=''):
@@ -134,11 +141,15 @@ class GeckoModel(CBModel):
         self.genes = copy.deepcopy(model.genes)
 
         # biomass reaction id (str)
-        if biomass_reaction_id not in self.reactions:
+        if not biomass_reaction_id:
             try:
-                self.biomass_reaction = model.biomass_reaction
+                biomass_reaction_id = model.biomass_reaction
             except:
-                self.biomass_reaction = None
+                pass
+
+        if biomass_reaction_id and biomass_reaction_id in self.reactions:
+            self.biomass_reaction = biomass_reaction_id
+            self.set_objective({biomass_reaction_id: 1.0})
 
         # protein reaction id (CBReaction)
         try:
@@ -163,17 +174,15 @@ class GeckoModel(CBModel):
         try:
             self.common_protein_pool = self.metabolites[common_protein_pool_id]
         except KeyError:
-            self.common_protein_pool = Metabolite(common_protein_pool_id)
-            self.metabolites[common_protein_pool_id] = self.common_protein_pool
+            logging.warning(f"Could not find the common protein pool {common_protein_pool_id}")
 
         # Reaction identified as protein pool exchange
         if protein_pool_exchange_id in self.reactions.keys():
             self.protein_pool_exchange = self.reactions[protein_pool_exchange_id]
+        elif reaction_prefix+protein_pool_exchange_id in self.reactions.keys():
+            self.protein_pool_exchange = self.reactions[reaction_prefix+protein_pool_exchange_id]
         else:
-            self.protein_pool_exchange = CBReaction(protein_pool_exchange_id)
-            self.protein_pool_exchange.stoichiometry.update({self.common_protein_pool.id: 1.})
-            self.protein_pool_exchange.set_flux_bounds(0, ModelConstants.REACTION_UPPER_BOUND)
-            self.add_reaction(self.protein_pool_exchange)
+            logging.warning(f"Could not find protein pool exchange reaction {protein_pool_exchange_id}")
 
         # multi-pool
         s_protein_exchange = "^" + reaction_prefix + "prot_(.*)_exchange$"

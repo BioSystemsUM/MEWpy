@@ -1,3 +1,10 @@
+"""
+##############################################################################
+Obverser module for EA optimization based on inspyred
+
+Authors: Vitor Pereira
+##############################################################################
+"""
 import numpy
 from inspyred.ec.emo import Pareto
 
@@ -5,7 +12,7 @@ from mewpy.visualization.plot import StreamingPlot
 from ..ea import Solution, non_dominated_population
 
 
-def fitness_statistics(population):
+def fitness_statistics(population, directions):
     """Return the basic statistics of the population's fitness values.
 
     :param population: A population of individuals.
@@ -22,18 +29,18 @@ def fitness_statistics(population):
     if isinstance(first, Pareto):
         n = len(first.values)
         for i in range(n):
-            f = [p.fitness.values[i] for p in population]
-            worst_fit = min(f)
-            best_fit = max(f)
+            f = [p.fitness.values[i] * directions[i] for p in population]
+            worst_fit = max(f) if directions[i] == -1 else min(f)
+            best_fit = min(f) if directions[i] == -1 else max(f)
             med_fit = numpy.median(f)
             avg_fit = numpy.mean(f)
             std_fit = numpy.std(f)
             stats['obj_{}'.format(i)] = {'best': best_fit, 'worst': worst_fit,
                                          'mean': avg_fit, 'median': med_fit, 'std': std_fit}
     else:
-        worst_fit = population[-1].fitness
-        best_fit = population[0].fitness
-        f = [p.fitness for p in population]
+        worst_fit = -1*population[0].fitness if directions[i] == -1 else population[-1].fitness
+        best_fit = -1*population[-1].fitness if directions[i] == -1 else population[0].fitness
+        f = [p.fitness * directions[0] for p in population]
         med_fit = numpy.median(f)
         avg_fit = numpy.mean(f)
         std_fit = numpy.std(f)
@@ -57,8 +64,8 @@ def results_observer(population, num_generations, num_evaluations, args):
     :param args: (dict) a dictionary of keyword arguments.
 
     """
-
-    stats = fitness_statistics(population)
+    directions = args['_ec'].directions
+    stats = fitness_statistics(population, directions)
     title = "Gen    Eval|"
     values = "{0:>4} {1:>6}|".format(num_generations, num_evaluations)
 
@@ -90,12 +97,13 @@ class VisualizerObserver():
     def update(self, population, num_generations, num_evaluations, args):
         generations = num_generations
         evaluations = num_evaluations
+        directions = args['_ec'].directions
         p = []
         for s in population:
             if isinstance(s.fitness, Pareto):
-                a = Solution(s.candidate, s.fitness.values)
+                a = Solution(s.candidate, [a*b for a, b in zip(s.fitness.values, directions)])
             else:
-                a = Solution(s.candidate, [s.fitness])
+                a = Solution(s.candidate, [s.fitness * directions[0]])
             p.append(a)
 
         nds = non_dominated_population(p)

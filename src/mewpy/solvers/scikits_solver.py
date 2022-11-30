@@ -1,4 +1,9 @@
-"""scikits ODE Solver
+"""
+##############################################################################
+Interface for scikits ODE Solver
+
+Author Vitor Pereira
+##############################################################################
 """
 from .ode import ODEMethod, SolverConfigurations, ODESolver
 from scikits.odes.odeint import odeint

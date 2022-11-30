@@ -1,4 +1,9 @@
-"""JMetalpy operators
+"""
+##############################################################################
+Genetic operators for jmetalpy 
+
+Authors: Vitor Pereira
+##############################################################################
 """
 
 import copy
@@ -66,10 +71,12 @@ class GrowMutationKO(Mutation[KOSolution]):
         """
         if random.random() <= self.probability and solution.number_of_variables < self.max_size:
             mutant = copy.copy(solution.variables)
-            newElem = random.randint(solution.lower_bound, solution.upper_bound)
-            while newElem in mutant:
-                newElem = random.randint(solution.lower_bound, solution.upper_bound)
-            mutant.append(newElem)
+            idx = random.randint(solution.lower_bound, solution.upper_bound)
+            while idx in mutant:
+                idx = idx + 1
+                if idx > solution.upper_bound:
+                    idx = solution.lower_bound
+            mutant.append(idx)
             solution.variables = mutant
             solution.number_of_variables = len(mutant)
         return solution
@@ -103,7 +110,9 @@ class GrowMutationOU(Mutation[OUSolution]):
             idx = random.randint(solution.lower_bound[0], solution.upper_bound[0])
             idxs = [a for (a, b) in mutant]
             while idx in idxs:
-                idx = random.randint(solution.lower_bound[0], solution.upper_bound[0])
+                idx = idx + 1
+                if idx > solution.upper_bound[0]:
+                    idx = solution.lower_bound[0]
             lv = random.randint(solution.lower_bound[1], solution.upper_bound[1])
             mutant.append((idx, lv))
             solution.variables = mutant
@@ -268,10 +277,12 @@ class SingleMutationKO(Mutation[KOSolution]):
         if random.random() <= self.probability:
             mutant = copy.copy(solution.variables)
             index = random.randint(0, len(mutant) - 1)
-            newElem = random.randint(solution.lower_bound, solution.upper_bound)
-            while newElem in mutant:
-                newElem = random.randint(solution.lower_bound, solution.upper_bound)
-            mutant[index] = newElem
+            idx = random.randint(solution.lower_bound, solution.upper_bound)
+            while idx in mutant:
+                idx = idx + 1
+                if idx > solution.upper_bound:
+                    idx = solution.lower_bound
+            mutant[index] = idx
             solution.variables = mutant
         return solution
 
@@ -297,7 +308,9 @@ class SingleMutationOU(Mutation[OUSolution]):
             if random.random() > 0.5:
                 idx = random.randint(solution.lower_bound[0], solution.upper_bound[0])
                 while idx in lix:
-                    idx = random.randint(solution.lower_bound[0], solution.upper_bound[0])
+                    idx = idx+1
+                    if idx > solution.upper_bound[0]:
+                       idx = solution.lower_bound[0]
                 is_mutate_idx = True
             lv = random.randint(solution.lower_bound[1], solution.upper_bound[1])
             if not is_mutate_idx:
@@ -322,7 +335,6 @@ class SingleMutationOULevel(Mutation[OUSolution]):
     def execute(self, solution: Solution) -> Solution:
         if random.random() <= self.probability:
             mutant = copy.copy(solution.variables)
-            x = len(mutant)
             index = random.randint(0, len(mutant) - 1)
             idx, idy = mutant[index]
             lv = random.randint(solution.lower_bound[1], solution.upper_bound[1])

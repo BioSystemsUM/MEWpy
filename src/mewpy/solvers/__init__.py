@@ -1,11 +1,18 @@
+"""
+##############################################################################
+Linear programming and ODE solvers
+
+Author: Vitor Pereira
+##############################################################################
+"""
 from .ode import (ODEMethod, SolverConfigurations, ODEStatus,
                   KineticConfigurations)
 from .solution import Solution, Status
 from .sglobal import __MEWPY_solvers__, __MEWPY_ode_solvers__
+
 # #################################################
 # Linear Programming Solvers
 # #################################################
-
 
 default_solver = None
 

@@ -1,7 +1,18 @@
+"""
+##############################################################################
+Problems targeting modifications of genes expression. The algorithms evaluate 
+the GPRs as boolean (KO) and aritmetic (OU) expression. This last uses the same
+approach employed in omics integration by substituting the logical operators 
+(AND,OR) by min and sum|max functions.
+
+
+Author: Vitor Pereira 
+##############################################################################
+"""
 import logging
 from .problem import AbstractKOProblem, AbstractOUProblem
-from ..util.parsing import GeneEvaluator, build_tree, Boolean
-from ..simulation import SStatus
+from mewpy.util.parsing import GeneEvaluator, build_tree, Boolean
+from mewpy.simulation import SStatus
 logger = logging.getLogger(__name__)
 
 
@@ -71,7 +82,8 @@ class GOUProblem(AbstractOUProblem):
     :param tuple operators: (and, or) operations. Default (MIN, MAX).
     :param list levels: Over/under expression levels (Default EAConstants.LEVELS).
     :param boolean twostep: If deletions should be applied before identifiying reference flux values.
-
+    :param dict partial_solution: A partial solution to be appended to any other solution
+    
     Note:  Operators that can not be pickled may be defined by a string e.g. 'lambda x,y: (x+y)/2'.
 
     """

@@ -1,6 +1,10 @@
-"""Hybrid kinetic/constraint-based simulation module
-   Author: Vitor Pereira
-   Contributors: Mariana Pereira
+"""
+##############################################################################
+Hybrid kinetic/constraint-based simulation module
+
+Author: Vitor Pereira
+Contributors: Mariana Pereira
+##############################################################################
 """
 from mewpy.model.kinetic import ODEModel
 from mewpy.solvers import KineticConfigurations
@@ -247,7 +251,8 @@ class HybridSimulation:
                        parameters=None, 
                        constraints=None,
                        amplitude=None,
-                       method='pFBA'):
+                       method='pFBA',
+                       **kwargs):
         """
         This method performs a phenotype simulation hibridizing a kinetic and a constraint-based model.
 
@@ -278,6 +283,8 @@ class HybridSimulation:
 
         if mapp:
             _fluxes = self.mapping_conversion(fluxes)
+
+            # add a tolerance (v-A/2,v+A/2) to the flux rate
             if amplitude:
                 c = dict()
                 for k, v in _fluxes.items():
@@ -288,6 +295,9 @@ class HybridSimulation:
                         c[k] = (lb, ub)
                     else:
                         c[k] = (max(0, lb), ub)
+
+            # uses a partial lMOMA to find the closest solution
+            # in the feasable space.
             else:
                 # assumes growth as model objective
                 biomass = [*self.sim.objective][0]
@@ -298,13 +308,20 @@ class HybridSimulation:
             raise ValueError('Could not mapp reactions.')
 
         if objective:
-            solution = self.sim.simulate(objective=objective, method=method, constraints=constraints)
+            solution = self.sim.simulate(objective=objective, method=method, constraints=constraints,**kwargs)
         else:
-            solution = self.sim.simulate(method=method, constraints=constraints)
+            solution = self.sim.simulate(method=method, constraints=constraints,**kwargs)
         return solution
 
 
-    def simulate_distribution(self, df, q1=0.1, q2=0.9, objective=None, method='pFBA', constraints=None):
+    def simulate_distribution(self,
+                              df, 
+                              q1=0.1, 
+                              q2=0.9, 
+                              objective=None, 
+                              method='pFBA', 
+                              constraints=None,
+                              **kwargs):
         """
         Runs a pFBA on the steady-state model with fluxes constrained to ranges 
         between the q1-th and q2-th percentile of fluxes distributions sampled 
@@ -334,9 +351,9 @@ class HybridSimulation:
         k_const = self.mapping_bounds(lbs, ubs)
         const.update(k_const)
         if objective:
-            solution = self.sim.simulate(method=method, constraints=const, objective=objective)
+            solution = self.sim.simulate(method=method, constraints=const, objective=objective,**kwargs)
         else:
-            solution = self.sim.simulate(method=method, constraints=const)
+            solution = self.sim.simulate(method=method, constraints=const,**kwargs)
         solution.kinetic_constraints = k_const
         return solution
 
@@ -386,6 +403,13 @@ class Map(AttrDict):
             if self.intersection(a, b):
                 combinations.append((a, b))
         return combinations
+    
+    @property
+    def proteins(self):
+        prots = []
+        for v in self.values():
+            prots.extend(v.proteins)
+        return prots
 
 
 def read_map(jsonfile:str):
@@ -470,9 +494,9 @@ class HybridGeckoSimulation:
                  parameters=None,
                  constraints=None,
                  method='pFBA',
-                 maximize=True,
                  apply_lb=True,
-                 lb_tolerance=0.05):
+                 lb_tolerance=0.05,
+                 **kwargs):
         """
         Runs a hybrid simulation on GECKO models by defining enzymatic 
         constraints that limit enzyme usage in function of vmax, fluxes and kcat values.
@@ -554,10 +578,10 @@ class HybridGeckoSimulation:
             solution = self.sim.simulate(objective=objective,
                                          method=method,
                                          constraints=constraints,
-                                         maximize=maximize)
+                                         **kwargs)
         else:
             solution = self.sim.simulate(method=method,
                                          constraints=constraints,
-                                         maximize=maximize)
+                                         **kwargs)
 
         return solution

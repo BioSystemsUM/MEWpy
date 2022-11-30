@@ -1,4 +1,10 @@
-"""An interface for ODE solvers"""
+"""
+##############################################################################
+An interface for ODE solvers
+
+Author: Vitor Pereira
+##############################################################################
+"""
 from enum import Enum
 from abc import ABC, abstractmethod
 

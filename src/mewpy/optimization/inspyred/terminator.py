@@ -1,3 +1,10 @@
+"""
+##############################################################################
+Terminators for inspyred
+
+Authors: Vitor Pereira
+##############################################################################
+"""
 
 def generation_termination(population, num_generations, num_evaluations, args):
     """Return True if the number of generations meets or exceeds a maximum.

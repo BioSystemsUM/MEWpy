@@ -1,4 +1,11 @@
-""" Adapted from Daniel Machado's REFRAMED"""
+"""
+##############################################################################
+LP Solution interface
+
+Adapted by Vitor Pereira from Daniel Machado's REFRAMED
+https://github.com/cdanielmachado/reframed
+##############################################################################
+"""
 from mewpy.simulation import SStatus
 from mewpy.simulation.simulation import Simulator, SimulationResult
 from enum import Enum

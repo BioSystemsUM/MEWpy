@@ -1,3 +1,10 @@
+"""
+##############################################################################
+SteadyCom  adapted from REFRAMED to be use with both COBRApy and REFRAMED
+
+Authors: Vitor Pereira
+##############################################################################
+"""
 from ..solvers.solution import Status, print_values
 from ..solvers import solver_instance
 from ..util.utilities import molecular_weight

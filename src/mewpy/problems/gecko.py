@@ -1,9 +1,22 @@
+"""
+##############################################################################
+Optimization Problems for GECKO models
+
+Author: Vitor Pereira
+##############################################################################
+"""
 import warnings
 
 from .problem import AbstractKOProblem, AbstractOUProblem
-from ..util.constants import ModelConstants
-from ..simulation import SStatus
+from mewpy.util.constants import ModelConstants
+from mewpy.simulation import SStatus, get_simulator
+from copy import copy
 
+from typing import TYPE_CHECKING, Union, List
+if TYPE_CHECKING:
+    from geckopy import GeckoModel
+    from mewpy.model import GeckoModel as GECKOModel
+    from mewpy.optimization.evaluation import EvaluationFunction
 
 class GeckoKOProblem(AbstractKOProblem):
     """Gecko KnockOut Optimization Problem
@@ -30,13 +43,12 @@ class GeckoKOProblem(AbstractKOProblem):
 
     """
 
-    def __init__(self, model, fevaluation=None, **kwargs):
-        # if isinstance(model,GeckoModel):
+    def __init__(self, model: Union["GeckoModel", "GECKOModel"],
+                 fevaluation: List["EvaluationFunction"] = None,
+                 **kwargs):
+
         super(GeckoKOProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
-        # else:
-        #    raise Exception("The model should be an instance of GeckoModel")
-        # problem simulation context
         self.prot_prefix = kwargs.get('prot_prefix', 'draw_prot_')
         self.simulator.prot_prefix = self.prot_prefix
 
@@ -112,6 +124,7 @@ class GeckoOUProblem(AbstractOUProblem):
     :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
     :param str prot_prefix: the protein draw reaction prefix. Default `draw_prot_`.
     :param boolean twostep: If deletions should be applied before identifiying reference flux values.
+    :param dict partial_solution: A partial solution to be appended to any other solution
 
     Note:
     Target as well as non target proteins are defined with their prot id, ex `P0351`, and with the associated reaction
@@ -119,7 +132,9 @@ class GeckoOUProblem(AbstractOUProblem):
 
     """
 
-    def __init__(self, model, fevaluation=None, **kwargs):
+    def __init__(self, model: Union["GeckoModel", "GECKOModel"],
+                 fevaluation: List["EvaluationFunction"] = None,
+                 **kwargs):
         # if isinstance(model,GeckoModel):
         super(GeckoOUProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
@@ -189,7 +204,10 @@ class GeckoOUProblem(AbstractOUProblem):
                 return prot
             else:
                 return f"{self.prot_prefix}{prot}"
-
+            
+        if self._partial_solution:
+            candidate.update(self._partial_solution)
+            
         _candidate = {add_prefix(k): v for k, v in candidate.items()}
 
         reference = self.reference
@@ -240,3 +258,128 @@ class GeckoOUProblem(AbstractOUProblem):
                                 both have fluxes in the WT.")
 
         return constraints
+
+
+class KcatOptProblem(AbstractOUProblem):
+
+    def __init__(self,
+                 model: Union["GeckoModel", "GECKOModel"],
+                 proteins: List[str],
+                 fevaluation: List["EvaluationFunction"] = None, **kwargs):
+        """ Kcats optimization problem
+
+        :param model: A GECKO model, instance of geckoy.GeckoModel or mewpy.model.GeckoModel
+        :param proteins: A list of proteins identifiers.
+        :type proteins: List[str]
+        :param fevaluation: Optimization objective functions
+        :type fevaluation: List[EvaluationFunction], optional
+
+        Optional:
+
+        :param OrderedDict envcond: environmental conditions.
+        :param OrderedDict constraints: additional constraints to be applied to the model.
+        :param int candidate_min_size: The candidates minimum size.
+        :param int candidate_max_size: The candidates maximum size.
+        :param list target: List of target reactions.
+        :param list non_target: List of non target reactions. Not considered if a target list is provided.
+        :param float scalefactor: a scaling factor to be used in the LP formulation.
+        :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
+        :param str prot_prefix: the protein draw reaction prefix. Default `draw_prot_`.
+        :param boolean twostep: If deletions should be applied before identifiying reference flux values.
+    
+        """
+        super().__init__(model, fevaluation, **kwargs)
+        self.proteins = proteins
+        size = len(self.target_list)
+        self.candidate_max_size = size
+        self.candidate_min_size = size
+
+    def _build_target_list(self):
+        """Builds a list of targets in the form
+           [(protein,reaction), ...]
+        """
+        targets = []
+        if self.proteins is None:
+            self.proteins = self.model.proteins
+        for p in self.proteins:
+            rxs = self.simulator.get_Kcats(p)
+            t = [(p, r) for r in rxs.keys() if 'draw_prot_' not in r]
+            targets.extend(t)
+        self._trg_list = targets
+
+    def solution_to_constraints(self, solution):
+        m = copy(self.model)
+        sim = get_simulator(m,
+                            envcond=self.environmental_conditions,
+                            reset_solver=True)
+        for k, v in solution.items():
+            p = k[0]
+            rx = k[1]
+            kcat = sim.get_Kcats(p)[rx]
+            nkcat = kcat*v
+            sim.set_Kcat(p, rx, nkcat)
+        return sim
+
+    def evaluate_solution(self, solution, decode=True):
+        """
+        Evaluates a single solution, a list of constraints.
+
+        :param solution: The solution to be evaluated.
+        :param decode: If the solution needs to be decoded.
+        :returns: A list of fitness.
+        """
+        decoded = {}
+        # decoded constraints
+        if decode:
+            decoded = self.decode(solution)
+            simulator = self.solution_to_constraints(decoded)
+        else:
+            raise ValueError("The solution needs to be encoded.")
+
+        # pre simulation
+        simulation_results = dict()
+        try:
+            p = []
+            for method in self.methods:
+                simulation_result = simulator.simulate(method=method)
+                simulation_results[method] = simulation_result
+            # apply the evaluation function(s)
+            for f in self.fevaluation:
+                v = f(simulation_results, decoded, scalefactor=self.scalefactor, simulator=simulator)
+                p.append(v)
+        except Exception as e:
+            p = []
+            for f in self.fevaluation:
+                p.append(f.worst_fitness)
+        del simulation_results
+        return p
+
+    def generator(self, random, **kwargs):
+        """
+        Generates a solution, a random (int,int) set with length in range min_solution_size to max_solution_size.
+
+        :param random: A random number generator. Needs to implement uniform and randint generators methods.
+        :param dict args: A dictionary of additional parameters.
+        :returns: A new solution.
+        """
+
+        if self.candidate_min_size == self.candidate_max_size:
+            solution_size = self.candidate_min_size
+        else:
+            solution_size = random.randint(
+                self.candidate_min_size, self.candidate_max_size)
+
+        if solution_size > len(self.target_list):
+            solution_size = len(self.target_list)
+
+        keys = random.sample(range(len(self.target_list)), solution_size)
+        try:
+            idx = self.levels.index(1)
+            values = [idx] * solution_size
+            p = random.randint(0, solution_size-1)
+            values[p] = random.randint(0, len(self.levels)-1)
+        except:
+            values = random.choices(range(len(self.levels)), k=solution_size)
+
+        solution = set(zip(keys, values))
+        return solution

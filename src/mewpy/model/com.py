@@ -1,3 +1,12 @@
+""" 
+##############################################################################
+Compartementalized community Model inspired in REFRAMED.
+Can build community models from models loaded from any toolbox
+for which there is a Simulator implementation.
+
+Author: Vitor Pereira
+##############################################################################
+"""
 from mewpy.simulation import get_simulator
 from mewpy.simulation.simulation import Simulator
 from mewpy.util.parsing import build_tree, Boolean

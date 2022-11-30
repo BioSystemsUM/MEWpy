@@ -1,3 +1,10 @@
+"""
+##############################################################################
+Optimization Problems for Community models
+
+Author: Vitor Pereira
+##############################################################################
+"""
 from copy import deepcopy
 from warnings import warn
 from collections import OrderedDict
@@ -42,7 +49,7 @@ class CommunityKOProblem(AbstractKOProblem):
             self.organisms[m.id] = deepcopy(m) if copy_models else m
 
     def _build_target_list(self):
-        """Target organims, i.e., organisms that may be removed from the community.
+        """Target organims, that is, organisms that may be removed from the community.
         """
         print("Building modification target list.")
         target = set(self.model_ids)
@@ -52,12 +59,12 @@ class CommunityKOProblem(AbstractKOProblem):
 
     def solution_to_constraints(self, candidate):
         """Returns a community model that includes all non
-        KO organisms.
-        TODO: this is a naif approach. Insteas consider using weights
-        to turn organism ON/OFF within the community.
+           KO organisms.
+           TODO: this is a naif approach. Insteas consider using weights
+           to turn organism ON/OFF within the community.
 
-        :param candidate: [description]
-        :return: [description]
+           :param candidate: [description]
+           :return: [description]
         """
         ko_organisms = list(candidate.keys())
         models = [x for x in self.model_ids if x not in ko_organisms]

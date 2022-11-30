@@ -1,3 +1,10 @@
+"""
+##############################################################################
+Heuristic optimization abstract classes and interfaces
+
+Author: Vitor Pereira
+##############################################################################
+"""
 from abc import ABC, abstractmethod
 import signal
 import sys
@@ -64,6 +71,12 @@ class Solution(SolutionInterface):
 
     def __eq__(self, solution:"Solution") -> bool:
         return set(self.values) == set(solution.values)
+
+    def __ne__(self, solution: "Solution") -> bool:
+        if self.fitness != solution.fitness:
+            return True
+        else:
+            return set(self.values) != set(solution.values)
 
     def __gt__(self, solution:"Solution") -> bool:
         if isinstance(solution, self.__class__):

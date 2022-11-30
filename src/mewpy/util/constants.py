@@ -1,3 +1,11 @@
+""" 
+##############################################################################
+Defines MEWpy global constants
+
+Author: Vitor Pereira
+Contributors: Fernando Cruz
+##############################################################################
+"""
 class ModelConstants:
     # Default reactions upper bound (used instead of Inf)
     REACTION_UPPER_BOUND = 10000

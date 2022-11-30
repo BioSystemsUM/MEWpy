@@ -1,4 +1,10 @@
-"""scipy ODE solver"""
+"""
+##############################################################################
+Interface for scipy ODE solver
+
+Author: Vitor Pereira
+##############################################################################
+"""
 from .ode import ODEMethod, ODESolver
 from scipy.integrate._ivp import solve_ivp
 

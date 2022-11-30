@@ -1,3 +1,10 @@
+""" 
+##############################################################################
+EA Module for jmetalpy
+
+Authors: Vitor Pereira
+##############################################################################
+"""
 from jmetal.algorithm.multiobjective import NSGAII, SPEA2
 from jmetal.algorithm.multiobjective.nsgaiii import NSGAIII
 from jmetal.algorithm.multiobjective.nsgaiii import UniformReferenceDirectionFactory

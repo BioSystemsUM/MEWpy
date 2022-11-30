@@ -1,4 +1,11 @@
-""" Adapted from Daniel Machado's REFRAMED"""
+"""
+##############################################################################
+Solvers interface
+
+Adapted by Vitor Pereira from Daniel Machado's REFRAMED
+https://github.com/cdanielmachado/reframed
+##############################################################################
+"""
 from enum import Enum
 from math import inf
 from reframed.core.cbmodel import CBModel

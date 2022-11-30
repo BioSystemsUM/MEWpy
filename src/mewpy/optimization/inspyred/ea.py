@@ -1,3 +1,10 @@
+""" 
+##############################################################################
+EA Module for inspyred
+
+Authors: Vitor Pereira
+##############################################################################
+"""
 from random import Random
 from time import time
 
@@ -6,10 +13,12 @@ from .settings import get_population_size, KO, PARAMETERS, OU
 from .problem import InspyredProblem
 from .observers import results_observer, VisualizerObserver
 from .terminator import generation_termination
-from ..ea import AbstractEA, Solution
-from ...util.constants import EAConstants
-from ...util.process import get_evaluator, cpu_count
 from .operators import OPERATORS
+from ..ea import AbstractEA, Solution
+from mewpy.util.constants import EAConstants
+from mewpy.util.process import get_evaluator, cpu_count
+
+
 SOEA = {
     'GA': inspyred.ec.EvolutionaryComputation,
     'SA': inspyred.ec.SA
@@ -32,8 +41,8 @@ class EA(AbstractEA):
                                  max_generations=max_generations, mp=mp, visualizer=visualizer, **kwargs)
 
         self.algorithm_name = algorithm
-        self.ea_problem = InspyredProblem(self.problem)
-
+        self.directions = [1 if f.maximize else -1 for f in self.problem.fevaluation]
+        self.ea_problem = InspyredProblem(self.problem, self.directions)
         # operators
         if self.problem.operators:
             self.variators = [OPERATORS[x] for x in self.problem.operators.keys()]
@@ -79,17 +88,19 @@ class EA(AbstractEA):
             ea = inspyred.ec.EvolutionaryComputation(prng)
             print("Running GA")
         ea.selector = inspyred.ec.selectors.tournament_selection
-
         ea.variator = self.variators
         ea.observer = results_observer
         ea.replacer = inspyred.ec.replacers.truncation_replacement
         ea.terminator = generation_termination
         self.algorithm = ea
+
+        setattr(ea, 'directions', self.directions)
+
         final_pop = ea.evolve(generator=self.problem.generator,
                               evaluator=self.evaluator,
                               pop_size=self.population_size,
                               seeds=self.seeds,
-                              maximize=self.problem.is_maximization,
+                              maximize=True,
                               bounder=self.problem.bounder,
                               **self.args
                               )
@@ -117,12 +128,15 @@ class EA(AbstractEA):
             ea.observer = observer.update
         else:
             ea.observer = results_observer
+
+        setattr(ea, 'directions', self.directions)
+
         self.algorithm = ea
         final_pop = ea.evolve(generator=self.problem.generator,
                               evaluator=self.evaluator,
                               pop_size=self.population_size,
                               seeds=self.seeds,
-                              maximize=self.problem.is_maximization,
+                              maximize=True,
                               bounder=self.problem.bounder,
                               **self.args
                               )
@@ -141,9 +155,9 @@ class EA(AbstractEA):
         p = []
         for i in range(len(population)):
             if self.problem.number_of_objectives == 1:
-                obj = [population[i].fitness]
+                obj = [population[i].fitness * self.directions[0]]
             else:
-                obj = population[i].fitness.values
+                obj = [ a*b for a,b in zip(population[i].fitness.values,self.directions)]
             val = population[i].candidate
             values = self.problem.decode(val)
             const = self.problem.solution_to_constraints(values)

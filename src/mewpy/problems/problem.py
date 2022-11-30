@@ -1,14 +1,28 @@
+"""
+##############################################################################
+Abtract Optimization Problems
+
+Author: Vitor Pereira
+##############################################################################
+"""
 import copy
 import warnings
 from abc import ABC, abstractmethod
 from enum import Enum
 import numpy as np
-from ..optimization.ea import Solution, filter_duplicates
-from ..simulation import get_simulator
-from ..util.constants import EAConstants, ModelConstants
+from mewpy.optimization.ea import Solution, filter_duplicates
+from mewpy.simulation import get_simulator
+from mewpy.util.constants import EAConstants, ModelConstants
+from typing import Union, TYPE_CHECKING, List, Dict
 
+if TYPE_CHECKING:
+    from cobra.core import Model
+    from reframed.core.cbmodel import CBModel
+    from mewpy.optimization.evaluation import EvaluationFunction
 
 class Strategy(Enum):
+    """Types of strategies"""
+    
     KO = 'KO'
     OU = 'OU'
 
@@ -73,15 +87,29 @@ class OUBounder(object):
 
 
 class AbstractProblem(ABC):
-    """
-    Base class for optimization problems.
 
-    :param model: A Metabolic model.
-    :param list fevaluation: A list of callable EvaluationFunctions.
-    :param kwargs: Additional parameters dictionary
-    """
+    def __init__(self, 
+                 model:Union["Model","CBModel"], 
+                 fevaluation:List["EvaluationFunction"]=None,
+                 **kwargs):
+        """
+        Base class for optimization problems.
 
-    def __init__(self, model, fevaluation=None, **kwargs):
+        :param model: A Metabolic model.
+        :param list fevaluation: A list of callable EvaluationFunctions.
+        :param kwargs: Additional parameters dictionary
+
+        Optional:
+        :param bool reset_solver: if the solver is to be reset after each simulation.
+        :param OrderedDict envcond: Environmental conditions.
+        :param OrderedDict constraints: Additional constraints to be applied to the model.
+        :param int candidate_min_size: The candidate minimum size (Default EAConstants.MIN_SOLUTION_SIZE)
+        :param int candidate_max_size: The candidate maximum size (Default EAConstants.MAX_SOLUTION_SIZE)
+        :param list target: List of modification target genes.
+        :param list non_target: List of non target genes. Not considered if a target list is provided.
+        :param float scalefactor: A scaling factor to be used in the LP formulation.
+        """
+        
         self.model = model
         self.fevaluation = [] if fevaluation is None else fevaluation
         self.number_of_objectives = len(self.fevaluation)
@@ -182,6 +210,15 @@ class AbstractProblem(ABC):
             del kwargs['solution']
         return self.simulator.simulate(*args, **kwargs)
 
+    def FVA(self, *args, **kwargs):
+        if 'solution' in kwargs:
+            constraints = self.solution_to_constraints(kwargs["solution"])
+            const = kwargs.get('constraints', dict())
+            const.update(constraints)
+            kwargs['constraints'] = const
+            del kwargs['solution']
+        return self.simulator.FVA(*args, **kwargs)
+
     def reset_simulator(self):
         self._simul = None
 
@@ -272,11 +309,14 @@ class AbstractProblem(ABC):
         :returns: A list of simplified solutions.
 
         """
-
-        enc_values = self.encode(solution.values)
+        if hasattr(solution,'values'):
+            enc_values = self.encode(solution.values)
+        elif isinstance(solution,(list,dict)):
+            enc_values = self.encode(solution)
         fitness = self.evaluate_solution(enc_values)
         one_to_remove = {}
         # single removal
+        # TODO: parallelize 
         for entry in enc_values:
             simul_enc_values = copy.copy(enc_values)
             simul_enc_values.remove(entry)
@@ -340,13 +380,26 @@ class AbstractProblem(ABC):
 
 class AbstractKOProblem(AbstractProblem):
 
-    def __init__(self, model, fevaluation=None, **kwargs):
+    def __init__(self, 
+                 model: Union["Model", "CBModel"],
+                 fevaluation: List["EvaluationFunction"] = None,
+                 **kwargs):
         """
         Base class for Knockout optimization problems.
 
-        :param model: The constraint metabolic model.
+        :param model: A Metabolic model.
         :param list fevaluation: A list of callable EvaluationFunctions.
+        :param kwargs: Additional parameters dictionary
 
+        Optional:
+        :param bool reset_solver: if the solver is to be reset after each simulation.
+        :param OrderedDict envcond: Environmental conditions.
+        :param OrderedDict constraints: Additional constraints to be applied to the model.
+        :param int candidate_min_size: The candidate minimum size (Default EAConstants.MIN_SOLUTION_SIZE)
+        :param int candidate_max_size: The candidate maximum size (Default EAConstants.MAX_SOLUTION_SIZE)
+        :param list target: List of modification target genes.
+        :param list non_target: List of non target genes. Not considered if a target list is provided.
+        :param float scalefactor: A scaling factor to be used in the LP formulation
         """
         super(AbstractKOProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
@@ -407,7 +460,10 @@ class AbstractOUProblem(AbstractProblem):
     """ Base class for Over/Under expression optimization problems
     """
 
-    def __init__(self, model, fevaluation=None, **kwargs):
+    def __init__(self,
+                 model:Union["Model","CBModel"], 
+                 fevaluation:List["EvaluationFunction"]=None,
+                 **kwargs):
         """
         :param model: The constraint metabolic model.
         :param list fevaluation: A list of callable EvaluationFunctions.
@@ -423,6 +479,8 @@ class AbstractOUProblem(AbstractProblem):
             model, fevaluation=fevaluation, **kwargs)
         self.strategy = Strategy.OU
         self.levels = kwargs.get('levels', EAConstants.LEVELS)
+        if not len(self.levels)>1:
+            raise ValueError('You need to provide mode that one expression folds.')
         self._reference = kwargs.get('reference', None)
         self.twostep = kwargs.get('twostep', False)
         self._partial_solution = kwargs.get('partial_solution', dict())
@@ -487,6 +545,9 @@ class AbstractOUProblem(AbstractProblem):
             solution_size = random.randint(
                 self.candidate_min_size, self.candidate_max_size)
 
+        if solution_size > len(self.target_list):
+            solution_size = len(self.target_list)
+
         keys = random.sample(range(len(self.target_list)), solution_size)
         values = random.choices(range(len(self.levels)), k=solution_size)
         solution = set(zip(keys, values))
@@ -501,7 +562,7 @@ class AbstractOUProblem(AbstractProblem):
             self._reference = self.simulator.reference
         return self._reference
 
-    def ou_constraint(self, level, wt):
+    def ou_constraint(self, level:Union[int,float], wt:float):
         """ Computes the bounds for a reaction.
 
         :param float level: The expression level for the reaction.
@@ -519,7 +580,7 @@ class AbstractOUProblem(AbstractProblem):
             elif wt < 0:
                 return (level * wt, 0)
 
-    def reaction_constraints(self, rxn, lv, reference):
+    def reaction_constraints(self, rxn:str, lv:Union[int,float], reference:Dict[str,float]):
         """
         Converts a (reaction, level) pair into a constraint
         If a reaction is reversible, the direction with no or less wild type flux

@@ -1,3 +1,6 @@
+"""Production envelope module
+   Author: Vitor Pereira
+"""
 import numpy as np
 
 from ..simulation import get_simulator

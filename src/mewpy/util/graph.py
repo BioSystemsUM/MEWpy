@@ -1,3 +1,11 @@
+""" 
+##############################################################################
+Graph methods for metabolic models.
+Generates a networkx graph based on metabolic networks
+
+Author: Vitor Pereira
+##############################################################################
+"""
 import math
 import networkx as nx
 import numpy as np

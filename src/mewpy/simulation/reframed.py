@@ -1,5 +1,10 @@
-"""
-Simulation for REFRAMED models
+""" 
+##############################################################################
+Simulation for REFRAMED models, wraps a REFRAMED CBModel to share a common
+interface to be used by MEWpy.
+
+Author: Vítor Pereira    
+##############################################################################
 """
 
 import logging
@@ -15,9 +20,9 @@ from reframed.solvers.solution import Status as s_status
 
 from . import SimulationMethod, SStatus, get_default_solver
 from .simulation import Simulator, SimulationResult, ModelContainer
-from ..model.gecko import GeckoModel
-from ..util.constants import ModelConstants
-from ..util.utilities import elements, AttrDict
+from mewpy.model.gecko import GeckoModel
+from mewpy.util.constants import ModelConstants
+from mewpy.util.utilities import elements, AttrDict
 from tqdm import tqdm
 
 LOGGER = logging.getLogger(__name__)
@@ -391,15 +396,9 @@ class Simulation(CBModelContainer, Simulator):
         """ Return the network topology as a nested map from metabolite to reaction to coefficient.
         :return: a dictionary lookup table
         """
-
-        if not self._m_r_lookup or force_recalculate:
-            self._m_r_lookup = OrderedDict([(m_id, OrderedDict()) for m_id in self.metabolites])
-
-            for r_id, reaction in self.model.reactions.items():
-                for m_id, coeff in reaction.stoichiometry.items():
-                    self._m_r_lookup[m_id][r_id] = coeff
-
-        return self._m_r_lookup
+        if force_recalculate:
+            self.model._m_r_lookup=None
+        return self.model.metabolite_reaction_lookup()
 
     def metabolite_elements(self, metabolite_id):
         formula = self.model.metabolites[metabolite_id].metadata['FORMULA']
@@ -508,11 +507,7 @@ class Simulation(CBModelContainer, Simulator):
                     else:
                         raise ValueError("Could not scale the model")
 
-        # TODO: I have implemented a single dispatch for this, so we can avoid coding long if else chains.
-        #  If it is too "obscure", a dictionary can be used, or a function like get_simulation_method.
-        #  Either way, I believe it would be maintainable to have a hidden method for each simulation method
-
-        # TODO: simplifly ...
+        # TODO: simplifly ...using python >=3.10 cases
         if method in [SimulationMethod.lMOMA, SimulationMethod.MOMA, SimulationMethod.ROOM] and reference is None:
             reference = self.reference
 
@@ -612,7 +607,7 @@ class GeckoSimulation(Simulation):
                  reset_solver=ModelConstants.RESET_SOLVER, protein_prefix=None):
         super(GeckoSimulation, self).__init__(
             model, envcond, constraints, solver, reference, reset_solver)
-        self.protein_prefix = protein_prefix if protein_prefix else 'draw_prot_'
+        self.protein_prefix = protein_prefix if protein_prefix else 'R_draw_prot_'
         self._essential_proteins = None
 
     @property
@@ -670,7 +665,7 @@ class GeckoSimulation(Simulation):
         else:
             return None
 
-    def get_Kcats(self, protein):
+    def get_Kcats(self, protein:str):
         """ 
         Returns a dictionary of reactions and respective Kcat for a 
         specific protein/enzyme·
@@ -690,3 +685,29 @@ class GeckoSimulation(Simulation):
             raise ValueError(f"More than one protein match {values}")
         else:
             raise ValueError(f"Protein {protein} not founded.")
+
+    def set_Kcat(self, protein:str, reaction:str, kcat:float):
+        """Alters an enzyme kcat for a given reaction.
+
+        :param protein: The protein identifier
+        :type protein: str
+        :param reaction: The reaction identifier
+        :type reaction: str
+        :param kcat: The kcat value, a real positive value.
+        :type kcat: float
+        """
+        if kcat <= 0:
+            raise ValueError('kcat value needs to be positive.')
+        rx = self.model.reactions[reaction]
+        st = rx.stoichiometry
+        mets =[x for x in list(st.keys()) if protein in x]
+        if len(mets)==1:
+            met=mets[0]
+            st[met] = -1/kcat
+            rx.stoichiometry = st
+            self.model._needs_update=True
+            self.solver=None
+        else:
+            LOGGER.warn(f'Could not identify {protein} ' 
+                        f'protein specie in reaction {reaction}')
+ 

@@ -1,3 +1,10 @@
+"""
+##############################################################################
+Heuristic Optimization modules
+
+Author: Vítor Pereira
+##############################################################################
+"""
 from ..util.constants import EAConstants
 from .evaluation import *
 

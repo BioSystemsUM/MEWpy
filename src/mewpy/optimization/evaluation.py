@@ -1,3 +1,10 @@
+"""
+##############################################################################
+Fitness evaluation functions
+
+Author: Vitor Pereira
+##############################################################################
+"""
 import math
 import warnings
 from abc import ABCMeta, abstractmethod
@@ -8,12 +15,19 @@ from mewpy.solvers.ode import ODEStatus
 from ..simulation import get_simulator, SimulationMethod, SStatus
 from ..util.constants import EAConstants, ModelConstants
 
+from typing import Dict, Union, List, Tuple
 
 class EvaluationFunction:
     __metaclass__ = ABCMeta
 
-    def __init__(self, maximize=True, worst_fitness=0.0):
+    def __init__(self, maximize:bool=True,
+                 worst_fitness:float=0.0):
         """This abstract class should be extended by all evaluation functions.
+
+        :param maximize: Wether to maximize (True) or minimize (False), defaults to True
+        :type maximize: bool, optional
+        :param worst_fitness: The worst fitness value, defaults to 0.0
+        :type worst_fitness: float, optional
         """
         self.worst_fitness = worst_fitness
         self.maximize = maximize
@@ -73,23 +87,28 @@ class KineticEvaluationFunction(EvaluationFunction):
 
 
 class TargetFlux(PhenotypeEvaluationFunction,KineticEvaluationFunction):
-    """ Target Flux evaluation function.
-    The fitness value is the flux value of the identified reaction.
-    If the reaction parameter is None, the fitness value is the optimization objective value.
-    Additional parameters include a minimum of allowed biomass value computed from the min_biomass_per
-    and reference flux values
 
-    :param reaction: (str) The reaction identifier whose flux value is to be used as fitness. Default None \
-        in which case the model objective is considered.
-    :param biomass: (str) The biomass reaction identifier.
-    :param maximize: (boolean) The optimization direction. Default True for maximization.
-    :param min_biomass_value: (float) The minimum biomass value.
-    :param min_biomass_per: (float) Minimum biomass percentage. Only used if no min_biomass_value is provided.
+    def __init__(self, 
+                 reaction:str, 
+                 biomass:str=None, 
+                 maximize:bool=True,
+                 min_biomass_value:float=None,
+                 min_biomass_per:float=0.0,
+                 method:Union[str,SimulationMethod]=SimulationMethod.pFBA):
+        """ Target Flux evaluation function.
+        
+        The fitness value is the flux value of the identified reaction.
+        If the reaction parameter is None, the fitness value is the optimization objective value.
+        Additional parameters include a minimum of allowed biomass value computed from the min_biomass_per
+        and reference flux values
 
-    """
-
-    def __init__(self, reaction, biomass=None, maximize=True, min_biomass_value=None, min_biomass_per=0.0,
-                 method=SimulationMethod.pFBA):
+        :param reaction: (str) The reaction identifier whose flux value is to be used as fitness. Default None \
+            in which case the model objective is considered.
+        :param biomass: (str) The biomass reaction identifier.
+        :param maximize: (boolean) The optimization direction. Default True for maximization.
+        :param min_biomass_value: (float) The minimum biomass value.
+        :param min_biomass_per: (float) Minimum biomass percentage. Only used if no min_biomass_value is provided.
+        """
         super(TargetFlux, self).__init__(maximize=maximize, worst_fitness=0.0)
         self.reaction = reaction
         self.biomass = biomass
@@ -149,24 +168,27 @@ class TargetFlux(PhenotypeEvaluationFunction,KineticEvaluationFunction):
 
 
 class WYIELD(PhenotypeEvaluationFunction):
-    """ Weighted Yield (WYIELD) objective function, a linear combination of the target product minimum and
-    maximum FVA under the introduced metabolic modifications.
+    def __init__(self,
+                 biomassId: str,
+                 productId: str, 
+                 maximize: bool =True,
+                 **kwargs):
+        """ Weighted Yield (WYIELD) objective function, a linear combination of the target 
+            product minimum and maximum FVA under the introduced metabolic modifications.
 
-    :param biomassId: (str) Biomass reaction identifier.
-    :param productId: (str) Target product reaction identifier.
+        :param biomassId: (str) Biomass reaction identifier.
+        :param productId: (str) Target product reaction identifier.
 
-    kwargs options:
+        kwargs options:
 
-    :param min_biomass_value: (float) Minimum biomass value (default None, in which case the min_biomass_per is used).
-    :param min_biomass_per: (float) Instead of defining explicitly a minimum biomass value, a percentage of the wild \
-        type biomass is used. Only used when no min_biomass_value is defined (default min_biomass_per: 0.10).
-    :param alpha: (float) Tradeoff between the Max and min FVA of the target product (alpha Max + (1-alpha) min). \
-        Must be in range [0,1]  (default alpha: 0.3).
-    :param scale: (boolean) Defines if the WYIELD is devided by the biomass of the simulated result (default false).
-
+        :param min_biomass_value: (float) Minimum biomass value (default None, in which case the min_biomass_per is used).
+        :param min_biomass_per: (float) Instead of defining explicitly a minimum biomass value, a percentage of the wild \
+            type biomass is used. Only used when no min_biomass_value is defined (default min_biomass_per: 0.10).
+        :param alpha: (float) Tradeoff between the Max and min FVA of the target product (alpha Max + (1-alpha) min). \
+            Must be in range [0,1]  (default alpha: 0.3).
+        :param scale: (boolean) Defines if the WYIELD is devided by the biomass of the simulated result (default false).
     """
 
-    def __init__(self, biomassId, productId, maximize=True, **kwargs):
         super(WYIELD, self).__init__(maximize=maximize, worst_fitness=0.0)
         self.biomassId = biomassId
         self.productId = productId
@@ -271,25 +293,29 @@ class WYIELD(PhenotypeEvaluationFunction):
 
 
 class BPCY(PhenotypeEvaluationFunction):
-    """
-    This class implements the "Biomass-Product Coupled Yield" objective function. The fitness is given by the equation:
-    (biomass_flux * product_flux)/ uptake_flux
 
-    :param biomass: (str) Biomass reaction identifier
-    :param product: (str) Target product reaction identifier
-    :param uptake: (str) (optional) Reaction of uptake. If no substract is defined, ie uptake is None, a substract \
-        flux value of 1.0 is considered.
+    def __init__(self,
+                 biomass: str,
+                 product: str,
+                 uptake: str=None,
+                 maximize: bool=True,
+                 **kwargs):
+        """
+        This class implements the "Biomass-Product Coupled Yield" objective function. The fitness is given by the equation:
+        (biomass_flux * product_flux)/ uptake_flux
 
-    kargs options:
+        :param biomass: (str) Biomass reaction identifier
+        :param product: (str) Target product reaction identifier
+        :param uptake: (str) (optional) Reaction of uptake. If no substract is defined, ie uptake is None, a substract \
+            flux value of 1.0 is considered.
 
-    :param method: (SimulationMethod) The simulation method. Default Node in which case received simulation results \
-        are used to compute the biomass product coupled yield.
-    :param reference: (dic) Wild type reference values when MOMA, lMOMA or ROOM are defined as method. \
-        If not provided, wild type reference values will be computed.
+        kargs options:
 
-    """
-
-    def __init__(self, biomass, product, uptake=None, maximize=True, **kwargs):
+        :param method: (SimulationMethod) The simulation method. Default Node in which case received simulation results \
+            are used to compute the biomass product coupled yield.
+        :param reference: (dic) Wild type reference values when MOMA, lMOMA or ROOM are defined as method. \
+            If not provided, wild type reference values will be computed.
+        """
         super(BPCY, self).__init__(maximize=maximize, worst_fitness=0.0)
         self.biomassId = biomass
         self.productId = product
@@ -347,30 +373,34 @@ class BPCY(PhenotypeEvaluationFunction):
 
 
 class BPCY_FVA(PhenotypeEvaluationFunction):
+    
+    def __init__(self,
+                 biomass: str, 
+                 product: str, 
+                 uptake: str=None, 
+                 maximize: bool=True, 
+                 **kwargs):
+        """
+        This class implements the "Biomass-Product Coupled Yield" objective function with FVA as defined in
+        "OptRAM: In-silico strain design via integrative regulatory-metabolic network modeling".
+        It combines BPCY with WYIELD objective functions.
+
+        The fitness is given by the equation:
+        ((biomass_flux * product_flux) * / uptake_flux ) * (1-log((range)/(target))) where range=(FVA_max-FVA_min)/2
+        and target= (FVA_max+FVA_min)/2
+
+        :param biomass: (str) Biomass reaction identifier.
+        :param product: (str) Target product reaction identifier.
+        :param uptake: (str) (optional) Reaction of uptake. If no substract is defined, ie uptakeId is None, a substract \
+            flux value of 1.0 is considered.
+
+        kwargs options:
+
+        :param method: (SimulationMethod) The simulation method. Default Node in which case received simulation results \
+            are used to compute the biomass product coupled yield.
+        :param reference: (dic) Wild type reference values when MOMA, lMOMA or ROOM are defined as method. \
+            If not provided, wild type reference values will be computed.
     """
-    This class implements the "Biomass-Product Coupled Yield" objective function with FVA as defined in
-    "OptRAM: In-silico strain design via integrative regulatory-metabolic network modeling".
-    It combines BPCY with WYIELD objective functions.
-
-    The fitness is given by the equation:
-    ((biomass_flux * product_flux) * / uptake_flux ) * (1-log((range)/(target))) where range=(FVA_max-FVA_min)/2
-    and target= (FVA_max+FVA_min)/2
-
-    :param biomass: (str) Biomass reaction identifier.
-    :param product: (str) Target product reaction identifier.
-    :param uptake: (str) (optional) Reaction of uptake. If no substract is defined, ie uptakeId is None, a substract \
-        flux value of 1.0 is considered.
-
-    kwargs options:
-
-    :param method: (SimulationMethod) The simulation method. Default Node in which case received simulation results \
-        are used to compute the biomass product coupled yield.
-    :param reference: (dic) Wild type reference values when MOMA, lMOMA or ROOM are defined as method. \
-        If not provided, wild type reference values will be computed.
-
-    """
-
-    def __init__(self, biomass, product, uptake=None, maximize=True, **kwargs):
         super(BPCY_FVA, self).__init__(maximize=maximize, worst_fitness=0.0)
         self.biomassId = biomass
         self.productId = product
@@ -449,16 +479,18 @@ class BPCY_FVA(PhenotypeEvaluationFunction):
 
 
 class AggregatedSum(PhenotypeEvaluationFunction, KineticEvaluationFunction):
+    
+    def __init__(self,
+                 fevaluation: List[EvaluationFunction], 
+                 tradeoffs: List[float]=None, 
+                 maximize: bool=True):
+        """
+        Aggredated sum evaluation function. Used to converte MOEAs into Single Objective EAs.
+
+        :param fevaluation: (list) List of evaluation functions.
+        :param tradeoffs: (list) Tradeoff values for each evaluation function. If None, all functions have \
+            the same associated weight.
     """
-    Aggredated sum evaluation function. Used to converte MOEAs into Single Objective EAs.
-
-    :param fevaluation: (list) List of evaluation functions.
-    :param tradeoffs: (list) Tradeoff values for each evaluation function. If None, all functions have \
-        the same associated weight.
-
-    """
-
-    def __init__(self, fevaluation, tradeoffs=None, maximize=True):
         super(AggregatedSum, self).__init__(
             maximize=maximize, worst_fitness=0.0)
         self.fevaluation = fevaluation
@@ -496,14 +528,13 @@ class AggregatedSum(PhenotypeEvaluationFunction, KineticEvaluationFunction):
 
 
 class CandidateSize(PhenotypeEvaluationFunction, KineticEvaluationFunction):
-    """
-    Maximize/minimize the number of modifications (reactions, genes, enzymes, etc.).
+   
+    def __init__(self, maximize:bool=False):
+        """
+        Maximize/minimize the number of modifications.
 
-    :param (bool) maximize: Optimization sense. Default False (minimize)
-
-    """
-
-    def __init__(self, maximize=False):
+        :param (bool) maximize: Optimization sense. Default False (minimize)
+        """
         super(CandidateSize, self).__init__(maximize=maximize, worst_fitness=0.0)
 
     def get_fitness(self, simulResult, candidate, **kwargs):
@@ -525,18 +556,26 @@ class CandidateSize(PhenotypeEvaluationFunction, KineticEvaluationFunction):
 class MinCandSize(CandidateSize):
 
     def __init__(self, maximize=False):
-        warnings.warn("This class will soon be depricated. Use CandidateSize instead.")
         super(MinCandSize, self).__init__(maximize=maximize, worst_fitness=0.0)
+        warnings.warn("This class will soon be depricated. Use CandidateSize instead.")
 
 
 class CNRFA(PhenotypeEvaluationFunction):
-    """Counts the Number of Reaction Fluxes Above a specified value.
 
-    :param PhenotypeEvaluationFunction: [description]
-    :type PhenotypeEvaluationFunction: [type]
-    """
+    def __init__(self, 
+                 reactions:List[str],
+                 threshold:float=0.1,
+                 maximize:bool=True,
+                 **kwargs):
+        """Counts the Number of Reaction Fluxes Above a specified value.
 
-    def __init__(self, reactions, threshold=0.1, maximize=True, **kwargs):
+        :param reactions: List of reactions
+        :type reactions: List[str]
+        :param threshold: the threshold, defaults to 0.1
+        :type threshold: float, optional
+        :param maximize: optimization direction: True (maximize) False (minimize), defaults to True
+        :type maximize: bool, optional
+        """
         super(CNRFA, self).__init__(maximize=maximize, worst_fitness=0)
         self.reactions = reactions
         self.method = kwargs.get('method', SimulationMethod.pFBA)
@@ -572,13 +611,23 @@ class CNRFA(PhenotypeEvaluationFunction):
     
 
 class ModificationType(PhenotypeEvaluationFunction, KineticEvaluationFunction):
-    """This Objective function favors solutions with deletions, under expression and over expression,
-    in this same order.
-    """
+    
 
-    def __init__(self, penalizations={'KO': 5, 'UE': 2, 'OE': 0}, maximize=True):
+    def __init__(self, 
+                 penalizations:Dict[str,float]={'KO': 5, 'UE': 2, 'OE': 0}, 
+                 maximize:bool=True):
+        """
+        This Objective function favors solutions with deletions, under expression
+        and over expression, in this same order.
+
+        :param penalizations: Penalizations by modification type, defaults to {'KO': 5, 'UE': 2, 'OE': 0}
+        :type penalizations: _type_, optional
+        :param maximize: optimization direction: True (maximize) False (minimize), defaults to True
+        :type maximize: bool, optional
+        """
         super(ModificationType, self).__init__(maximize=maximize, worst_fitness=0.0)
         self.penalizations = penalizations
+        
 
     def get_fitness(self, simulResult, candidate, **kwargs):
         sum = 0
@@ -605,10 +654,19 @@ class ModificationType(PhenotypeEvaluationFunction, KineticEvaluationFunction):
 
 
 class MolecularWeight(PhenotypeEvaluationFunction):
-    """Minimizes the sum of molecular weights of the products of a set of reactions (g/gDW/h).
-    """
+    
+    def __init__(self,
+                 reactions:List[str],
+                 maximize:bool=False, **kwargs):
+        """ 
+        Minimizes the sum of molecular weights of the products of a set of 
+        reactions (g/gDW/h).
 
-    def __init__(self, reactions, maximize=False, **kwargs):
+        :param reactions: List of reactions
+        :type reactions: List[str]
+        :param maximize: optimization direction: True (maximize) False (minimize), defaults to True
+        :type maximize: bool, optional
+        """
         super(MolecularWeight, self).__init__(maximize=maximize, worst_fitness=np.inf)
         self.reactions = reactions
         self.method = kwargs.get('method', SimulationMethod.pFBA)
@@ -669,3 +727,99 @@ class MolecularWeight(PhenotypeEvaluationFunction):
 
     def method_str(self):
         return "MW"
+
+
+class FluxDistance(EvaluationFunction):
+
+    def __init__(self, fluxes: Dict[str, float],
+                 maximize: bool = False,
+                 worst_fitness: float = 1000):
+        """Minimizes the distance to a flux distribution
+
+        :param fluxes: A dictionaty of flux distribution
+        :type fluxes: Dict[str,float]
+        :param maximize: optimization direction, defaults to False
+        :type maximize: bool, optional
+        :param worst_fitness: fitness to assign to bad solutions, defaults to inf
+        :type worst_fitness: float, optional
+        """
+        super().__init__(maximize, worst_fitness)
+        self.fluxes = fluxes
+        self.method = 'pFBA'
+
+    def get_fitness(self, simul_results, candidate, **kwargs):
+        """Evaluates a candidate
+
+        :param simul_results: (dic) A dictionary of phenotype SimulationResult objects
+        :param candidate:  Candidate beeing evaluated
+        :returns: A fitness value.
+        """
+        sim = simul_results[self.method] if self.method in simul_results.keys() else None
+
+        if not sim or sim.status not in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL) or not sim.fluxes:
+            return self.no_solution
+
+        sum = 0
+        for rxn in self.fluxes:
+            sum += (sim.fluxes[rxn]-self.fluxes[rxn])**2
+        return math.sqrt(sum)
+
+    def required_simulations(self):
+        return [self.method]
+
+    def short_str(self):
+        return "DISTFLUX"
+
+    def method_str(self):
+        return "Distance to a flux distribution"
+
+
+class TargetFluxWithConstraints(EvaluationFunction):
+    
+    def __init__(self,
+                 reaction:str,
+                 constraints:Dict[str,Union[float,Tuple[float,float]]],
+                 maximize:bool=False,
+                 ):
+        """_summary_
+
+        :param reaction: _description_
+        :type reaction: str
+        :param constraints: _description_
+        :type constraints: Dict[str,Union[float,Tuple[float,float]]]
+        :param maximize: _description_, defaults to False
+        :type maximize: bool, optional
+        """
+        super().__init__(maximize=maximize, worst_fitness=1000)
+        self.reaction = reaction
+        self.constraints = constraints
+
+    def get_fitness(self, simul_results, candidate, **kwargs):
+        """Evaluates a candidate
+
+        :param simul_results: (dic) A dictionary of phenotype SimulationResult objects
+        :param candidate:  Candidate beeing evaluated
+        :returns: A fitness value.
+
+        """
+        simulator = kwargs.get('simulator', None)
+        if simulator is None:
+            return self.no_solution
+
+        res = simulator.simulate(method='FBA', constraints=self.constraints)
+        if res.status in (SStatus.OPTIMAL, SStatus.SUBOPTIMAL):
+            return res.fluxes[self.reaction]
+        else:
+            return self.no_solution
+
+    def required_simulations(self):
+        """
+        If the evaluation function requires a pre-simulation to compute fitness values
+        """
+        return []
+
+    def short_str(self):
+        return "Target Flux with constraints"
+
+    def method_str(self):
+        return self.short_str()

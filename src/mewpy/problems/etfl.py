@@ -1,3 +1,10 @@
+"""
+##############################################################################
+Optimization Problems for ETFL models
+
+Author: Vitor Pereira
+##############################################################################
+"""
 import logging
 import itertools
 
@@ -225,6 +232,8 @@ class ETFLGOUProblem(AbstractOUProblem):
         """
         gr_constraints = dict()
         reference = self.reference
+        if self._partial_solution:
+            candidate.update(self._partial_solution)
         if self.twostep:
             try:
                 deletions = {rxn: lv for rxn, lv in candidate.items() if lv == 0}

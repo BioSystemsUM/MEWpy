@@ -1,3 +1,11 @@
+"""
+##############################################################################
+E-Flux algorithm
+
+Author: Vitor Pereira
+Contributors: Paulo Carvalhais
+##############################################################################
+"""
 from mewpy.simulation import get_simulator
 from mewpy.simulation.simulation import Simulator
 from .. import Preprocessing, ExpressionSet

@@ -1,3 +1,10 @@
+"""
+##############################################################################
+COBRA utility module
+
+Authors: Vitor Pereira
+##############################################################################
+"""
 from mewpy.simulation import get_simulator
 from mewpy.simulation.simulation import Simulator
 from typing import TYPE_CHECKING, Union
