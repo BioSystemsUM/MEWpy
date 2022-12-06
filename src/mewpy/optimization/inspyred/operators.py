@@ -246,8 +246,8 @@ def grow_mutation_OU(random, candidate, args):
         idxs = [a for (a, _) in mutant]
         while idx in idxs:
             idx = idx + 1
-            if idx > bounder.upper_bound:
-                idx = bounder.lower_bound
+            if idx > bounder.upper_bound[0]:
+                idx = bounder.lower_bound[0]
         lv = random.randint(bounder.lower_bound[1], bounder.upper_bound[1])
         mutant.add((idx, lv))
     return mutant
@@ -271,7 +271,7 @@ def single_mutation_KO(random, candidate, args):
     bounder = args["_ec"].bounder
     mutRate = args.setdefault("mutation_rate", 0.1)
     n = bounder.upper_bound - bounder.lower_bound + 1
-    if random.random() > mutRate or len(mutant) >= n:
+    if random.random() > mutRate or len(candidate) >= n:
         return candidate
     mutant = copy.copy(candidate)
     index = random.randint(0, len(mutant) - 1) if len(mutant) > 1 else 0
