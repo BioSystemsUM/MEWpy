@@ -10,7 +10,7 @@ from reframed.io.sbml import load_cbmodel
 from mewpy.optimization import EA, set_default_engine
 from mewpy.optimization.evaluation import WYIELD, BPCY, ModificationType
 from mewpy.simulation import SimulationMethod, get_simulator
-from mewpy.util.io import population_to_csv
+
 
 ITERATIONS = 600
 set_default_engine('jmetal')
@@ -173,8 +173,9 @@ def cb_ou(product, chassis='ec', display=False, filename=None):
         print('Best Solution: \n{0}'.format(str(best)))
 
     if filename:
-        print("Simplifying and saving solutions to file")
-        population_to_csv(problem, final_pop, filename, simplify=False)
+        print("Saving solutions to file")
+        df = ea.dataframe()
+        df.to_csv(filename)
 
 
 def cb_ko(product, chassis='ec', display=False, filename=None):
@@ -216,17 +217,18 @@ def cb_ko(product, chassis='ec', display=False, filename=None):
         print('Best Solution: \n{0}'.format(str(best)))
 
     if filename:
-        print("Simplifying and saving solutions to file")
-        population_to_csv(problem, final_pop, filename, simplify=False)
+        print("Saving solutions to file")
+        df = ea.dataframe()
+        df.to_csv(filename)
 
 
 if __name__ == '__main__':
 
     RUNS = 4
     compounds_EC = {  # "TYR": "R_EX_tyr_DASH_L_LPAREN_e_RPAREN_",
-                    "PHE": "R_EX_phe_DASH_L_LPAREN_e_RPAREN_",
-                    #"TRP": "R_EX_trp_DASH_L_LPAREN_e_RPAREN_"
-                    }
+        "PHE": "R_EX_phe_DASH_L_LPAREN_e_RPAREN_",
+        # "TRP": "R_EX_trp_DASH_L_LPAREN_e_RPAREN_"
+    }
 
     compounds_YS = {"PHE": "R_EX_phe_L_e_",
                     "TYR": "R_EX_tyr_L_e_",
@@ -237,11 +239,11 @@ if __name__ == '__main__':
     #    for i in range(RUNS):
     #        millis = int(round(time() * 1000))
     #        cb_ko(v, filename="CBMODEL_{}_KO_{}.csv".format(k, millis))
-    #for k, v in compounds_EC.items():
+    # for k, v in compounds_EC.items():
     #    for i in range(RUNS):
     #        millis = int(round(time() * 1000))
     #        cb_ou(v, filename="CBMODEL_{}_OU_{}.csv".format(k, millis))
-    #for k, v in compounds_YS.items():
+    # for k, v in compounds_YS.items():
     #    for i in range(RUNS):
     #        millis = int(round(time() * 1000))
     #        cb_ko(v, chassis='ys', filename="CBMODEL_{}_KO_{}.csv".format(k, millis))

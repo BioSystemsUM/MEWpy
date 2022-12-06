@@ -7,7 +7,6 @@ GECKO over REFRAMED
 """
 from mewpy.model.gecko import GeckoModel, ModelList
 from mewpy.simulation.reframed import GeckoSimulation
-from mewpy.simulation import SimulationMethod
 from collections import OrderedDict
 import pandas as pd
 import os
@@ -19,7 +18,7 @@ def simulation_one():
     """
     model = GeckoModel('single-pool')
     simulation = GeckoSimulation(model)
-    result = simulation.simulate(method=SimulationMethod.pFBA)
+    result = simulation.simulate(method='pFBA')
     wt_fluxes = result.fluxes
 
     rev_pairs = model.protein_rev_reactions
@@ -29,7 +28,7 @@ def simulation_one():
             constraints = OrderedDict()
             rxn = 'draw_prot_{}'.format(protein_id)
             constraints[rxn] = (0, 0.5*wt_fluxes[rxn])
-            result = simulation.simulate(constraints=constraints, method=SimulationMethod.pFBA)
+            result = simulation.simulate(constraints=constraints, method='pFBA')
             ssfluxes = result.fluxes
             if ssfluxes:
                 f.write(protein_id+";;;;;;\n")
@@ -69,7 +68,7 @@ def simulation_three():
     model = GeckoModel('single-pool')
     model.set_objective({'r_2111': 0.0, 'r_4041': 1.0})
     simulation = GeckoSimulation(model)
-    result = simulation.simulate(method=SimulationMethod.pFBA)
+    result = simulation.simulate(method='pFBA')
     reference = result.fluxes
 
     result = simulation.simulate(constraints=constraints)
@@ -77,7 +76,7 @@ def simulation_three():
     from mewpy.optimization.evaluation import WYIELD, BPCY, TargetFlux
     evaluator_1 = WYIELD("r_2111", "r_2056")
     print(evaluator_1.get_fitness(result, None))
-    evaluator_2 = BPCY("r_2111", "r_2056", "r_1714_REV", method=SimulationMethod.lMOMA, reference=reference)
+    evaluator_2 = BPCY("r_2111", "r_2056", "r_1714_REV", method='lMOMA', reference=reference)
     print(evaluator_2.get_fitness(result, None))
     evaluator_3 = TargetFlux("r_2056")
     print(evaluator_3.get_fitness(result, None))
@@ -113,15 +112,7 @@ def test_gecko_adjustment_sanchez_etal():
     assert growth_rate_limited_protein < 0.8 * growth_rate_unlimited_protein
     measured_in_model = set(mmol_gdw.index).intersection(model.proteins)
     assert sum(model.concentrations[p] - ggdw[p] for p in measured_in_model) < 1e-10
-    # assert sum(abs(rxn.upper_bound - mmol_gdw[rxn.metadata['uniprot']])
-    #           for rxn in model.individual_protein_exchanges) < 1e-6
-    # assert sum(rxn.metabolites[model.common_protein_pool] +
-    #           PROTEIN_PROPERTIES.loc[rxn.annotation['uniprot'], 'mw'] / 1000.
-    #           for rxn in model.pool_protein_exchanges) < 1e-6
-    # assert model.p_measured > 0.25                                  # With yeast 8.1.3 -> p_measured = 0.296
-    # assert model.f_mass_fraction_measured_matched_to_total > 0.25   # With yeast 8.1.3 -> f = 0.304
-    # assert model.protein_pool_exchange.upper_bound > 0.015          # With yeast 8.1.3 -> pool_exchange = 0.0212
-
+    
 
 def simulation_four():
 
@@ -156,10 +147,10 @@ def simulation_four():
     model = GeckoModel('single-pool')
     model.set_objective({'r_2111': 0, 'r_4041': 1.0})
     simulation = GeckoSimulation(model)
-    result = simulation.simulate(method=SimulationMethod.pFBA)
+    result = simulation.simulate(method='pFBA')
     reference = result.fluxes
     print("biomass {}   tyrosine: {}".format(reference['r_4041'], reference['r_1913']))
-    result = simulation.simulate(method=SimulationMethod.pFBA, constraints=constraints)
+    result = simulation.simulate(method='pFBA', constraints=constraints)
     reference = result.fluxes
     print("biomass {}   tyrosine: {}".format(reference['r_4041'], reference['r_1913']))
 
@@ -183,8 +174,9 @@ def gecko_ec():
                        protein_pool_exchange_id='R_prot_pool_exchange', reaction_prefix='R_')
     model.set_objective({'R_BIOMASS_Ec_iML1515_core_75p37M': 1.0})
 
-    # change protein pool bound (suggested by Leslie)
-    # model.reactions['R_prot_pool_exchange'].ub = 0.26
+    # change protein pool bound
+    model.reactions['R_prot_pool_exchange'].ub = 0.26
+    
     from mewpy.simulation import get_simulator, SimulationMethod
 
     c = {'P32131': 0.125, 'P45425': 32, 'P0A6E1': 32, 'P0A9I8': 0, 'P52643': 4, 'P37661': 0.125}
@@ -204,19 +196,9 @@ def gecko_ec():
                              prot_prefix='R_draw_prot_',
                              candidate_max_size=30)
 
-    # c1 = problem.translate(c,reverse=True)
-    # print(c1)
-    # c2 = problem.decode(c1)
-    # print(c2)
+    
     sim = get_simulator(model)
 
-    # c2 = {'R_draw_prot_P0AFV4': 0.0, 'R_draw_prot_P67910': (0.0, 0.0), 'R_draw_prot_P02924': (0.0, 0.0),
-    #       'R_draw_prot_P07639': (1.1271272290940493e-07, 10000), 'R_draw_prot_P39172': 0.0,
-    #       'R_draw_prot_P0AER3': (0.0, 10000), 'R_draw_prot_P0A991': (0.0, 10000), 'R_draw_prot_P0ACD8': (0.0, 0.0),
-    #       'R_draw_prot_P00805': (0.0, 10000), 'R_draw_prot_P28635': (0.0, 0.0), 'R_draw_prot_P33593': (0.0, 0.0),
-    #       'R_draw_prot_P0A9H5': (0.0, 10000), 'R_draw_prot_P0A6L4': (0.0, 10000), 'R_draw_prot_P60560': (0.0, 10000),
-    #       'R_draw_prot_P37001': 0.0, 'R_draw_prot_P37355': (0.0, 0.0), 'R_draw_prot_P0AEE5': (0.0, 0.0),
-    #       'R_draw_prot_P0ABA0': (0.0, 0.0), 'R_draw_prot_P0ABK5': (0.0, 10000)}
     c2 = {'R_draw_prot_P69922': (0.0, 10000), 'R_draw_prot_P32176': (0.0, 0.0), 'R_draw_prot_P11349': (0.0, 10000),
           'R_draw_prot_P37646': 0.0, 'R_draw_prot_P76577': (0.0, 0.0), 'R_draw_prot_P77788': (0.0, 0.0),
           'R_draw_prot_P0AG20': (0.0, 10000), 'R_draw_prot_P63224': 0.0, 'R_draw_prot_P62623': (
@@ -256,10 +238,3 @@ def gecko_ec():
 
 if __name__ == "__main__":
     simulation_one()
-    # simulation_two()
-    # simulation_three()
-    # test_basic_gecko_adjustment()
-    # test_gecko_adjustment_sanchez_etal()
-    # simulation_four()
-
-    # gecko_ec()
