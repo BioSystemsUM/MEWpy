@@ -25,6 +25,12 @@ Author: Vitor Pereira
 import numpy as np
 from .problem import AbstractKOProblem, AbstractOUProblem
 from ..simulation import SStatus
+from typing import Union, TYPE_CHECKING, List
+
+if TYPE_CHECKING:
+    from cobra.core import Model
+    from reframed.core.cbmodel import CBModel
+    from mewpy.optimization.evaluation import EvaluationFunction
 
 
 class RKOProblem(AbstractKOProblem):
@@ -46,7 +52,10 @@ class RKOProblem(AbstractKOProblem):
 
     """
 
-    def __init__(self, model, fevaluation=None, **kwargs):
+    def __init__(self,
+                 model: Union["Model", "CBModel"],
+                 fevaluation: List["EvaluationFunction"] = None,
+                 **kwargs):
         super(RKOProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
 
@@ -87,7 +96,10 @@ class ROUProblem(AbstractOUProblem):
     :param boolean twostep: If deletions should be applied before identifiying reference flux values.
     """
 
-    def __init__(self, model, fevaluation=None, **kwargs):
+    def __init__(self,
+                 model: Union["Model", "CBModel"],
+                 fevaluation: List["EvaluationFunction"] = None,
+                 **kwargs):
         super(ROUProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
 
@@ -153,7 +165,10 @@ class MediumProblem(AbstractOUProblem):
 
     """
 
-    def __init__(self, model, fevaluation=None, **kwargs):
+    def __init__(self,
+                 model: Union["Model", "CBModel"],
+                 fevaluation: List["EvaluationFunction"] = None,
+                 **kwargs):
         super(MediumProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
         self.levels = kwargs.get('levels', np.linspace(0, 10, 101))

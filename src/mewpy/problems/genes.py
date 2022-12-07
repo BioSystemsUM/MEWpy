@@ -28,6 +28,13 @@ import logging
 from .problem import AbstractKOProblem, AbstractOUProblem
 from mewpy.util.parsing import GeneEvaluator, build_tree, Boolean
 from mewpy.simulation import SStatus
+from typing import Union, TYPE_CHECKING, List, Dict
+
+if TYPE_CHECKING:
+    from cobra.core import Model
+    from reframed.core.cbmodel import CBModel
+    from mewpy.optimization.evaluation import EvaluationFunction
+
 logger = logging.getLogger(__name__)
 
 
@@ -50,7 +57,10 @@ class GKOProblem(AbstractKOProblem):
 
     """
 
-    def __init__(self, model, fevaluation=None, **kwargs):
+    def __init__(self,
+                 model: Union["Model", "CBModel"],
+                 fevaluation: List["EvaluationFunction"] = None,
+                 **kwargs):
         super(GKOProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
 
@@ -103,7 +113,10 @@ class GOUProblem(AbstractOUProblem):
 
     """
 
-    def __init__(self, model, fevaluation=None, **kwargs):
+    def __init__(self,
+                 model: Union["Model", "CBModel"],
+                 fevaluation: List["EvaluationFunction"] = None,
+                 **kwargs):
         super(GOUProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
         # operators to replace 'and'/'or'. By default min/max

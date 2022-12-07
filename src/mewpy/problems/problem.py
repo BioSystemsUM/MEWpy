@@ -313,7 +313,7 @@ class AbstractProblem(ABC):
     def is_maximization(self):
         return all([f.maximize for f in self.fevaluation])
 
-    def simplify(self, solution, tolerance=1e-6, ):
+    def simplify(self, solution, tolerance=1e-6):
         """
         Simplify a solution by removing the modification that do not affect the final fitness value.
         Two solutions are considered different if the maximum allowed difference between objective values is exceeded.
@@ -332,7 +332,6 @@ class AbstractProblem(ABC):
         fitness = self.evaluate_solution(enc_values)
         one_to_remove = {}
         # single removal
-        # TODO: parallelize 
         for entry in enc_values:
             simul_enc_values = copy.copy(enc_values)
             simul_enc_values.remove(entry)

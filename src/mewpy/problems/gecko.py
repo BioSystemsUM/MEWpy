@@ -18,6 +18,7 @@
 Optimization Problems for GECKO models
 
 Author: Vitor Pereira
+Contributors: Sergio Salgado Briegas
 ##############################################################################
 """
 import warnings
@@ -257,6 +258,8 @@ class GeckoOUProblem(AbstractOUProblem):
                 constraints[rxn] = (
                     lv * fluxe_wt, ModelConstants.REACTION_UPPER_BOUND)
                 # Deals with reverse reactions associated with the protein.
+                # This should not be necessery if arm reaction are well defined. But,
+                # just in case it is not so...
                 # Strategy: The reaction direction with no flux in the wild type (reference) is KO.
                 if prot in self.prot_rev_reactions.keys():
                     reactions = self.prot_rev_reactions[prot]
