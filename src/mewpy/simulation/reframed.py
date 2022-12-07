@@ -695,7 +695,7 @@ class GeckoSimulation(Simulation):
         if len(values)==1:
             m_r = self.metabolite_reaction_lookup()
             r_d = m_r[values[0]]
-            return {k: -1/v for k, v in r_d.items()}
+            return {k: -1/v for k, v in r_d.items() if self.protein_prefix not in k}
         elif len(values)>1: 
             raise ValueError(f"More than one protein match {values}")
         else:
