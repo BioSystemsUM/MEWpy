@@ -30,8 +30,6 @@ import numpy as np
 import pandas as pd
 from itertools import combinations
 
-from pandas._typing import FilePathOrBuffer
-
 from mewpy.simulation import get_simulator
 from mewpy.simulation.simulation import Simulator
 from mewpy.util.parsing import Boolean, GeneEvaluator, build_tree
@@ -78,7 +76,7 @@ class ExpressionSet:
         """
         return self._expression.__getitem__(item)
 
-    def get_condition(self, condition:Union[int,str]=None, **kwargs):
+    def get_condition(self, condition: Union[int, str] = None, **kwargs):
         """Retrieves the omics data for a specific condition
 
         :param condition: the condition identifier, defaults to None in which case
@@ -133,7 +131,7 @@ class ExpressionSet:
         return ExpressionSet(identifiers, conditions, expression, p_values)
 
     @classmethod
-    def from_csv(cls, file_path: FilePathOrBuffer, **kwargs):
+    def from_csv(cls, file_path, **kwargs):
         """Read expression data from a comma separated values (csv) file.
 
         Args:
@@ -390,7 +388,7 @@ class Preprocessing:
                 rxn_exp = self.reactions_expression(condition)
                 threshold = np.percentile(list(rxn_exp.values()), cut)
                 coeffs = {r_id: threshold - val for r_id,
-                                                    val in rxn_exp.items() if val < threshold}
+                          val in rxn_exp.items() if val < threshold}
                 coef.append(coeffs)
                 thre.append(threshold)
             coeffs = tuple(coef)
@@ -399,7 +397,7 @@ class Preprocessing:
             rxn_exp = self.reactions_expression(condition)
             threshold = np.percentile(list(rxn_exp.values()), cutoff)
             coeffs = {r_id: threshold - val for r_id,
-                                                val in rxn_exp.items() if val < threshold}
+                      val in rxn_exp.items() if val < threshold}
         return coeffs, threshold
 
 
