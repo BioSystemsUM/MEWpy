@@ -28,11 +28,13 @@ from mewpy.util.constants import ModelConstants
 from mewpy.simulation import SStatus, get_simulator
 from copy import copy
 
-from typing import TYPE_CHECKING, Union, List
+from typing import TYPE_CHECKING, Union, List, Dict, Tuple
 if TYPE_CHECKING:
     from geckopy import GeckoModel
     from mewpy.model import GeckoModel as GECKOModel
     from mewpy.optimization.evaluation import EvaluationFunction
+    from mewpy.simulation.simulation import Simulator
+
 
 class GeckoKOProblem(AbstractKOProblem):
     """Gecko KnockOut Optimization Problem
@@ -120,6 +122,7 @@ class GeckoKOProblem(AbstractKOProblem):
         _candidate = {add_prefix(k): v for k, v in candidate.items()}
         return _candidate
 
+
 class GeckoOUProblem(AbstractOUProblem):
     """
     Gecko Under/Over expression Optimization Problem
@@ -151,12 +154,9 @@ class GeckoOUProblem(AbstractOUProblem):
     def __init__(self, model: Union["GeckoModel", "GECKOModel"],
                  fevaluation: List["EvaluationFunction"] = None,
                  **kwargs):
-        # if isinstance(model,GeckoModel):
         super(GeckoOUProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
-        # else:
-        #    raise Exception("The model should be an instance of GeckoModel")
-        # problem simulation context
+
         self.prot_rev_reactions = None
         self.prot_prefix = kwargs.get('prot_prefix', 'draw_prot_')
 
@@ -220,10 +220,10 @@ class GeckoOUProblem(AbstractOUProblem):
                 return prot
             else:
                 return f"{self.prot_prefix}{prot}"
-            
+
         if self._partial_solution:
             candidate.update(self._partial_solution)
-            
+
         _candidate = {add_prefix(k): v for k, v in candidate.items()}
 
         reference = self.reference
@@ -304,7 +304,7 @@ class KcatOptProblem(AbstractOUProblem):
         :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
         :param str prot_prefix: the protein draw reaction prefix. Default `draw_prot_`.
         :param boolean twostep: If deletions should be applied before identifiying reference flux values.
-    
+
         """
         super().__init__(model, fevaluation, **kwargs)
         self.proteins = proteins
@@ -325,7 +325,16 @@ class KcatOptProblem(AbstractOUProblem):
             targets.extend(t)
         self._trg_list = targets
 
-    def solution_to_constraints(self, solution):
+    def solution_to_constraints(self, solution: Dict[Tuple[str, str], float]) -> "Simulator":
+        """
+        Converts a solution to an instance of Simulator.
+        Contrary to the usual signature of the method,
+        it does not return a set of contrainsts but an instance
+        of Simulator wrapping a model with modified kcats.
+
+        :param solution: a solution, a dictionary of {(ProteinID,ReactionID): kcat value}
+        :returns: A Simulator
+        """
         m = copy(self.model)
         sim = get_simulator(m,
                             envcond=self.environmental_conditions,
@@ -352,7 +361,7 @@ class KcatOptProblem(AbstractOUProblem):
             decoded = self.decode(solution)
             simulator = self.solution_to_constraints(decoded)
         else:
-            raise ValueError("The solution needs to be encoded.")
+            simulator = self.solution_to_constraints(solution)
 
         # pre simulation
         simulation_results = dict()
