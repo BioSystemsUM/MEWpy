@@ -1,3 +1,18 @@
+# Copyright (C) 2019- Centre of Biological Engineering,
+#     University of Minho, Portugal
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 ##############################################################################
 Fitness evaluation functions
@@ -52,6 +67,8 @@ class EvaluationFunction:
 
     def __str__(self):
         return self.method_str()
+
+
 
     @abstractmethod
     def required_simulations(self):
@@ -152,6 +169,10 @@ class TargetFlux(PhenotypeEvaluationFunction,KineticEvaluationFunction):
             res = sim.objective_value
 
         return res
+
+    def _repr_latex_(self):
+        sense = '\\max' if self.maximize else '\\min'
+        return "$$ %s %s $$" % (sense, self.reaction.replace('_', '\\_'))
 
     def required_simulations(self):
         """
@@ -282,6 +303,17 @@ class WYIELD(PhenotypeEvaluationFunction):
         except Exception:
             return self.no_solution
 
+    def _repr_latex_(self):
+        sense = '\\max' if self.maximize else '\\min'
+        return "$$ %s \\left( %f \\times FVA_{max}(%s) + (1-%f) \\times FVA_{min}(%s) \\right) $$" % (sense,
+                                                                                                      self.alpha,
+                                                                                                      self.productId.replace(
+                                                                                                          '_', '\\_'),
+                                                                                                      self.alpha,
+                                                                                                      self.productId.replace(
+                                                                                                          '_', '\\_'),
+                                                                                                      )
+
     def required_simulations(self):
         return [self.method]
 
@@ -358,6 +390,18 @@ class BPCY(PhenotypeEvaluationFunction):
             except Exception:
                 print("BPCY No Fluxes")
         return (ssFluxes[self.biomassId] * ssFluxes[self.productId]) / uptake
+
+    def _repr_latex_(self):
+        sense = '\\max' if self.maximize else '\\min'
+        if self.uptakeId:
+            return "$$ %s \\frac{%s \\times %s}{%s} $$" % (sense,
+                                                           self.biomassId.replace('_', '\\_'),
+                                                           self.productId.replace('_', '\\_'),
+                                                           self.uptakeId.replace('_', '\\_'))
+        else:
+            return "$$ %s \\left( %s \\times %s \\right) $$" % (sense,
+                                                                self.biomassId.replace('_', '\\_'),
+                                                                self.productId.replace('_', '\\_'))
 
     def required_simulations(self):
         return [self.method]

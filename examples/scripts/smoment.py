@@ -3,7 +3,7 @@ import os
 from mewpy.model.smoment import SMomentModel
 from mewpy.problems import GeckoOUProblem
 from mewpy.simulation import get_simulator
-from mewpy.util.io import population_to_csv
+
 
 
 def test1(compound='R_EX_tyr__L_e'):
@@ -49,14 +49,14 @@ def test1(compound='R_EX_tyr__L_e'):
     from mewpy.optimization import EA
     ea = EA(problem, max_generations=500)
     # runs the optimization
-    final_pop = ea.run()
+    ea.run()
 
-    from mewpy.util.io import population_to_csv
     from time import time
 
     millis = int(round(time() * 1000))
     filename = "sMOMEMT{}_OU_{}.csv".format(compound, millis)
-    population_to_csv(problem, final_pop, filename, simplify=False)
+    df = ea.dataframe()
+    df.to_csv(filename)
 
 
 def test2(compoud='R_EX_tyr__L_e', filename=None):
@@ -101,8 +101,8 @@ def test2(compoud='R_EX_tyr__L_e', filename=None):
     ea = EA(problem, max_generations=20, mp=True)
     final_pop = ea.run()
     if filename:
-        print("Simplifying and saving solutions to file")
-        population_to_csv(problem, final_pop, filename, simplify=False)
+        df = ea.dataframe()
+        df.to_csv(filename)
 
 
 if __name__ == "__main__":

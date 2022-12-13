@@ -6,11 +6,11 @@ This folder contains examples on how MEWpy can be used to perform phenotype simu
 
 ## Jupyter Notebooks:
 
-- The [simulation](simulation.ipynb) and [optimization](optimization.ipynb) notebooks, illustrate how MEWpy may be used to perform basic analysis tasks, phenotype simulations and optimizations using GSMMs.
-- The [kinetic](kinetic.ipynb) illustrates how MEWpy may be use to load and work with kinetic models.
-- The [ROUProblem](ROUproblem.ipynb) example illustrates how MEWpy may be used to identify reaction bounds modifications that favor the production of the aromatic amino acid (AAA) L-tyrosine in yeast.
-- The [GOUProblem](GOUproblem.ipynb) example aims to increase the production of the same AAA in E. coli by modifying genes expression.
-- The [GeckoKOProblem](GeckoKOProblem.ipynb), also targets the same goal in yeast by exploiting a GECKO model and by deleting enzymatic
+- The [simulation](01-simulation.ipynb) and [optimization](02-optimization.ipynb) notebooks, illustrate how MEWpy may be used to perform basic analysis tasks, phenotype simulations and optimizations using GSMMs.
+- The [kinetic](03-kinetic.ipynb) illustrates how MEWpy may be use to load and work with kinetic models.
+- The [ROUProblem](04-ROUproblem.ipynb) example illustrates how MEWpy may be used to identify reaction bounds modifications that favor the production of the aromatic amino acid (AAA) L-tyrosine in yeast.
+- The [GOUProblem](05-GOUproblem.ipynb) example aims to increase the production of the same AAA in E. coli by modifying genes expression.
+- The [GeckoKOProblem](06-GeckoKOProblem.ipynb), also targets the same goal in yeast by exploiting a GECKO model and by deleting enzymatic
 - The [GERM_Models](GERM_Models.ipynb) example illustrates how to work with GERM models in MEWpy.
 - The [GERM_Models_analysis](GERM_Models_analysis.ipynb) example illustrates how to work with GERM models analysis in MEWpy.
 proteins.

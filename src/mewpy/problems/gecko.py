@@ -1,8 +1,24 @@
+# Copyright (C) 2019- Centre of Biological Engineering,
+#     University of Minho, Portugal
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 ##############################################################################
 Optimization Problems for GECKO models
 
 Author: Vitor Pereira
+Contributors: Sergio Salgado Briegas
 ##############################################################################
 """
 import warnings
@@ -12,11 +28,13 @@ from mewpy.util.constants import ModelConstants
 from mewpy.simulation import SStatus, get_simulator
 from copy import copy
 
-from typing import TYPE_CHECKING, Union, List
+from typing import TYPE_CHECKING, Union, List, Dict, Tuple
 if TYPE_CHECKING:
     from geckopy import GeckoModel
     from mewpy.model import GeckoModel as GECKOModel
     from mewpy.optimization.evaluation import EvaluationFunction
+    from mewpy.simulation.simulation import Simulator
+
 
 class GeckoKOProblem(AbstractKOProblem):
     """Gecko KnockOut Optimization Problem
@@ -104,6 +122,7 @@ class GeckoKOProblem(AbstractKOProblem):
         _candidate = {add_prefix(k): v for k, v in candidate.items()}
         return _candidate
 
+
 class GeckoOUProblem(AbstractOUProblem):
     """
     Gecko Under/Over expression Optimization Problem
@@ -135,12 +154,9 @@ class GeckoOUProblem(AbstractOUProblem):
     def __init__(self, model: Union["GeckoModel", "GECKOModel"],
                  fevaluation: List["EvaluationFunction"] = None,
                  **kwargs):
-        # if isinstance(model,GeckoModel):
         super(GeckoOUProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
-        # else:
-        #    raise Exception("The model should be an instance of GeckoModel")
-        # problem simulation context
+
         self.prot_rev_reactions = None
         self.prot_prefix = kwargs.get('prot_prefix', 'draw_prot_')
 
@@ -204,10 +220,10 @@ class GeckoOUProblem(AbstractOUProblem):
                 return prot
             else:
                 return f"{self.prot_prefix}{prot}"
-            
+
         if self._partial_solution:
             candidate.update(self._partial_solution)
-            
+
         _candidate = {add_prefix(k): v for k, v in candidate.items()}
 
         reference = self.reference
@@ -242,6 +258,8 @@ class GeckoOUProblem(AbstractOUProblem):
                 constraints[rxn] = (
                     lv * fluxe_wt, ModelConstants.REACTION_UPPER_BOUND)
                 # Deals with reverse reactions associated with the protein.
+                # This should not be necessery if arm reaction are well defined. But,
+                # just in case it is not so...
                 # Strategy: The reaction direction with no flux in the wild type (reference) is KO.
                 if prot in self.prot_rev_reactions.keys():
                     reactions = self.prot_rev_reactions[prot]
@@ -286,7 +304,7 @@ class KcatOptProblem(AbstractOUProblem):
         :param dic reference: Dictionary of flux values to be used in the over/under expression values computation.
         :param str prot_prefix: the protein draw reaction prefix. Default `draw_prot_`.
         :param boolean twostep: If deletions should be applied before identifiying reference flux values.
-    
+
         """
         super().__init__(model, fevaluation, **kwargs)
         self.proteins = proteins
@@ -307,7 +325,16 @@ class KcatOptProblem(AbstractOUProblem):
             targets.extend(t)
         self._trg_list = targets
 
-    def solution_to_constraints(self, solution):
+    def solution_to_constraints(self, solution: Dict[Tuple[str, str], float]) -> "Simulator":
+        """
+        Converts a solution to an instance of Simulator.
+        Contrary to the usual signature of the method,
+        it does not return a set of contrainsts but an instance
+        of Simulator wrapping a model with modified kcats.
+
+        :param solution: a solution, a dictionary of {(ProteinID,ReactionID): kcat value}
+        :returns: A Simulator
+        """
         m = copy(self.model)
         sim = get_simulator(m,
                             envcond=self.environmental_conditions,
@@ -334,7 +361,7 @@ class KcatOptProblem(AbstractOUProblem):
             decoded = self.decode(solution)
             simulator = self.solution_to_constraints(decoded)
         else:
-            raise ValueError("The solution needs to be encoded.")
+            simulator = self.solution_to_constraints(solution)
 
         # pre simulation
         simulation_results = dict()

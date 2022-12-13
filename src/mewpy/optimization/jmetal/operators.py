@@ -1,3 +1,18 @@
+# Copyright (C) 2019- Centre of Biological Engineering,
+#     University of Minho, Portugal
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 ##############################################################################
 Genetic operators for jmetalpy 
@@ -274,7 +289,8 @@ class SingleMutationKO(Mutation[KOSolution]):
         super(SingleMutationKO, self).__init__(probability=probability)
 
     def execute(self, solution: Solution) -> Solution:
-        if random.random() <= self.probability:
+        n = solution.upper_bound-solution.lower_bound+1
+        if random.random() <= self.probability and solution.number_of_variables < n:
             mutant = copy.copy(solution.variables)
             index = random.randint(0, len(mutant) - 1)
             idx = random.randint(solution.lower_bound, solution.upper_bound)
@@ -299,7 +315,8 @@ class SingleMutationOU(Mutation[OUSolution]):
         super(SingleMutationOU, self).__init__(probability=probability)
 
     def execute(self, solution: Solution) -> Solution:
-        if random.random() <= self.probability:
+        n = solution.upper_bound[0]-solution.lower_bound[0]+1
+        if random.random() <= self.probability and solution.number_of_variables < n:
             mutant = copy.copy(solution.variables)
             lix = [i for (i, j) in mutant]
             index = random.randint(0, len(mutant) - 1)

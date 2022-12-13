@@ -1,3 +1,18 @@
+# Copyright (C) 2019- Centre of Biological Engineering,
+#     University of Minho, Portugal
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 ##############################################################################
 Problems targeting modifications of genes expression. The algorithms evaluate 
@@ -13,6 +28,13 @@ import logging
 from .problem import AbstractKOProblem, AbstractOUProblem
 from mewpy.util.parsing import GeneEvaluator, build_tree, Boolean
 from mewpy.simulation import SStatus
+from typing import Union, TYPE_CHECKING, List, Dict
+
+if TYPE_CHECKING:
+    from cobra.core import Model
+    from reframed.core.cbmodel import CBModel
+    from mewpy.optimization.evaluation import EvaluationFunction
+
 logger = logging.getLogger(__name__)
 
 
@@ -35,7 +57,10 @@ class GKOProblem(AbstractKOProblem):
 
     """
 
-    def __init__(self, model, fevaluation=None, **kwargs):
+    def __init__(self,
+                 model: Union["Model", "CBModel"],
+                 fevaluation: List["EvaluationFunction"] = None,
+                 **kwargs):
         super(GKOProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
 
@@ -88,7 +113,10 @@ class GOUProblem(AbstractOUProblem):
 
     """
 
-    def __init__(self, model, fevaluation=None, **kwargs):
+    def __init__(self,
+                 model: Union["Model", "CBModel"],
+                 fevaluation: List["EvaluationFunction"] = None,
+                 **kwargs):
         super(GOUProblem, self).__init__(
             model, fevaluation=fevaluation, **kwargs)
         # operators to replace 'and'/'or'. By default min/max

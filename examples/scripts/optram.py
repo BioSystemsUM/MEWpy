@@ -44,11 +44,11 @@ def test():
     print("\n\n")
 
     ea = EA(problem, max_generations=3, mp=True)
-    final_pop = ea.run()
-    from mewpy.util.io import population_to_csv
+    ea.run()
     millis = int(round(time() * 1000))
     filename = "OPTRAM{}_OU_{}.csv".format('TRP', millis)
-    population_to_csv(problem, final_pop, filename, simplify=False)
+    df = ea.dataframe()
+    df.to_csv(filename)
 
 
 if __name__ == "__main__":

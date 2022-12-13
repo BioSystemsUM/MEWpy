@@ -1,3 +1,19 @@
+# Copyright (C) 2019- Centre of Biological Engineering,
+#     University of Minho, Portugal
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 """
 ##############################################################################
 Abtract Optimization Problems
@@ -297,7 +313,7 @@ class AbstractProblem(ABC):
     def is_maximization(self):
         return all([f.maximize for f in self.fevaluation])
 
-    def simplify(self, solution, tolerance=1e-6, ):
+    def simplify(self, solution, tolerance=1e-6):
         """
         Simplify a solution by removing the modification that do not affect the final fitness value.
         Two solutions are considered different if the maximum allowed difference between objective values is exceeded.
@@ -316,7 +332,6 @@ class AbstractProblem(ABC):
         fitness = self.evaluate_solution(enc_values)
         one_to_remove = {}
         # single removal
-        # TODO: parallelize 
         for entry in enc_values:
             simul_enc_values = copy.copy(enc_values)
             simul_enc_values.remove(entry)

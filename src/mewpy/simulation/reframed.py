@@ -1,3 +1,18 @@
+# Copyright (C) 2019- Centre of Biological Engineering,
+#     University of Minho, Portugal
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 """ 
 ##############################################################################
 Simulation for REFRAMED models, wraps a REFRAMED CBModel to share a common
@@ -680,7 +695,7 @@ class GeckoSimulation(Simulation):
         if len(values)==1:
             m_r = self.metabolite_reaction_lookup()
             r_d = m_r[values[0]]
-            return {k: -1/v for k, v in r_d.items()}
+            return {k: -1/v for k, v in r_d.items() if self.protein_prefix not in k}
         elif len(values)>1: 
             raise ValueError(f"More than one protein match {values}")
         else:

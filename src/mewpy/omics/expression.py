@@ -1,3 +1,19 @@
+# Copyright (C) 2019- Centre of Biological Engineering,
+#     University of Minho, Portugal
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 """
 ##############################################################################
 Expression set for omics data.
@@ -13,8 +29,6 @@ from typing import Tuple, Union
 import numpy as np
 import pandas as pd
 from itertools import combinations
-
-from pandas._typing import FilePathOrBuffer
 
 from mewpy.simulation import get_simulator
 from mewpy.simulation.simulation import Simulator
@@ -62,7 +76,7 @@ class ExpressionSet:
         """
         return self._expression.__getitem__(item)
 
-    def get_condition(self, condition:Union[int,str]=None, **kwargs):
+    def get_condition(self, condition: Union[int, str] = None, **kwargs):
         """Retrieves the omics data for a specific condition
 
         :param condition: the condition identifier, defaults to None in which case
@@ -117,7 +131,7 @@ class ExpressionSet:
         return ExpressionSet(identifiers, conditions, expression, p_values)
 
     @classmethod
-    def from_csv(cls, file_path: FilePathOrBuffer, **kwargs):
+    def from_csv(cls, file_path, **kwargs):
         """Read expression data from a comma separated values (csv) file.
 
         Args:
@@ -374,7 +388,7 @@ class Preprocessing:
                 rxn_exp = self.reactions_expression(condition)
                 threshold = np.percentile(list(rxn_exp.values()), cut)
                 coeffs = {r_id: threshold - val for r_id,
-                                                    val in rxn_exp.items() if val < threshold}
+                          val in rxn_exp.items() if val < threshold}
                 coef.append(coeffs)
                 thre.append(threshold)
             coeffs = tuple(coef)
@@ -383,7 +397,7 @@ class Preprocessing:
             rxn_exp = self.reactions_expression(condition)
             threshold = np.percentile(list(rxn_exp.values()), cutoff)
             coeffs = {r_id: threshold - val for r_id,
-                                                val in rxn_exp.items() if val < threshold}
+                      val in rxn_exp.items() if val < threshold}
         return coeffs, threshold
 
 
