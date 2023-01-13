@@ -135,7 +135,7 @@ class GeckoModel(CBModel):
                  sigma=0.46, c_base=0.3855, gam=36.6, amino_acid_polymerization_cost=37.7,
                  carbohydrate_polymerization_cost=12.8, biomass_reaction_id=None,
                  protein_reaction_id='r_4047', carbohydrate_reaction_id='r_4048',
-                 protein_pool_exchange_id='prot_pool_exchange', common_protein_pool_id='prot_pool',
+                 protein_pool_exchange_id='prot_pool_exchange', common_protein_pool_id='prot_pool_c',
                  reaction_prefix=''):
 
         # load predifined models

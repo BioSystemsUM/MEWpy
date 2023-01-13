@@ -23,7 +23,7 @@ from ..simulation import get_simulator
 from ..simulation.simulation import Simulator
 
 
-def flux_envelope(model, r_x, r_y, steps=10, constraints=None):
+def flux_envelope(model, r_x, r_y, steps=10, constraints=None, x_range=None):
     """ Calculate the flux envelope for a pair of reactions.
         Adapted from REFRAMED to be compatible both with REFRAMED and COBRApy.
 
@@ -34,6 +34,7 @@ def flux_envelope(model, r_x, r_y, steps=10, constraints=None):
     :param int steps: Number of steps to compute (default: 10).
     :param dict constraints: Custom constraints to the FBA problem.
     :param dict envcond: Environmental conditions.
+    :param tuple range: x value range. Default None.
     :returns:  x values, y_min values, y_max values
 
     """
@@ -51,8 +52,13 @@ def flux_envelope(model, r_x, r_y, steps=10, constraints=None):
     # if r_x in simul.get_objective():
     #    obj_frac = 0.0
 
-    x_range = simul.FVA(obj_frac=obj_frac, reactions=[r_x], constraints=constraints)
-    xmin, xmax = x_range[r_x]
+    xrange = simul.FVA(obj_frac=obj_frac, reactions=[r_x], constraints=constraints)
+    xmin, xmax = xrange[r_x]
+    if x_range:
+        if x_range[0] > xmin:
+            xmin = x_range[0]
+        if x_range[1] < xmax:
+            xmax = x_range[1]
     xvals = np.linspace(xmin, xmax, steps)
     ymins, ymaxs = np.zeros(steps), np.zeros(steps)
 
@@ -72,7 +78,7 @@ def flux_envelope(model, r_x, r_y, steps=10, constraints=None):
 
 def plot_flux_envelope(model, r_x, r_y, steps=10, substrate=None, constraints=None,
                        label_x=None, label_y=None, flip_x=False, flip_y=False,
-                       plot_kwargs=None, fill_kwargs=None, ax=None):
+                       plot_kwargs=None, fill_kwargs=None, ax=None, x_range=None):
     """ Plots the flux envelope for a pair of reactions.
         Adapted from REFRAMED.
 
@@ -89,6 +95,7 @@ def plot_flux_envelope(model, r_x, r_y, steps=10, substrate=None, constraints=No
     :param dict plot_kwargs: Additional parameters to *pyplot.plot* (optional).
     :param dict fill_kwargs: Additional parameters to *pyplot.fill_between* (optional).
     :param matplotlib.Axes ax: Plot over existing axes (optional).
+    :param tuple range: x value range. Default None.
     :returns:  matplotlib.Axes: Axes object.
     """
 
@@ -117,7 +124,7 @@ def plot_flux_envelope(model, r_x, r_y, steps=10, substrate=None, constraints=No
     if not fill_kwargs:
         fill_kwargs = {'color': 'k', 'alpha': 0.1}
 
-    xvals, ymins, ymaxs = flux_envelope(model, r_x, r_y, steps, constraints)
+    xvals, ymins, ymaxs = flux_envelope(model, r_x, r_y, steps, constraints, x_range=x_range)
 
     if flip_x:
         xvals, ymins, ymaxs = -xvals, ymins[::-1], ymaxs[::-1]
