@@ -90,20 +90,19 @@ def calculate_yprime(y,
     and adds or subtracts the amount in rate to all the substrates or products listed
     Returns the new y_prime
     Args:
-        y: a numpy array for the substrate values, the same order as y
+        y: dict substrate values, the same order as y
         rate: the rate calculated by the user made rate equation
         substrates: list of substrates for which rate should be subtracted
         products: list of products for which rate should be added
     Returns:
         y_prime: following the addition or subtraction of rate to the specificed substrates
     """
-    y_prime = np.zeros(len(y))
-
+    y_prime = {name: 0 for name in y.keys()}
     for name in substrates:
-        y_prime[name] -= rate
+        y_prime[name] = y_prime[name]-rate
 
     for name in products:
-        y_prime[name] += rate
+        y_prime[name] = y_prime[name]+rate
 
     return y_prime
 
@@ -309,25 +308,23 @@ class KineticReaction(Rule):
         rate = eval(t)
         return rate
 
-    def reaction(self, y, substrate_names, parameter_dict):
+    def reaction(self, y, substrates={}, parameters={}):
+        """_summary_
 
-        for modifier in self.modifiers:
-            pass
+        Args:
+            y (dict): dictionary of metabolite to concentration
+            substrates (dict, optional): _description_. Defaults to {}.
+            parameters (dict, optional): _description_. Defaults to {}.
 
-        parameters = self.get_parameters(parameter_dict)
-        substrates = self.substrates
-
-        if len(self.modifiers) != 0:
-            # substrates, parameters = self.calculate_modifiers(substrates, parameters)
-            pass
-
+        Returns:
+            _type_: _description_
+        """
         rate = self.calculate_rate(substrates, parameters)
-
-        y_prime = calculate_yprime(y, rate, self.substrates, self.products, substrate_names)
-        # y_prime = self.modify_product(y_prime, substrate_names)
-
-        if not self.reversible:
-            y_prime = check_positive(y_prime)
+        y_prime_dic = calculate_yprime(y, rate, self.substrates, self.products)
+        # y_prime_dic = self.modify_product(y_prime_dic, substrate_names)
+        y_prime = np.array(list(y_prime_dic.values()))
+        # if not self.reversible:
+        #    y_prime = check_positive(y_prime)
 
         return y_prime
 
@@ -567,6 +564,16 @@ class ODEModel:
         return self._m_r_lookup
 
     def print_balance(self, m_id, factors=None):
+        """Returns a string representation of the mass balance equation 
+           of a metabolite
+
+        Args:
+            m_id (str): The metabolite identifier
+            factors (dic, optional): Factores applied to parameters. Defaults to None.
+
+        Returns:
+            str: Mass balance equation
+        """
         f = factors.get(m_id, 1) if factors else 1
         c_id = self.metabolites[m_id].compartment
         table = self.metabolite_reaction_lookup()
@@ -588,7 +595,6 @@ class ODEModel:
 
     def get_parameters(self, exclude_compartments=False):
         """Returns a dictionary of the model parameters
-
         """
         if not self._constants:
             self.merge_constants()
@@ -632,9 +638,9 @@ class ODEModel:
             df = pd.DataFrame()
         return df
 
-    def deriv(self, y, t):
+    def deriv(self, t, y):
         """
-        deriv function called by integrate to be used by dFBA
+        Deriv function called by integrate.
 
         For each step when the model is run, the rate for each reaction is calculated
         and changes in substrates and products calculated.
@@ -642,24 +648,26 @@ class ODEModel:
         returned by run_model
 
         Args:
-            y (list): ordered list of substrate values at this current timepoint. 
+            t : time, not used in this function but required
+            y (list): ordered list of substrate values (the order 
+            is the same as the metabolites order) at this current timepoint. 
                Has the same order as self.run_model_species_names
-            t (): time, not used in this function but required for some reason
-
+               
         Returns:
             y_prime - ordered list the same as y, y_prime is the new set of y's for this timepoint.
         """
+        p = self.merge_constants()
         m_y = OrderedDict(zip(self.metabolites, y))
         yprime = np.zeros(len(y))
         for _, reaction in self.ratelaws.items():
-            yprime += reaction.reaction(m_y, self.get_parameters())
-        return yprime
+            yprime += reaction.reaction(m_y, self.get_parameters(),p)
+        return yprime.tolist()
 
     def build_ode(self, factors: dict = None, local: bool = False) -> str:
         """ 
-        Axiliary function to build the ODE as a string
-        to be evaluated by eval. Allows the inclusion of factors to
-        be applied to the parameters
+        Auxiliary function to build the ODE as a string
+        to be evaluated by eval, as an alternative to deriv. 
+        Allows the inclusion of factors to be applied to the parameters
 
         Args:
             factors (dict): factors to be applied to parameters
@@ -720,4 +728,4 @@ class ODEModel:
         exec(self.build_ode(factors), globals())
         ode_func = eval('ode_func')
 
-        return lambda t, x: ode_func(t, x, r, p, v)
+        return lambda t, y: ode_func(t, y, r, p, v)
