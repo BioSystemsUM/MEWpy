@@ -37,6 +37,8 @@ def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"]):
     
     :param model: A COBRApy or REFRAMED Model or an instance of 
         mewpy.simulation.simulation.Simulator
+
+    TODO: Add anotations
     """
     if isinstance(model, Simulator):
         sim = model
@@ -68,3 +70,33 @@ def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"]):
 
     sim.objective = objective
     return sim
+
+
+def split_isozymes(model):
+
+    if isinstance(model, Simulator):
+        sim = model
+    else:
+        sim = get_simulator(model)
+        
+    mapping = dict()
+
+    for r_id in sim.reactions:
+        rx_d = sim.get_reaction(r_id)
+        gpr = rx_d.gpr
+
+        if gpr is not None:
+            mapping[r_id] = []
+            for i, protein in enumerate(gpr.proteins):
+                r_id_new = '{}_pc{}'.format(reaction.id, i+1)
+                mapping[r_id].append(r_id_new)
+                reaction_new = Reaction(r_id_new, reaction.name, reaction.reversible,
+                                        reaction.stoichiometry, reaction.regulators)
+                model.add_reaction(reaction_new)
+                model.set_flux_bounds(r_id_new, *model.bounds[r_id])
+                model.set_reaction_objective(r_id_new, model.objective[r_id])
+                gpr_new = GPRAssociation()
+                gpr_new.proteins.append(protein)
+                model.set_gpr_association(r_id_new, gpr_new)
+            model.remove_reaction(r_id)
+    return mapping
