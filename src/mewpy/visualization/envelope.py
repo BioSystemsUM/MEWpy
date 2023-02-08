@@ -23,7 +23,7 @@ from ..simulation import get_simulator
 from ..simulation.simulation import Simulator
 
 
-def flux_envelope(model, r_x, r_y, steps=10, constraints=None, x_range=None):
+def flux_envelope(model, r_x, r_y, steps=10, constraints=None, x_range=None, tolerance=0):
     """ Calculate the flux envelope for a pair of reactions.
         Adapted from REFRAMED to be compatible both with REFRAMED and COBRApy.
 
@@ -54,6 +54,7 @@ def flux_envelope(model, r_x, r_y, steps=10, constraints=None, x_range=None):
 
     xrange = simul.FVA(obj_frac=obj_frac, reactions=[r_x], constraints=constraints)
     xmin, xmax = xrange[r_x]
+    xmax -= tolerance
     if x_range:
         if x_range[0] > xmin:
             xmin = x_range[0]
