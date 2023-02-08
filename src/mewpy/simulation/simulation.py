@@ -338,6 +338,20 @@ class Simulator(ModelContainer, SimulationInterface):
                 external.append(m_id)
         return m_id
 
+    def blocked_reactions(self, constraints=None, reactions=None, abstol=1e-9):
+        """ Find all blocked reactions in a model
+        
+        :param (dict) constraints: additional constraints (optional)
+        :param (list) reactions: List of reactions which will be tested (default: None, test all reactions)
+        :param (float) abstol: absolute tolerance (default: 1e-9)
+
+        :returns: A list blocked reactions
+        """
+
+        variability = self.FVA(obj_frac=0, reactions=reactions, constraints=constraints)
+
+        return [r_id for r_id, (lb, ub) in variability.items() if (abs(lb) + abs(ub)) < abstol]
+
 
 class SimulationResult(object):
     """Class that represents simulation results and performs operations over them."""
