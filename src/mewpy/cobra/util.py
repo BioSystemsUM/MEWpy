@@ -22,6 +22,8 @@ Authors: Vitor Pereira
 """
 from mewpy.simulation import get_simulator
 from mewpy.simulation.simulation import Simulator
+from mewpy.util.parsing import isozymes
+from copy import deepcopy
 from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
@@ -29,7 +31,7 @@ if TYPE_CHECKING:
     from reframed.core.cbmodel import CBModel
 
 
-def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"]):
+def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"], inline=False):
     """Split reversible reactions into two irreversible reactions
     These two reactions will proceed in opposite directions. This
     guarentees that all reactions in the model will only allow
@@ -41,9 +43,15 @@ def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"]):
     TODO: Add anotations
     """
     if isinstance(model, Simulator):
-        sim = model
+        if inline:
+            sim = model
+        else:
+            sim = deepcopy(model)
     else:
-        sim = get_simulator(model)
+        if inline:
+            sim = get_simulator(model)
+        else:    
+            sim = get_simulator(deepcopy(model))
 
     objective = sim.objective.copy()
 
@@ -72,31 +80,48 @@ def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"]):
     return sim
 
 
-def split_isozymes(model):
+
+def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline=False):
+    """Splits reactions with isozymes into separated reactions
+
+    :param model: _description_
+    :type model: Union[Simulator, &quot;Model&quot;, &quot;CBModel&quot;]
+    :return: _description_
+    :rtype: _type_
+    """
 
     if isinstance(model, Simulator):
-        sim = model
+        if inline:
+            sim = model
+        else:
+            sim = deepcopy(model)
     else:
-        sim = get_simulator(model)
+        if inline:
+            sim = get_simulator(model)
+        else:
+            sim = get_simulator(deepcopy(model))
+
         
     mapping = dict()
 
     for r_id in sim.reactions:
-        rx_d = sim.get_reaction(r_id)
-        gpr = rx_d.gpr
+        rxn = sim.get_reaction(r_id)
+        gpr = rxn.gpr
 
         if gpr is not None:
+            proteins = isozymes(gpr)
             mapping[r_id] = []
-            for i, protein in enumerate(gpr.proteins):
-                r_id_new = '{}_pc{}'.format(reaction.id, i+1)
+            for i, protein in enumerate(proteins):
+                r_id_new = '{}_No{}'.format(r_id.id, i+1)
                 mapping[r_id].append(r_id_new)
-                reaction_new = Reaction(r_id_new, reaction.name, reaction.reversible,
-                                        reaction.stoichiometry, reaction.regulators)
-                model.add_reaction(reaction_new)
-                model.set_flux_bounds(r_id_new, *model.bounds[r_id])
-                model.set_reaction_objective(r_id_new, model.objective[r_id])
-                gpr_new = GPRAssociation()
-                gpr_new.proteins.append(protein)
-                model.set_gpr_association(r_id_new, gpr_new)
-            model.remove_reaction(r_id)
-    return mapping
+
+                rxn_new = dict()
+                rxn_new['name'] = '{} No{}'.format(rxn.name, i+1)
+                rxn_new['lb'] = rxn.lb
+                rxn_new['ub'] = rxn.ub
+                rxn_new['gpr'] = protein
+                rxn_new['stoichiometry'] = rxn.stoichiometry.copy()
+                
+                sim.add_reaction(r_id_new, **rxn_new)
+            sim.remove_reaction(r_id)
+    return sim, mapping

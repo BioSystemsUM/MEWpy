@@ -184,6 +184,13 @@ class Node(object):
         else:
             return self.left.get_operands().union(self.right.get_operands())
 
+    def get_operators(self):
+        if self.is_leaf():
+            return set()
+        else:
+            return {self.value}.union(self.left.get_operators()).union(self.right.get_operators())
+
+
     def get_parameters(self):
         """Parameters are all non numeric symbols in an expression"""
         if self.is_leaf():
@@ -553,18 +560,45 @@ def build_tree(exp, rules):
     return t
 
 
-def tokenize_infix_expression(exp):
+def tokenize_infix_expression(exp: str):
     return list(filter(lambda x: x != '', exp.replace('(', ' ( ').replace(')', ' ) ').split(' ')))
 
 
-def is_number(token):
+def is_number(token: str):
     """ Returns True if the token is a number
     """
     return token.replace('.', '', 1).replace('-', '', 1).isnumeric()
 
 
-def is_condition(token):
+def is_condition(token: str):
     """ Returns True if the token is a condition
     """
     regexp = re.compile(r'>|<|=')
     return bool(regexp.search(token))
+
+
+def isozymes(exp:str):
+    tree = build_tree(exp,Boolean())
+
+    def split_or(node):
+        if node.is_leaf():
+            return [node]
+        elif node.is_binary():
+            if node.value == S_AND:
+                return [node]
+            elif node.value == S_OR:
+                return split_or(node.left)+split_or(node.right)
+            else:
+                raise ValueError(f"Unrecognized operator for node {node}")
+        else:
+            raise ValueError(f"{node} is not binary of leaf")
+
+    prots = split_or(tree)
+
+    # validate
+    if not all([ len(node.get_operators()-set(S_AND))==0 for node in prots]):
+        raise ValueError(f"{exp} is a malformed expression")
+
+    proteins = [node.to_infix().replace(S_AND,"AND") for node in prots]
+    return proteins
+    
