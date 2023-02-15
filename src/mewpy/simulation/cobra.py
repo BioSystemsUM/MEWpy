@@ -327,7 +327,9 @@ class Simulation(CobraModelContainer, Simulator):
                      ub=ModelConstants.REACTION_UPPER_BOUND,
                      gpr=None,
                      objective=0,
-                     replace=True, **kwargs):
+                     replace=True,
+                     annotations={},
+                     **kwargs):
         """Adds a reaction to the model
 
         :param rxn_id: The reaction identifier
@@ -363,7 +365,7 @@ class Simulation(CobraModelContainer, Simulator):
         reaction.upper_bound = ub
         if gpr and isinstance(gpr, str):
             reaction.gene_reaction_rule = gpr
-
+        reaction.annotation = annotations
         if replace and rxn_id in self.reactions:
             self.remove_reaction(rxn_id)
         self.model.add_reactions([reaction])

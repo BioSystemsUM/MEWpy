@@ -23,7 +23,7 @@ Authors: Vitor Pereira
 from mewpy.simulation import get_simulator
 from mewpy.simulation.simulation import Simulator
 from mewpy.util.parsing import isozymes
-from copy import deepcopy
+from copy import deepcopy, copy
 from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
@@ -39,8 +39,6 @@ def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"], inline=
     
     :param model: A COBRApy or REFRAMED Model or an instance of 
         mewpy.simulation.simulation.Simulator
-
-    TODO: Add anotations
     """
     if isinstance(model, Simulator):
         if inline:
@@ -69,6 +67,7 @@ def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"], inline=
             sth = {k: v * -1 for k, v in rxn.stoichiometry.items()}
             rev_rxn['stoichiometry'] = sth
             rev_rxn['reversible'] = False
+            rev_rxn['annotations'] = copy(rxn.annotations)
 
             sim.add_reaction(rev_rxn_id, **rev_rxn)
             sim.set_reaction_bounds(r_id, 0, rxn.ub, False)
@@ -84,9 +83,10 @@ def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"], inline=
 def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline=False):
     """Splits reactions with isozymes into separated reactions
 
-    :param model: _description_
-    :type model: Union[Simulator, &quot;Model&quot;, &quot;CBModel&quot;]
-    :return: _description_
+    :param model: A COBRApy or REFRAMED Model or an instance of 
+        mewpy.simulation.simulation.Simulator
+    :param (boolean) inline: apply the modifications to the same of generate a new model. Default generates a new model.
+    :return: 
     :rtype: _type_
     """
 
@@ -101,18 +101,19 @@ def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline=False):
         else:
             sim = get_simulator(deepcopy(model))
 
-        
+    objective = sim.objective
     mapping = dict()
+    newobjective = {}
 
     for r_id in sim.reactions:
         rxn = sim.get_reaction(r_id)
         gpr = rxn.gpr
 
-        if gpr is not None:
+        if gpr is not None and len(gpr.strip()) > 0:
             proteins = isozymes(gpr)
             mapping[r_id] = []
             for i, protein in enumerate(proteins):
-                r_id_new = '{}_No{}'.format(r_id.id, i+1)
+                r_id_new = '{}_No{}'.format(r_id, i+1)
                 mapping[r_id].append(r_id_new)
 
                 rxn_new = dict()
@@ -121,7 +122,19 @@ def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline=False):
                 rxn_new['ub'] = rxn.ub
                 rxn_new['gpr'] = protein
                 rxn_new['stoichiometry'] = rxn.stoichiometry.copy()
+                rxn_new['annotations'] = copy(rxn.annotations)
                 
                 sim.add_reaction(r_id_new, **rxn_new)
             sim.remove_reaction(r_id)
+
+    # set the objective
+    for k, v in objective.items():
+        if k in mapping.keys():
+            for r in mapping[k]:
+                newobjective[r] = v
+        else:
+            newobjective[k] = v
+
+    sim.objective = newobjective
+
     return sim, mapping

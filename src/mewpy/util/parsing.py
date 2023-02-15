@@ -25,6 +25,7 @@ import re
 import sys
 from abc import abstractmethod
 from operator import add, sub, mul, truediv, pow
+from typing import List
 
 # Boolean operator symbols
 S_AND = '&'
@@ -256,18 +257,32 @@ class Node(object):
         else:
             return Node(self.value, self.left.replace(r_map), self.right.replace(r_map), self.tp)
 
-    def to_infix(self) -> str:
+    def to_infix(self, opar: str = '( ', cpar: str = ' )', sep: str = ' ', fsep: str = ' , ') -> str:
+        """Infix string representation
+
+        :param opar: open parentesis string, defaults to '( '
+        :type opar: str, optional
+        :param cpar: close parentesis string, defaults to ' )'
+        :type cpar: str, optional
+        :param sep: symbols separator, defaults to ' '
+        :type sep: str, optional
+        :param fsep: function argument separator, defaults to ' , '
+        :type fsep: str, optional
+        :return: An infix string representation of the node
+        :rtype: str
+        """
+
         if self.is_leaf():
             if self.value == EMPTY_LEAF:
                 return ''
             else:
                 return str(self.value)
         elif self.tp == 2:
-            return ''.join([self.value, '( ', self.left.to_infix(), ' , ', self.right.to_infix(), ' )'])
+            return ''.join([self.value, opar, self.left.to_infix(opar, cpar, sep, fsep), fsep, self.right.to_infix(opar, cpar, sep, fsep), cpar])
         elif self.tp == 1:
-            return ''.join([self.value, '( ', self.right.to_infix(), ' )'])
+            return ''.join([self.value, opar, self.right.to_infix(opar, cpar, sep, fsep), cpar])
         else:
-            return ''.join(['( ', self.left.to_infix(), ' ', self.value, ' ', self.right.to_infix(), ' )'])
+            return ''.join([opar, self.left.to_infix(opar, cpar, sep, fsep), sep, self.value, sep, self.right.to_infix(opar, cpar, sep, fsep), cpar])
 
     def copy(self):
         if self.is_leaf():
@@ -577,9 +592,11 @@ def is_condition(token: str):
     return bool(regexp.search(token))
 
 
-def isozymes(exp:str):
-    tree = build_tree(exp,Boolean())
-
+def isozymes(exp: str) -> List[str]:
+    """
+    Parses a GPR and splits it into its isozymes as a list of strings.
+    """
+    tree = build_tree(exp, Boolean())
     def split_or(node):
         if node.is_leaf():
             return [node]
@@ -599,6 +616,6 @@ def isozymes(exp:str):
     if not all([ len(node.get_operators()-set(S_AND))==0 for node in prots]):
         raise ValueError(f"{exp} is a malformed expression")
 
-    proteins = [node.to_infix().replace(S_AND,"AND") for node in prots]
+    proteins = [node.to_infix(opar='',cpar='').replace(S_AND,"and") for node in prots]
     return proteins
     

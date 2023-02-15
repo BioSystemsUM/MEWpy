@@ -286,7 +286,9 @@ class Simulation(CBModelContainer, Simulator):
                      ub=ModelConstants.REACTION_UPPER_BOUND, 
                      gpr= None,
                      objective=0,
-                     replace=True, **kwargs):
+                     replace=True,
+                     annotations={},
+                     **kwargs):
         """Adds a reaction to the model
 
         :param rxn_id: The reaction identifier
@@ -320,7 +322,7 @@ class Simulation(CBModelContainer, Simulator):
                               gpr_association=gpr,
                               reversible=reversible,
                               objective=objective)
-
+        reaction.metadata = annotations
         self.model.add_reaction(reaction, replace=replace)
 
     def remove_reaction(self, r_id):
