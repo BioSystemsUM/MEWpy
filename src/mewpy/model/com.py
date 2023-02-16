@@ -59,19 +59,23 @@ class CommunityModel:
 
         for model in models:
             m = model if isinstance(model, Simulator) else get_simulator(model)
+            if not m.objective:
+                raise ValueError(f"Model {m.id} has no objective")
             self.organisms[m.id] = deepcopy(m) if copy_models else m
 
         sid = ' '.join(sorted(self.model_ids))
         if flavor == 'reframed':
             from reframed.core.cbmodel import CBModel
             model = CBModel(sid)
-            self._met_prefix = 'M_'
-            self._rxn_prefix = 'R_'
+            self._met_prefix  = 'M_'
+            self._rxn_prefix  = 'R_'
+            self._gene_prefix = 'G_'
         else:
             from cobra.core.model import Model
             model = Model(sid)
-            self._met_prefix = ''
-            self._rxn_prefix = ''
+            self._met_prefix  = ''
+            self._rxn_prefix  = ''
+            self._gene_prefix = ''
 
         self.comm_model = get_simulator(model)
         self._merge_models()
@@ -114,13 +118,32 @@ class CommunityModel:
                                      lb=0, ub=inf)
 
         # add each organism
-
         for org_id, model in self.organisms.items():
             def rename(old_id):
                 return f"{old_id}_{org_id}"
 
-            # add internal compartments
+            def rename_gene(old_id):
+                if model._g_prefix == self._gene_prefix:
+                    _id = old_id
+                else: 
+                    _id = self._gene_prefix+old_id[len(model._g_prefix):]
+                return rename(_id)
+            
+            def rename_met(old_id):
+                if model._m_prefix == self._met_prefix:
+                    _id = old_id
+                else: 
+                    _id = self._met_prefix+old_id[len(model._m_prefix):]
+                return rename(_id)
 
+            def rename_rxn(old_id):
+                if old_id.startswith("T_") or model._r_prefix == self._rxn_prefix:
+                    _id = old_id
+                else: 
+                    _id = self._rxn_prefix+old_id[len(model._r_prefix):]
+                return rename(_id)
+
+            # add internal compartments
             for c_id in model.compartments:
                 comp = model.get_compartment(c_id)
                 if comp.external:
@@ -129,17 +152,17 @@ class CommunityModel:
                     self.comm_model.add_compartment(rename(c_id), name=comp.name)
 
             # add metabolites
-
             for m_id in model.metabolites:
                 met = model.get_metabolite(m_id)
                 if met.compartment not in old_ext_comps:  # if is internal
-                    new_id = rename(m_id)
+                    
+                    new_id = rename_met(m_id)
                     self.comm_model.add_metabolite(new_id,
                                                    formula=met.formula,
                                                    name=met.name,
                                                    compartment=rename(met.compartment)
                                                    )
-                    self.metabolite_map[(org_id,m_id)] = new_id
+                    self.metabolite_map[(org_id, m_id)] = new_id
 
                 elif m_id not in self.comm_model.metabolites:  # if is external but was not added yet
                     self.comm_model.add_metabolite(m_id,
@@ -152,7 +175,7 @@ class CommunityModel:
             if self.flavor == 'reframed':
                 for g_id in model.genes:
                     gene = model.get_gene(g_id)
-                    new_id = rename(g_id)
+                    new_id = rename_gene(g_id)
                     self.comm_model.add_gene(new_id, gene.name)
 
             # add internal reactions
@@ -162,20 +185,20 @@ class CommunityModel:
                 if r_id in ex_rxns:
                     continue
 
-                new_id = rename(r_id)
+                new_id = rename_rxn(r_id)
                 new_stoichiometry = {
-                    m_id if m_id in ext_mets else rename(m_id): coeff
+                    m_id if m_id in ext_mets else rename_met(m_id): coeff
                     for m_id, coeff in rxn.stoichiometry.items()
                 }
 
                 if r_id in [x for x, v in model.objective.items() if v > 0]:
                     new_stoichiometry[biomass_id] = 1
-                    self.biomasses[org_id]=new_id
+                    self.biomasses[org_id] = new_id
 
                 if rxn.gpr:
                     t = build_tree(rxn.gpr, Boolean)
-                    ren = {x:rename(x) for x in t.get_operands()}
-                    new_gpr = t.replace(ren).to_infix().replace(' | ', ' or ').replace(' & ',' and ')
+                    ren = {x: rename_gene(x) for x in t.get_operands()}
+                    new_gpr = t.replace(ren).to_infix()
                 else:
                     new_gpr = rxn.gpr
                 self.comm_model.add_reaction(new_id,
@@ -183,15 +206,15 @@ class CommunityModel:
                                              stoichiometry=new_stoichiometry,
                                              lb=rxn.lb,
                                              ub=rxn.ub,
-                                             gpr=new_gpr)
+                                             gpr=new_gpr,
+                                             annotations=rxn.annotations)
                 self.reaction_map[(org_id, r_id)] = new_id
-        # Add exchange reactions
 
+        # Add exchange reactions
         for m_id in ext_mets:
             m = m_id[len(self._met_prefix):] if m_id.startswith(self._met_prefix) else m_id
             r_id = f"{self._rxn_prefix}EX_{m}"
-            # self.comm_model.add_reaction(r_id, name=f'{m_id} exchange', stoichiometry={m_id: -1}, lb=-1000, ub=inf)
-            self.comm_model.add_reaction(r_id, name=r_id, stoichiometry={m_id: -1}, lb=-inf, ub=inf)
+            self.comm_model.add_reaction(r_id, name=r_id, stoichiometry={m_id: -1}, lb=-inf, ub=inf, reaction_type="EX")
 
         self.comm_model.objective = comm_growth
         self.biomass = comm_growth

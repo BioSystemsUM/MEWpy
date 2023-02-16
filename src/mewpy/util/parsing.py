@@ -257,7 +257,13 @@ class Node(object):
         else:
             return Node(self.value, self.left.replace(r_map), self.right.replace(r_map), self.tp)
 
-    def to_infix(self, opar: str = '( ', cpar: str = ' )', sep: str = ' ', fsep: str = ' , ') -> str:
+    def to_infix(self,
+                 opar: str = '(',
+                 cpar: str = ')',
+                 sep: str = ' ',
+                 fsep: str = ' , ',
+                 replacers={S_AND: 'and', S_OR: 'or'}
+                 ) -> str:
         """Infix string representation
 
         :param opar: open parentesis string, defaults to '( '
@@ -272,17 +278,20 @@ class Node(object):
         :rtype: str
         """
 
+        def rval(value):
+            return str(replacers[value]) if value in replacers.keys() else str(value)
+
         if self.is_leaf():
             if self.value == EMPTY_LEAF:
                 return ''
             else:
-                return str(self.value)
+                return rval(self.value)
         elif self.tp == 2:
-            return ''.join([self.value, opar, self.left.to_infix(opar, cpar, sep, fsep), fsep, self.right.to_infix(opar, cpar, sep, fsep), cpar])
+            return ''.join([rval(self.value), opar, self.left.to_infix(opar, cpar, sep, fsep), fsep, self.right.to_infix(opar, cpar, sep, fsep), cpar])
         elif self.tp == 1:
-            return ''.join([self.value, opar, self.right.to_infix(opar, cpar, sep, fsep), cpar])
+            return ''.join([rval(self.value), opar, self.right.to_infix(opar, cpar, sep, fsep), cpar])
         else:
-            return ''.join([opar, self.left.to_infix(opar, cpar, sep, fsep), sep, self.value, sep, self.right.to_infix(opar, cpar, sep, fsep), cpar])
+            return ''.join([opar, self.left.to_infix(opar, cpar, sep, fsep), sep, rval(self.value), sep, self.right.to_infix(opar, cpar, sep, fsep), cpar])
 
     def copy(self):
         if self.is_leaf():
@@ -616,6 +625,6 @@ def isozymes(exp: str) -> List[str]:
     if not all([ len(node.get_operators()-set(S_AND))==0 for node in prots]):
         raise ValueError(f"{exp} is a malformed expression")
 
-    proteins = [node.to_infix(opar='',cpar='').replace(S_AND,"and") for node in prots]
+    proteins = [node.to_infix(opar='',cpar='') for node in prots]
     return proteins
     

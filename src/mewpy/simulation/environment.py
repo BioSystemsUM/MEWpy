@@ -71,7 +71,7 @@ class Environment(OrderedDict):
 
         return compounds
 
-    def apply(self, model, exclusive=True, inplace=True, warning=True, prefix=None):
+    def apply(self, model, exclusive=True, inplace=True, warning=False, prefix=None):
         """
         Apply environmental conditions to a given model
         Args:
@@ -102,9 +102,15 @@ class Environment(OrderedDict):
         for r_id, (lb, ub) in env.items():
             if r_id in sim.reactions:
                 if inplace:
-                    sim.set_reaction_bounds(r_id, lb, ub)
+                    sim.set_reaction_bounds(r_id, lb, ub, False)
                 else:
                     constraints[r_id] = (lb, ub)
+            else:
+                msg = f"{r_id} not found in the model."
+                if warning:
+                    warn(msg)
+                else:
+                    raise ValueError(msg)
                     
         if not inplace:
             return constraints
@@ -217,7 +223,6 @@ class Environment(OrderedDict):
 
         for r_id in sim.get_exchange_reactions():
             env[r_id] = (-max_uptake, max_secretion)
-
         if inplace:
             env.apply(model, exclusive=False, inplace=True)
         else:
@@ -234,7 +239,6 @@ class Environment(OrderedDict):
         Returns:
             Environment: complete medium for provided model
         """
-
         return Environment.from_defaults(model, max_uptake=max_uptake, inplace=inplace)
 
     @staticmethod

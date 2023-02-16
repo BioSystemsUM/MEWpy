@@ -57,6 +57,7 @@ class CobraModelContainer(ModelContainer):
     def __init__(self, model: Model = None):
         self.model = model
 
+
     @property
     def id(self):
         """The model identifier."""
@@ -329,7 +330,7 @@ class Simulation(CobraModelContainer, Simulator):
                      objective=0,
                      replace=True,
                      annotations={},
-                     **kwargs):
+                     reaction_type=None):
         """Adds a reaction to the model
 
         :param rxn_id: The reaction identifier
@@ -679,8 +680,8 @@ class Simulation(CobraModelContainer, Simulator):
         else:
             return variability
 
-    def set_objective(self, reaction):
-        self.model.objective = reaction
+    def set_objective(self, reaction_id:str):
+        self.model.objective = reaction_id
 
     def create_empty_model(self, model_id: str):
         return Simulation(Model(model_id))

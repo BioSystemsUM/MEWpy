@@ -48,6 +48,11 @@ class ModelContainer(ABC):
        Provides an abstraction from models implementations.
     """
 
+    _r_prefix = ''
+    _m_prefix = ''
+    _g_prefix = ''
+
+
     @property
     def reactions(self):
         """

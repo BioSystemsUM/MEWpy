@@ -138,3 +138,21 @@ def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline=False):
     sim.objective = newobjective
 
     return sim, mapping
+
+
+def genes_to_species(model: Union[Simulator, "Model", "CBModel"], inline=False):
+
+    if isinstance(model, Simulator):
+        if inline:
+            sim = model
+        else:
+            sim = deepcopy(model)
+    else:
+        if inline:
+            sim = get_simulator(model)
+        else:
+            sim = get_simulator(deepcopy(model))
+
+
+    for gene in sim.genes:
+        sim.add_metabolite(gene,name=gene,compartment="")

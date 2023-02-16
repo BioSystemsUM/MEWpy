@@ -52,6 +52,7 @@ class CommunityKOProblem(AbstractKOProblem):
     def __init__(self, models: list, fevaluation=[], copy_models=True, **kwargs):
         super(CommunityKOProblem, self).__init__(
             None, fevaluation=fevaluation, **kwargs)
+
         self.organisms = OrderedDict()
         self.model_ids = list({model.id for model in models})
 
@@ -82,7 +83,7 @@ class CommunityKOProblem(AbstractKOProblem):
            :return: [description]
         """
         ko_organisms = list(candidate.keys())
-        models = [x for x in self.model_ids if x not in ko_organisms]
+        models = [x for k, x in self.organisms.items() if k not in ko_organisms]
         cmodel = CommunityModel(models)
         return cmodel.get_community_model()
 
