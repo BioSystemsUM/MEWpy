@@ -136,7 +136,7 @@ class GeckoModel(CBModel):
                  carbohydrate_polymerization_cost=12.8, biomass_reaction_id=None,
                  protein_reaction_id='r_4047', carbohydrate_reaction_id='r_4048',
                  protein_pool_exchange_id='prot_pool_exchange', common_protein_pool_id='prot_pool_c',
-                 reaction_prefix='R_'):
+                 reaction_prefix=''):
 
         # load predifined models
         model_list = ModelList()
@@ -197,6 +197,7 @@ class GeckoModel(CBModel):
         elif reaction_prefix+protein_pool_exchange_id in self.reactions.keys():
             self.protein_pool_exchange = self.reactions[reaction_prefix+protein_pool_exchange_id]
         else:
+            self.protein_pool_exchange = None
             logging.warning(f"Could not find protein pool exchange reaction {protein_pool_exchange_id}")
 
         # multi-pool
@@ -484,8 +485,12 @@ class GeckoModel(CBModel):
         :returns: frozenset, Set of protein exchange reactions with individual pools
 
         """
-        return (frozenset(rxn for rxn in self.reactions.keys()
-                          if re.match(self.protein_exchange_re, rxn)) - {self.protein_pool_exchange.id})
+        prot_ex = frozenset(rxn for rxn in self.reactions.keys()
+                            if re.match(self.protein_exchange_re, rxn))
+        if self.protein_pool_exchange:
+            return (prot_ex - {self.protein_pool_exchange.id})
+        else:
+            return prot_ex
 
     @property
     def pool_protein_exchanges(self):
@@ -494,9 +499,12 @@ class GeckoModel(CBModel):
         :returns: frozenset, Set of protein exchange reactions for single pool reactions.
 
         """
-        return (frozenset(rxn for rxn in self.reactions
-                          if re.match(self.pool_protein_exchange_re, rxn)) -
-                {self.protein_pool_exchange})
+        prot_ex = frozenset(rxn for rxn in self.reactions
+                            if re.match(self.pool_protein_exchange_re, rxn))
+        if self.protein_pool_exchange:
+            return (prot_ex - {self.protein_pool_exchange.id})
+        else:
+            return prot_ex
 
     @property
     def protein_exchanges(self):

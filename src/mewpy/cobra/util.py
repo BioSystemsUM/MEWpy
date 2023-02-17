@@ -36,7 +36,7 @@ def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"], inline=
     These two reactions will proceed in opposite directions. This
     guarentees that all reactions in the model will only allow
     positive flux values, which is useful for some modeling problems.
-    
+
     :param model: A COBRApy or REFRAMED Model or an instance of 
         mewpy.simulation.simulation.Simulator
     """
@@ -48,7 +48,7 @@ def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"], inline=
     else:
         if inline:
             sim = get_simulator(model)
-        else:    
+        else:
             sim = get_simulator(deepcopy(model))
 
     objective = sim.objective.copy()
@@ -77,7 +77,6 @@ def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"], inline=
 
     sim.objective = objective
     return sim
-
 
 
 def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline=False):
@@ -123,7 +122,7 @@ def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline=False):
                 rxn_new['gpr'] = protein
                 rxn_new['stoichiometry'] = rxn.stoichiometry.copy()
                 rxn_new['annotations'] = copy(rxn.annotations)
-                
+
                 sim.add_reaction(r_id_new, **rxn_new)
             sim.remove_reaction(r_id)
 
@@ -138,21 +137,3 @@ def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline=False):
     sim.objective = newobjective
 
     return sim, mapping
-
-
-def genes_to_species(model: Union[Simulator, "Model", "CBModel"], inline=False):
-
-    if isinstance(model, Simulator):
-        if inline:
-            sim = model
-        else:
-            sim = deepcopy(model)
-    else:
-        if inline:
-            sim = get_simulator(model)
-        else:
-            sim = get_simulator(deepcopy(model))
-
-
-    for gene in sim.genes:
-        sim.add_metabolite(gene,name=gene,compartment="")
