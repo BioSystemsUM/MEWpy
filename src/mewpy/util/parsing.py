@@ -25,6 +25,7 @@ import re
 import sys
 from abc import abstractmethod
 from operator import add, sub, mul, truediv, pow
+from typing import List
 
 # Boolean operator symbols
 S_AND = '&'
@@ -184,6 +185,13 @@ class Node(object):
         else:
             return self.left.get_operands().union(self.right.get_operands())
 
+    def get_operators(self):
+        if self.is_leaf():
+            return set()
+        else:
+            return {self.value}.union(self.left.get_operators()).union(self.right.get_operators())
+
+
     def get_parameters(self):
         """Parameters are all non numeric symbols in an expression"""
         if self.is_leaf():
@@ -249,18 +257,41 @@ class Node(object):
         else:
             return Node(self.value, self.left.replace(r_map), self.right.replace(r_map), self.tp)
 
-    def to_infix(self) -> str:
+    def to_infix(self,
+                 opar: str = '(',
+                 cpar: str = ')',
+                 sep: str = ' ',
+                 fsep: str = ' , ',
+                 replacers={S_AND: 'and', S_OR: 'or'}
+                 ) -> str:
+        """Infix string representation
+
+        :param opar: open parentesis string, defaults to '( '
+        :type opar: str, optional
+        :param cpar: close parentesis string, defaults to ' )'
+        :type cpar: str, optional
+        :param sep: symbols separator, defaults to ' '
+        :type sep: str, optional
+        :param fsep: function argument separator, defaults to ' , '
+        :type fsep: str, optional
+        :return: An infix string representation of the node
+        :rtype: str
+        """
+
+        def rval(value):
+            return str(replacers[value]) if value in replacers.keys() else str(value)
+
         if self.is_leaf():
             if self.value == EMPTY_LEAF:
                 return ''
             else:
-                return str(self.value)
+                return rval(self.value)
         elif self.tp == 2:
-            return ''.join([self.value, '( ', self.left.to_infix(), ' , ', self.right.to_infix(), ' )'])
+            return ''.join([rval(self.value), opar, self.left.to_infix(opar, cpar, sep, fsep), fsep, self.right.to_infix(opar, cpar, sep, fsep), cpar])
         elif self.tp == 1:
-            return ''.join([self.value, '( ', self.right.to_infix(), ' )'])
+            return ''.join([rval(self.value), opar, self.right.to_infix(opar, cpar, sep, fsep), cpar])
         else:
-            return ''.join(['( ', self.left.to_infix(), ' ', self.value, ' ', self.right.to_infix(), ' )'])
+            return ''.join([opar, self.left.to_infix(opar, cpar, sep, fsep), sep, rval(self.value), sep, self.right.to_infix(opar, cpar, sep, fsep), cpar])
 
     def copy(self):
         if self.is_leaf():
@@ -553,18 +584,47 @@ def build_tree(exp, rules):
     return t
 
 
-def tokenize_infix_expression(exp):
+def tokenize_infix_expression(exp: str):
     return list(filter(lambda x: x != '', exp.replace('(', ' ( ').replace(')', ' ) ').split(' ')))
 
 
-def is_number(token):
+def is_number(token: str):
     """ Returns True if the token is a number
     """
     return token.replace('.', '', 1).replace('-', '', 1).isnumeric()
 
 
-def is_condition(token):
+def is_condition(token: str):
     """ Returns True if the token is a condition
     """
     regexp = re.compile(r'>|<|=')
     return bool(regexp.search(token))
+
+
+def isozymes(exp: str) -> List[str]:
+    """
+    Parses a GPR and splits it into its isozymes as a list of strings.
+    """
+    tree = build_tree(exp, Boolean())
+    def split_or(node):
+        if node.is_leaf():
+            return [node]
+        elif node.is_binary():
+            if node.value == S_AND:
+                return [node]
+            elif node.value == S_OR:
+                return split_or(node.left)+split_or(node.right)
+            else:
+                raise ValueError(f"Unrecognized operator for node {node}")
+        else:
+            raise ValueError(f"{node} is not binary of leaf")
+
+    prots = split_or(tree)
+
+    # validate
+    if not all([ len(node.get_operators()-set(S_AND))==0 for node in prots]):
+        raise ValueError(f"{exp} is a malformed expression")
+
+    proteins = [node.to_infix(opar='',cpar='') for node in prots]
+    return proteins
+    

@@ -13,15 +13,15 @@ MEWpy is an integrated Metabolic Engineering Workbench for strain design optimiz
 
 MEWPy currently supports [REFRAMED](https://github.com/cdanielmachado/reframed) and [COBRApy](https://opencobra.github.io/cobrapy/) simulation environments. The optimization engine relies on either [inspyred](https://github.com/aarongarrett/inspyred) or [jMetalPy](https://github.com/jMetal/jMetalPy) packages.
 
-### Examples
+## Examples
 
 Examples are provided as [jupyter notebooks](examples) and as [python scripts](examples).
 
-### Documentation
+## Documentation
 
 The package documentation is available at [mewpy.readthedocs.io](https://mewpy.readthedocs.io).
 
-### Instalation
+## Instalation
 
 Installing from Pypi package repository:
 
@@ -41,9 +41,9 @@ MEWPy requires a compatible linear programming solver, with installed Python dep
 - [GUROBI](http://www.gurobi.com)
 - [GLPK](https://www.gnu.org/software/glpk/)
 
-### Cite
+## Cite
 
-Vítor Pereira, Fernando Cruz, Miguel Rocha, MEWpy: a computational strain optimization workbench in Python, Bioinformatics, 2021;, btab013, [https://doi.org/10.1093/bioinformatics/btab013](https://doi.org/10.1093/bioinformatics/btab013)
+Vítor Pereira, Fernando Cruz, Miguel Rocha, MEWpy: a computational strain optimization workbench in Python, Bioinformatics, 2021; [https://doi.org/10.1093/bioinformatics/btab013](https://doi.org/10.1093/bioinformatics/btab013)
 
 ### Credits and License
 

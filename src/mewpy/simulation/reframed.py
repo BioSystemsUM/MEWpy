@@ -32,6 +32,7 @@ from reframed.solvers import set_default_solver
 from reframed.solvers import solver_instance
 from reframed.solvers.solution import Solution
 from reframed.solvers.solution import Status as s_status
+from reframed.core.model import ReactionType
 
 from . import SimulationMethod, SStatus, get_default_solver
 from .simulation import Simulator, SimulationResult, ModelContainer
@@ -44,6 +45,13 @@ LOGGER = logging.getLogger(__name__)
 
 solver_map = {'gurobi': 'gurobi', 'cplex': 'cplex', 'glpk': 'optlang'}
 
+reaction_type_map = {
+    "ENZ": ReactionType.ENZYMATIC,
+    "TRP": ReactionType.TRANSPORT,
+    "EX": ReactionType.EXCHANGE,
+    "SINK": ReactionType.SINK,
+    "OTHER": ReactionType.OTHER,
+}
 
 # TODO: missing proteins and set objective implementations
 class CBModelContainer(ModelContainer):
@@ -52,6 +60,9 @@ class CBModelContainer(ModelContainer):
     :param model: A metabolic model.
 
     """
+    _r_prefix = 'R_'
+    _m_prefix = 'M_'
+    _g_prefix = 'G_'
 
     def __init__(self, model: CBModel = None):
         self.model = model
@@ -239,6 +250,9 @@ class Simulation(CBModelContainer, Simulator):
 
         self.model.set_objective(d)
 
+    def set_objective(self, reaction_id: str):
+        self.model.set_objective({reaction_id: 1})
+
     def update(self):
         """Updates the model
         """
@@ -286,7 +300,9 @@ class Simulation(CBModelContainer, Simulator):
                      ub=ModelConstants.REACTION_UPPER_BOUND, 
                      gpr= None,
                      objective=0,
-                     replace=True, **kwargs):
+                     replace=True,
+                     annotations={},
+                     reaction_type=None):
         """Adds a reaction to the model
 
         :param rxn_id: The reaction identifier
@@ -312,6 +328,7 @@ class Simulation(CBModelContainer, Simulator):
         from reframed.io.sbml import parse_gpr_rule
         if gpr and isinstance(gpr,str):
             gpr = parse_gpr_rule(gpr)
+        _reaction_type = reaction_type_map.get(reaction_type, None)
         reaction = CBReaction(rxn_id,
                               stoichiometry=stoichiometry,
                               name=name,
@@ -319,8 +336,10 @@ class Simulation(CBModelContainer, Simulator):
                               ub=ub, 
                               gpr_association=gpr,
                               reversible=reversible,
-                              objective=objective)
+                              objective=objective,
+                              reaction_type=_reaction_type)
 
+        reaction.metadata = annotations
         self.model.add_reaction(reaction, replace=replace)
 
     def remove_reaction(self, r_id):

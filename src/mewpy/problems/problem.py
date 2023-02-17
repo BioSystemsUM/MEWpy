@@ -218,21 +218,19 @@ class AbstractProblem(ABC):
         :param solver: An instance of the solver.
         :param dict solution: A solution to be converted to constraints in the context of the problem.
         '''
-        if 'solution' in kwargs:
-            constraints = self.solution_to_constraints(kwargs["solution"])
-            const = kwargs.get('constraints', dict())
-            const.update(constraints)
-            kwargs['constraints'] = const
-            del kwargs['solution']
+        solution = kwargs.pop("solution", {})
+        constraints = self.solution_to_constraints(solution)
+        const = kwargs.get('constraints', dict())
+        const.update(constraints)
+        kwargs['constraints'] = const
         return self.simulator.simulate(*args, **kwargs)
 
     def FVA(self, *args, **kwargs):
-        if 'solution' in kwargs:
-            constraints = self.solution_to_constraints(kwargs["solution"])
-            const = kwargs.get('constraints', dict())
-            const.update(constraints)
-            kwargs['constraints'] = const
-            del kwargs['solution']
+        solution = kwargs.pop("solution", {})
+        constraints = self.solution_to_constraints(solution)
+        const = kwargs.get('constraints', dict())
+        const.update(constraints)
+        kwargs['constraints'] = const
         return self.simulator.FVA(*args, **kwargs)
 
     def reset_simulator(self):

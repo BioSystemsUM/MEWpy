@@ -22,15 +22,18 @@ Contributors: Paulo Carvalhais
 ##############################################################################
 """
 from math import inf
+from copy import deepcopy
 from mewpy.solvers.solution import to_simulation_result
 from mewpy.solvers import solver_instance
 from mewpy.simulation import get_simulator
 from mewpy.simulation.simulation import Simulator
+from mewpy.cobra.util import convert_to_irreversible
 from .. import Preprocessing, ExpressionSet
 
 
+
 def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
-          constraints=None, parsimonious=False, **kwargs):
+          constraints=None, parsimonious=False, inline = False, **kwargs):
     """ Run a GIMME simulation [1]_.
 
     Arguments:
@@ -43,6 +46,7 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
         growth_frac (float): minimum growth requirement (default: 0.9)
         constraints (dict): additional constraints
         parsimonious (bool): compute a parsimonious solution (default: False)
+        inline (bool): returns a tissue specific model
 
     Returns:
         Solution: solution
@@ -54,11 +58,17 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
            PLoS Computational Biology, 4(5), e1000082.
            doi:10.1371/journal.pcbi.1000082
     """
-    if isinstance(model, Simulator):
-        sim = model
+    if not inline:
+        if isinstance(model, Simulator):
+            sim = model
+        else:
+            sim = get_simulator(model)
     else:
-        sim = get_simulator(model)
-
+        if isinstance(model, Simulator):
+            sim = deepcopy(model)
+        else:
+            sim = get_simulator(deepcopy(model))
+        
     if isinstance(expr, ExpressionSet):
         pp = Preprocessing(sim, expr)
         coeffs, _ = pp.percentile(condition, cutoff=cutoff)
@@ -84,23 +94,28 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
     constraints[biomass] = (growth_frac * wt_solution.fluxes[biomass], inf)
 
     # make model irreversible
-    for r_id in sim.reactions:
-        lb, _ = sim.get_reaction_bounds(r_id)
-        if lb < 0:
-            pos, neg = r_id + '+', r_id + '-'
-            solver.add_variable(pos, 0, inf, update=False)
-            solver.add_variable(neg, 0, inf, update=False)
-    solver.update()
+    if not inline:
+        for r_id in sim.reactions:
+            lb, _ = sim.get_reaction_bounds(r_id)
+            if lb < 0:
+                pos, neg = r_id + '+', r_id + '-'
+                solver.add_variable(pos, 0, inf, update=False)
+                solver.add_variable(neg, 0, inf, update=False)
+        solver.update()
+    
+        for r_id in sim.reactions:
+            lb, _ = sim.get_reaction_bounds(r_id)
+            if lb < 0:
+                pos, neg = r_id + '+', r_id + '-'
+                solver.add_constraint(
+                    'c' + pos, {r_id: -1, pos: 1}, '>', 0, update=False)
+                solver.add_constraint(
+                    'c' + neg, {r_id: 1, neg: 1}, '>', 0, update=False)
+        solver.update()
 
-    for r_id in sim.reactions:
-        lb, _ = sim.get_reaction_bounds(r_id)
-        if lb < 0:
-            pos, neg = r_id + '+', r_id + '-'
-            solver.add_constraint(
-                'c' + pos, {r_id: -1, pos: 1}, '>', 0, update=False)
-            solver.add_constraint(
-                'c' + neg, {r_id: 1, neg: 1}, '>', 0, update=False)
-    solver.update()
+    else:
+        convert_to_irreversible(sim,inline=True)
+
 
     objective = dict()
     for r_id, val in coeffs.items():
@@ -144,5 +159,6 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
     res = to_simulation_result(model, biomass, constraints, sim, solution)
     if hasattr(solution,'pre_solution'):
         res.pre_solution = solution.pre_solution
+    
     return res
 
