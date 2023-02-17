@@ -49,20 +49,28 @@ class CommunityKOProblem(AbstractKOProblem):
     
     """
 
-    def __init__(self, models: list, fevaluation=[], copy_models=True, **kwargs):
+    def __init__(self, models: list, fevaluation=[], copy_models=False, **kwargs):
         super(CommunityKOProblem, self).__init__(
             None, fevaluation=fevaluation, **kwargs)
 
         self.organisms = OrderedDict()
         self.model_ids = list({model.id for model in models})
+        self.flavor = kwargs.get('flavor', 'reframed')
+        self._merged_model = None
 
         if len(self.model_ids) < len(models):
             warn("Model ids are not unique, repeated models will be discarded.")
 
         for model in models:
-
             m = model if isinstance(model, Simulator) else get_simulator(model)
             self.organisms[m.id] = deepcopy(m) if copy_models else m
+
+    @property
+    def merged_model(self):
+        if self._merged_model is None:
+            cmodel = CommunityModel(list(self.organisms.values()), flavor=self.flavor)
+            self._merged_model = cmodel.get_community_model()
+        return self._merged_model
 
     def _build_target_list(self):
         """Target organims, that is, organisms that may be removed from the community.
@@ -84,7 +92,7 @@ class CommunityKOProblem(AbstractKOProblem):
         """
         ko_organisms = list(candidate.keys())
         models = [x for k, x in self.organisms.items() if k not in ko_organisms]
-        cmodel = CommunityModel(models)
+        cmodel = CommunityModel(models, flavor=self.flavor)
         return cmodel.get_community_model()
 
     def evaluate_solution(self, solution, decode=True):
@@ -107,7 +115,7 @@ class CommunityKOProblem(AbstractKOProblem):
             simulation_results = dict()
             for method in self.methods:
                 sim = get_simulator(cmodel, self.environmental_conditions)
-                simulation_result = self.simulator.simulate(method=method, scalefactor=self.scalefactor)
+                simulation_result = sim.simulate(method=method, scalefactor=self.scalefactor)
                 simulation_results[method] = simulation_result
             # apply the evaluation function(s)
             for f in self.fevaluation:
