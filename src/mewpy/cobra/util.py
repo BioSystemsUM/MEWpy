@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from reframed.core.cbmodel import CBModel
 
 
-def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"], inline=False):
+def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"], inline: bool = False):
     """Split reversible reactions into two irreversible reactions
     These two reactions will proceed in opposite directions. This
     guarentees that all reactions in the model will only allow
@@ -80,7 +80,7 @@ def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"], inline=
     return sim
 
 
-def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline=False):
+def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline: bool = False):
     """Splits reactions with isozymes into separated reactions
 
     :param model: A COBRApy or REFRAMED Model or an instance of 
@@ -141,9 +141,22 @@ def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline=False):
 
 
 def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
-                         data: None,
-                         c_compartment='c',
-                         inline=False):
+                         data=None,
+                         c_compartment: str = 'c',
+                         inline: bool = False):
+    """_summary_
+
+    :param model: _description_
+    :type model: Union[Simulator, &quot;Model&quot;, &quot;CBModel&quot;]
+    :param data: _description_
+    :type data: None
+    :param c_compartment: _description_, defaults to 'c'
+    :type c_compartment: str, optional
+    :param inline: _description_, defaults to False
+    :type inline: bool, optional
+    :return: _description_
+    :rtype: _type_
+    """
 
     if isinstance(model, Simulator):
         if inline:
@@ -215,9 +228,9 @@ def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
 
 
 def add_enzyme_constraints(model: Union[Simulator, "Model", "CBModel"],
-                           data: None,
-                           c_compartment='c',
-                           inline=False):
+                           data=None,
+                           c_compartment: str = 'c',
+                           inline: bool = False):
     sim = convert_to_irreversible(model, inline)
     sim = split_isozymes(sim, True)
     sim = __enzime_constraints(sim, data=data, c_compartment=c_compartment, inline=True)
