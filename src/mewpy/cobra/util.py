@@ -25,6 +25,7 @@ from mewpy.simulation.simulation import Simulator
 from mewpy.util.parsing import isozymes, build_tree, Boolean
 from copy import deepcopy, copy
 from math import inf
+from tqdm import tqdm
 from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
@@ -54,7 +55,7 @@ def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"], inline:
 
     objective = sim.objective.copy()
 
-    for r_id in sim.reactions:
+    for r_id in tqdm(sim.reactions, "Converting to irreversible"):
         lb, ub = sim.get_reaction_bounds(r_id)
         if lb < 0 and ub > 0:
             rxn = sim.get_reaction(r_id)
@@ -86,8 +87,8 @@ def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline: bool = F
     :param model: A COBRApy or REFRAMED Model or an instance of 
         mewpy.simulation.simulation.Simulator
     :param (boolean) inline: apply the modifications to the same of generate a new model. Default generates a new model.
-    :return: 
-    :rtype: _type_
+    :return: a simulator and a mapping from original to splitted reactions
+    :rtype: (Simulator, dict)
     """
 
     if isinstance(model, Simulator):
@@ -105,7 +106,7 @@ def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline: bool = F
     mapping = dict()
     newobjective = {}
 
-    for r_id in sim.reactions:
+    for r_id in tqdm(sim.reactions, "Splitting isozymes"):
         rxn = sim.get_reaction(r_id)
         gpr = rxn.gpr
 
@@ -151,9 +152,11 @@ def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
         mewpy.simulation.simulation.Simulator
     :param data: Protein MW and Kcats 
     :type data: None
-    :param c_compartment: The compartment where gene/proteins pseudo species are to be added , defaults to 'c'
+    :param c_compartment: The compartment where gene/proteins pseudo species are to be added.
+        Defaults to 'c'
     :type c_compartment: str, optional
-    :param (boolean) inline: apply the modifications to the same of generate a new model. Default generates a new model.
+    :param (boolean) inline: apply the modifications to the same of generate a new model.
+        Default generates a new model.
     :type inline: bool, optional
     :return: a new enzyme constrained model
     :rtype: Simulator
@@ -169,11 +172,11 @@ def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
             sim = get_simulator(model)
         else:
             sim = get_simulator(deepcopy(model))
-
+    objective = sim.objective
     if data is None:
         data = dict()
         for gene in sim.genes:
-            data[gene] = {'prot': gene[len(sim._g_prefix):], 'mw': 1, 'kcat': 1}
+            data[gene] = {'protein': gene[len(sim._g_prefix):], 'mw': 1, 'kcat': 1}
 
     # add protein pool and species
     common_protein_pool_id = sim._m_prefix+'prot_pool_c'
@@ -194,17 +197,17 @@ def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
 
     # add gene/protein species and draw protein pseudo-reactions
     gene_meta = dict()
-    for gene in sim.genes:
+    for gene in tqdm(sim.genes, "Adding gene species"):
         info = data[gene]
-        m_prot_id = f"prot_{info['prot']}_{c_compartment}"
-        m_name = f"prot_{info['prot']} {c_compartment}"
+        m_prot_id = f"prot_{info['protein']}_{c_compartment}"
+        m_name = f"prot_{info['protein']} {c_compartment}"
         sim.add_metabolite(m_prot_id,
                            name=m_name,
                            compartment=c_compartment)
 
         gene_meta[gene] = m_prot_id
 
-        r_prot_id = f"draw_prot_{info['prot']}"
+        r_prot_id = f"draw_prot_{info['protein']}"
         sim.add_reaction(r_prot_id,
                          name=r_prot_id,
                          stoichiometry={common_protein_pool_id: -1*info['mw'],
@@ -215,7 +218,7 @@ def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
                          )
 
     # add enzymes to reactions stoichiometry
-    for rxn_id in sim.reactions:
+    for rxn_id in tqdm(sim.reactions, "Adding proteins usage to reactions"):
         rxn = sim.get_reaction(rxn_id)
         if rxn.gpr:
             s = rxn.stoichiometry
@@ -224,7 +227,7 @@ def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
                 # TODO: mapping of (gene, reaction ec) to kcat
                 s[gene_meta[g]] = -data[g]['kcat']
             sim.update_stoichiometry(rxn_id, s)
-
+    sim.objective = objective
     return sim
 
 
@@ -239,14 +242,16 @@ def add_enzyme_constraints(model: Union[Simulator, "Model", "CBModel"],
         mewpy.simulation.simulation.Simulator
     :param data: Protein MW and Kcats 
     :type data: None
-    :param c_compartment: The compartment where gene/proteins pseudo species are to be added , defaults to 'c'
+    :param c_compartment: The compartment where gene/proteins pseudo species are to be added.
+        Defaults to 'c'
     :type c_compartment: str, optional
-    :param (boolean) inline: apply the modifications to the same of generate a new model. Default generates a new model.
+    :param (boolean) inline: apply the modifications to the same of generate a new model.
+        Default generates a new model.
     :type inline: bool, optional
     :return: a new enzyme constrained model
     :rtype: Simulator
     """
     sim = convert_to_irreversible(model, inline)
-    sim = split_isozymes(sim, True)
+    sim, _ = split_isozymes(sim, True)
     sim = __enzime_constraints(sim, data=data, c_compartment=c_compartment, inline=True)
     return sim
