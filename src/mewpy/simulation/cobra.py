@@ -369,6 +369,7 @@ class Simulation(CobraModelContainer, Simulator):
         reaction.annotation = annotations
         if replace and rxn_id in self.reactions:
             self.remove_reaction(rxn_id)
+
         self.model.add_reactions([reaction])
         set_objective(self.model, {reaction: objective})
 
@@ -379,6 +380,28 @@ class Simulation(CobraModelContainer, Simulator):
             r_id (str): The reaction identifier.
         """
         self.model.remove_reactions([r_id])
+
+    def update_stoichiometry(self, rxn_id, stoichiometry):
+        """Updates the stoichiometry of a reaction by creating a 
+        new reaction with a same id and the new stoichiometry
+
+        :param rxn_id: Reaction identifier
+        :type rxn_id: str
+        :param stoichiometry: the new stoichiometry
+        :type stoichiometry: dict[str:float]
+        """
+        rxn = self.model.reactions.get_by_id(rxn_id)
+        objective = self.objective.get(rxn_id, 0)
+        self.add_reaction(rxn_id,
+                          name=rxn.name,
+                          stoichiometry=stoichiometry,
+                          lb=rxn.lower_bound,
+                          ub=rxn.upper_bound,
+                          gpr=rxn.gene_reaction_rule,
+                          annotations=rxn.annotation,
+                          objective=objective,
+                          replace=True)
+
 
     def get_uptake_reactions(self):
         """
@@ -862,17 +885,17 @@ class GeckoSimulation(Simulation):
         else:
             raise ValueError(f"Protein {protein} not founded.")
 
-    def set_Kcat(self, protein, reaction, kcat):
+    def set_Kcat(self, protein, reaction, invkcat):
         """Alters an enzyme kcat for a given reaction.
 
         :param protein: The protein identifier
         :type protein: str
         :param reaction: The reaction identifier
         :type reaction: str
-        :param kcat: The kcat value, a real positive value.
-        :type kcat: float
+        :param invkcat: The inverse kcat value, a real positive value.
+        :type invkcat: float
         """
-        if kcat <= 0:
+        if invkcat <= 0:
             raise ValueError('kcat value needs to be positive.')
 
         rxn = self.model.reactions.get_by_id(reaction)
@@ -882,7 +905,7 @@ class GeckoSimulation(Simulation):
                 m = met
                 break
         if met is not None:
-            rxn.metabolites[met]=kcat
+            rxn.subtract_metabolites({met: invkcat})
         else:
             LOGGER.warn(f'Could not identify {protein} ' 
                         f'protein specie in reaction {reaction}')

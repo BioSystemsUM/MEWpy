@@ -22,8 +22,9 @@ Authors: Vitor Pereira
 """
 from mewpy.simulation import get_simulator
 from mewpy.simulation.simulation import Simulator
-from mewpy.util.parsing import isozymes
+from mewpy.util.parsing import isozymes, build_tree, Boolean
 from copy import deepcopy, copy
+from math import inf
 from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
@@ -137,3 +138,87 @@ def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline=False):
     sim.objective = newobjective
 
     return sim, mapping
+
+
+def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
+                         data: None,
+                         c_compartment='c',
+                         inline=False):
+
+    if isinstance(model, Simulator):
+        if inline:
+            sim = model
+        else:
+            sim = deepcopy(model)
+    else:
+        if inline:
+            sim = get_simulator(model)
+        else:
+            sim = get_simulator(deepcopy(model))
+
+    if data is None:
+        data = dict()
+        for gene in sim.genes:
+            data[gene] = {'prot': gene[len(sim._g_prefix):], 'mw': 1, 'kcat': 1}
+
+    # add protein pool and species
+    common_protein_pool_id = sim._m_prefix+'prot_pool_c'
+    pool_reaction = sim._r_prefix+'prot_pool_exchange'
+
+    sim.add_metabolite(common_protein_pool_id,
+                       name='prot_pool [cytoplasm]',
+                       compartment=c_compartment)
+
+    sim.add_reaction(pool_reaction,
+                     name='protein pool exchange',
+                     stoichiometry={common_protein_pool_id: 1},
+                     lb=0,
+                     ub=inf,
+                     reversible=False,
+                     reaction_type='EX'
+                     )
+
+    # add gene/protein species and draw protein pseudo-reactions
+    gene_meta = dict()
+    for gene in sim.genes:
+        info = data[gene]
+        m_prot_id = f"prot_{info['prot']}_{c_compartment}"
+        m_name = f"prot_{info['prot']} {c_compartment}"
+        sim.add_metabolite(m_prot_id,
+                           name=m_name,
+                           compartment=c_compartment)
+
+        gene_meta[gene] = m_prot_id
+
+        r_prot_id = f"draw_prot_{info['prot']}"
+        sim.add_reaction(r_prot_id,
+                         name=r_prot_id,
+                         stoichiometry={common_protein_pool_id: -1*info['mw'],
+                                        m_prot_id: 1},
+                         lb=0,
+                         ub=inf,
+                         reversible=False,
+                         )
+
+    # add enzymes to reactions stoichiometry
+    for rxn_id in sim.reactions:
+        rxn = sim.get_reaction(rxn_id)
+        if rxn.gpr:
+            s = rxn.stoichiometry
+            genes = build_tree(rxn.gpr, Boolean).get_operands()
+            for g in genes:
+                # TODO: mapping of (gene, reaction ec) to kcat
+                s[gene_meta[g]] = -data[g]['kcat']
+            sim.update_stoichiometry(rxn_id, s)
+
+    return sim
+
+
+def add_enzyme_constraints(model: Union[Simulator, "Model", "CBModel"],
+                           data: None,
+                           c_compartment='c',
+                           inline=False):
+    sim = convert_to_irreversible(model, inline)
+    sim = split_isozymes(sim, True)
+    sim = __enzime_constraints(sim, data=data, c_compartment=c_compartment, inline=True)
+    return sim

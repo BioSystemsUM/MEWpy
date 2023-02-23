@@ -350,6 +350,12 @@ class Simulation(CBModelContainer, Simulator):
         """
         self.model.remove_reaction(r_id)
 
+    def update_stoichiometry(self, rxn_id, stoichiometry):
+        rxn = self.model.reactions[rxn_id]
+        rxn.stoichiometry = OrderedDict(stoichiometry)
+        self.model._needs_update = True
+        self.solver = None
+
     def get_uptake_reactions(self):
         """
         :returns: The list of uptake reactions.

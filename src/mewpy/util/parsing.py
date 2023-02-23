@@ -304,17 +304,19 @@ class Syntax:
     """Defines an interface for the tree syntax parsing
        with operators, their precedence and associativity.
     """
-
+    @ staticmethod
     @ abstractmethod
-    def is_operator(self, op):
+    def is_operator(op):
         raise NotImplementedError
 
+    @ staticmethod
     @ abstractmethod
-    def is_greater_precedence(self, op1, op2):
+    def is_greater_precedence(op1, op2):
         raise NotImplementedError
 
+    @ staticmethod
     @ abstractmethod
-    def associativity(self, op):
+    def associativity(op):
         raise NotImplementedError
 
     @ staticmethod

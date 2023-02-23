@@ -161,7 +161,7 @@ def iterable(obj, is_string=False):
 def generator(container):
     return (value for value in container.values())
 
-# Taken from the talented team responsible for developing cobrapy!!!!
+# Taken from cobrapy!!!!
 chemical_formula_re = re.compile('([A-Z][a-z]?)([0-9.]+[0-9.]?|(?=[A-Z])?)')
 
 def elements(formula):
