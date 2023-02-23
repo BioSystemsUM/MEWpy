@@ -144,18 +144,19 @@ def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
                          data=None,
                          c_compartment: str = 'c',
                          inline: bool = False):
-    """_summary_
+    """Auxiliary method to add enzyme constraints to a model
 
-    :param model: _description_
-    :type model: Union[Simulator, &quot;Model&quot;, &quot;CBModel&quot;]
-    :param data: _description_
+    :param model: A model or simulator
+    :type model: A COBRApy or REFRAMED Model or an instance of 
+        mewpy.simulation.simulation.Simulator
+    :param data: Protein MW and Kcats 
     :type data: None
-    :param c_compartment: _description_, defaults to 'c'
+    :param c_compartment: The compartment where gene/proteins pseudo species are to be added , defaults to 'c'
     :type c_compartment: str, optional
-    :param inline: _description_, defaults to False
+    :param (boolean) inline: apply the modifications to the same of generate a new model. Default generates a new model.
     :type inline: bool, optional
-    :return: _description_
-    :rtype: _type_
+    :return: a new enzyme constrained model
+    :rtype: Simulator
     """
 
     if isinstance(model, Simulator):
@@ -229,8 +230,22 @@ def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
 
 def add_enzyme_constraints(model: Union[Simulator, "Model", "CBModel"],
                            data=None,
-                           c_compartment: str = 'c',
-                           inline: bool = False):
+                           c_compartment: str='c',
+                           inline: bool=False):
+    """Adds enzyme constraints to a model.
+
+    :param model: A model or simulator
+    :type model: A COBRApy or REFRAMED Model or an instance of 
+        mewpy.simulation.simulation.Simulator
+    :param data: Protein MW and Kcats 
+    :type data: None
+    :param c_compartment: The compartment where gene/proteins pseudo species are to be added , defaults to 'c'
+    :type c_compartment: str, optional
+    :param (boolean) inline: apply the modifications to the same of generate a new model. Default generates a new model.
+    :type inline: bool, optional
+    :return: a new enzyme constrained model
+    :rtype: Simulator
+    """
     sim = convert_to_irreversible(model, inline)
     sim = split_isozymes(sim, True)
     sim = __enzime_constraints(sim, data=data, c_compartment=c_compartment, inline=True)
