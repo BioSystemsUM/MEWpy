@@ -27,7 +27,11 @@ from .problem import AbstractKOProblem
 from mewpy.model import CommunityModel
 from mewpy.simulation import get_simulator
 from mewpy.simulation.simulation import Simulator
+from typing import TYPE_CHECKING, List, Union
 
+if TYPE_CHECKING:
+    from cobra.core import Model
+    from reframed.core.cbmodel import CBModel
 
 
 class CommunityKOProblem(AbstractKOProblem):
@@ -49,14 +53,14 @@ class CommunityKOProblem(AbstractKOProblem):
     
     """
 
-    def __init__(self, models: list, fevaluation=[], copy_models=False, **kwargs):
-        super(CommunityKOProblem, self).__init__(
-            None, fevaluation=fevaluation, **kwargs)
+    def __init__(self, models: List[Union[Simulator, 'Model', 'CBModel']],
+                 fevaluation=[],
+                 copy_models: bool = False,
+                 **kwargs):
 
         self.organisms = OrderedDict()
         self.model_ids = list({model.id for model in models})
         self.flavor = kwargs.get('flavor', 'reframed')
-        self._merged_model = None
 
         if len(self.model_ids) < len(models):
             warn("Model ids are not unique, repeated models will be discarded.")
@@ -65,67 +69,43 @@ class CommunityKOProblem(AbstractKOProblem):
             m = model if isinstance(model, Simulator) else get_simulator(model)
             self.organisms[m.id] = deepcopy(m) if copy_models else m
 
-    @property
-    def merged_model(self):
-        if self._merged_model is None:
-            cmodel = CommunityModel(list(self.organisms.values()), flavor=self.flavor)
-            self._merged_model = cmodel.get_community_model()
-        return self._merged_model
+        self.cmodel = CommunityModel(list(self.organisms.values()), flavor=self.flavor)
+        model = self.cmodel.merged_model
+
+        super(CommunityKOProblem, self).__init__(
+            model, fevaluation=fevaluation, **kwargs)
+
 
     def _build_target_list(self):
         """Target organims, that is, organisms that may be removed from the community.
         """
-        print("Building modification target list.")
         target = set(self.model_ids)
         if self.non_target is not None:
             target = target - set(self.non_target)
         self._trg_list = list(target)
 
+    def ext_reactions(self, organism):
+        org_mets = set([v for k, v in self.cmodel.metabolite_map.items() if k[0] == organism])
+        rxns = [v for k, v in self.cmodel.reaction_map.items() if k[0] == organism]
+        ext_mets = set([m for m in self.simulator.metabolites if self.simulator.get_metabolite(m).compartment == 'ext'])
+        res = []
+        for rxn in rxns:
+            st = self.simulator.get_reaction(rxn).stoichiometry
+            sub = set([k for k, v in st.items() if v < 0])
+            prod = set([k for k, v in st.items() if v > 0])
+            if (len(sub-ext_mets) == 0 and len(prod-org_mets) == 0):
+                res.append(rxn)
+        return res
+
     def solution_to_constraints(self, candidate):
-        """Returns a community model that includes all non
-           KO organisms.
-           TODO: this is a naif approach. Insteas consider using weights
-           to turn organism ON/OFF within the community.
-
-           :param candidate: [description]
-           :return: [description]
-        """
         ko_organisms = list(candidate.keys())
-        models = [x for k, x in self.organisms.items() if k not in ko_organisms]
-        cmodel = CommunityModel(models, flavor=self.flavor)
-        return cmodel.get_community_model()
-
-    def evaluate_solution(self, solution, decode=True):
-        """
-        Evaluates a single solution, a community.
-
-        :param solution: The solution to be evaluated (a community model).
-        :param decode: If the solution needs to be decoded (convert a list of model ids to a community model).
-        :returns: A list of fitness values.
-        """
-        decoded = {}
-        # decoded constraints
-        if decode:
-            decoded = self.decode(solution)
-            cmodel = self.solution_to_constraints(decoded)
-        else:
-            cmodel = solution
-        try:
-            p = []
-            simulation_results = dict()
-            for method in self.methods:
-                sim = get_simulator(cmodel, self.environmental_conditions)
-                simulation_result = sim.simulate(method=method, scalefactor=self.scalefactor)
-                simulation_results[method] = simulation_result
-            # apply the evaluation function(s)
-            for f in self.fevaluation:
-                v = f(simulation_results, decoded,
-                      scalefactor=self.scalefactor)
-                p.append(v)
-        except Exception as e:
-            p = []
-            for f in self.fevaluation:
-                p.append(f.worst_fitness)
-        return p
+        constraints = dict()
+        for org_id in ko_organisms:
+            uptakes = self.ext_reactions(org_id)
+            for r_id in uptakes:
+                constraints[r_id] = 0
+            # ko biomass
+            constraints[self.cmodel.biomasses[org_id]] = 0
+        return constraints
 
 
