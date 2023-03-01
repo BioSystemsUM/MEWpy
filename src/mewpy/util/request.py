@@ -35,13 +35,12 @@ def process_entry(entry):
         print(f'No gene name for {protein} using uniProtkbId')
     props = {}
     props['Catalytic Activity'] = []
-    # synonims
+    # synonyms
     if 'synonyms' in entry['genes'][0].keys():
         l = entry['genes'][0]['synonyms']
         sysnames = ' '.join([a['value'] for a in l])
     else:
         sysnames = ''
-
     # ordered locus
     if 'orderedLocusNames' in entry['genes'][0].keys():
         l = entry['genes'][0]['orderedLocusNames']
@@ -155,7 +154,7 @@ def retreive_protein(proteinid):
     return process_entry(entry)
 
 
-def brenda_Kcat(user, password, ec, organism=None):
+def brenda_query(user, password, ecNumber, organism=None, field='KCAT'):
     org= "" if organism is None else organism
     wsdl = "https://www.brenda-enzymes.org/soap/brenda_zeep.wsdl"
     try:
@@ -166,13 +165,32 @@ def brenda_Kcat(user, password, ec, organism=None):
         
     passwd = sha256(password.encode("utf-8")).hexdigest()
     parameters = (user, passwd,
-                  "ecNumber*"+ec, 
-                  "kcatKmValue*", 
-                  "kcatKmValueMaximum*", 
-                  "substrate*", 
-                  "commentary*", 
-                  "organism*"+org,
-                  "ligandStructureId*",
-                  "literature*")
-    resultString = client.service.getKcatKmValue(*parameters)
-        
+                  "ecNumber*"+ecNumber,
+                  "organism*"+org
+                  )
+
+    if field == 'KCAT':
+        resultString = client.service.getTurnoverNumber(*parameters)
+    elif field == 'SEQ':
+        resultString = client.service.getSequence(*parameters)
+    elif field == 'MW':
+        resultString = client.service.getMolecularWeight(*parameters)
+    else:
+        raise ValueError(f"{field} unknown field.")
+
+    return resultString
+
+
+def get_smiles(name):
+    try:
+        import requests
+        url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/%s/property/CanonicalSMILES/TXT" % name
+        req = requests.get(url)
+        if req.status_code != 200:
+            smiles = None
+        else:
+            smiles = req.content.splitlines()[0].decode()
+    except:
+        smiles = None
+
+    return smiles
