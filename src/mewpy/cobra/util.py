@@ -178,7 +178,7 @@ def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
         for gene in sim.genes:
             data[gene] = {'protein': gene[len(sim._g_prefix):], 'mw': 1, 'kcat': 1}
 
-    # add protein pool and species
+    # Add protein pool and species
     common_protein_pool_id = sim._m_prefix+'prot_pool_c'
     pool_reaction = sim._r_prefix+'prot_pool_exchange'
 
@@ -195,7 +195,8 @@ def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
                      reaction_type='EX'
                      )
 
-    # add gene/protein species and draw protein pseudo-reactions
+    # Add gene/protein species and draw protein pseudo-reactions
+    # MW in kDa, [kDa = g/mmol]
     gene_meta = dict()
     for gene in tqdm(sim.genes, "Adding gene species"):
         info = data[gene]
@@ -217,7 +218,8 @@ def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
                          reversible=False,
                          )
 
-    # add enzymes to reactions stoichiometry
+    # Add enzymes to reactions stoichiometry.
+    # 1/Kcats in per hour. Considering kcats in per second.
     for rxn_id in tqdm(sim.reactions, "Adding proteins usage to reactions"):
         rxn = sim.get_reaction(rxn_id)
         if rxn.gpr:
@@ -225,7 +227,7 @@ def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
             genes = build_tree(rxn.gpr, Boolean).get_operands()
             for g in genes:
                 # TODO: mapping of (gene, reaction ec) to kcat
-                s[gene_meta[g]] = -data[g]['kcat']
+                s[gene_meta[g]] = -1/(data[g]['kcat']*3600)
             sim.update_stoichiometry(rxn_id, s)
     sim.objective = objective
     return sim

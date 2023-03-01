@@ -34,7 +34,7 @@ from numpy import inf
 
 class CommunityModel:
 
-    def __init__(self, models: list, copy_models=False, flavor='cobrapy', ind_biomass=True):
+    def __init__(self, models: list, copy_models=False, flavor='cobrapy'):
         """
         Community Model.
 
@@ -44,8 +44,6 @@ class CommunityModel:
         Optional parameters:
         :param bool copy_models: if the models are to be copied, default True.
         :param str flavor: use 'cobrapy' or 'reframed. Default 'cobrapy'.
-        :param bool ind_biomass: If organisms should grow or not.
-
         """
 
         self.organisms = AttrDict()
@@ -55,7 +53,6 @@ class CommunityModel:
         self.biomass = None
         self.reaction_map = None
         self.metabolite_map = None
-        self.ind_biomass = ind_biomass
 
         if len(self.model_ids) < len(models):
             warn("Model ids are not unique, repeated models will be discarded.")
@@ -70,14 +67,14 @@ class CommunityModel:
         if flavor == 'reframed':
             from reframed.core.cbmodel import CBModel
             model = CBModel(sid)
-            self._met_prefix  = 'M_'
-            self._rxn_prefix  = 'R_'
+            self._met_prefix = 'M_'
+            self._rxn_prefix = 'R_'
             self._gene_prefix = 'G_'
         else:
             from cobra.core.model import Model
             model = Model(sid)
-            self._met_prefix  = ''
-            self._rxn_prefix  = ''
+            self._met_prefix = ''
+            self._rxn_prefix = ''
             self._gene_prefix = ''
 
         self.comm_model = get_simulator(model)
@@ -114,10 +111,7 @@ class CommunityModel:
         self.comm_model.add_compartment(ext_comp_id, "extracellular environment", external=True)
 
         # community biomass
-        if self.ind_biomass:
-            self.comm_model.add_metabolite(biomass_id, name="Total community biomass", compartment=ext_comp_id)
-        else:
-            org_biomasses = []
+        self.comm_model.add_metabolite(biomass_id, name="Total community biomass", compartment=ext_comp_id)
 
         # add each organism
         for org_id, model in self.organisms.items():
@@ -127,21 +121,21 @@ class CommunityModel:
             def rename_gene(old_id):
                 if model._g_prefix == self._gene_prefix:
                     _id = old_id
-                else: 
+                else:
                     _id = self._gene_prefix+old_id[len(model._g_prefix):]
                 return rename(_id)
-            
+
             def rename_met(old_id):
                 if model._m_prefix == self._met_prefix:
                     _id = old_id
-                else: 
+                else:
                     _id = self._met_prefix+old_id[len(model._m_prefix):]
                 return rename(_id)
 
             def rename_rxn(old_id):
                 if old_id.startswith("T_") or model._r_prefix == self._rxn_prefix:
                     _id = old_id
-                else: 
+                else:
                     _id = self._rxn_prefix+old_id[len(model._r_prefix):]
                 return rename(_id)
 
@@ -157,7 +151,7 @@ class CommunityModel:
             for m_id in model.metabolites:
                 met = model.get_metabolite(m_id)
                 if met.compartment not in old_ext_comps:  # if is internal
-                    
+
                     new_id = rename_met(m_id)
                     self.comm_model.add_metabolite(new_id,
                                                    formula=met.formula,
@@ -184,6 +178,7 @@ class CommunityModel:
             ex_rxns = model.get_exchange_reactions()
             for r_id in model.reactions:
                 rxn = model.get_reaction(r_id)
+                
                 if r_id in ex_rxns:
                     continue
 
@@ -193,16 +188,9 @@ class CommunityModel:
                     for m_id, coeff in rxn.stoichiometry.items()
                 }
                 if r_id in [x for x, v in model.objective.items() if v > 0]:
-                    if self.ind_biomass:
-                        new_stoichiometry[biomass_id] = 1
-                    else:
-                        new_biomass_id = rename_met("biomass_c")
-                        self.comm_model.add_metabolite(new_biomass_id, name="biomass "+org_id, compartment=ext_comp_id)
-                        new_stoichiometry[new_biomass_id] = 1
-                        org_biomasses.append(new_biomass_id)
-
+                    new_stoichiometry[biomass_id] = 1
                     self.biomasses[org_id] = new_id
-                    
+
                 if rxn.gpr:
                     t = build_tree(rxn.gpr, Boolean)
                     ren = {x: rename_gene(x) for x in t.get_operands()}
@@ -225,16 +213,12 @@ class CommunityModel:
             self.comm_model.add_reaction(r_id, name=r_id, stoichiometry={m_id: -1}, lb=-inf, ub=inf, reaction_type="EX")
 
         # biomass
-        if self.ind_biomass:
-            biomass_stoichiometry = {biomass_id: -1}
-        else:
-            biomass_stoichiometry = {b: -1 for b in org_biomasses}
+
+        biomass_stoichiometry = {biomass_id: -1}
 
         self.comm_model.add_reaction(comm_growth, name="Community growth rate",
                                      stoichiometry=biomass_stoichiometry,
                                      lb=0, ub=inf, reaction_type='SINK')
-
-
 
         self.comm_model.objective = comm_growth
         self.biomass = comm_growth

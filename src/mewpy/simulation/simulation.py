@@ -190,6 +190,17 @@ class Simulator(ModelContainer, SimulationInterface):
     def get_reaction_bounds(self, r_id):
         raise NotImplementedError
 
+    def set_environmental_conditions(self, medium):
+        for k, v in medium.items():
+            if isinstance(v, tuple):
+                lb, ub = v
+            elif isinstance(v, (float, int)):
+                lb, ub = v, v
+            else:
+                raise ValueError(f"{v} is an inappropiate bound.")
+            self.set_reaction_bounds(k, lb, ub, False)
+        self._environmental_conditions = medium
+
     @abstractmethod
     def metabolite_reaction_lookup(self, force_recalculate=False):
         raise NotImplementedError
