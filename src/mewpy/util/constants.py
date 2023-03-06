@@ -34,6 +34,8 @@ class ModelConstants:
     MP_EVALUATOR = 'ray'
     # Solver timeout
     SOLVER_TIMEOUT = 3600
+    # Default kcat value in 1/s
+    DEFAULT_KCAT = 1
 
 
 class EAConstants:

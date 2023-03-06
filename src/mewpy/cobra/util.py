@@ -23,6 +23,7 @@ Authors: Vitor Pereira
 from mewpy.simulation import get_simulator
 from mewpy.simulation.simulation import Simulator
 from mewpy.util.parsing import isozymes, build_tree, Boolean
+from mewpy.util.constants import ModelConstants
 from copy import deepcopy, copy
 from math import inf
 from tqdm import tqdm
@@ -142,7 +143,8 @@ def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline: bool = F
 
 
 def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
-                         data=None,
+                         prot_mw=None,
+                         enz_kcats=None,
                          c_compartment: str = 'c',
                          inline: bool = False):
     """Auxiliary method to add enzyme constraints to a model
@@ -173,10 +175,20 @@ def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
         else:
             sim = get_simulator(deepcopy(model))
     objective = sim.objective
-    if data is None:
-        data = dict()
+
+    if prot_mw is None:
+        prot_mw = dict()
         for gene in sim.genes:
-            data[gene] = {'protein': gene[len(sim._g_prefix):], 'mw': 1, 'kcat': 1}
+            prot_mw[gene] = {'protein': gene[len(sim._g_prefix):], 'mw': 1}
+
+    if enz_kcats is None:
+        enz_kcats = dict()
+        for gene in sim.genes:
+            enz_kcats[gene] = dict()
+            rxns = sim.get_gene(gene).reactions
+            for rxn in rxns:
+                enz_kcats[gene][rxn] = {'protein': gene[len(sim._g_prefix):], 'kcat': 1}
+
 
     # Add protein pool and species
     common_protein_pool_id = sim._m_prefix+'prot_pool_c'
@@ -199,19 +211,19 @@ def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
     # MW in kDa, [kDa = g/mmol]
     gene_meta = dict()
     for gene in tqdm(sim.genes, "Adding gene species"):
-        info = data[gene]
-        m_prot_id = f"prot_{info['protein']}_{c_compartment}"
-        m_name = f"prot_{info['protein']} {c_compartment}"
+        mw = prot_mw[gene]
+        m_prot_id = f"prot_{mw['protein']}_{c_compartment}"
+        m_name = f"prot_{mw['protein']} {c_compartment}"
         sim.add_metabolite(m_prot_id,
                            name=m_name,
                            compartment=c_compartment)
 
         gene_meta[gene] = m_prot_id
 
-        r_prot_id = f"draw_prot_{info['protein']}"
+        r_prot_id = f"draw_prot_{mw['protein']}"
         sim.add_reaction(r_prot_id,
                          name=r_prot_id,
-                         stoichiometry={common_protein_pool_id: -1*info['mw'],
+                         stoichiometry={common_protein_pool_id: -1*mw['mw'],
                                         m_prot_id: 1},
                          lb=0,
                          ub=inf,
@@ -227,14 +239,18 @@ def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
             genes = build_tree(rxn.gpr, Boolean).get_operands()
             for g in genes:
                 # TODO: mapping of (gene, reaction ec) to kcat
-                s[gene_meta[g]] = -1/(data[g]['kcat']*3600)
+                try:
+                    s[gene_meta[g]] = -1/(enz_kcats[g][rxn_id]['kcat']*3600)
+                except Exception:
+                    s[gene_meta[g]] = -1/(ModelConstants.DEFAULT_KCAT*3600)
             sim.update_stoichiometry(rxn_id, s)
     sim.objective = objective
     return sim
 
 
 def add_enzyme_constraints(model: Union[Simulator, "Model", "CBModel"],
-                           data=None,
+                           prot_mw=None,
+                           enz_kcats=None,
                            c_compartment: str='c',
                            inline: bool=False):
     """Adds enzyme constraints to a model.
@@ -255,5 +271,9 @@ def add_enzyme_constraints(model: Union[Simulator, "Model", "CBModel"],
     """
     sim = convert_to_irreversible(model, inline)
     sim, _ = split_isozymes(sim, True)
-    sim = __enzime_constraints(sim, data=data, c_compartment=c_compartment, inline=True)
+    sim = __enzime_constraints(sim,
+                               prot_mw=prot_mw,
+                               enz_kcats=enz_kcats,
+                               c_compartment=c_compartment,
+                               inline=True)
     return sim
