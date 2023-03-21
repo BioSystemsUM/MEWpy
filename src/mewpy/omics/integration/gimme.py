@@ -77,7 +77,6 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
     
     solver = solver_instance(sim)
 
-    # TODO: improve this on the simulator side
     if biomass is None:
         try:
             biomass = list(sim.objective.keys())[0]
@@ -98,7 +97,7 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
         for r_id in sim.reactions:
             lb, _ = sim.get_reaction_bounds(r_id)
             if lb < 0:
-                pos, neg = r_id + '+', r_id + '-'
+                pos, neg = r_id + '_p', r_id + '_n'
                 solver.add_variable(pos, 0, inf, update=False)
                 solver.add_variable(neg, 0, inf, update=False)
         solver.update()
@@ -106,7 +105,7 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
         for r_id in sim.reactions:
             lb, _ = sim.get_reaction_bounds(r_id)
             if lb < 0:
-                pos, neg = r_id + '+', r_id + '-'
+                pos, neg = r_id + '_p', r_id + '_n'
                 solver.add_constraint(
                     'c' + pos, {r_id: -1, pos: 1}, '>', 0, update=False)
                 solver.add_constraint(
@@ -121,7 +120,7 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
     for r_id, val in coeffs.items():
         lb, _ = sim.get_reaction_bounds(r_id)
         if lb < 0:
-            pos, neg = r_id + '+', r_id + '-'
+            pos, neg = r_id + '_p', r_id + '_n'
             objective[pos] = val
             objective[neg] = val
         else:
@@ -138,7 +137,7 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
         for r_id in sim.reactions:
             lb, _ = sim.get_reaction_bounds(r_id)
             if lb < 0:
-                pos, neg = r_id + '+', r_id + '-'
+                pos, neg = r_id + '_p', r_id + '_n'
                 objective[pos] = 1
                 objective[neg] = 1
             else:
@@ -152,7 +151,7 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
     for r_id in sim.reactions:
         lb, _ = sim.get_reaction_bounds(r_id)
         if lb < 0:
-            pos, neg = r_id + '+', r_id + '-'
+            pos, neg = r_id + '_p', r_id + '_'
             del solution.values[pos]
             del solution.values[neg]
 
