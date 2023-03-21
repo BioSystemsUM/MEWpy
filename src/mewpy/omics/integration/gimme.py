@@ -151,7 +151,7 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
     for r_id in sim.reactions:
         lb, _ = sim.get_reaction_bounds(r_id)
         if lb < 0:
-            pos, neg = r_id + '_p', r_id + '_'
+            pos, neg = r_id + '_p', r_id + '_n'
             del solution.values[pos]
             del solution.values[neg]
 
