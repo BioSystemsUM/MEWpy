@@ -99,10 +99,10 @@ def calculate_yprime(y,
     """
     y_prime = {name: 0 for name in y.keys()}
     for name in substrates:
-        y_prime[name] = y_prime[name]-rate
+        y_prime[name] -= rate
 
     for name in products:
-        y_prime[name] = y_prime[name]+rate
+        y_prime[name] += rate
 
     return y_prime
 
