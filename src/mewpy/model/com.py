@@ -34,7 +34,7 @@ from numpy import inf
 
 class CommunityModel:
 
-    def __init__(self, models: list, copy_models=False, flavor='cobrapy'):
+    def __init__(self, models: list, copy_models=False, flavor='reframed'):
         """
         Community Model.
 
@@ -43,7 +43,7 @@ class CommunityModel:
 
         Optional parameters:
         :param bool copy_models: if the models are to be copied, default True.
-        :param str flavor: use 'cobrapy' or 'reframed. Default 'cobrapy'.
+        :param str flavor: use 'cobrapy' or 'reframed. Default 'reframed'.
         """
 
         self.organisms = AttrDict()
@@ -67,16 +67,10 @@ class CommunityModel:
         if flavor == 'reframed':
             from reframed.core.cbmodel import CBModel
             model = CBModel(sid)
-            self._met_prefix = 'M_'
-            self._rxn_prefix = 'R_'
-            self._gene_prefix = 'G_'
         else:
             from cobra.core.model import Model
             model = Model(sid)
-            self._met_prefix = ''
-            self._rxn_prefix = ''
-            self._gene_prefix = ''
-
+        
         self.comm_model = get_simulator(model)
         self._merge_models()
 
@@ -119,24 +113,24 @@ class CommunityModel:
                 return f"{old_id}_{org_id}"
 
             def rename_gene(old_id):
-                if model._g_prefix == self._gene_prefix:
+                if model._g_prefix == self.comm_model._g_prefix:
                     _id = old_id
                 else:
-                    _id = self._gene_prefix+old_id[len(model._g_prefix):]
+                    _id = self.comm_model._g_prefix+old_id[len(model._g_prefix):]
                 return rename(_id)
 
             def rename_met(old_id):
-                if model._m_prefix == self._met_prefix:
+                if model._m_prefix == self.comm_model._m_prefix:
                     _id = old_id
                 else:
-                    _id = self._met_prefix+old_id[len(model._m_prefix):]
+                    _id = self.comm_model._m_prefix+old_id[len(model._m_prefix):]
                 return rename(_id)
 
             def rename_rxn(old_id):
-                if old_id.startswith("T_") or model._r_prefix == self._rxn_prefix:
+                if old_id.startswith("T_") or model._r_prefix == self.comm_model._r_prefix:
                     _id = old_id
                 else:
-                    _id = self._rxn_prefix+old_id[len(model._r_prefix):]
+                    _id = self.comm_model._r_prefix+old_id[len(model._r_prefix):]
                 return rename(_id)
 
             # add internal compartments
@@ -208,8 +202,8 @@ class CommunityModel:
 
         # Add exchange reactions
         for m_id in ext_mets:
-            m = m_id[len(self._met_prefix):] if m_id.startswith(self._met_prefix) else m_id
-            r_id = f"{self._rxn_prefix}EX_{m}"
+            m = m_id[len(self.comm_model._m_prefix):] if m_id.startswith(self.comm_model._m_prefix) else m_id
+            r_id = f"{self.comm_model._r_prefix}EX_{m}"
             self.comm_model.add_reaction(r_id, name=r_id, stoichiometry={m_id: -1}, lb=-inf, ub=inf, reaction_type="EX")
 
         # biomass
