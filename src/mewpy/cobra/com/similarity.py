@@ -24,8 +24,8 @@ def get_shared_metabolites_counts(model1:Union["Model","CBModel",Simulator],
     sim1 = model1 if isinstance(model1, Simulator) else get_simulator(model1)
     sim2 = model2 if isinstance(model2, Simulator) else get_simulator(model2)    
     
-    met1 = set(map(lambda x: x.id, sim1.metabolites))
-    met2 = set(map(lambda x: x.id, sim2.metabolites))
+    met1 = set([x[len(sim1._m_prefix):] for x in sim1.metabolites])
+    met2 = set([x[len(sim2._m_prefix):] for x in sim2.metabolites])
     met_ids = set(met1)
     met_ids = met_ids.union(set(met2))
     common_met_ids = met1.intersection(met2)
@@ -49,8 +49,8 @@ def get_shared_reactions_counts(model1:Union["Model","CBModel",Simulator],
     sim1 = model1 if isinstance(model1, Simulator) else get_simulator(model1)
     sim2 = model2 if isinstance(model2, Simulator) else get_simulator(model2)    
     
-    rec1 = set(map(lambda x: x.id, sim1.reactions))
-    rec2 = set(map(lambda x: x.id, sim2.reactions))
+    rec1 = set([x[len(sim1._r_prefix):] for x in sim1.reactions])
+    rec2 = set([x[len(sim1._r_prefix):] for x in sim2.reactions])
     rec_ids = set(rec1)
     rec_ids = rec_ids.union(set(rec2))
     common_rec_ids = rec1.intersection(rec2)
@@ -105,7 +105,7 @@ def jaccard_similarity_matrices(
     Returns:
         pd.DataFrame: DataFrame of all jaccard similarities for metabolites indexed by the model ids.
         pd.DataFrame: DataFrame of all jaccard similarities for reaction indexed by the model ids.
-        pd.DataFrame: DataFrame for resourece overlap indexed by the model ids.
+        pd.DataFrame: DataFrame for resource overlap indexed by the model ids.
     """
     N = len(models)
     matrix_met = np.eye(N)
@@ -165,9 +165,15 @@ def write_out_common_metabolites(
         prefix (str): Name of the file
 
     """
-    model = models[0] if isinstance(models[0], Simulator) else get_simulator(models[0])
+    def tosim(model):
+        return model if isinstance(model, Simulator) else get_simulator(model)
+
+    sims = [tosim(model) for model in models]
+    model = sims[0]
     common_metabolits = [
-        model.get_metabolite(rec) for rec in model.metabolites if all([rec in m.metabolites for m in models])
+        model.get_metabolite(rec) for rec in model.metabolites
+        if all([rec[len(model._m_prefix):] in [a[len(m._m_prefix):] for a in m.metabolites]
+                for m in sims])
     ]
     # Write csv
     df_dict = {"ID": [], "NAME": [], "FORMULA": [], "COMPARTMENT": []}
@@ -178,11 +184,11 @@ def write_out_common_metabolites(
         df_dict["COMPARTMENT"].append(met.compartment)
     df_common_met = pd.DataFrame(df_dict)
     df_common_met.to_csv(prefix)
-    df_common_met.head()
+    return df_common_met
 
 
 def write_out_common_reactions(
-    models: List[Union["Model","CBModel",Simulator]], prefix: str = "common_metabolites"
+    models: List[Union["Model", "CBModel", Simulator]], prefix: str = "common_metabolites"
 ) -> None:
     """This writes out the common reactions as excel sheet and will highligh all
     exchange reaction with yellow color
@@ -208,20 +214,10 @@ def write_out_common_reactions(
         df_dict["ID"].append(rec.id)
         df_dict["NAME"].append(rec.name)
         df_dict["REACTION"].append(rec.stoichiometry)
-        df_dict["LOWER_BOUND"].append(rec.lower_bound)
-        df_dict["UPPER_BOUND"].append(rec.upper_bound)
+        df_dict["LOWER_BOUND"].append(rec.lb)
+        df_dict["UPPER_BOUND"].append(rec.ub)
 
-    def highlight_col(x):
-        # copy df to new - original data are not changed
-        df = x.copy()
-        # mark exchange reactions by yellow color
-        mask = x["ID"].str.contains("EX_")
-        df.loc[mask, :] = "background-color: yellow"
-        df.loc[~mask, :] = "background-color: white"
-        return df
 
-    writer = pd.ExcelWriter(prefix)
     df_common_rec = pd.DataFrame(df_dict)
-    df_common_rec.style.apply(highlight_col, axis=None).to_excel(writer)
-    writer.save()
-    writer.close()
+    df_common_rec.to_csv(prefix)
+    return df_common_rec
