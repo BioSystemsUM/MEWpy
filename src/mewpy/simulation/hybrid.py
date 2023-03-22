@@ -129,6 +129,7 @@ class HybridSimulation:
                  kmodel: ODEModel,
                  cbmodel: Union[Simulator,"Model","CBModel"],
                  gDW: float=564.0,
+                 D:float=0.278e-4,
                  envcond: Dict[str,Union[float,Tuple[float,float]]] = dict(),
                  mapping: Dict[str,Tuple[str,int]] = dict(),
                  t_points: List[Union[float,int]] = [0, 1e9],
@@ -166,6 +167,7 @@ class HybridSimulation:
         self.timeout = timeout
         self.models_verification()
         self.gDW = gDW
+        self.D = D
 
     def __getstate__(self):
         state = OrderedDict(self.__dict__.copy())
@@ -195,6 +197,9 @@ class HybridSimulation:
                 raise ValueError(f"could not find reaction {v[0]} in the steady-state model ")
         
         return True
+
+    def unit_conv(self,value):
+        return value*self.D*3600/self.gDW
         
     def mapping_conversion(self, fluxes):
         """
@@ -209,7 +214,7 @@ class HybridSimulation:
         for k, value in fluxes.items():
             if k in mapping.keys():
                 v = mapping[k]
-                flxs[v[0]] = v[1]*value * 3600/self.gDW
+                flxs[v[0]] = self.unit_conv(v[1]*value)
         if len(flxs) != 0:
             return flxs
         else:
@@ -230,8 +235,8 @@ class HybridSimulation:
         for k, value in lbs.items():
             if k in mapping.keys():
                 v = mapping[k]
-                a = v[1]*value * 3600/self.gDW
-                b = v[1]*ubs[k] * 3600/self.gDW
+                a = self.unit_conv(v[1]*value)
+                b = self.unit_conv(v[1]*ubs[k])
                 flxs[v[0]] = (a, b) if a < b else (b, a)
         if len(flxs) != 0:
             return flxs
@@ -466,6 +471,7 @@ class HybridGeckoSimulation:
                  kmodel: ODEModel,
                  cbmodel: Union[Simulator, "Model", "CBModel"],
                  gDW: float = 564.0,
+                 D: float = 0.278e-4,
                  envcond: Dict[str, Union[float, Tuple[float, float]]] = dict(),
                  enzyme_mapping:Map=None,
                  protein_prefix:str='R_draw_prot_',
@@ -500,9 +506,13 @@ class HybridGeckoSimulation:
         self.kmodel = kmodel
         self.t_points = t_points
         self.gDW = gDW
+        self.D = D
         self.enzyme_mapping = enzyme_mapping
         self.protein_prefix = protein_prefix
         self.timeout = timeout
+
+    def unit_conv(self, value):
+        return value*self.D*3600/self.gDW
 
     def simulate(self, objective=None,
                  initcond=None,
@@ -568,9 +578,9 @@ class HybridGeckoSimulation:
                     #    vmax:  mM/s
                     #    kcat:  1/h
                     #    gDW:   gDW/L
-                    max_enzyme_usage = vmax_value * 3600 / (kcat * self.gDW)
+                    max_enzyme_usage = vmax_value * 3600 * self.D / (kcat * self.gDW)
                     if apply_lb:
-                        min_enzyme_usage = max(0, abs(flux) * 3600 / (kcat * self.gDW)-lb_tolerance)
+                        min_enzyme_usage = max(0, abs(flux) * 3600 * self.D / (kcat * self.gDW)-lb_tolerance)
                     else:
                         min_enzyme_usage = 0
                     draw_p = f"{self.protein_prefix}{protein}"
