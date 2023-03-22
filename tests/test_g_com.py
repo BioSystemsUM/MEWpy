@@ -28,7 +28,7 @@ class TestCommReframed(unittest.TestCase):
         self.assertGreater(res.objective_value, 0)
 
     def SteadyCom(self):
-        from mewpy.cobra.steadycom import SteadyCom
+        from mewpy.cobra.com.steadycom import SteadyCom
         SteadyCom(self.comm)
 
 
