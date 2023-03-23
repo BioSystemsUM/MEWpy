@@ -34,13 +34,12 @@ if TYPE_CHECKING:
 def get_shared_metabolites_counts(model1:Union["Model","CBModel",Simulator],
                                   model2:Union["Model","CBModel",Simulator]
                                  ) -> Tuple[int, int]:
-    """This method return the number of unique metabolites in both models .
+    """Method that returns the number of unique metabolites in both models .
 
-    Args:
-        model1: First model
-        model2: Second model
+    :param model1: First model
+    :param model2: Second model
 
-    Returns:
+    :returns:
         int: Total number of metabolites in both models
         int: Total number of shared metabolites
     """
@@ -59,13 +58,13 @@ def get_shared_metabolites_counts(model1:Union["Model","CBModel",Simulator],
 def get_shared_reactions_counts(model1:Union["Model","CBModel",Simulator],
                                 model2:Union["Model","CBModel",Simulator]
                                 ) -> Tuple[int, int]:
-    """This computes the number of shared reactions
+    """Computes the number of shared reactions
 
-    Args:
-        model1: First model
-        model2: Second model
     
-    Returns:
+    :param model1: First model
+    :param model2: Second model
+    
+    :returns:
         int: Total number of reactions in both models
         int: Total number of shared reactions
     """
@@ -84,19 +83,14 @@ def get_shared_reactions_counts(model1:Union["Model","CBModel",Simulator],
 def jaccard_similarity(model1:Union["Model","CBModel",Simulator],
                        model2:Union["Model","CBModel",Simulator]
                        ) -> Tuple[float, float]:
-    """This returns the Jacard Similarity of both models with respect to the set
+    """Returns the Jacard Similarity of both models with respect to the set
     of metabolites and reactions.
 
-    Given two sets :math:`A` and :math:`B` (i.e.
-    reactions of two different models), the Jaccrad similarity is defined as
+   
+    :param model1: First model
+    :param model2: Second model
 
-    .. math:: JS(A,B) = \mid A \cap B\mid / \mid A \cup B \mid
-
-    Args:
-        model1: First model
-        model2: Second model
-
-    Returns:
+    :returns:
         float: Jacard similarity of metabolite sets
         float: Jacard similarity of reaction sets
     """
@@ -117,15 +111,11 @@ def jaccard_similarity_matrices(
     containing all pairwise jaccard similarities for metabolites, reactions and exchange
     reactions (i.e. resource overlap).
 
-    Given two sets :math:`A` and :math:`B` (i.e.
-    reactions of two different models), the Jaccrad similarity is defined as
+    
 
-    .. math:: JS(A,B) = \mid A \cap B\mid / \mid A \cup B \mid
+    :param models (Iterable): List of models
 
-    Args:
-        models (Iterable): List of models
-
-    Returns:
+    :returns:
         pd.DataFrame: DataFrame of all jaccard similarities for metabolites indexed by the model ids.
         pd.DataFrame: DataFrame of all jaccard similarities for reaction indexed by the model ids.
         pd.DataFrame: DataFrame for resource overlap indexed by the model ids.
@@ -158,11 +148,11 @@ def resource_overlap(model1:Union["Model","CBModel",Simulator],
                     ) -> float:
     """Computes the resource overlap between two models
 
-    Args:
-        model1: First model
-        model2: Second model
+    
+    :param model1: First model
+    :param model2: Second model
 
-    Returns:
+    :returns:
         float: Jacard index of resource overlap
     """
     sim1 = get_simulator(model1)
@@ -180,13 +170,14 @@ def resource_overlap(model1:Union["Model","CBModel",Simulator],
 def write_out_common_metabolites(
     models: List[Union["Model","CBModel",Simulator]], prefix: str = "common_reactions.csv"
 ):
-    """This writes out the common reactions as excel sheet and will highligh all
+    """Writes out the common reactions as excel sheet and will highligh all
     exchange reaction with yellow color
 
-    Args:
-        models: List of models
-        prefix (str): Name of the file
+    
+    :param models: List of models
+    :param (str) prefix: Name of the file
 
+    :returns: DataFrame
     """
 
     sims = [get_simulator(model) for model in models]
@@ -214,10 +205,10 @@ def write_out_common_reactions(
     """This writes out the common reactions as excel sheet and will highligh all
     exchange reaction with yellow color
 
-    Args:
-        models: List of models
-        prefix (str): name of the file
+    :param models: List of models
+    :param (str) prefix: Name of the file
 
+    :returns: DataFrame
     """
     model = get_simulator(models[0])
     common_reactions = [

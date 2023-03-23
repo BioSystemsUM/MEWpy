@@ -15,12 +15,12 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 ##############################################################################
-SteadyCom  adapted from REFRAMED to be use with both COBRApy and REFRAMED
+SteadyCom adapted from REFRAMED to be used with both COBRApy and REFRAMED
 
 Authors: Vitor Pereira
 ##############################################################################
 """
-from mewpy.solvers.solution import Status, print_values
+from mewpy.solvers.solution import Status, print_values, print_balance
 from mewpy.solvers import solver_instance
 from mewpy.util.utilities import molecular_weight
 from warnings import warn
@@ -84,16 +84,16 @@ def SteadyComVA(community, obj_frac=1.0, constraints=None, solver=None):
 def build_problem(community, growth=1, bigM=1000):
 
     solver = solver_instance()
-    model = community.get_community_model()
+    sim = community.get_community_model()
 
     # create biomass variables
     for org_id in community.organisms.keys():
         solver.add_variable(f"x_{org_id}", 0, 1, update=False)
 
     # create all community reactions
-    for r_id in model.reactions:
-        reaction = model.get_reaction(r_id)
-        if r_id in model.get_exchange_reactions():
+    for r_id in sim.reactions:
+        reaction = sim.get_reaction(r_id)
+        if r_id in sim.get_exchange_reactions():
             solver.add_variable(r_id, reaction.lb, reaction.ub, update=False)
         else:
             lb = -inf if reaction.lb < 0 else 0
@@ -107,8 +107,8 @@ def build_problem(community, growth=1, bigM=1000):
                           rhs=1, update=False)
 
     # S.v = 0
-    table = model.metabolite_reaction_lookup()
-    for m_id in model.metabolites:
+    table = sim.metabolite_reaction_lookup()
+    for m_id in sim.metabolites:
         solver.add_constraint(m_id, table[m_id], update=False)
 
     # organism-specific constraints
@@ -246,11 +246,11 @@ class CommunitySolution(object):
     # calculate overall exchanges (organism x metabolite) -> rate
 
     def compute_exchanges(self):
-        model = self.community.comm_model
+        sim = self.community.comm_model
         reaction_map = self.community.reaction_map
         exchanges = {}
 
-        for m_id in model.get_external_metabolites():
+        for m_id in sim.get_external_metabolites():
 
             for org_id, organism in self.community.organisms.items():
                 rate = 0
@@ -330,11 +330,10 @@ class CommunitySolution(object):
         else:
             print_values(self.internal[org_id], pattern=pattern, sort=sort, abstol=abstol)
 
-    def print_external_balance(self, m_id, sort=False, percentage=False, equations=False, abstol=1e-9):
+    def print_external_balance(self, m_id, sort=False, percentage=False, abstol=1e-9):
 
-        #print_balance(self.values, m_id, self.community.merged_model, sort=sort, percentage=percentage, equations=equations,
-        #              abstol=abstol)
-        return None
+        print_balance(self.values, m_id, self.community.merged_model, sort=sort, percentage=percentage,
+                      abstol=abstol)
 
     def print_exchanges(self, m_id=None, abstol=1e-9):
 

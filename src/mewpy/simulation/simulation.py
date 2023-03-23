@@ -31,6 +31,7 @@ import math
 from ..util.parsing import evaluate_expression_tree
 from ..util.process import cpu_count
 
+from typing import List
 
 class SimulationMethod(Enum):
     FBA = 'FBA'
@@ -392,7 +393,7 @@ class Simulator(ModelContainer, SimulationInterface):
     def get_external_metabolites(self):
         external = []
         for m_id in self.metabolites:
-            c_id = self.get_metabolite(m_id).compartments
+            c_id = self.get_metabolite(m_id).compartment
             if self.get_compartment(c_id).external:
                 external.append(m_id)
         return m_id
@@ -410,6 +411,24 @@ class Simulator(ModelContainer, SimulationInterface):
         variability = self.FVA(obj_frac=0, reactions=reactions, constraints=constraints)
 
         return [r_id for r_id, (lb, ub) in variability.items() if (abs(lb) + abs(ub)) < abstol]
+
+    def get_metabolite_producers(self, m_id: str) -> List[str]:
+        """Returns the list or reactions that produces a metabolite.
+
+        :param m_id: the metabolite identifier
+        :return: A list of reaction identifiers
+        """
+        m_r = self.metabolite_reaction_lookup()
+        return [k for k, v in m_r[m_id].items() if v > 0]
+
+    def get_metabolite_consumers(self, m_id):
+        """Returns the list or reactions that consume a metabolite.
+
+        :param m_id: the metabolite identifier
+        :return: A list of reaction identifiers
+        """
+        m_r = self.metabolite_reaction_lookup()
+        return [k for k, v in m_r[m_id].items() if v < 0]
 
 
 class SimulationResult(object):

@@ -1,4 +1,4 @@
-from .simulation import Simulator, SimulationMethod, SStatus
+from .simulation import Simulator, SimulationMethod, SStatus, SimulationResult
 from ..util.constants import ModelConstants
 from .sglobal import __MEWPY_sim_solvers__
 
