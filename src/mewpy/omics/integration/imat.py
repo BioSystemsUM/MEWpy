@@ -32,12 +32,9 @@ from .. import Preprocessing, ExpressionSet
 
 
 def iMAT(model, expr, constraints=None, cutoff=(25, 75),
-        condition=0, epsilon=1):
+         condition=0, epsilon=1):
 
-    if isinstance(model, Simulator):
-        sim = model
-    else:
-        sim = get_simulator(model)
+    sim = get_simulator(model)
 
     if isinstance(expr, ExpressionSet):
         pp = Preprocessing(sim, expr)
@@ -102,6 +99,6 @@ def iMAT(model, expr, constraints=None, cutoff=(25, 75),
     object = {x: 1 for x in objective}
 
     solution = solver.solve(object, minimize=False, constraints=constraints)
-    
+
     res = to_simulation_result(model, None, constraints, sim, solution)
     return res

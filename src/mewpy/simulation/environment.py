@@ -26,7 +26,6 @@ from math import inf
 from types import FunctionType
 from warnings import warn
 from . import get_simulator
-from .simulation import Simulator
 
 
 class Environment(OrderedDict):
@@ -80,10 +79,8 @@ class Environment(OrderedDict):
             warning (bool): print warning for exchange reactions not found in the model (default: True)
             inplace (bool): apply to model, otherwise return a constraints dict (default: True)
         """
-        if not isinstance(model, Simulator):
-            sim = get_simulator(model)
-        else:
-            sim = model
+
+        sim = get_simulator(model)
 
         if prefix:
             e = {f"{prefix}{rxn_id}": (lb, ub) for rxn_id, (lb, ub) in self.items()}
@@ -190,11 +187,9 @@ class Environment(OrderedDict):
             Environment: environment from provided model
         """
 
-        if not isinstance(model, Simulator):
-            sim = get_simulator(model)
-        else:
-            sim = model
-
+        
+        sim = get_simulator(model)
+        
         env = Environment()
 
         for r_id in sim.get_exchange_reactions():
@@ -214,11 +209,9 @@ class Environment(OrderedDict):
         Returns:
             Environment: Default environment for provided model
         """
-        if not isinstance(model, Simulator):
-            sim = get_simulator(model)
-        else:
-            sim = model
-
+        
+        sim = get_simulator(model)
+        
         env = Environment()
 
         for r_id in sim.get_exchange_reactions():

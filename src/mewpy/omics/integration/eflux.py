@@ -44,10 +44,8 @@ def eFlux(model, expr, condition=0, scale_rxn=None, scale_value=1,
     Returns:
         Solution: solution
     """
-    if isinstance(model, Simulator):
-        sim = model
-    else:
-        sim = get_simulator(model)
+
+    sim = get_simulator(model)
 
     if isinstance(expr, ExpressionSet):
         pp = Preprocessing(sim, expr)

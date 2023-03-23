@@ -58,7 +58,7 @@ class CommunityModel:
             warn("Model ids are not unique, repeated models will be discarded.")
 
         for model in models:
-            m = model if isinstance(model, Simulator) else get_simulator(model)
+            m = get_simulator(model)
             if not m.objective:
                 raise ValueError(f"Model {m.id} has no objective")
             self.organisms[m.id] = deepcopy(m) if copy_models else m

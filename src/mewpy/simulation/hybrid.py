@@ -23,8 +23,7 @@ Contributors: Mariana Pereira
 """
 from mewpy.model.kinetic import ODEModel
 from mewpy.solvers import KineticConfigurations
-from mewpy.simulation import get_simulator
-from mewpy.simulation.simulation import Simulator
+from mewpy.simulation import get_simulator, Simulator
 from mewpy.simulation.kinetic import KineticSimulation
 from mewpy.solvers import solver_instance
 from mewpy.util.utilities import AttrDict
@@ -62,10 +61,7 @@ def _partial_lMOMA(model, reactions: dict, biomass: str, constraints=None):
     :type constraints: dict, optional
     """
 
-    if isinstance(model, Simulator):
-        simul = model
-    else:
-        simul = get_simulator(model)
+    simul = get_simulator(model)
 
     solver = solver_instance(simul)
 
@@ -100,7 +96,6 @@ def _partial_lMOMA(model, reactions: dict, biomass: str, constraints=None):
     solver.add_constraint('c' + bio_minus, {biomass: 1, bio_minus: 1}, '>', bio_ref, update=False)
     solver.update()
 
-
     objective = dict()
     for r_id in _reactions.keys():
         d_pos, d_neg = r_id + '_d+', r_id + '_d-'
@@ -115,7 +110,7 @@ def _partial_lMOMA(model, reactions: dict, biomass: str, constraints=None):
     return solution
 
 
-def sample(vmaxs:Dict[str,float], sigma:float=0.1):
+def sample(vmaxs: Dict[str, float], sigma: float = 0.1):
     k = vmaxs.keys()
     f = np.exp(normal(0, sigma, len(vmaxs)))
     v = np.array(list(vmaxs.values()))
@@ -125,14 +120,14 @@ def sample(vmaxs:Dict[str,float], sigma:float=0.1):
 
 class HybridSimulation:
 
-    def __init__(self, 
+    def __init__(self,
                  kmodel: ODEModel,
-                 cbmodel: Union[Simulator,"Model","CBModel"],
-                 gDW: float=564.0,
-                 D:float=0.278e-4,
-                 envcond: Dict[str,Union[float,Tuple[float,float]]] = dict(),
-                 mapping: Dict[str,Tuple[str,int]] = dict(),
-                 t_points: List[Union[float,int]] = [0, 1e9],
+                 cbmodel: Union[Simulator, "Model", "CBModel"],
+                 gDW: float = 564.0,
+                 D: float = 0.278e-4,
+                 envcond: Dict[str, Union[float, Tuple[float, float]]] = dict(),
+                 mapping: Dict[str, Tuple[str, int]] = dict(),
+                 t_points: List[Union[float, int]] = [0, 1e9],
                  timeout: int = KineticConfigurations.SOLVER_TIMEOUT):
         """_summary_
 
@@ -155,7 +150,7 @@ class HybridSimulation:
 
         if not isinstance(kmodel, ODEModel):
             raise ValueError('model is not an instance of ODEModel.')
-        
+
         if not isinstance(cbmodel, Simulator):
             self.sim = get_simulator(cbmodel, envcond=envcond)
         else:
@@ -190,17 +185,17 @@ class HybridSimulation:
         cbmodel = self.sim.model
         mapping = self.get_mapping()
 
-        for k,v in mapping.items():
+        for k, v in mapping.items():
             if k not in kmodel.ratelaws.keys():
                 raise ValueError(f"could not find reaction {k} in the kinetic model ")
             if v[0] not in cbmodel.reactions:
                 raise ValueError(f"could not find reaction {v[0]} in the steady-state model ")
-        
+
         return True
 
-    def unit_conv(self,value):
+    def unit_conv(self, value):
         return value*self.D*3600/self.gDW
-        
+
     def mapping_conversion(self, fluxes):
         """
         Function that converts the kinetic fluxes into constraint-based fluxes.
@@ -264,15 +259,14 @@ class HybridSimulation:
         # drop any NaN if exist
         df.dropna()
         return df
-    
-    
-    def simulate(self, objective=None, 
-                       initcond=None, 
-                       parameters=None, 
-                       constraints=None,
-                       amplitude=None,
-                       method='pFBA',
-                       **kwargs):
+
+    def simulate(self, objective=None,
+                 initcond=None,
+                 parameters=None,
+                 constraints=None,
+                 amplitude=None,
+                 method='pFBA',
+                 **kwargs):
         """
         This method performs a phenotype simulation hibridizing a kinetic and a constraint-based model.
 
@@ -328,18 +322,17 @@ class HybridSimulation:
             raise ValueError('Could not mapp reactions.')
 
         if objective:
-            solution = self.sim.simulate(objective=objective, method=method, constraints=constraints,**kwargs)
+            solution = self.sim.simulate(objective=objective, method=method, constraints=constraints, **kwargs)
         else:
-            solution = self.sim.simulate(method=method, constraints=constraints,**kwargs)
+            solution = self.sim.simulate(method=method, constraints=constraints, **kwargs)
         return solution
 
-
     def simulate_distribution(self,
-                              df, 
-                              q1=0.1, 
-                              q2=0.9, 
-                              objective=None, 
-                              method='pFBA', 
+                              df,
+                              q1=0.1,
+                              q2=0.9,
+                              objective=None,
+                              method='pFBA',
                               constraints=None,
                               **kwargs):
         """
@@ -371,9 +364,9 @@ class HybridSimulation:
         k_const = self.mapping_bounds(lbs, ubs)
         const.update(k_const)
         if objective:
-            solution = self.sim.simulate(method=method, constraints=const, objective=objective,**kwargs)
+            solution = self.sim.simulate(method=method, constraints=const, objective=objective, **kwargs)
         else:
-            solution = self.sim.simulate(method=method, constraints=const,**kwargs)
+            solution = self.sim.simulate(method=method, constraints=const, **kwargs)
         solution.kinetic_constraints = k_const
         return solution
 
@@ -423,7 +416,7 @@ class Map(AttrDict):
             if self.intersection(a, b):
                 combinations.append((a, b))
         return combinations
-    
+
     @property
     def proteins(self):
         prots = []
@@ -432,13 +425,13 @@ class Map(AttrDict):
         return prots
 
 
-def read_map(jsonfile:str):
+def read_map(jsonfile: str):
     """
     Reads kinetic to GECKO mapping json files.
-    
+
     :param (str) jsonfile: the json file name.
     :returns: an instance of Map
-    
+
     The json file is expected to have the structure:
         { kinetic_reaction1:
             [ vmax,
@@ -467,15 +460,15 @@ def hasNaN(values):
 
 class HybridGeckoSimulation:
 
-    def __init__(self, 
+    def __init__(self,
                  kmodel: ODEModel,
                  cbmodel: Union[Simulator, "Model", "CBModel"],
                  gDW: float = 564.0,
                  D: float = 0.278e-4,
                  envcond: Dict[str, Union[float, Tuple[float, float]]] = dict(),
-                 enzyme_mapping:Map=None,
-                 protein_prefix:str='R_draw_prot_',
-                 t_points: List[Union[float,int]] = [0, 1e9],
+                 enzyme_mapping: Map = None,
+                 protein_prefix: str = 'R_draw_prot_',
+                 t_points: List[Union[float, int]] = [0, 1e9],
                  timeout: int = KineticConfigurations.SOLVER_TIMEOUT):
         """
         Hybrid Gecko Simulation.

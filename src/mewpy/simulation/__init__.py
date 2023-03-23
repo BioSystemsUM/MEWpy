@@ -1,4 +1,4 @@
-from enum import Enum
+from .simulation import Simulator, SimulationMethod, SStatus
 from ..util.constants import ModelConstants
 from .sglobal import __MEWPY_sim_solvers__
 
@@ -72,6 +72,9 @@ def get_simulator(model, envcond=None, constraints=None, reference=None, reset_s
     :param bool reset_solver: Whether to reset the solver before each simulation
     :returns: An instance of Simulator
     """
+    # already is a Simulator instance
+    if isinstance(model, Simulator):
+        return model
 
     instance = None
     name = f"{model.__class__.__module__}.{model.__class__.__name__}"
@@ -157,45 +160,3 @@ def get_container(model):
         pass
 
     raise ValueError(f"Unrecognized model class: {model.__class__.name}")
-
-
-class SimulationMethod(Enum):
-    FBA = 'FBA'
-    pFBA = 'pFBA'
-    MOMA = 'MOMA'
-    lMOMA = 'lMOMA'
-    ROOM = 'ROOM'
-    NONE = 'NONE'
-
-    def __eq__(self, other):
-        """Overrides equal to enable string name comparison.
-        Allows to seamlessly use:
-            SimulationMethod.FBA = SimulationMethod.FBA
-            SimulationMethod.FBA = 'FBA'
-        without requiring an additional level of comparison (SimulationMethod.FBA.name = 'FBA')
-        """
-        if isinstance(other, SimulationMethod):
-            return super().__eq__(other)
-        elif isinstance(other, str):
-            return self.name == other
-        else:
-            return False
-
-    def __hash__(self):
-        return hash(self.name)
-
-
-class SStatus(Enum):
-    """ Enumeration of possible solution status. """
-    OPTIMAL = 'Optimal'
-    UNKNOWN = 'Unknown'
-    SUBOPTIMAL = 'Suboptimal'
-    UNBOUNDED = 'Unbounded'
-    INFEASIBLE = 'Infeasible'
-    INF_OR_UNB = 'Infeasible or Unbounded'
-
-    def __repr__(self):
-        return self.name
-
-    def __str__(self):
-        return self.name

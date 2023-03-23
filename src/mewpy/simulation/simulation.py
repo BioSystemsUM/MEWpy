@@ -23,12 +23,55 @@ Author: Vitor Pereira
 """
 from abc import abstractmethod, ABC
 from collections import OrderedDict
-from ..util.parsing import evaluate_expression_tree
-from ..util.process import cpu_count
-from . import SimulationMethod, SStatus
+from enum import Enum
 from joblib import Parallel, delayed
 from tqdm import tqdm
 import math
+
+from ..util.parsing import evaluate_expression_tree
+from ..util.process import cpu_count
+
+
+class SimulationMethod(Enum):
+    FBA = 'FBA'
+    pFBA = 'pFBA'
+    MOMA = 'MOMA'
+    lMOMA = 'lMOMA'
+    ROOM = 'ROOM'
+    NONE = 'NONE'
+
+    def __eq__(self, other):
+        """Overrides equal to enable string name comparison.
+        Allows to seamlessly use:
+            SimulationMethod.FBA = SimulationMethod.FBA
+            SimulationMethod.FBA = 'FBA'
+        without requiring an additional level of comparison (SimulationMethod.FBA.name = 'FBA')
+        """
+        if isinstance(other, SimulationMethod):
+            return super().__eq__(other)
+        elif isinstance(other, str):
+            return self.name == other
+        else:
+            return False
+
+    def __hash__(self):
+        return hash(self.name)
+
+
+class SStatus(Enum):
+    """ Enumeration of possible solution status. """
+    OPTIMAL = 'Optimal'
+    UNKNOWN = 'Unknown'
+    SUBOPTIMAL = 'Suboptimal'
+    UNBOUNDED = 'Unbounded'
+    INFEASIBLE = 'Infeasible'
+    INF_OR_UNB = 'Infeasible or Unbounded'
+
+    def __repr__(self):
+        return self.name
+
+    def __str__(self):
+        return self.name
 
 
 class SimulationInterface(ABC):

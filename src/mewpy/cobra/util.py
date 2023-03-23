@@ -20,8 +20,7 @@ COBRA utility module
 Authors: Vitor Pereira
 ##############################################################################
 """
-from mewpy.simulation import get_simulator
-from mewpy.simulation.simulation import Simulator
+from mewpy.simulation import get_simulator, Simulator
 from mewpy.util.parsing import isozymes, build_tree, Boolean
 from mewpy.util.constants import ModelConstants
 from copy import deepcopy, copy
@@ -44,15 +43,9 @@ def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"], inline:
         mewpy.simulation.simulation.Simulator
     """
     if isinstance(model, Simulator):
-        if inline:
-            sim = model
-        else:
-            sim = deepcopy(model)
+        sim = deepcopy(model)
     else:
-        if inline:
-            sim = get_simulator(model)
-        else:
-            sim = get_simulator(deepcopy(model))
+        sim = get_simulator(deepcopy(model))
 
     objective = sim.objective.copy()
 
@@ -93,15 +86,9 @@ def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline: bool = F
     """
 
     if isinstance(model, Simulator):
-        if inline:
-            sim = model
-        else:
-            sim = deepcopy(model)
+        sim = deepcopy(model)
     else:
-        if inline:
-            sim = get_simulator(model)
-        else:
-            sim = get_simulator(deepcopy(model))
+        sim = get_simulator(deepcopy(model))
 
     objective = sim.objective
     mapping = dict()

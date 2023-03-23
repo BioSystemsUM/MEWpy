@@ -17,7 +17,6 @@
 from math import inf
 from mewpy.solvers import solver_instance
 from mewpy.simulation import get_simulator, SStatus
-from mewpy.simulation.simulation import Simulator
 
 
 def pFBA(model, objective=None, reactions=None, constraints=None, obj_frac=None):
@@ -43,10 +42,7 @@ def pFBA(model, objective=None, reactions=None, constraints=None, obj_frac=None)
     :rtype: mewpy.solver.Solution
     """
 
-    if isinstance(model, Simulator):
-        sim = model
-    else:
-        sim = get_simulator(model)
+    sim = get_simulator(model)
 
     if not objective:
         objective = sim.objective

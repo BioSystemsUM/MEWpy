@@ -24,8 +24,7 @@ Author: Vitor Pereira
 import math
 import networkx as nx
 import numpy as np
-from ..simulation import get_simulator
-from ..simulation.simulation import Simulator
+from mewpy.simulation import get_simulator
 
 METABOLITE = 'METABOLITE'
 REACTION = 'REACTION    '
@@ -72,10 +71,8 @@ def create_metabolic_graph(model, directed=True, carbon=True, reactions=None, re
     :returns: A networkx graph of the metabolic network.
     """
 
-    if not isinstance(model, Simulator):
-        container = get_simulator(model)
-    else:
-        container = model
+
+    container = get_simulator(model)
 
     if directed:
         G = nx.DiGraph()
@@ -171,11 +168,8 @@ def shortest_distance(model, reaction, reactions=None, remove=[]):
         cofactores such as ATP/ADP, NAD(P)(H), and acetyl-CoA/CoA.
     :returns: A dictionary of distances.
     """
-    if not isinstance(model, Simulator):
-        container = get_simulator(model)
-    else:
-        container = model
-
+    container = get_simulator(model)
+    
     rxns = reactions if reactions else container.reactions
     if reaction not in rxns:
         rxns.append(reaction)
@@ -227,11 +221,9 @@ def probabilistic_gene_targets(model, product, targets, factor=10):
     :param int factor: Maximum number of repetitions. Defaults to 10.
     :returns: A probabilistic target list.
     """
-    if not isinstance(model, Simulator):
-        container = get_simulator(model)
-    else:
-        container = model
-
+    
+    container = get_simulator(model)
+    
     # Reaction targets
     if not targets:
         genes = container.genes

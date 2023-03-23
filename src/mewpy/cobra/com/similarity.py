@@ -1,8 +1,31 @@
-import pandas as pd
+# Copyright (C) 2019- Centre of Biological Engineering,
+#     University of Minho, Portugal
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+"""
+##############################################################################
+Models similarity measures
+
+Author: Vitor Pereira
+##############################################################################   
+"""
+from typing import TYPE_CHECKING, Iterable, List, Tuple, Union
+
 import numpy as np
-from mewpy.simulation.simulation import Simulator
-from mewpy.simulation import get_simulator
-from typing import Iterable, Tuple, List, Union, TYPE_CHECKING
+import pandas as pd
+
+from mewpy.simulation import Simulator, get_simulator
 
 if TYPE_CHECKING:
     from cobra.core import Model
@@ -21,8 +44,8 @@ def get_shared_metabolites_counts(model1:Union["Model","CBModel",Simulator],
         int: Total number of metabolites in both models
         int: Total number of shared metabolites
     """
-    sim1 = model1 if isinstance(model1, Simulator) else get_simulator(model1)
-    sim2 = model2 if isinstance(model2, Simulator) else get_simulator(model2)    
+    sim1 = get_simulator(model1)
+    sim2 = get_simulator(model2)    
     
     met1 = set([x[len(sim1._m_prefix):] for x in sim1.metabolites])
     met2 = set([x[len(sim2._m_prefix):] for x in sim2.metabolites])
@@ -46,8 +69,8 @@ def get_shared_reactions_counts(model1:Union["Model","CBModel",Simulator],
         int: Total number of reactions in both models
         int: Total number of shared reactions
     """
-    sim1 = model1 if isinstance(model1, Simulator) else get_simulator(model1)
-    sim2 = model2 if isinstance(model2, Simulator) else get_simulator(model2)    
+    sim1 = get_simulator(model1)
+    sim2 = get_simulator(model2)    
     
     rec1 = set([x[len(sim1._r_prefix):] for x in sim1.reactions])
     rec2 = set([x[len(sim1._r_prefix):] for x in sim2.reactions])
@@ -77,8 +100,8 @@ def jaccard_similarity(model1:Union["Model","CBModel",Simulator],
         float: Jacard similarity of metabolite sets
         float: Jacard similarity of reaction sets
     """
-    sim1 = model1 if isinstance(model1, Simulator) else get_simulator(model1)
-    sim2 = model2 if isinstance(model2, Simulator) else get_simulator(model2)    
+    sim1 = get_simulator(model1)
+    sim2 = get_simulator(model2)    
     
     total_mets, common_mets = get_shared_metabolites_counts(sim1, sim2)
     total_recs, common_recs = get_shared_reactions_counts(sim1, sim2)
@@ -142,8 +165,8 @@ def resource_overlap(model1:Union["Model","CBModel",Simulator],
     Returns:
         float: Jacard index of resource overlap
     """
-    sim1 = model1 if isinstance(model1, Simulator) else get_simulator(model1)
-    sim2 = model2 if isinstance(model2, Simulator) else get_simulator(model2)    
+    sim1 = get_simulator(model1)
+    sim2 = get_simulator(model2)    
     
     in_ex1 = set([ex for ex in sim1.get_uptake_reactions()])
     in_ex2 = set([ex for ex in sim2.get_uptake_reactions()])
@@ -165,10 +188,8 @@ def write_out_common_metabolites(
         prefix (str): Name of the file
 
     """
-    def tosim(model):
-        return model if isinstance(model, Simulator) else get_simulator(model)
 
-    sims = [tosim(model) for model in models]
+    sims = [get_simulator(model) for model in models]
     model = sims[0]
     common_metabolits = [
         model.get_metabolite(rec) for rec in model.metabolites
@@ -198,7 +219,7 @@ def write_out_common_reactions(
         prefix (str): name of the file
 
     """
-    model = models[0] if isinstance(models[0], Simulator) else get_simulator(models[0])
+    model = get_simulator(models[0])
     common_reactions = [
         model.get_reaction(rec) for rec in model.reactions if all([rec in m.reactions for m in models])
     ]
