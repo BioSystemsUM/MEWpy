@@ -39,7 +39,7 @@ def get_shared_metabolites_counts(model1:Union["Model","CBModel",Simulator],
     :param model1: First model
     :param model2: Second model
 
-    :returns:
+    :return:
         int: Total number of metabolites in both models
         int: Total number of shared metabolites
     """
@@ -64,7 +64,7 @@ def get_shared_reactions_counts(model1:Union["Model","CBModel",Simulator],
     :param model1: First model
     :param model2: Second model
     
-    :returns:
+    :return:
         int: Total number of reactions in both models
         int: Total number of shared reactions
     """
@@ -90,7 +90,7 @@ def jaccard_similarity(model1:Union["Model","CBModel",Simulator],
     :param model1: First model
     :param model2: Second model
 
-    :returns:
+    :return:
         float: Jacard similarity of metabolite sets
         float: Jacard similarity of reaction sets
     """
@@ -206,7 +206,7 @@ def write_out_common_reactions(
     :param models: List of models
     :param (str) prefix: Name of the file
 
-    :returns: DataFrame
+    :return: DataFrame
     """
     model = get_simulator(models[0])
     common_reactions = [
