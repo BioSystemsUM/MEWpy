@@ -24,6 +24,7 @@ from mewpy.solvers.solver import VarType
 from mewpy.solvers.solution import Status
 from mewpy.simulation import Environment
 from mewpy.cobra.medium import minimal_medium
+from mewpy.util.constants import ModelConstants
 
 from warnings import warn
 from collections import Counter
@@ -49,12 +50,12 @@ def sc_score(community, environment=None, min_growth=0.1, n_solutions=100, verbo
     community = community.copy()
 
     if environment:
-        environment.apply(community.merged, inplace=True, warning=False)
+        environment.apply(community.comm_model, inplace=True, warning=False)
 
-    for b in community.organisms_biomass_reactions.values():
-        community.merged.reactions[b].lb = 0
+    for b in community.biomasses.values():
+        community.comm_model.set_reaction_bounds(b, 0, ModelConstants.REACTION_UPPER_BOUND, False)
 
-    solver = solver_instance(community.merged)
+    solver = solver_instance(community.comm_model)
 
     for org_id in community.organisms:
         org_var = 'y_{}'.format(org_id)
@@ -63,10 +64,12 @@ def sc_score(community, environment=None, min_growth=0.1, n_solutions=100, verbo
     solver.update()
 
     bigM = 1000
-    for org_id, rxns in community.organisms_reactions.items():
+    for org_id, sim in community.organisms.items():
         org_var = 'y_{}'.format(org_id)
-        for r_id in rxns:
-            if r_id == community.organisms_biomass_reactions[org_id]:
+        rxns = set(sim.reactions)-set(sim.get_exchange_reactions())
+        for rxn in rxns:
+            r_id = community.reaction_map[(org_id, rxn)]
+            if r_id == community.biomasses[org_id]:
                 continue
             solver.add_constraint('c_{}_lb'.format(r_id), {r_id: 1, org_var: bigM}, '>', 0, update=False)
             solver.add_constraint('c_{}_ub'.format(r_id), {r_id: 1, org_var: -bigM}, '<', 0, update=False)
@@ -75,9 +78,9 @@ def sc_score(community, environment=None, min_growth=0.1, n_solutions=100, verbo
 
     scores = {}
 
-    for org_id, biomass_id in community.organisms_biomass_reactions.items():
+    for org_id, biomass_id in community.biomasses.items():
         other = {o for o in community.organisms if o != org_id}
-        solver.add_constraint('COM_Biomass', {community.organisms_biomass_reactions[org_id]: 1}, '>', min_growth)
+        solver.add_constraint('COM_Biomass', {community.biomasses[org_id]: 1}, '>', min_growth)
         objective = {"y_{}".format(o): 1.0 for o in other}
 
         if not use_pool:
@@ -156,7 +159,7 @@ def mu_score(community, environment=None, min_mol_weight=False, min_growth=0.1, 
 
     for org_id in community.organisms:
         exchange_rxns = community.organisms_exchange_reactions[org_id]
-        biomass_reaction = community.organisms_biomass_reactions[org_id]
+        biomass_reaction = community.biomasses[org_id]
         community.merged.biomass_reaction = biomass_reaction
 
         medium_list, sols = minimal_medium(community.merged, exchange_reactions=list(exchange_rxns.keys()),
@@ -352,7 +355,7 @@ def mro_score(community, environment=None, direction=-1, min_mol_weight=False, m
     solver = solver_instance(community.merged)
 
     for org_id in community.organisms:
-        biomass_reaction = community.organisms_biomass_reactions[org_id]
+        biomass_reaction = community.biomasses[org_id]
         community.merged.biomass_reaction = biomass_reaction
         org_interacting_exch = community.organisms_exchange_reactions[org_id]
 

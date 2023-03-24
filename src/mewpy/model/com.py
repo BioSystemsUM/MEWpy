@@ -217,3 +217,9 @@ class CommunityModel:
         self.comm_model.objective = comm_growth
         self.biomass = comm_growth
         return self.comm_model
+
+    def copy(self,copy_models=False, flavor=None):
+        models = [m.model for m in self.organisms.values()]
+        f = flavor if flavor is not None else self.flavor
+        return CommunityModel(models,copy_models=copy_models,flavor=f)
+        

@@ -25,7 +25,7 @@ import re
 import types
 import time
 from collections.abc import Iterable
-from .constants import atomic_weights, a
+from .constants import atomic_weights, aa_weights
 from warnings import warn
 
 class AttrDict(dict):
