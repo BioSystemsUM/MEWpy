@@ -111,11 +111,9 @@ def jaccard_similarity_matrices(
     containing all pairwise jaccard similarities for metabolites, reactions and exchange
     reactions (i.e. resource overlap).
 
-    
-
     :param models (Iterable): List of models
 
-    :returns:
+    :return:
         pd.DataFrame: DataFrame of all jaccard similarities for metabolites indexed by the model ids.
         pd.DataFrame: DataFrame of all jaccard similarities for reaction indexed by the model ids.
         pd.DataFrame: DataFrame for resource overlap indexed by the model ids.
@@ -152,7 +150,7 @@ def resource_overlap(model1:Union["Model","CBModel",Simulator],
     :param model1: First model
     :param model2: Second model
 
-    :returns:
+    :return:
         float: Jacard index of resource overlap
     """
     sim1 = get_simulator(model1)
@@ -177,7 +175,7 @@ def write_out_common_metabolites(
     :param models: List of models
     :param (str) prefix: Name of the file
 
-    :returns: DataFrame
+    :return: DataFrame
     """
 
     sims = [get_simulator(model) for model in models]
