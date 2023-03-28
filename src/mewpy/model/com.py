@@ -97,7 +97,7 @@ class CommunityModel:
         self.metabolite_map = {}
 
         # default IDs
-        ext_comp_id = "ext"
+        ext_comp_id = "e"
         biomass_id = "community_biomass"
         comm_growth = "community_growth"
 
@@ -112,54 +112,53 @@ class CommunityModel:
             def rename(old_id):
                 return f"{old_id}_{org_id}"
 
-            def rename_gene(old_id):
+            def rename_gene(old_id,organism=True):
                 if model._g_prefix == self.comm_model._g_prefix:
                     _id = old_id
                 else:
                     _id = self.comm_model._g_prefix+old_id[len(model._g_prefix):]
-                return rename(_id)
+                return rename(_id) if organism else _id
 
-            def rename_met(old_id):
+            def rename_met(old_id,organism=True):
                 if model._m_prefix == self.comm_model._m_prefix:
                     _id = old_id
                 else:
                     _id = self.comm_model._m_prefix+old_id[len(model._m_prefix):]
-                return rename(_id)
+                return rename(_id) if organism else _id
 
-            def rename_rxn(old_id):
+            def rename_rxn(old_id,organism=True):
                 if old_id.startswith("T_") or model._r_prefix == self.comm_model._r_prefix:
                     _id = old_id
                 else:
                     _id = self.comm_model._r_prefix+old_id[len(model._r_prefix):]
-                return rename(_id)
+                return rename(_id) if organism else _id
 
             # add internal compartments
             for c_id in model.compartments:
                 comp = model.get_compartment(c_id)
                 if comp.external:
                     old_ext_comps.append(c_id)
-                else:
-                    self.comm_model.add_compartment(rename(c_id), name=comp.name)
+                self.comm_model.add_compartment(rename(c_id), name=f"{comp.name} ({org_id})")
 
             # add metabolites
             for m_id in model.metabolites:
                 met = model.get_metabolite(m_id)
-                if met.compartment not in old_ext_comps:  # if is internal
+             
+                new_id = rename_met(m_id)
+                self.comm_model.add_metabolite(new_id,
+                                                formula=met.formula,
+                                                name=met.name,
+                                                compartment=rename(met.compartment)
+                                                )
+                self.metabolite_map[(org_id, m_id)] = new_id
 
-                    new_id = rename_met(m_id)
-                    self.comm_model.add_metabolite(new_id,
-                                                   formula=met.formula,
-                                                   name=met.name,
-                                                   compartment=rename(met.compartment)
-                                                   )
-                    self.metabolite_map[(org_id, m_id)] = new_id
-
-                elif m_id not in self.comm_model.metabolites:  # if is external but was not added yet
-                    self.comm_model.add_metabolite(m_id,
+                if met.compartment in old_ext_comps and m_id not in self.comm_model.metabolites:  # if is external but was not added yet
+                    new_mid = rename_met(m_id,False)
+                    self.comm_model.add_metabolite(new_mid,
                                                    formula=met.formula,
                                                    name=met.name,
                                                    compartment=ext_comp_id)
-                    ext_mets.append(m_id)
+                    ext_mets.append(new_mid)
 
             # add genes
             if self.flavor == 'reframed':
@@ -168,36 +167,49 @@ class CommunityModel:
                     new_id = rename_gene(g_id)
                     self.comm_model.add_gene(new_id, gene.name)
 
-            # add internal reactions
+            # add reactions
             ex_rxns = model.get_exchange_reactions()
             for r_id in model.reactions:
                 rxn = model.get_reaction(r_id)
                 
-                if r_id in ex_rxns:
-                    continue
-
                 new_id = rename_rxn(r_id)
-                new_stoichiometry = {
-                    m_id if m_id in ext_mets else rename_met(m_id): coeff
-                    for m_id, coeff in rxn.stoichiometry.items()
-                }
-                if r_id in [x for x, v in model.objective.items() if v > 0]:
-                    new_stoichiometry[biomass_id] = 1
-                    self.biomasses[org_id] = new_id
-
-                if rxn.gpr:
-                    t = build_tree(rxn.gpr, Boolean)
-                    ren = {x: rename_gene(x) for x in t.get_operands()}
-                    new_gpr = t.replace(ren).to_infix()
+                
+                if r_id in ex_rxns:
+                    mets = list(rxn.stoichiometry.keys())
+                    # this condition should not be necessary...
+                    if len(mets)==1 and rename_met(mets[0],False) in ext_mets:
+                        new_stoichiometry = {rename_met(mets[0],False):-1,
+                                             rename_met(mets[0]):1
+                                             }
+                        self.comm_model.add_reaction(new_id,
+                                                    name=rxn.name,
+                                                    stoichiometry=new_stoichiometry,
+                                                    lb=-inf,
+                                                    ub=inf,
+                                                    reaction_type='TRP')
                 else:
-                    new_gpr = rxn.gpr
-                self.comm_model.add_reaction(new_id,
-                                             name=rxn.name,
-                                             stoichiometry=new_stoichiometry,
-                                             lb=rxn.lb,
-                                             ub=rxn.ub,
-                                             gpr=new_gpr,
-                                             annotations=rxn.annotations)
+                    new_stoichiometry = {
+                        rename_met(m_id): coeff
+                        for m_id, coeff in rxn.stoichiometry.items()
+                    }
+                    if r_id in [x for x, v in model.objective.items() if v > 0]:
+                        new_stoichiometry[biomass_id] = 1
+                        self.biomasses[org_id] = new_id
+
+                    if rxn.gpr:
+                        t = build_tree(rxn.gpr, Boolean)
+                        ren = {x: rename_gene(x) for x in t.get_operands()}
+                        new_gpr = t.replace(ren).to_infix()
+                    else:
+                        new_gpr = rxn.gpr
+                    self.comm_model.add_reaction(new_id,
+                                                name=rxn.name,
+                                                stoichiometry=new_stoichiometry,
+                                                lb=rxn.lb,
+                                                ub=rxn.ub,
+                                                gpr=new_gpr,
+                                                annotations=rxn.annotations)
+
                 self.reaction_map[(org_id, r_id)] = new_id
 
         # Add exchange reactions
