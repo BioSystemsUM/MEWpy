@@ -22,7 +22,6 @@ Contributors: Paulo Carvalhais
 ##############################################################################
 """
 from mewpy.simulation import get_simulator
-from mewpy.simulation.simulation import Simulator
 from .. import Preprocessing, ExpressionSet
 
 
@@ -30,19 +29,18 @@ def eFlux(model, expr, condition=0, scale_rxn=None, scale_value=1,
           constraints=None, parsimonious=False, max_exp = None, **kwargs):
     """ Run an E-Flux simulation (Colijn et al, 2009).
 
-    Arguments:
-        model: a REFRAMED or COBRApy model or a MEWpy Simulator.
-        expr (ExpressionSet): transcriptomics data.
-        condition: the condition to use in the simulation\
+    
+    :param model: a REFRAMED or COBRApy model or a MEWpy Simulator.
+    :param expr (ExpressionSet): transcriptomics data.
+    :param condition: the condition to use in the simulation\
                 (default:0, the first condition is used if more than one.)
-            scale_rxn (str): reaction to scale flux vector (optional)
-        scale_value (float): scaling factor (mandatory if scale_rxn\
+    :param scale_rxn (str): reaction to scale flux vector (optional)
+    :param scale_value (float): scaling factor (mandatory if scale_rxn\
             is specified)
-        constraints (dict): additional constraints (optional)
-        parsimonious (bool): compute a parsimonious solution (default: False)
+    :param constraints (dict): additional constraints (optional)
+    :param parsimonious (bool): compute a parsimonious solution (default: False)
 
-    Returns:
-        Solution: solution
+    :return: Solution: solution
     """
 
     sim = get_simulator(model)
