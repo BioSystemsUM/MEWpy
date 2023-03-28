@@ -24,7 +24,6 @@ Author: Vitor Pereira
 ##############################################################################
 """
 from mewpy.simulation import get_simulator
-from mewpy.simulation.simulation import Simulator
 from mewpy.util.parsing import build_tree, Boolean
 from mewpy.util import AttrDict
 from copy import deepcopy
@@ -75,6 +74,7 @@ class CommunityModel:
         self._merge_models()
 
     def get_community_model(self):
+        """Returns a Simulator for the merged model"""
         return self.comm_model
 
     def size(self):
@@ -82,7 +82,8 @@ class CommunityModel:
 
     @property
     def merged_model(self):
-        """ To make compatible with REFRAMED"""
+        """ Returns a community model (COBRApy or REFRAMED)
+        To make compatible with REFRAMED"""
         if self.comm_model is None:
             self._merged_model()
         return self.comm_model.model
@@ -187,6 +188,7 @@ class CommunityModel:
                                                     lb=-inf,
                                                     ub=inf,
                                                     reaction_type='TRP')
+                        self.reaction_map[(org_id, r_id)] = new_id
                 else:
                     new_stoichiometry = {
                         rename_met(m_id): coeff
@@ -202,6 +204,7 @@ class CommunityModel:
                         new_gpr = t.replace(ren).to_infix()
                     else:
                         new_gpr = rxn.gpr
+
                     self.comm_model.add_reaction(new_id,
                                                 name=rxn.name,
                                                 stoichiometry=new_stoichiometry,
@@ -210,7 +213,7 @@ class CommunityModel:
                                                 gpr=new_gpr,
                                                 annotations=rxn.annotations)
 
-                self.reaction_map[(org_id, r_id)] = new_id
+                    self.reaction_map[(org_id, r_id)] = new_id
 
         # Add exchange reactions
         for m_id in ext_mets:

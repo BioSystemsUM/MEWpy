@@ -63,7 +63,7 @@ def sc_score(community, environment=None, min_growth=0.1, n_solutions=100, verbo
 
     solver.update()
 
-    bigM = 1000
+    bigM = ModelConstants.REACTION_UPPER_BOUND
     for org_id, sim in community.organisms.items():
         org_var = 'y_{}'.format(org_id)
         rxns = set(sim.reactions)-set(sim.get_exchange_reactions())
@@ -80,7 +80,7 @@ def sc_score(community, environment=None, min_growth=0.1, n_solutions=100, verbo
 
     for org_id, biomass_id in community.biomasses.items():
         other = {o for o in community.organisms if o != org_id}
-        solver.add_constraint('COM_Biomass', {community.biomasses[org_id]: 1}, '>', min_growth)
+        solver.add_constraint('COM_Biomass', {biomass_id: 1}, '>', min_growth)
         objective = {"y_{}".format(o): 1.0 for o in other}
 
         if not use_pool:

@@ -23,6 +23,7 @@ Authors: Vitor Pereira
 from mewpy.solvers.solution import Status, print_values, print_balance
 from mewpy.solvers import solver_instance
 from mewpy.util.utilities import molecular_weight
+from mewpy.util.constants import ModelConstants
 from warnings import warn
 from math import inf, isinf
 
@@ -40,7 +41,7 @@ def SteadyCom(community, constraints=None, solver=None):
     if solver is None:
         solver = build_problem(community)
 
-    objective = community.comm_model.objective
+    objective = community.get_community_model().objective
     sol = binary_search(solver, objective, minimize=False, constraints=constraints)
 
     solution = CommunitySolution(community, sol.values)
@@ -81,7 +82,7 @@ def SteadyComVA(community, obj_frac=1.0, constraints=None, solver=None):
     return variability
 
 
-def build_problem(community, growth=1, bigM=1000):
+def build_problem(community, growth=1, bigM=ModelConstants.REACTION_UPPER_BOUND):
 
     solver = solver_instance()
     sim = community.get_community_model()
@@ -110,29 +111,31 @@ def build_problem(community, growth=1, bigM=1000):
     table = sim.metabolite_reaction_lookup()
     for m_id in sim.metabolites:
         solver.add_constraint(m_id, table[m_id], update=False)
-
+    solver.update()
     # organism-specific constraints
     for org_id, organism in community.organisms.items():
 
         for r_id in organism.reactions:
+
             if (org_id, r_id) not in community.reaction_map:
                 continue
 
             new_id = community.reaction_map[(org_id, r_id)]
+            reaction = organism.get_reaction(r_id)
 
             # growth = mu * X
             if r_id in organism.objective.keys():
-                solver.add_constraint(f"g_{org_id}", {f"x_{org_id}": growth, new_id: -1}, update=False)
+                solver.add_constraint(f"g_{org_id}", {f"x_{org_id}": growth, new_id: -1}, update=True)
             # lb * X < R < ub * X
             else:
                 lb = -bigM if isinf(reaction.lb) else reaction.lb
                 ub = bigM if isinf(reaction.ub) else reaction.ub
 
                 if lb != 0:
-                    solver.add_constraint(f"lb_{new_id}", {f"x_{org_id}": lb, new_id: -1}, '<', 0, update=False)
+                    solver.add_constraint(f"lb_{new_id}", {f"x_{org_id}": lb, new_id: -1}, '<', 0, update=True)
 
                 if ub != 0:
-                    solver.add_constraint(f"ub_{new_id}", {f"x_{org_id}": ub, new_id: -1}, '>', 0, update=False)
+                    solver.add_constraint(f"ub_{new_id}", {f"x_{org_id}": ub, new_id: -1}, '>', 0, update=True)
 
     solver.update()
 
