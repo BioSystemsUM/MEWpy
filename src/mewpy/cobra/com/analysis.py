@@ -52,7 +52,7 @@ def sc_score(community, environment=None, min_growth=0.1, n_solutions=100, verbo
     if environment:
         environment.apply(community.comm_model, inplace=True, warning=False)
 
-    for b in community.biomasses.values():
+    for b in community.organisms_biomass.values():
         community.comm_model.set_reaction_bounds(b, 0, ModelConstants.REACTION_UPPER_BOUND, False)
 
     solver = solver_instance(community.comm_model)
@@ -69,7 +69,7 @@ def sc_score(community, environment=None, min_growth=0.1, n_solutions=100, verbo
         rxns = set(sim.reactions)-set(sim.get_exchange_reactions())
         for rxn in rxns:
             r_id = community.reaction_map[(org_id, rxn)]
-            if r_id == community.biomasses[org_id]:
+            if r_id == community.organisms_biomass[org_id]:
                 continue
             solver.add_constraint('c_{}_lb'.format(r_id), {r_id: 1, org_var: bigM}, '>', 0, update=False)
             solver.add_constraint('c_{}_ub'.format(r_id), {r_id: 1, org_var: -bigM}, '<', 0, update=False)
@@ -78,7 +78,7 @@ def sc_score(community, environment=None, min_growth=0.1, n_solutions=100, verbo
 
     scores = {}
 
-    for org_id, biomass_id in community.biomasses.items():
+    for org_id, biomass_id in community.organisms_biomass.items():
         other = {o for o in community.organisms if o != org_id}
         solver.add_constraint('COM_Biomass', {biomass_id: 1}, '>', min_growth)
         objective = {"y_{}".format(o): 1.0 for o in other}
@@ -159,7 +159,7 @@ def mu_score(community, environment=None, min_mol_weight=False, min_growth=0.1, 
 
     for org_id in community.organisms:
         exchange_rxns = community.organisms_exchange_reactions[org_id]
-        biomass_reaction = community.biomasses[org_id]
+        biomass_reaction = community.organisms_biomass[org_id]
         community.merged.biomass_reaction = biomass_reaction
 
         medium_list, sols = minimal_medium(community.merged, exchange_reactions=list(exchange_rxns.keys()),
@@ -355,7 +355,7 @@ def mro_score(community, environment=None, direction=-1, min_mol_weight=False, m
     solver = solver_instance(community.merged)
 
     for org_id in community.organisms:
-        biomass_reaction = community.biomasses[org_id]
+        biomass_reaction = community.organisms_biomass[org_id]
         community.merged.biomass_reaction = biomass_reaction
         org_interacting_exch = community.organisms_exchange_reactions[org_id]
 

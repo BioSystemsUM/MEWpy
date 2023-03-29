@@ -105,7 +105,7 @@ class CommunityKOProblem(AbstractKOProblem):
             for r_id in uptakes:
                 constraints[r_id] = 0
             # ko biomass
-            constraints[self.cmodel.biomasses[org_id]] = 0
+            constraints[self.cmodel.organisms_biomass[org_id]] = 0
         return constraints
 
 

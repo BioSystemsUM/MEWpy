@@ -223,7 +223,7 @@ class CommunitySolution(object):
 
         self.abundance = {}
         for org_id, organism in self.community.organisms.items():
-            growth_i = self.community.biomasses[org_id]
+            growth_i = self.community.organisms_biomass[org_id]
             self.abundance[org_id] = self.values[growth_i] / self.growth
 
         self.exchange = {r_id: self.values[r_id]

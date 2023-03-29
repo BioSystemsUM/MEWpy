@@ -20,12 +20,11 @@ Models similarity measures
 Author: Vitor Pereira
 ##############################################################################   
 """
-from typing import TYPE_CHECKING, Iterable, List, Tuple, Union
-
 import numpy as np
 import pandas as pd
-
 from mewpy.simulation import Simulator, get_simulator
+from typing import TYPE_CHECKING, Iterable, List, Tuple, Union
+
 
 if TYPE_CHECKING:
     from cobra.core import Model
