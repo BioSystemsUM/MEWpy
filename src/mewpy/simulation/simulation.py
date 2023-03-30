@@ -489,12 +489,11 @@ class SimulationResult(object):
 
     def __repr__(self):
         return (f"objective: {self.objective_value}\nStatus: "
-                f"{self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}")
+                f"{self.status}\nMethod:{self.method}")
 
     def __str__(self):
-        return (f"objective: {self.objective_value}\nStatus: "
-                f"{self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}")
-
+        return self.__repr__()
+    
     def find(self, pattern=None, sort=False, shadow_prices=False, show_nulls=False):
         """Returns a dataframe of reactions and their fluxes matching a pattern or a list of patterns.
 
