@@ -155,8 +155,8 @@ def resource_overlap(model1:Union["Model","CBModel",Simulator],
     sim1 = get_simulator(model1)
     sim2 = get_simulator(model2)    
     
-    in_ex1 = set([ex for ex in sim1.get_uptake_reactions()])
-    in_ex2 = set([ex for ex in sim2.get_uptake_reactions()])
+    in_ex1 = set(sim1.get_uptake_reactions())
+    in_ex2 = set(sim2.get_uptake_reactions())
 
     common = in_ex1.intersection(in_ex2)
     union = in_ex1.union(in_ex2)
