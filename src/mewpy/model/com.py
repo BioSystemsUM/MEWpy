@@ -48,6 +48,7 @@ class CommunityModel:
                  abundances:List[float]= None, 
                  merge_biomass:bool=False, 
                  copy_models:bool=False,
+                 add_compartments=False,
                  flavor:str='reframed'):
         """Community Model.
 
@@ -76,6 +77,7 @@ class CommunityModel:
         self.metabolite_map = None
         
         self._merge_biomass = True if abundances is not None else merge_biomass
+        self._add_compartments = add_compartments
         
         if len(self.model_ids) < len(models):
             warn("Model ids are not unique, repeated models will be discarded.")
@@ -168,12 +170,16 @@ class CommunityModel:
         comm_growth = CommunityModel.GROWTH_ID
 
         # create external compartment
-        self.comm_model.add_compartment(ext_comp_id, "extracellular environment", external=True)
+        self.comm_model.add_compartment(ext_comp_id, 
+                                        "extracellular environment",
+                                        external=True)
 
         # community biomass
         if not self._merge_biomass:
             biomass_id = "community_biomass"
-            self.comm_model.add_metabolite(biomass_id, name="Total community biomass", compartment=ext_comp_id)
+            self.comm_model.add_metabolite(biomass_id,
+                                           name="Total community biomass",
+                                           compartment=ext_comp_id)
 
         # add each organism
         for org_id, model in self.organisms.items():
@@ -207,21 +213,23 @@ class CommunityModel:
                 comp = model.get_compartment(c_id)
                 if comp.external:
                     old_ext_comps.append(c_id)
+                    if not self._add_compartments:
+                        continue    
                 self.comm_model.add_compartment(rename(c_id), name=f"{comp.name} ({org_id})")
 
             # add metabolites
             for m_id in model.metabolites:
                 met = model.get_metabolite(m_id)
+                if met.compartment not in old_ext_comps or self._add_compartments:
+                    new_id = rename_met(m_id)
+                    self.comm_model.add_metabolite(new_id,
+                                                formula=met.formula,
+                                                name=met.name,
+                                                compartment=rename(met.compartment)
+                                                )
+                    self.metabolite_map[(org_id, m_id)] = new_id
 
-                new_id = rename_met(m_id)
-                self.comm_model.add_metabolite(new_id,
-                                               formula=met.formula,
-                                               name=met.name,
-                                               compartment=rename(met.compartment)
-                                               )
-                self.metabolite_map[(org_id, m_id)] = new_id
-
-                if met.compartment in old_ext_comps and m_id not in self.comm_model.metabolites:  # if is external but was not added yet
+                if met.compartment in old_ext_comps and m_id not in self.comm_model.metabolites:
                     new_mid = rename_met(m_id, False)
                     self.comm_model.add_metabolite(new_mid,
                                                    formula=met.formula,
@@ -238,31 +246,41 @@ class CommunityModel:
 
             # add reactions
             ex_rxns = model.get_exchange_reactions()
-
             for r_id in model.reactions:
                 rxn = model.get_reaction(r_id)
 
                 new_id = rename_rxn(r_id)
 
                 if r_id in ex_rxns:
-                    mets = list(rxn.stoichiometry.keys())
-                    # this condition should not be necessary...
-                    if len(mets) == 1 and rename_met(mets[0], False) in ext_mets:
-                        new_stoichiometry = {rename_met(mets[0], False): -1,
-                                             rename_met(mets[0]): 1
-                                             }
-                        self.comm_model.add_reaction(new_id,
-                                                     name=rxn.name,
-                                                     stoichiometry=new_stoichiometry,
-                                                     lb=-inf,
-                                                     ub=inf,
-                                                     reaction_type='TRP')
-                        self.reaction_map[(org_id, r_id)] = new_id
+                    if self._add_compartments:
+                        print("adding exchnage ",r_id)
+                        mets = list(rxn.stoichiometry.keys())
+                        # this condition should not be necessary...
+                        if len(mets) == 1 and rename_met(mets[0], False) in ext_mets:
+                            new_stoichiometry = {rename_met(mets[0], False): -1,
+                                                rename_met(mets[0]): 1
+                                                }
+                            self.comm_model.add_reaction(new_id,
+                                                        name=rxn.name,
+                                                        stoichiometry=new_stoichiometry,
+                                                        lb=-inf,
+                                                        ub=inf,
+                                                        reaction_type='TRP')
+                            self.reaction_map[(org_id, r_id)] = new_id
+                    else: 
+                        continue
                 else:
-                    new_stoichiometry = {
-                        rename_met(m_id): coeff
-                        for m_id, coeff in rxn.stoichiometry.items()
-                    }
+                    if self._add_compartments:
+                        new_stoichiometry = {
+                            rename_met(m_id): coeff
+                            for m_id, coeff in rxn.stoichiometry.items()
+                            }
+                    else:
+                        new_stoichiometry = {
+                            m_id if m_id in ext_mets else rename_met(m_id): coeff
+                            for m_id, coeff in rxn.stoichiometry.items()
+                            }
+                        
                     if r_id in [x for x, v in model.objective.items() if v > 0]:
                         if self._merge_biomass:
                             met_id = rename_met(r_id)
