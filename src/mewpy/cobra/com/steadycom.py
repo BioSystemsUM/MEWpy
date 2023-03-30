@@ -41,7 +41,7 @@ def SteadyCom(community, constraints=None, solver=None):
     if solver is None:
         solver = build_problem(community)
 
-    objective = community.get_community_model().objective
+    objective = community.biomass
     sol = binary_search(solver, objective, minimize=False, constraints=constraints)
 
     solution = CommunitySolution(community, sol.values)
@@ -82,7 +82,7 @@ def SteadyComVA(community, obj_frac=1.0, constraints=None, solver=None):
     return variability
 
 
-def build_problem(community, growth=1, bigM=ModelConstants.REACTION_UPPER_BOUND):
+def build_problem(community, growth=1, bigM=1000):
 
     solver = solver_instance()
     sim = community.get_community_model()
@@ -144,7 +144,6 @@ def build_problem(community, growth=1, bigM=ModelConstants.REACTION_UPPER_BOUND)
         solver.change_coefficients(coefficients)
 
     solver.update_growth = update_growth
-
     return solver
 
 
@@ -259,7 +258,6 @@ class CommunitySolution(object):
                 rate = 0
                 if m_id not in organism.metabolites:
                     continue
-
                 for r_id in organism.get_metabolite_reactions(m_id):
                     if (org_id, r_id) not in reaction_map:
                         continue
@@ -275,7 +273,7 @@ class CommunitySolution(object):
 
         return exchanges
 
-    def cross_feeding(self, as_df=False, abstol=1e-6):
+    def cross_feeding(self, as_df=True, abstol=1e-6):
         exchanges = self.compute_exchanges()
         cross_all = []
 
@@ -312,7 +310,7 @@ class CommunitySolution(object):
         entities = list(self.community.organisms) + [None]
         flow = {(o1, o2): 0 for o1 in entities for o2 in entities}
 
-        for o1, o2, m_id, rate in self.cross_feeding():
+        for o1, o2, m_id, rate in self.cross_feeding(as_df=False):
             flow[(o1, o2)] += get_mass(m_id) * rate
 
         flow = {key: val for key, val in flow.items() if val > abstol}
