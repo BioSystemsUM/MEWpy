@@ -16,7 +16,7 @@
 
 """ 
 ##############################################################################
-Compartementalized community Model inspired in REFRAMED.
+Compartementalized community model.
 Can build community models from models loaded from any toolbox
 for which there is a Simulator implementation.
 
@@ -30,34 +30,53 @@ from copy import deepcopy
 from warnings import warn
 from numpy import inf
 
+from typing import Dict, List, Union, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from mewpy.simulation import Simulator
+    from cobra.core import Model
+    from reframed.core.cbmodel import CBModel
+
 
 class CommunityModel:
-
-    def __init__(self, models: list, copy_models=False, merge_biomass=False, flavor='reframed'):
-        """
-        Community Model.
+    
+    EXT_COMP = "e"
+    GROWTH_ID = "community_growth"
+    
+    def __init__(self, 
+                 models:List[Union["Simulator","Model","CBModel"]], 
+                 abundances:List[float]= None, 
+                 merge_biomass:bool=False, 
+                 copy_models:bool=False,
+                 flavor:str='reframed'):
+        """Community Model.
 
         :param models: A list of metabolic models.
-        :param list fevaluation: A list of callable EvaluationFunctions.
+        :param abundances: A list of relative abundances for each model.
+            Default None.
+        :param merge_biomass: If a biomass equation is to be build requiring
+          each organism to grow in acordance to a relative abundance.
+          Default False.
+          If no abundance list is provided all organism will have equal abundance.
 
         Optional parameters:
         :param bool copy_models: if the models are to be copied, default True.
         :param str flavor: use 'cobrapy' or 'reframed. Default 'reframed'.
-        """
 
+        """
         self.organisms = AttrDict()
         self.model_ids = list({model.id for model in models})
         self.flavor = flavor
+        
         self.organisms_biomass = None
         self.organisms_biomass_metabolite = None
         self.biomass = None
 
         self.reaction_map = None
         self.metabolite_map = None
-        self.merge_biomass = merge_biomass
-        if merge_biomass:
-            self.organisms_coefficient = {}
-
+        
+        self._merge_biomass = True if abundances is not None else merge_biomass
+        
         if len(self.model_ids) < len(models):
             warn("Model ids are not unique, repeated models will be discarded.")
 
@@ -66,11 +85,15 @@ class CommunityModel:
             if not m.objective:
                 raise ValueError(f"Model {m.id} has no objective")
             self.organisms[m.id] = deepcopy(m) if copy_models else m
-            if merge_biomass:
-                self.organisms_coefficient[m.id] = 1
-
+        
+        if self._merge_biomass:
+            if abundances and len(abundances)==len(self.organisms):
+                self.organisms_abundance =dict(zip(self.organisms.keys(),abundances))
+            else:     
+                self.organisms_abundance = {org_id:1 for org_id in self.organisms.keys()}
+                                                                       
         sid = ' '.join(sorted(self.model_ids))
-        if flavor == 'reframed':
+        if self.flavor == 'reframed':
             from reframed.core.cbmodel import CBModel
             model = CBModel(sid)
         else:
@@ -79,6 +102,40 @@ class CommunityModel:
 
         self.comm_model = get_simulator(model)
         self._merge_models()
+
+    def clear(self):
+        sid = ' '.join(sorted(self.model_ids))
+        if self.flavor == 'reframed':
+            from reframed.core.cbmodel import CBModel
+            model = CBModel(sid)
+        else:
+            from cobra.core.model import Model
+            model = Model(sid)
+        self.organisms_biomass = None
+        self.organisms_biomass_metabolite = None
+        self.biomass = None
+        self.reaction_map = None
+        self.metabolite_map = None
+        self.comm_model = get_simulator(model)
+        
+    def set_abundance(self,abundances:Dict[str,float],rebuild=False):
+        if not self._merge_biomass:
+            raise ValueError("The community model has no merged biomass equation")
+        self.organisms_abundance.update(abundances)
+        # update the biomass equation
+        if rebuild:
+            self.clear()
+            self._merge_models()
+        else:
+            comm_growth = CommunityModel.GROWTH_ID
+            biomass_stoichiometry = {met: self.organisms_abundance[org_id]
+                                     for org_id, met in self.organisms_biomass_metabolite.items()
+                                     }
+            self.comm_model.add_reaction(comm_growth,
+                                         name="Community growth rate",
+                                         stoichiometry=biomass_stoichiometry,
+                                         lb=0, ub=inf, reaction_type='SINK')
+            self.comm_model.objective = comm_growth
 
     def get_community_model(self):
         """Returns a Simulator for the merged model"""
@@ -103,19 +160,18 @@ class CommunityModel:
         self.organisms_biomass = {}
         self.reaction_map = {}
         self.metabolite_map = {}
-        if self.merge_biomass:
+        if self._merge_biomass:
             self.organisms_biomass_metabolite = {}
 
         # default IDs
-        ext_comp_id = "e"
-
-        comm_growth = "community_growth"
+        ext_comp_id = CommunityModel.EXT_COMP
+        comm_growth = CommunityModel.GROWTH_ID
 
         # create external compartment
         self.comm_model.add_compartment(ext_comp_id, "extracellular environment", external=True)
 
         # community biomass
-        if not self.merge_biomass:
+        if not self._merge_biomass:
             biomass_id = "community_biomass"
             self.comm_model.add_metabolite(biomass_id, name="Total community biomass", compartment=ext_comp_id)
 
@@ -208,7 +264,7 @@ class CommunityModel:
                         for m_id, coeff in rxn.stoichiometry.items()
                     }
                     if r_id in [x for x, v in model.objective.items() if v > 0]:
-                        if self.merge_biomass:
+                        if self._merge_biomass:
                             met_id = rename_met(r_id)
                             self.comm_model.add_metabolite(met_id,
                                                            name=f"BIOMASS {org_id}",
@@ -243,8 +299,8 @@ class CommunityModel:
             r_id = f"{self.comm_model._r_prefix}EX_{m}"
             self.comm_model.add_reaction(r_id, name=r_id, stoichiometry={m_id: -1}, lb=-inf, ub=inf, reaction_type="EX")
 
-        if self.merge_biomass:
-            biomass_stoichiometry = {met: self.organisms_coefficient[org_id]
+        if self._merge_biomass:
+            biomass_stoichiometry = {met: self.organisms_abundance[org_id]
                                      for org_id, met in self.organisms_biomass_metabolite.items()
                                      }
         else:

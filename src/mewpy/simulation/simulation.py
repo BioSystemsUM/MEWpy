@@ -26,6 +26,7 @@ from collections import OrderedDict
 from enum import Enum
 from joblib import Parallel, delayed
 from tqdm import tqdm
+from copy import deepcopy
 import math
 
 from ..util.parsing import evaluate_expression_tree
@@ -391,12 +392,13 @@ class Simulator(ModelContainer, SimulationInterface):
         return NotImplementedError
 
     def get_external_metabolites(self):
-        external = []
+        external =[]
+        ext_com = [c_id for c_id in self.compartments 
+                   if self.get_compartment(c_id).external==True]
         for m_id in self.metabolites:
-            c_id = self.get_metabolite(m_id).compartment
-            if self.get_compartment(c_id).external:
+            if self.get_metabolite(m_id).compartment in ext_com:
                 external.append(m_id)
-        return m_id
+        return external
 
     def blocked_reactions(self, constraints=None, reactions=None, abstol=1e-9):
         """ Find all blocked reactions in a model
@@ -412,8 +414,17 @@ class Simulator(ModelContainer, SimulationInterface):
 
         return [r_id for r_id, (lb, ub) in variability.items() if (abs(lb) + abs(ub)) < abstol]
 
+    def get_metabolite_reactions(self,m_id: str) -> List[str]:
+        """Returns the list or reactions that produce or consume a metabolite.
+
+        :param m_id: the metabolite identifier
+        :return: A list of reaction identifiers
+        """
+        m_r = self.metabolite_reaction_lookup()
+        return list(m_r[m_id].keys())
+    
     def get_metabolite_producers(self, m_id: str) -> List[str]:
-        """Returns the list or reactions that produces a metabolite.
+        """Returns the list or reactions that produce a metabolite.
 
         :param m_id: the metabolite identifier
         :return: A list of reaction identifiers
@@ -429,6 +440,10 @@ class Simulator(ModelContainer, SimulationInterface):
         """
         m_r = self.metabolite_reaction_lookup()
         return [k for k, v in m_r[m_id].items() if v < 0]
+    
+    def copy(self):
+        """Retuns a copy of the Sinulator instance."""
+        return deepcopy(self)
 
 
 class SimulationResult(object):
@@ -480,7 +495,7 @@ class SimulationResult(object):
         return (f"objective: {self.objective_value}\nStatus: "
                 f"{self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}")
 
-    def find(self, pattern=None, sort=False, shadow_prices=False):
+    def find(self, pattern=None, sort=False, shadow_prices=False, show_nulls=False):
         """Returns a dataframe of reactions and their fluxes matching a pattern or a list of patterns.
 
         :param pattern: a string or a list of strings. defaults to None
@@ -497,7 +512,10 @@ class SimulationResult(object):
                 raise ValueError('No shadow prices')
         else:
             try:
-                values = [(key, value) for key, value in self.fluxes.items()]
+                if show_nulls:
+                    values = [(key, value) for key, value in self.fluxes.items()]
+                else:
+                    values = [(key, value) for key, value in self.fluxes.items() if value!=0.0]
                 columns = ['Reaction ID', 'Flux rate']
             except Exception:
                 raise ValueError('No fluxes')

@@ -125,17 +125,17 @@ def build_problem(community, growth=1, bigM=ModelConstants.REACTION_UPPER_BOUND)
 
             # growth = mu * X
             if r_id in organism.objective.keys():
-                solver.add_constraint(f"g_{org_id}", {f"x_{org_id}": growth, new_id: -1}, update=True)
+                solver.add_constraint(f"g_{org_id}", {f"x_{org_id}": growth, new_id: -1}, update=False)
             # lb * X < R < ub * X
             else:
                 lb = -bigM if isinf(reaction.lb) else reaction.lb
                 ub = bigM if isinf(reaction.ub) else reaction.ub
 
                 if lb != 0:
-                    solver.add_constraint(f"lb_{new_id}", {f"x_{org_id}": lb, new_id: -1}, '<', 0, update=True)
+                    solver.add_constraint(f"lb_{new_id}", {f"x_{org_id}": lb, new_id: -1}, '<', 0, update=False)
 
                 if ub != 0:
-                    solver.add_constraint(f"ub_{new_id}", {f"x_{org_id}": ub, new_id: -1}, '>', 0, update=True)
+                    solver.add_constraint(f"ub_{new_id}", {f"x_{org_id}": ub, new_id: -1}, '>', 0, update=False)
 
     solver.update()
 
@@ -267,7 +267,7 @@ class CommunitySolution(object):
                     flux = self.values[reaction_map[(org_id, r_id)]]
 
                     if flux != 0:
-                        coeff = organism.reactions[r_id].stoichiometry[m_id]
+                        coeff = organism.get_reaction(r_id).stoichiometry[m_id]
                         rate += coeff*flux
 
                 if rate != 0:
