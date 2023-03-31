@@ -37,7 +37,10 @@ def SteadyCom(community, constraints=None, solver=None):
     Returns:
         CommunitySolution: solution object
     """
-
+    # set the proper community building configuration
+    community.add_compartments = False
+    community.merged_biomasses = False
+    
     if solver is None:
         solver = build_problem(community)
 
@@ -60,10 +63,12 @@ def SteadyComVA(community, obj_frac=1.0, constraints=None, solver=None):
         dict: species abundance variability
     """
 
+    community.merged_biomasses = False
+
     if solver is None:
         solver = build_problem(community)
 
-    objective = community.comm_model.objective
+    objective = {community.biomass:1}
 
     sol = binary_search(solver, objective, constraints=constraints)
     growth = obj_frac * sol.values[community.biomass]
@@ -83,8 +88,21 @@ def SteadyComVA(community, obj_frac=1.0, constraints=None, solver=None):
 
 
 def build_problem(community, growth=1, bigM=1000):
+    """_summary_
 
+    Args:
+        community (_type_): _description_
+        growth (int, optional): _description_. Defaults to 1.
+        bigM (int, optional): _description_. Defaults to 1000.
+
+    Returns:
+        _type_: _description_
+    """
+    # TODO : Check why different bigM yield different results.
+    # What's the proper value?
+    
     solver = solver_instance()
+    community.add_compartments=False
     sim = community.get_community_model()
 
     # create biomass variables
@@ -215,7 +233,7 @@ class CommunitySolution(object):
         return self._exchange_map
 
     def parse_values(self):
-        model = self.community.comm_model
+        model = self.community.merged_model
         reaction_map = self.community.reaction_map
 
         self.growth = self.values[self.community.biomass]
@@ -248,7 +266,7 @@ class CommunitySolution(object):
     # calculate overall exchanges (organism x metabolite) -> rate
 
     def compute_exchanges(self):
-        sim = self.community.comm_model
+        sim = self.community.merged_model
         reaction_map = self.community.reaction_map
         exchanges = {}
 
@@ -302,7 +320,7 @@ class CommunitySolution(object):
     def mass_flow(self, element=None, as_df=False, abstol=1e-6):
 
         def get_mass(x):
-            met = self.community.comm_model.get_metabolite(x)
+            met = self.community.merged_model.get_metabolite(x)
             formula = x.formula
             mw = molecular_weight(formula, element=element)
             return 0.001 * mw
@@ -338,7 +356,7 @@ class CommunitySolution(object):
 
     def print_exchanges(self, m_id=None, abstol=1e-9):
 
-        model = self.community.comm_model
+        model = self.community.merged_model
         exchange_rxns = set(model.get_exchange_reactions())
 
         if m_id:
