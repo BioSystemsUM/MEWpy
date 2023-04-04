@@ -207,21 +207,21 @@ class CommunityModel:
             def rename(old_id):
                 return f"{old_id}_{org_id}"
 
-            def rename_gene(old_id, organism=True):
+            def r_gene(old_id, organism=True):
                 if model._g_prefix == self._comm_model._g_prefix:
                     _id = old_id
                 else:
                     _id = self._comm_model._g_prefix+old_id[len(model._g_prefix):]
                 return rename(_id) if organism else _id
 
-            def rename_met(old_id, organism=True):
+            def r_met(old_id, organism=True):
                 if model._m_prefix == self._comm_model._m_prefix:
                     _id = old_id
                 else:
                     _id = self._comm_model._m_prefix+old_id[len(model._m_prefix):]
                 return rename(_id) if organism else _id
 
-            def rename_rxn(old_id, organism=True):
+            def r_rxn(old_id, organism=True):
                 if model._r_prefix == self._comm_model._r_prefix:
                     _id = old_id
                 else:
@@ -239,45 +239,48 @@ class CommunityModel:
 
             # add metabolites
             for m_id in model.metabolites:
-                met = model.get_metabolite(m_id)
+                met = model.get_metabolite(m_id) 
                 if met.compartment not in old_ext_comps or self._add_compartments:
-                    new_id = rename_met(m_id)
-                    self._comm_model.add_metabolite(new_id,
+                    new_mid = r_met(m_id)
+                    self._comm_model.add_metabolite(new_mid,
                                                 formula=met.formula,
                                                 name=met.name,
                                                 compartment=rename(met.compartment)
                                                 )
-                    self.metabolite_map[(org_id, m_id)] = new_id
+                    self.metabolite_map[(org_id, m_id)] = new_mid
+                    
+                    
+                    
 
-                if met.compartment in old_ext_comps and m_id not in self._comm_model.metabolites:
-                    new_mid = rename_met(m_id, False)
+                elif met.compartment in old_ext_comps and r_met(m_id, False) not in self._comm_model.metabolites:
+                    new_mid = r_met(m_id, False)
                     self._comm_model.add_metabolite(new_mid,
                                                    formula=met.formula,
                                                    name=met.name,
                                                    compartment=ext_comp_id)
                     ext_mets.append(new_mid)
-
+                    
             # add genes
             if self.flavor == 'reframed':
                 for g_id in model.genes:
                     gene = model.get_gene(g_id)
-                    new_id = rename_gene(g_id)
+                    new_id = r_gene(g_id)
                     self._comm_model.add_gene(new_id, gene.name)
 
             # add reactions
             ex_rxns = model.get_exchange_reactions()
+            
             for r_id in model.reactions:
                 rxn = model.get_reaction(r_id)
-
-                new_id = rename_rxn(r_id)
+                new_id = r_rxn(r_id)
 
                 if r_id in ex_rxns:
+                    mets = list(rxn.stoichiometry.keys())
                     if self._add_compartments:
-                        mets = list(rxn.stoichiometry.keys())
                         # this condition should not be necessary...
-                        if len(mets) == 1 and rename_met(mets[0], False) in ext_mets:
-                            new_stoichiometry = {rename_met(mets[0], False): -1,
-                                                rename_met(mets[0]): 1
+                        if len(mets) == 1 and r_met(mets[0], False) in ext_mets:
+                            new_stoichiometry = {r_met(mets[0], False): -1,
+                                                r_met(mets[0]): 1
                                                 }
                             self._comm_model.add_reaction(new_id,
                                                         name=rxn.name,
@@ -286,23 +289,35 @@ class CommunityModel:
                                                         ub=inf,
                                                         reaction_type='TRP')
                             self.reaction_map[(org_id, r_id)] = new_id
-                    else: 
-                        continue
+                    
+                    if len(mets) == 1 and r_met(mets[0]) in self._comm_model.metabolites:
+                        # some models export directly metabolites, such as biomass, from the 
+                        # cytosol to the external compartment, such as the AGORA models... 
+                        new_stoichiometry = {r_met(mets[0]): -1}
+                        self._comm_model.add_reaction(new_id,
+                                                    name=rxn.name,
+                                                    stoichiometry=new_stoichiometry,
+                                                    lb=-inf,
+                                                    ub=inf,
+                                                    reaction_type='TRP')
+                        self.reaction_map[(org_id, r_id)] = new_id
+                    
                 else:
                     if self._add_compartments:
                         new_stoichiometry = {
-                            rename_met(m_id): coeff
+                            r_met(m_id): coeff
                             for m_id, coeff in rxn.stoichiometry.items()
                             }
                     else:
                         new_stoichiometry = {
-                            m_id if m_id in ext_mets else rename_met(m_id): coeff
+                            r_met( m_id, False) if r_met( m_id, False) in ext_mets 
+                            else r_met(m_id): coeff
                             for m_id, coeff in rxn.stoichiometry.items()
                             }
                         
                     if r_id in [x for x, v in model.objective.items() if v > 0]:
                         if self._merge_biomasses:
-                            met_id = rename_met(r_id)
+                            met_id = r_met(r_id)
                             self._comm_model.add_metabolite(met_id,
                                                            name=f"BIOMASS {org_id}",
                                                            compartment=ext_comp_id)
@@ -315,7 +330,7 @@ class CommunityModel:
 
                     if rxn.gpr:
                         t = build_tree(rxn.gpr, Boolean)
-                        ren = {x: rename_gene(x) for x in t.get_operands()}
+                        ren = {x: r_gene(x) for x in t.get_operands()}
                         new_gpr = t.replace(ren).to_infix()
                     else:
                         new_gpr = rxn.gpr

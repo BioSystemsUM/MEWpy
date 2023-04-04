@@ -31,6 +31,11 @@ class TestCommReframed(unittest.TestCase):
         from mewpy.cobra.com.steadycom import SteadyCom
         SteadyCom(self.comm)
 
+    def SteadyComVA(self):
+        from mewpy.cobra.com.steadycom import SteadyComVA
+        SteadyComVA(self.comm)
+
+
 
 class TestCommCobra(TestCommReframed):
 

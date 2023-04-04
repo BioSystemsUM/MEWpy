@@ -474,8 +474,8 @@ class Simulation(CBModelContainer, Simulator):
         Return the median upper and lower bound of the metabolic model.
         Bounds can vary from model to model. Cobrapy defaults to (-1000, 1000).
         """
-        lower_bounds = np.asarray([rxn.lb for rxn in self.model.reactions], dtype=float)
-        upper_bounds = np.asarray([rxn.ub for rxn in self.model.reactions], dtype=float)
+        lower_bounds = np.asarray([rxn.lb for rxn in self.model.reactions.values()], dtype=float)
+        upper_bounds = np.asarray([rxn.ub for rxn in self.model.reactions.values()], dtype=float)
         lower_bound = np.nanmedian(lower_bounds[lower_bounds != 0.0])
         upper_bound = np.nanmedian(upper_bounds[upper_bounds != 0.0])
         if np.isnan(lower_bound):

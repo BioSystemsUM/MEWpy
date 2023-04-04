@@ -33,6 +33,24 @@ if TYPE_CHECKING:
     from reframed.core.cbmodel import CBModel
 
 
+def convert_gpr_to_dnf(model) -> None:
+    """
+    Convert all existing GPR associations to DNF.
+    RBApy can only work with the disjunctive normal form (DNF) of a
+    gene-protein-reaction (GPR) association.
+    """
+    sim = get_simulator(model)
+    for rxn_id in tqdm(sim.reactions):
+        rxn = sim.get_reaction(rxn_id)
+        if not rxn.gpr:
+            continue
+        tree = build_tree(rxn.gpr, Boolean)
+        gpr = tree.to_infix()
+        # TODO: update the gpr
+        
+        return gpr 
+        
+        
 def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"], inline: bool = False):
     """Split reversible reactions into two irreversible reactions
     These two reactions will proceed in opposite directions. This
@@ -42,10 +60,8 @@ def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"], inline:
     :param model: A COBRApy or REFRAMED Model or an instance of 
         mewpy.simulation.simulation.Simulator
     """
-    if isinstance(model, Simulator):
-        sim = deepcopy(model)
-    else:
-        sim = get_simulator(deepcopy(model))
+    
+    sim = get_simulator(deepcopy(model))
 
     objective = sim.objective.copy()
 
@@ -85,10 +101,7 @@ def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline: bool = F
     :rtype: (Simulator, dict)
     """
 
-    if isinstance(model, Simulator):
-        sim = deepcopy(model)
-    else:
-        sim = get_simulator(deepcopy(model))
+    sim = get_simulator(deepcopy(model))
 
     objective = sim.objective
     mapping = dict()
@@ -151,16 +164,11 @@ def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
     :rtype: Simulator
     """
 
-    if isinstance(model, Simulator):
-        if inline:
-            sim = model
-        else:
-            sim = deepcopy(model)
+    if inline:
+        sim = get_simulator(model)
     else:
-        if inline:
-            sim = get_simulator(model)
-        else:
-            sim = get_simulator(deepcopy(model))
+        sim = deepcopy(get_simulator(model))
+    
     objective = sim.objective
 
     if prot_mw is None:
