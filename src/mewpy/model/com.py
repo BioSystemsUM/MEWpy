@@ -236,10 +236,10 @@ class CommunityModel:
                     if not self._add_compartments:
                         continue    
                 self._comm_model.add_compartment(rename(c_id), name=f"{comp.name} ({org_id})")
-
+                
             # add metabolites
             for m_id in model.metabolites:
-                met = model.get_metabolite(m_id) 
+                met = model.get_metabolite(m_id)
                 if met.compartment not in old_ext_comps or self._add_compartments:
                     new_mid = r_met(m_id)
                     self._comm_model.add_metabolite(new_mid,
@@ -252,14 +252,14 @@ class CommunityModel:
                     
                     
 
-                elif met.compartment in old_ext_comps and r_met(m_id, False) not in self._comm_model.metabolites:
+                if met.compartment in old_ext_comps and r_met(m_id, False) not in self._comm_model.metabolites:
                     new_mid = r_met(m_id, False)
                     self._comm_model.add_metabolite(new_mid,
                                                    formula=met.formula,
                                                    name=met.name,
                                                    compartment=ext_comp_id)
                     ext_mets.append(new_mid)
-                    
+            
             # add genes
             if self.flavor == 'reframed':
                 for g_id in model.genes:
@@ -278,21 +278,21 @@ class CommunityModel:
                     mets = list(rxn.stoichiometry.keys())
                     if self._add_compartments:
                         # this condition should not be necessary...
-                        if len(mets) == 1 and r_met(mets[0], False) in ext_mets:
-                            new_stoichiometry = {r_met(mets[0], False): -1,
-                                                r_met(mets[0]): 1
-                                                }
-                            self._comm_model.add_reaction(new_id,
-                                                        name=rxn.name,
-                                                        stoichiometry=new_stoichiometry,
-                                                        lb=-inf,
-                                                        ub=inf,
-                                                        reaction_type='TRP')
-                            self.reaction_map[(org_id, r_id)] = new_id
+                        new_stoichiometry = {r_met(mets[0], False): -1,
+                                            r_met(mets[0]): 1
+                                            }
+                        self._comm_model.add_reaction(new_id,
+                                                    name=rxn.name,
+                                                    stoichiometry=new_stoichiometry,
+                                                    lb=-inf,
+                                                    ub=inf,
+                                                    reaction_type='TRP')
+                        self.reaction_map[(org_id, r_id)] = new_id
                     
-                    if len(mets) == 1 and r_met(mets[0]) in self._comm_model.metabolites:
-                        # some models export directly metabolites, such as biomass, from the 
-                        # cytosol to the external compartment, such as the AGORA models... 
+                        
+                    elif len(mets) == 1 and r_met(mets[0]) in self._comm_model.metabolites:
+                        # some models (e.g. AGORA models) export directly metabolites, 
+                        # such as biomass, from the cytosol to the external compartment 
                         new_stoichiometry = {r_met(mets[0]): -1}
                         self._comm_model.add_reaction(new_id,
                                                     name=rxn.name,
@@ -314,10 +314,10 @@ class CommunityModel:
                             else r_met(m_id): coeff
                             for m_id, coeff in rxn.stoichiometry.items()
                             }
-                        
+                    # assumes that the models' objective is the biomass    
                     if r_id in [x for x, v in model.objective.items() if v > 0]:
                         if self._merge_biomasses:
-                            met_id = r_met(r_id)
+                            met_id = r_met('biomass')
                             self._comm_model.add_metabolite(met_id,
                                                            name=f"BIOMASS {org_id}",
                                                            compartment=ext_comp_id)
@@ -352,9 +352,11 @@ class CommunityModel:
             self._comm_model.add_reaction(r_id, name=r_id, stoichiometry={m_id: -1}, lb=-inf, ub=inf, reaction_type="EX")
 
         if self._merge_biomasses:
-            biomass_stoichiometry = {met: self.organisms_abundance[org_id]
+            # if the biomasses are to be merged add
+            # a new product to each organism biomass  
+            biomass_stoichiometry = {met: -1*self.organisms_abundance[org_id]
                                      for org_id, met in self.organisms_biomass_metabolite.items()
-                                     }
+                                    }
         else:
             biomass_stoichiometry = {biomass_id: -1}
 
