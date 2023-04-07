@@ -16,7 +16,7 @@
 
 """ 
 ##############################################################################
-Compartementalized community model.
+Compartmentalized community model.
 Can build community models from models loaded from any toolbox
 for which there is a Simulator implementation.
 
@@ -278,8 +278,8 @@ class CommunityModel:
                     mets = list(rxn.stoichiometry.keys())
                     if self._add_compartments:
                         # this condition should not be necessary...
-                        new_stoichiometry = {r_met(mets[0], False): -1,
-                                            r_met(mets[0]): 1
+                        new_stoichiometry = {r_met(mets[0]): -1,
+                                            r_met(mets[0],False): 1
                                             }
                         self._comm_model.add_reaction(new_id,
                                                     name=rxn.name,
@@ -290,16 +290,17 @@ class CommunityModel:
                         self.reaction_map[(org_id, r_id)] = new_id
                     
                         
-                    elif len(mets) == 1 and r_met(mets[0]) in self._comm_model.metabolites:
-                        # some models (e.g. AGORA models) export directly metabolites, 
-                        # such as biomass, from the cytosol to the external compartment 
+                    elif (not self._add_compartments 
+                          and len(mets) == 1 
+                          and r_met(mets[0]) in self._comm_model.metabolites):
+                        # some models (e.g. AGORA models) have sink reactions (for biomass) 
                         new_stoichiometry = {r_met(mets[0]): -1}
                         self._comm_model.add_reaction(new_id,
                                                     name=rxn.name,
                                                     stoichiometry=new_stoichiometry,
-                                                    lb=-inf,
+                                                    lb=0,
                                                     ub=inf,
-                                                    reaction_type='TRP')
+                                                    reaction_type='SINK')
                         self.reaction_map[(org_id, r_id)] = new_id
                     
                 else:
@@ -317,12 +318,24 @@ class CommunityModel:
                     # assumes that the models' objective is the biomass    
                     if r_id in [x for x, v in model.objective.items() if v > 0]:
                         if self._merge_biomasses:
-                            met_id = r_met('biomass')
-                            self._comm_model.add_metabolite(met_id,
-                                                           name=f"BIOMASS {org_id}",
-                                                           compartment=ext_comp_id)
+                            met_id = r_met('Biomass')
+                            self._comm_model.add_metabolite(
+                                met_id,
+                                name=f"Biomass {org_id}",
+                                compartment=ext_comp_id)
+                            
                             new_stoichiometry[met_id] = 1
                             self.organisms_biomass_metabolite[org_id] = met_id
+                            
+                            # add biomass sink reaction
+                            self._comm_model.add_reaction(
+                                r_rxn('Sink_biomass'),
+                                name=f"Sink Biomass {org_id}",
+                                stoichiometry={met_id:-1},
+                                lb=0,
+                                ub=inf,
+                                reaction_type='SINK')
+                            
                         else:
                             new_stoichiometry[biomass_id] = 1
 

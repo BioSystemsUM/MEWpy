@@ -29,7 +29,7 @@ from math import inf
 
 def minimal_medium(model, exchange_reactions=None, direction=-1, min_mass_weight=False, min_growth=1,
                    max_uptake=100, max_compounds=None, n_solutions=1, validate=True, abstol=1e-6,
-                   warnings=True, milp=True, use_pool=False, pool_gap=None, biomass_reaction=None):
+                   warnings=True, milp=True, use_pool=False, pool_gap=None, biomass_reaction=None,solver=None):
     """ Minimal medium calculator. Determines the minimum number of medium components for the organism to grow.
     Options: simply minimize the total number of components;
     minimize nutrients by molecular weight (as implemented by Zarecki et al, 2014)
@@ -62,8 +62,9 @@ def minimal_medium(model, exchange_reactions=None, direction=-1, min_mass_weight
 
     if exchange_reactions is None:
         exchange_reactions = sim.get_exchange_reactions()
-
-    solver = solver_instance(sim)
+    
+    if solver is None:
+        solver = solver_instance(sim)
 
     if not milp and max_compounds is not None:
         raise RuntimeError("max_compounds can only be used with MILP formulation")
@@ -124,9 +125,9 @@ def minimal_medium(model, exchange_reactions=None, direction=-1, min_mass_weight
             if len(compounds) == 0:
                 no_compounds.append(r_id)
                 continue
-
-            metabolite = sim.get_metabolite(compounds[0])
-
+            
+            metabolite = sim.get_metabolite(list(compounds.keys())[0])
+            
             if not metabolite.formula:
                 no_formula.append(metabolite.id)
                 continue
@@ -172,12 +173,13 @@ def minimal_medium(model, exchange_reactions=None, direction=-1, min_mass_weight
 
     if biomass_reaction is None:
         biomass_reaction = list(sim.objective.keys())[0]
+    
     constraints[biomass_reaction] = (min_growth, inf)
 
     if n_solutions == 1:
 
         solution = solver.solve(objective, minimize=True, constraints=constraints, get_values=exchange_reactions)
-
+        
         if solution.status != Status.OPTIMAL:
             warn_wrapper('No solution found')
             result, ret_sols = None, solution
