@@ -451,8 +451,9 @@ class Simulation(CBModelContainer, Simulator):
         :return: lb(s), ub(s), tuple
         """
         lb, ub = self.model.reactions[reaction].lb, self.model.reactions[reaction].ub
-        return lb if lb > -np.inf else ModelConstants.REACTION_LOWER_BOUND,\
-            ub if ub < np.inf else ModelConstants.REACTION_UPPER_BOUND
+        #return lb if lb > -np.inf else ModelConstants.REACTION_LOWER_BOUND,\
+        #    ub if ub < np.inf else ModelConstants.REACTION_UPPER_BOUND
+        return lb,ub
 
     def set_reaction_bounds(self, reaction, lb, ub, track=True):
         """

@@ -490,9 +490,10 @@ class Simulation(CobraModelContainer, Simulator):
 
         """
         lb, ub = self.model.reactions.get_by_id(reaction_id).bounds
-        return lb if lb > -np.inf else ModelConstants.REACTION_LOWER_BOUND,\
-            ub if ub < np.inf else ModelConstants.REACTION_UPPER_BOUND
-
+        #return lb if lb > -np.inf else ModelConstants.REACTION_LOWER_BOUND,\
+        #    ub if ub < np.inf else ModelConstants.REACTION_UPPER_BOUND
+        return lb,ub
+    
     def set_reaction_bounds(self, reaction_id, lb, ub, track=True):
         """
         Sets the bounds for a given reaction.
