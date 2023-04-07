@@ -262,7 +262,12 @@ class Simulation(CobraModelContainer, Simulator):
         # if modifications on the envirenment are permited
         # during simulations
         self._allow_env_changes = False
-
+        self.biomass_reaction = None
+        try: 
+            self.biomass_reaction=list(self.objective.keys())[0]
+        except:
+            pass
+        
     @property
     def environmental_conditions(self):
         return self._environmental_conditions.copy()

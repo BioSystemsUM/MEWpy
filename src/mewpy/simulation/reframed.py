@@ -211,7 +211,12 @@ class Simulation(CBModelContainer, Simulator):
         # if modifications on the envirenment are permited
         # during simulations
         self._allow_env_changes = False
-
+        self.biomass_reaction = None 
+        try: 
+            self.biomass_reaction = model.biomass_reaction
+        except:
+            pass
+        
     def _set_model_reaction_bounds(self, r_id, bounds):
         if isinstance(bounds, tuple):
             lb = bounds[0]
