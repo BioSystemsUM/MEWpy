@@ -14,8 +14,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-"""Production envelope module
-   Author: Vitor Pereira
+"""
+##############################################################################
+Production envelope module
+Author: Vitor Pereira
+##############################################################################
 """
 import numpy as np
 from mewpy.simulation import get_simulator
