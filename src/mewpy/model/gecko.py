@@ -136,7 +136,7 @@ class GeckoModel(CBModel):
                  carbohydrate_polymerization_cost=12.8, biomass_reaction_id=None,
                  protein_reaction_id='r_4047', carbohydrate_reaction_id='r_4048',
                  protein_pool_exchange_id='prot_pool_exchange', common_protein_pool_id='prot_pool_c',
-                 reaction_prefix=''):
+                 reaction_prefix=None):
 
         # load predifined models
         model_list = ModelList()
@@ -149,6 +149,9 @@ class GeckoModel(CBModel):
 
         super(GeckoModel, self).__init__(model.id)
 
+        if reaction_prefix is None:
+            reaction_prefix= self.get_simulator()._r_prefix
+            
         # import CBModel's data
         self.compartments = copy.deepcopy(model.compartments)
         self.metabolites = copy.deepcopy(model.metabolites)
