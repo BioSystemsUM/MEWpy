@@ -36,8 +36,6 @@ if TYPE_CHECKING:
 def convert_gpr_to_dnf(model) -> None:
     """
     Convert all existing GPR associations to DNF.
-    RBApy can only work with the disjunctive normal form (DNF) of a
-    gene-protein-reaction (GPR) association.
     """
     sim = get_simulator(model)
     for rxn_id in tqdm(sim.reactions):
