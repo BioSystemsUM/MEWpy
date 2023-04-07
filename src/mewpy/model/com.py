@@ -143,20 +143,26 @@ class CommunityModel:
         if not self._merge_biomasses:
             raise ValueError("The community model has no merged biomass equation")
         self.organisms_abundance.update(abundances)
+        if any([x<0 for x in abundances.values()]):
+            raise ValueError("All abundance value need to be non negative.")
+        if sum(list(abundances.values()))==0:
+            raise ValueError("At leat one organism need to have a positive abundance.")
         # update the biomass equation
         if rebuild:
             self.clear()
             self._merge_models()
         else:
             comm_growth = CommunityModel.GROWTH_ID
-            biomass_stoichiometry = {met: self.organisms_abundance[org_id]
+            biomass_stoichiometry = {met: -self.organisms_abundance[org_id]
                                      for org_id, met in self.organisms_biomass_metabolite.items()
+                                     if self.organisms_abundance[org_id]>0
                                      }
             self._comm_model.add_reaction(comm_growth,
                                          name="Community growth rate",
                                          stoichiometry=biomass_stoichiometry,
                                          lb=0, ub=inf, reaction_type='SINK')
             self._comm_model.objective = comm_growth
+            self._comm_model.solver=None
 
     def get_community_model(self):
         """Returns a Simulator for the merged model"""
@@ -276,8 +282,8 @@ class CommunityModel:
 
                 if r_id in ex_rxns:
                     mets = list(rxn.stoichiometry.keys())
-                    if self._add_compartments:
-                        # this condition should not be necessary...
+                    
+                    if self._add_compartments and r_met(mets[0], False) in ext_mets:
                         new_stoichiometry = {r_met(mets[0]): -1,
                                             r_met(mets[0],False): 1
                                             }
@@ -290,8 +296,7 @@ class CommunityModel:
                         self.reaction_map[(org_id, r_id)] = new_id
                     
                         
-                    elif (not self._add_compartments 
-                          and len(mets) == 1 
+                    elif (len(mets) == 1 
                           and r_met(mets[0]) in self._comm_model.metabolites):
                         # some models (e.g. AGORA models) have sink reactions (for biomass) 
                         new_stoichiometry = {r_met(mets[0]): -1}
@@ -378,6 +383,7 @@ class CommunityModel:
                                      lb=0, ub=inf, reaction_type='SINK')
 
         self._comm_model.objective = comm_growth
+        self._comm_model.biomass_reaction = comm_growth
         self.biomass = comm_growth
         return self._comm_model
 
