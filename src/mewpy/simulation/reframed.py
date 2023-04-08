@@ -24,8 +24,8 @@ Author: Vítor Pereira
 
 import logging
 from collections import OrderedDict
-
 import numpy as np
+
 from reframed.cobra.simulation import FBA, pFBA, MOMA, lMOMA, ROOM
 from reframed.core.cbmodel import CBModel
 from reframed.solvers import set_default_solver
@@ -70,6 +70,10 @@ class CBModelContainer(ModelContainer):
     @property
     def id(self):
         return self.model.id
+
+    @id.setter
+    def id(self,sid:str):
+        self.model.id=sid
 
     @property
     def reactions(self):
@@ -216,6 +220,14 @@ class Simulation(CBModelContainer, Simulator):
             self.biomass_reaction = model.biomass_reaction
         except:
             pass
+    
+    def copy(self):
+        """Retuns a copy of the Simulator instance."""
+        return Simulation(self.model.copy(), 
+                          envcond=self.environmental_conditions.copy(),
+                          constraints=self._constraints.copy(),
+                          reset_solver=self._reset_solver
+                          )
         
     def _set_model_reaction_bounds(self, r_id, bounds):
         if isinstance(bounds, tuple):

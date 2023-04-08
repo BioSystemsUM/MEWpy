@@ -24,6 +24,7 @@ Author: Vítor Pereira
 import logging
 from collections import OrderedDict
 import numpy as np
+
 from cobra.core.model import Model
 from cobra.core.solution import Solution
 from cobra.flux_analysis import pfba, moma, room
@@ -62,6 +63,10 @@ class CobraModelContainer(ModelContainer):
     def id(self):
         """The model identifier."""
         return self.model.id
+
+    @id.setter
+    def id(self,sid:str):
+        self.model.id=sid
 
     @property
     def reactions(self) -> List[str]:
@@ -267,7 +272,16 @@ class Simulation(CobraModelContainer, Simulator):
             self.biomass_reaction=list(self.objective.keys())[0]
         except:
             pass
-        
+     
+    def copy(self):
+        """Retuns a copy of the Simulator instance."""
+        return Simulation(self.model.copy(), 
+                          envcond=self.environmental_conditions.copy(),
+                          constraints=self._constraints.copy(),
+                          reset_solver=self._reset_solver
+                          )
+                              
+    
     @property
     def environmental_conditions(self):
         return self._environmental_conditions.copy()

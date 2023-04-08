@@ -442,7 +442,7 @@ class Simulator(ModelContainer, SimulationInterface):
         return [k for k, v in m_r[m_id].items() if v < 0]
     
     def copy(self):
-        """Retuns a copy of the Sinulator instance."""
+        """Retuns a copy of the Simulator instance."""
         return deepcopy(self)
 
 

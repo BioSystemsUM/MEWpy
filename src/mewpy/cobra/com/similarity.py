@@ -70,8 +70,10 @@ def get_shared_reactions_counts(model1:Union["Model","CBModel",Simulator],
     sim1 = get_simulator(model1)
     sim2 = get_simulator(model2)    
     
-    rec1 = set([x[len(sim1._r_prefix):] for x in sim1.reactions])
-    rec2 = set([x[len(sim1._r_prefix):] for x in sim2.reactions])
+    rec1 = set([x[len(sim1._r_prefix):] for x in sim1.reactions 
+                if sim1.get_reaction_bounds(x)!=(0,0)])
+    rec2 = set([x[len(sim2._r_prefix):] for x in sim2.reactions 
+                if sim2.get_reaction_bounds(x)!=(0,0)])
     rec_ids = set(rec1)
     rec_ids = rec_ids.union(set(rec2))
     common_rec_ids = rec1.intersection(rec2)
@@ -155,9 +157,11 @@ def resource_overlap(model1:Union["Model","CBModel",Simulator],
     sim1 = get_simulator(model1)
     sim2 = get_simulator(model2)    
     
-    in_ex1 = set(sim1.get_uptake_reactions())
-    in_ex2 = set(sim2.get_uptake_reactions())
-
+    in_ex1 = set([x[len(sim1._r_prefix):] for x in sim1.get_uptake_reactions() 
+                  if sim1.get_reaction_bounds(x)!=(0,0)])
+    in_ex2 = set([x[len(sim2._r_prefix):] for x in sim2.get_uptake_reactions() 
+                  if sim2.get_reaction_bounds(x)!=(0,0)])
+    
     common = in_ex1.intersection(in_ex2)
     union = in_ex1.union(in_ex2)
 
