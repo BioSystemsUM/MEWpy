@@ -26,7 +26,6 @@ from copy import deepcopy
 from mewpy.solvers.solution import to_simulation_result
 from mewpy.solvers import solver_instance
 from mewpy.simulation import get_simulator
-from mewpy.simulation.simulation import Simulator
 from mewpy.cobra.util import convert_to_irreversible
 from .. import Preprocessing, ExpressionSet
 
@@ -59,15 +58,9 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
            doi:10.1371/journal.pcbi.1000082
     """
     if not inline:
-        if isinstance(model, Simulator):
-            sim = model
-        else:
-            sim = get_simulator(model)
+        sim = get_simulator(model)
     else:
-        if isinstance(model, Simulator):
-            sim = deepcopy(model)
-        else:
-            sim = get_simulator(deepcopy(model))
+        sim = get_simulator(deepcopy(model))
         
     if isinstance(expr, ExpressionSet):
         pp = Preprocessing(sim, expr)
@@ -77,7 +70,6 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
     
     solver = solver_instance(sim)
 
-    # TODO: improve this on the simulator side
     if biomass is None:
         try:
             biomass = list(sim.objective.keys())[0]
@@ -98,7 +90,7 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
         for r_id in sim.reactions:
             lb, _ = sim.get_reaction_bounds(r_id)
             if lb < 0:
-                pos, neg = r_id + '+', r_id + '-'
+                pos, neg = r_id + '_p', r_id + '_n'
                 solver.add_variable(pos, 0, inf, update=False)
                 solver.add_variable(neg, 0, inf, update=False)
         solver.update()
@@ -106,7 +98,7 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
         for r_id in sim.reactions:
             lb, _ = sim.get_reaction_bounds(r_id)
             if lb < 0:
-                pos, neg = r_id + '+', r_id + '-'
+                pos, neg = r_id + '_p', r_id + '_n'
                 solver.add_constraint(
                     'c' + pos, {r_id: -1, pos: 1}, '>', 0, update=False)
                 solver.add_constraint(
@@ -121,7 +113,7 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
     for r_id, val in coeffs.items():
         lb, _ = sim.get_reaction_bounds(r_id)
         if lb < 0:
-            pos, neg = r_id + '+', r_id + '-'
+            pos, neg = r_id + '_p', r_id + '_n'
             objective[pos] = val
             objective[neg] = val
         else:
@@ -138,7 +130,7 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
         for r_id in sim.reactions:
             lb, _ = sim.get_reaction_bounds(r_id)
             if lb < 0:
-                pos, neg = r_id + '+', r_id + '-'
+                pos, neg = r_id + '_p', r_id + '_n'
                 objective[pos] = 1
                 objective[neg] = 1
             else:
@@ -152,7 +144,7 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
     for r_id in sim.reactions:
         lb, _ = sim.get_reaction_bounds(r_id)
         if lb < 0:
-            pos, neg = r_id + '+', r_id + '-'
+            pos, neg = r_id + '_p', r_id + '_n'
             del solution.values[pos]
             del solution.values[neg]
 

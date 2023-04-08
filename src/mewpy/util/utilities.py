@@ -13,7 +13,11 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
-"""Utilities"""
+"""
+##############################################################################
+Utilities
+##############################################################################
+"""
 import joblib
 import contextlib
 import functools
@@ -21,7 +25,7 @@ import re
 import types
 import time
 from collections.abc import Iterable
-from .constants import atomic_weights
+from .constants import atomic_weights, aa_weights
 from warnings import warn
 
 class AttrDict(dict):
@@ -161,8 +165,9 @@ def iterable(obj, is_string=False):
 def generator(container):
     return (value for value in container.values())
 
-# Taken from the talented team responsible for developing cobrapy!!!!
+# Taken from cobrapy!!!!
 chemical_formula_re = re.compile('([A-Z][a-z]?)([0-9.]+[0-9.]?|(?=[A-Z])?)')
+
 
 def elements(formula):
     all_elements = re.findall(chemical_formula_re, formula)
@@ -185,6 +190,23 @@ def molecular_weight(formula, element=None):
         mw = sum(atomic_weights.get(elem, 0) * n for elem, n in elems.items())
 
     return mw
+
+def calculate_MW(seq, amide=False):
+    """Method to calculate the molecular weight [g/mol] of every sequence in the attribute :py:attr:`sequences`.
+
+    :param (str) seq: amino acid sequence 
+    :param (boolean) amide: whether the sequences are C-terminally amidated (subtracts 0.95 from the MW).
+    :return: array of descriptor values in the attribute :py:attr:`descriptor`
+    
+    """
+    mw = [aa_weights[aa] for aa in seq]
+    # sum over AA MW and subtract H20 MW for every
+    mw = round(sum(mw) - 18.015 * (len(seq) - 1), 2)
+    # if the sequence is amidated, subtract 0.98 from calculated MW (OH - NH2)
+    if amide:
+        mw -= 0.98
+    return mw
+
 
 @contextlib.contextmanager
 def tqdm_joblib(tqdm_object):

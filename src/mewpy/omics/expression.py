@@ -30,8 +30,7 @@ import numpy as np
 import pandas as pd
 from itertools import combinations
 
-from mewpy.simulation import get_simulator
-from mewpy.simulation.simulation import Simulator
+from mewpy.simulation import get_simulator, Simulator
 from mewpy.util.parsing import Boolean, GeneEvaluator, build_tree
 
 
@@ -308,10 +307,7 @@ def gene_to_reaction_expression(model, gene_exp, and_func=min, or_func=max):
     Returns:
         dict: Reaction levels
     """
-    if isinstance(model, Simulator):
-        sim = model
-    else:
-        sim = get_simulator(model)
+    sim = get_simulator(model)
 
     rxn_exp = {}
     evaluator = GeneEvaluator(gene_exp, and_func, or_func, unexpressed_value=None)

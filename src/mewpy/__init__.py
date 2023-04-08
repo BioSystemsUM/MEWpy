@@ -14,9 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from .simulation import get_simulator 
+
 __author__ = 'BiSBII CEB University of Minho'
 __email__ = 'vpereira@ceb.uminho.pt'
-__version__ = '0.1.25'
+__version__ = '0.1.26'
+
 
 
 def info():

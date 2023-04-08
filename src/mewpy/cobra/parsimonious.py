@@ -17,10 +17,9 @@
 from math import inf
 from mewpy.solvers import solver_instance
 from mewpy.simulation import get_simulator, SStatus
-from mewpy.simulation.simulation import Simulator
 
 
-def epFBA(model, objective=None, reactions=None, constraints=None, obj_frac=None):
+def pFBA(model, objective=None, reactions=None, constraints=None, obj_frac=None):
     """
     Modified versions of the Parsimonious Flux Balance Analysis allowing to minimize
     the sum of enzyme usage instead of the sum of reaction flux rates when a model includes 
@@ -43,10 +42,7 @@ def epFBA(model, objective=None, reactions=None, constraints=None, obj_frac=None
     :rtype: mewpy.solver.Solution
     """
 
-    if isinstance(model, Simulator):
-        sim = model
-    else:
-        sim = get_simulator(model)
+    sim = get_simulator(model)
 
     if not objective:
         objective = sim.objective
@@ -64,7 +60,7 @@ def epFBA(model, objective=None, reactions=None, constraints=None, obj_frac=None
     for r_id in sim.reactions:
         lb, _ = sim.get_reaction_bounds(r_id)
         if lb < 0:
-            pos, neg = r_id + '+', r_id + '-'
+            pos, neg = r_id + '_p', r_id + '_n'
             solver.add_variable(pos, 0, inf, update=False)
             solver.add_variable(neg, 0, inf, update=False)
     solver.update()
@@ -72,7 +68,7 @@ def epFBA(model, objective=None, reactions=None, constraints=None, obj_frac=None
     for r_id in sim.reactions:
         lb, _ = sim.get_reaction_bounds(r_id)
         if lb < 0:
-            pos, neg = r_id + '+', r_id + '-'
+            pos, neg = r_id + '_p', r_id + '_n'
             solver.add_constraint(
                 'c' + pos, {r_id: -1, pos: 1}, '>', 0, update=False)
             solver.add_constraint(
@@ -111,7 +107,7 @@ def epFBA(model, objective=None, reactions=None, constraints=None, obj_frac=None
         for r_id in reactions:
             lb, _ = sim.get_reaction_bounds(r_id)
             if lb < 0:
-                pos, neg = r_id + '+', r_id + '-'
+                pos, neg = r_id + '_p', r_id + '_n'
                 sobjective[pos] = 1
                 sobjective[neg] = 1
             else:

@@ -21,8 +21,7 @@ Adapted by Vitor Pereira from Daniel Machado's REFRAMED
 https://github.com/cdanielmachado/reframed
 ##############################################################################
 """
-from mewpy.simulation import SStatus
-from mewpy.simulation.simulation import Simulator, SimulationResult
+from mewpy.simulation import SStatus, get_simulator, Simulator, SimulationResult
 from enum import Enum
 import re
 
@@ -105,3 +104,38 @@ def print_values(value_dict, pattern=None, sort=False, abstol=1e-9):
     entries = (f'{r_id:<12} {val: .6g}'for (r_id, val) in values)
 
     print('\n'.join(entries))
+
+
+def print_balance(values, m_id, model, sort=False, percentage=False, abstol=1e-9):
+
+    sim = get_simulator(model)
+    inputs = sim.get_metabolite_producers(m_id)
+    outputs = sim.get_metabolite_consumers(m_id)
+
+    fwd_in = [(r_id, sim.get_reaction(r_id).stoichiometry[m_id] * values[r_id], '--> o')
+              for r_id in inputs if values[r_id] > 0]
+    rev_in = [(r_id, sim.get_reaction(r_id).stoichiometry[m_id] * values[r_id], 'o <--')
+              for r_id in outputs if values[r_id] < 0]
+    fwd_out = [(r_id, sim.get_reaction(r_id).stoichiometry[m_id] * values[r_id], 'o -->')
+               for r_id in outputs if values[r_id] > 0]
+    rev_out = [(r_id, sim.get_reaction(r_id).stoichiometry[m_id] * values[r_id], '<-- o')
+               for r_id in inputs if values[r_id] < 0]
+
+    flux_in = [x for x in fwd_in + rev_in if x[1] > abstol]
+    flux_out = [x for x in fwd_out + rev_out if -x[1] > abstol]
+
+    if sort:
+        flux_in.sort(key=lambda x: x[1], reverse=True)
+        flux_out.sort(key=lambda x: x[1], reverse=False)
+
+    if percentage:
+        turnover = sum([x[1] for x in flux_in])
+        flux_in = [(x[0], x[1] / turnover, x[2]) for x in flux_in]
+        flux_out = [(x[0], x[1] / turnover, x[2]) for x in flux_out]
+        print_format = '[ {} ] {:<12} {:< 10.2%}'
+    else:
+        print_format = '[ {} ] {:<12} {:< 10.6g}'
+
+    lines = (print_format.format(x[2], x[0], x[1]) for x in flux_in + flux_out)
+
+    print('\n'.join(lines))

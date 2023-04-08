@@ -20,10 +20,12 @@ COBRA utility module
 Authors: Vitor Pereira
 ##############################################################################
 """
-from mewpy.simulation import get_simulator
-from mewpy.simulation.simulation import Simulator
-from mewpy.util.parsing import isozymes
+from mewpy.simulation import get_simulator, Simulator
+from mewpy.util.parsing import isozymes, build_tree, Boolean
+from mewpy.util.constants import ModelConstants
 from copy import deepcopy, copy
+from math import inf
+from tqdm import tqdm
 from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
@@ -31,7 +33,23 @@ if TYPE_CHECKING:
     from reframed.core.cbmodel import CBModel
 
 
-def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"], inline=False):
+def convert_gpr_to_dnf(model) -> None:
+    """
+    Convert all existing GPR associations to DNF.
+    """
+    sim = get_simulator(model)
+    for rxn_id in tqdm(sim.reactions):
+        rxn = sim.get_reaction(rxn_id)
+        if not rxn.gpr:
+            continue
+        tree = build_tree(rxn.gpr, Boolean)
+        gpr = tree.to_infix()
+        # TODO: update the gpr
+        
+        return gpr 
+        
+        
+def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"], inline: bool = False):
     """Split reversible reactions into two irreversible reactions
     These two reactions will proceed in opposite directions. This
     guarentees that all reactions in the model will only allow
@@ -40,20 +58,12 @@ def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"], inline=
     :param model: A COBRApy or REFRAMED Model or an instance of 
         mewpy.simulation.simulation.Simulator
     """
-    if isinstance(model, Simulator):
-        if inline:
-            sim = model
-        else:
-            sim = deepcopy(model)
-    else:
-        if inline:
-            sim = get_simulator(model)
-        else:
-            sim = get_simulator(deepcopy(model))
+    
+    sim = get_simulator(deepcopy(model))
 
     objective = sim.objective.copy()
 
-    for r_id in sim.reactions:
+    for r_id in tqdm(sim.reactions, "Converting to irreversible"):
         lb, ub = sim.get_reaction_bounds(r_id)
         if lb < 0 and ub > 0:
             rxn = sim.get_reaction(r_id)
@@ -79,32 +89,23 @@ def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"], inline=
     return sim
 
 
-def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline=False):
+def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline: bool = False):
     """Splits reactions with isozymes into separated reactions
 
     :param model: A COBRApy or REFRAMED Model or an instance of 
         mewpy.simulation.simulation.Simulator
     :param (boolean) inline: apply the modifications to the same of generate a new model. Default generates a new model.
-    :return: 
-    :rtype: _type_
+    :return: a simulator and a mapping from original to splitted reactions
+    :rtype: (Simulator, dict)
     """
 
-    if isinstance(model, Simulator):
-        if inline:
-            sim = model
-        else:
-            sim = deepcopy(model)
-    else:
-        if inline:
-            sim = get_simulator(model)
-        else:
-            sim = get_simulator(deepcopy(model))
+    sim = get_simulator(deepcopy(model))
 
     objective = sim.objective
     mapping = dict()
     newobjective = {}
 
-    for r_id in sim.reactions:
+    for r_id in tqdm(sim.reactions, "Splitting isozymes"):
         rxn = sim.get_reaction(r_id)
         gpr = rxn.gpr
 
@@ -137,3 +138,135 @@ def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline=False):
     sim.objective = newobjective
 
     return sim, mapping
+
+
+def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
+                         prot_mw=None,
+                         enz_kcats=None,
+                         c_compartment: str = 'c',
+                         inline: bool = False):
+    """Auxiliary method to add enzyme constraints to a model
+
+    :param model: A model or simulator
+    :type model: A COBRApy or REFRAMED Model or an instance of 
+        mewpy.simulation.simulation.Simulator
+    :param data: Protein MW and Kcats 
+    :type data: None
+    :param c_compartment: The compartment where gene/proteins pseudo species are to be added.
+        Defaults to 'c'
+    :type c_compartment: str, optional
+    :param (boolean) inline: apply the modifications to the same of generate a new model.
+        Default generates a new model.
+    :type inline: bool, optional
+    :return: a new enzyme constrained model
+    :rtype: Simulator
+    """
+
+    if inline:
+        sim = get_simulator(model)
+    else:
+        sim = deepcopy(get_simulator(model))
+    
+    objective = sim.objective
+
+    if prot_mw is None:
+        prot_mw = dict()
+        for gene in sim.genes:
+            prot_mw[gene] = {'protein': gene[len(sim._g_prefix):], 'mw': 1}
+
+    if enz_kcats is None:
+        enz_kcats = dict()
+        for gene in sim.genes:
+            enz_kcats[gene] = dict()
+            rxns = sim.get_gene(gene).reactions
+            for rxn in rxns:
+                enz_kcats[gene][rxn] = {'protein': gene[len(sim._g_prefix):], 'kcat': 1}
+
+
+    # Add protein pool and species
+    common_protein_pool_id = sim._m_prefix+'prot_pool_c'
+    pool_reaction = sim._r_prefix+'prot_pool_exchange'
+
+    sim.add_metabolite(common_protein_pool_id,
+                       name='prot_pool [cytoplasm]',
+                       compartment=c_compartment)
+
+    sim.add_reaction(pool_reaction,
+                     name='protein pool exchange',
+                     stoichiometry={common_protein_pool_id: 1},
+                     lb=0,
+                     ub=inf,
+                     reversible=False,
+                     reaction_type='EX'
+                     )
+
+    # Add gene/protein species and draw protein pseudo-reactions
+    # MW in kDa, [kDa = g/mmol]
+    gene_meta = dict()
+    for gene in tqdm(sim.genes, "Adding gene species"):
+        mw = prot_mw[gene]
+        m_prot_id = f"prot_{mw['protein']}_{c_compartment}"
+        m_name = f"prot_{mw['protein']} {c_compartment}"
+        sim.add_metabolite(m_prot_id,
+                           name=m_name,
+                           compartment=c_compartment)
+
+        gene_meta[gene] = m_prot_id
+
+        r_prot_id = f"draw_prot_{mw['protein']}"
+        sim.add_reaction(r_prot_id,
+                         name=r_prot_id,
+                         stoichiometry={common_protein_pool_id: -1*mw['mw'],
+                                        m_prot_id: 1},
+                         lb=0,
+                         ub=inf,
+                         reversible=False,
+                         )
+
+    # Add enzymes to reactions stoichiometry.
+    # 1/Kcats in per hour. Considering kcats in per second.
+    for rxn_id in tqdm(sim.reactions, "Adding proteins usage to reactions"):
+        rxn = sim.get_reaction(rxn_id)
+        if rxn.gpr:
+            s = rxn.stoichiometry
+            genes = build_tree(rxn.gpr, Boolean).get_operands()
+            for g in genes:
+                # TODO: mapping of (gene, reaction ec) to kcat
+                try:
+                    s[gene_meta[g]] = -1/(enz_kcats[g][rxn_id]['kcat']*3600)
+                except Exception:
+                    s[gene_meta[g]] = -1/(ModelConstants.DEFAULT_KCAT*3600)
+            sim.update_stoichiometry(rxn_id, s)
+    sim.objective = objective
+    return sim
+
+
+def add_enzyme_constraints(model: Union[Simulator, "Model", "CBModel"],
+                           prot_mw=None,
+                           enz_kcats=None,
+                           c_compartment: str='c',
+                           inline: bool=False):
+    """Adds enzyme constraints to a model.
+
+    :param model: A model or simulator
+    :type model: A COBRApy or REFRAMED Model or an instance of 
+        mewpy.simulation.simulation.Simulator
+    :param data: Protein MW and Kcats 
+    :type data: None
+    :param c_compartment: The compartment where gene/proteins pseudo species are to be added.
+        Defaults to 'c'
+    :type c_compartment: str, optional
+    :param (boolean) inline: apply the modifications to the same of generate a new model.
+        Default generates a new model.
+    :type inline: bool, optional
+    :return: a new enzyme constrained model
+    :rtype: Simulator
+    """
+    sim = convert_to_irreversible(model, inline)
+    sim, _ = split_isozymes(sim, True)
+    sim = __enzime_constraints(sim,
+                               prot_mw=prot_mw,
+                               enz_kcats=enz_kcats,
+                               c_compartment=c_compartment,
+                               inline=True)
+    return sim

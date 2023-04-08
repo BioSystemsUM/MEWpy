@@ -32,12 +32,9 @@ from .. import Preprocessing, ExpressionSet
 
 
 def iMAT(model, expr, constraints=None, cutoff=(25, 75),
-        condition=0, epsilon=1):
+         condition=0, epsilon=1):
 
-    if isinstance(model, Simulator):
-        sim = model
-    else:
-        sim = get_simulator(model)
+    sim = get_simulator(model)
 
     if isinstance(expr, ExpressionSet):
         pp = Preprocessing(sim, expr)
@@ -54,7 +51,7 @@ def iMAT(model, expr, constraints=None, cutoff=(25, 75),
     for r_id in sim.reactions:
         lb, _ = sim.get_reaction_bounds(r_id)
         if lb < 0:
-            pos, neg = r_id + '+', r_id + '-'
+            pos, neg = r_id + '_p', r_id + '_n'
             solver.add_variable(pos, 0, inf, update=False)
             solver.add_variable(neg, 0, inf, update=False)
     solver.update()
@@ -62,7 +59,7 @@ def iMAT(model, expr, constraints=None, cutoff=(25, 75),
     for r_id in sim.reactions:
         lb, _ = sim.get_reaction_bounds(r_id)
         if lb < 0:
-            pos, neg = r_id + '+', r_id + '-'
+            pos, neg = r_id + '_p', r_id + '_n'
             solver.add_constraint(
                 'c' + pos, {r_id: -1, pos: 1}, '>', 0, update=False)
             solver.add_constraint(
@@ -75,7 +72,7 @@ def iMAT(model, expr, constraints=None, cutoff=(25, 75),
         lb, ub = sim.get_reaction_bounds(r_id)
         pos_cons = (lb-epsilon)
         neg_cons = (ub+epsilon)
-        pos, neg = 'y_' + r_id + '+', 'y_' + r_id + '-'
+        pos, neg = 'y_' + r_id + '_p', 'y_' + r_id + '_n'
         objective.append(pos)
         solver.add_variable(pos, 0, 1, vartype=VarType.BINARY, update=True)
         solver.add_constraint(
@@ -102,6 +99,6 @@ def iMAT(model, expr, constraints=None, cutoff=(25, 75),
     object = {x: 1 for x in objective}
 
     solution = solver.solve(object, minimize=False, constraints=constraints)
-    
+
     res = to_simulation_result(model, None, constraints, sim, solution)
     return res

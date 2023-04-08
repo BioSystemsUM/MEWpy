@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from .medium import minimal_medium
-from .parsimonious import pFBA
-from .util import *
-from .com import *
+from .analysis import *
+from .similarity import *
+from .steadycom import *

@@ -16,3 +16,4 @@ htmlcov
 run_tox.sh
 tests/reports/
 .ipynb_checkpoints
+.DS_Store

@@ -14,13 +14,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-"""Production envelope module
-   Author: Vitor Pereira
+"""
+##############################################################################
+Production envelope module
+Author: Vitor Pereira
+##############################################################################
 """
 import numpy as np
-
-from ..simulation import get_simulator
-from ..simulation.simulation import Simulator
+from mewpy.simulation import get_simulator
 
 
 def flux_envelope(model, r_x, r_y, steps=10, constraints=None, x_range=None, tolerance=0):
@@ -39,14 +40,11 @@ def flux_envelope(model, r_x, r_y, steps=10, constraints=None, x_range=None, tol
 
     """
 
-    if isinstance(model, Simulator):
-        simul = model
-    else:
-        try:
-            simul = get_simulator(model)
-        except Exception:
-            raise ValueError(
-                'The model should be an instance of model or simulator')
+    try:
+        simul = get_simulator(model)
+    except Exception:
+        raise ValueError(
+            'The model should be an instance of model or simulator')
 
     obj_frac = 0
     # if r_x in simul.get_objective():
@@ -105,14 +103,11 @@ def plot_flux_envelope(model, r_x, r_y, steps=10, substrate=None, constraints=No
     except ImportError:
         raise RuntimeError("Matplotlib is not installed.")
 
-    if isinstance(model, Simulator):
-        simul = model
-    else:
-        try:
-            simul = get_simulator(model)
-        except Exception:
-            raise ValueError(
-                'model should be an instance of model or simulator')
+    try:
+        simul = get_simulator(model)
+    except Exception:
+        raise ValueError(
+            'model should be an instance of model or simulator')
 
     offset = 0.03
 

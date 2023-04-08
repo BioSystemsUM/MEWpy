@@ -15,14 +15,15 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 ##############################################################################
-SteadyCom  adapted from REFRAMED to be use with both COBRApy and REFRAMED
+SteadyCom adapted from REFRAMED to be used with both COBRApy and REFRAMED
 
 Authors: Vitor Pereira
 ##############################################################################
 """
-from ..solvers.solution import Status, print_values
-from ..solvers import solver_instance
-from ..util.utilities import molecular_weight
+from mewpy.solvers.solution import Status, print_values, print_balance
+from mewpy.solvers import solver_instance
+from mewpy.util.utilities import molecular_weight
+from mewpy.util.constants import ModelConstants
 from warnings import warn
 from math import inf, isinf
 
@@ -36,11 +37,14 @@ def SteadyCom(community, constraints=None, solver=None):
     Returns:
         CommunitySolution: solution object
     """
-
+    # set the proper community building configuration
+    community.add_compartments = False
+    community.merged_biomasses = False
+    
     if solver is None:
         solver = build_problem(community)
 
-    objective = community.comm_model.objective
+    objective = community.biomass
     sol = binary_search(solver, objective, minimize=False, constraints=constraints)
 
     solution = CommunitySolution(community, sol.values)
@@ -59,10 +63,12 @@ def SteadyComVA(community, obj_frac=1.0, constraints=None, solver=None):
         dict: species abundance variability
     """
 
+    community.merged_biomasses = False
+
     if solver is None:
         solver = build_problem(community)
 
-    objective = community.comm_model.objective
+    objective = {community.biomass:1}
 
     sol = binary_search(solver, objective, constraints=constraints)
     growth = obj_frac * sol.values[community.biomass]
@@ -82,18 +88,31 @@ def SteadyComVA(community, obj_frac=1.0, constraints=None, solver=None):
 
 
 def build_problem(community, growth=1, bigM=1000):
+    """_summary_
 
+    Args:
+        community (_type_): _description_
+        growth (int, optional): _description_. Defaults to 1.
+        bigM (int, optional): _description_. Defaults to 1000.
+
+    Returns:
+        _type_: _description_
+    """
+    # TODO : Check why different bigM yield different results.
+    # What's the proper value?
+    
     solver = solver_instance()
-    model = community.get_community_model()
+    community.add_compartments=False
+    sim = community.get_community_model()
 
     # create biomass variables
     for org_id in community.organisms.keys():
         solver.add_variable(f"x_{org_id}", 0, 1, update=False)
 
     # create all community reactions
-    for r_id in model.reactions:
-        reaction = model.get_reaction(r_id)
-        if r_id in model.get_exchange_reactions():
+    for r_id in sim.reactions:
+        reaction = sim.get_reaction(r_id)
+        if r_id in sim.get_exchange_reactions():
             solver.add_variable(r_id, reaction.lb, reaction.ub, update=False)
         else:
             lb = -inf if reaction.lb < 0 else 0
@@ -107,18 +126,20 @@ def build_problem(community, growth=1, bigM=1000):
                           rhs=1, update=False)
 
     # S.v = 0
-    table = model.metabolite_reaction_lookup()
-    for m_id in model.metabolites:
+    table = sim.metabolite_reaction_lookup()
+    for m_id in sim.metabolites:
         solver.add_constraint(m_id, table[m_id], update=False)
-
+    solver.update()
     # organism-specific constraints
     for org_id, organism in community.organisms.items():
 
         for r_id in organism.reactions:
+
             if (org_id, r_id) not in community.reaction_map:
                 continue
 
             new_id = community.reaction_map[(org_id, r_id)]
+            reaction = organism.get_reaction(r_id)
 
             # growth = mu * X
             if r_id in organism.objective.keys():
@@ -141,7 +162,6 @@ def build_problem(community, growth=1, bigM=1000):
         solver.change_coefficients(coefficients)
 
     solver.update_growth = update_growth
-
     return solver
 
 
@@ -213,14 +233,14 @@ class CommunitySolution(object):
         return self._exchange_map
 
     def parse_values(self):
-        model = self.community.comm_model
+        model = self.community.merged_model
         reaction_map = self.community.reaction_map
 
         self.growth = self.values[self.community.biomass]
 
         self.abundance = {}
         for org_id, organism in self.community.organisms.items():
-            growth_i = self.community.biomasses[org_id]
+            growth_i = self.community.organisms_biomass[org_id]
             self.abundance[org_id] = self.values[growth_i] / self.growth
 
         self.exchange = {r_id: self.values[r_id]
@@ -246,17 +266,16 @@ class CommunitySolution(object):
     # calculate overall exchanges (organism x metabolite) -> rate
 
     def compute_exchanges(self):
-        model = self.community.comm_model
+        sim = self.community.merged_model
         reaction_map = self.community.reaction_map
         exchanges = {}
 
-        for m_id in model.get_external_metabolites():
+        for m_id in sim.get_external_metabolites():
 
             for org_id, organism in self.community.organisms.items():
                 rate = 0
                 if m_id not in organism.metabolites:
                     continue
-
                 for r_id in organism.get_metabolite_reactions(m_id):
                     if (org_id, r_id) not in reaction_map:
                         continue
@@ -264,7 +283,7 @@ class CommunitySolution(object):
                     flux = self.values[reaction_map[(org_id, r_id)]]
 
                     if flux != 0:
-                        coeff = organism.reactions[r_id].stoichiometry[m_id]
+                        coeff = organism.get_reaction(r_id).stoichiometry[m_id]
                         rate += coeff*flux
 
                 if rate != 0:
@@ -272,7 +291,7 @@ class CommunitySolution(object):
 
         return exchanges
 
-    def cross_feeding(self, as_df=False, abstol=1e-6):
+    def cross_feeding(self, as_df=True, abstol=1e-6):
         exchanges = self.compute_exchanges()
         cross_all = []
 
@@ -301,7 +320,7 @@ class CommunitySolution(object):
     def mass_flow(self, element=None, as_df=False, abstol=1e-6):
 
         def get_mass(x):
-            met = self.community.comm_model.get_metabolite(x)
+            met = self.community.merged_model.get_metabolite(x)
             formula = x.formula
             mw = molecular_weight(formula, element=element)
             return 0.001 * mw
@@ -309,7 +328,7 @@ class CommunitySolution(object):
         entities = list(self.community.organisms) + [None]
         flow = {(o1, o2): 0 for o1 in entities for o2 in entities}
 
-        for o1, o2, m_id, rate in self.cross_feeding():
+        for o1, o2, m_id, rate in self.cross_feeding(as_df=False):
             flow[(o1, o2)] += get_mass(m_id) * rate
 
         flow = {key: val for key, val in flow.items() if val > abstol}
@@ -330,15 +349,14 @@ class CommunitySolution(object):
         else:
             print_values(self.internal[org_id], pattern=pattern, sort=sort, abstol=abstol)
 
-    def print_external_balance(self, m_id, sort=False, percentage=False, equations=False, abstol=1e-9):
+    def print_external_balance(self, m_id, sort=False, percentage=False, abstol=1e-9):
 
-        #print_balance(self.values, m_id, self.community.merged_model, sort=sort, percentage=percentage, equations=equations,
-        #              abstol=abstol)
-        return None
+        print_balance(self.values, m_id, self.community.merged_model, sort=sort, percentage=percentage,
+                      abstol=abstol)
 
     def print_exchanges(self, m_id=None, abstol=1e-9):
 
-        model = self.community.comm_model
+        model = self.community.merged_model
         exchange_rxns = set(model.get_exchange_reactions())
 
         if m_id:

@@ -23,12 +23,57 @@ Author: Vitor Pereira
 """
 from abc import abstractmethod, ABC
 from collections import OrderedDict
-from ..util.parsing import evaluate_expression_tree
-from ..util.process import cpu_count
-from . import SimulationMethod, SStatus
+from enum import Enum
 from joblib import Parallel, delayed
 from tqdm import tqdm
+from copy import deepcopy
 import math
+
+from ..util.parsing import evaluate_expression_tree
+from ..util.process import cpu_count
+
+from typing import List
+
+class SimulationMethod(Enum):
+    FBA = 'FBA'
+    pFBA = 'pFBA'
+    MOMA = 'MOMA'
+    lMOMA = 'lMOMA'
+    ROOM = 'ROOM'
+    NONE = 'NONE'
+
+    def __eq__(self, other):
+        """Overrides equal to enable string name comparison.
+        Allows to seamlessly use:
+            SimulationMethod.FBA = SimulationMethod.FBA
+            SimulationMethod.FBA = 'FBA'
+        without requiring an additional level of comparison (SimulationMethod.FBA.name = 'FBA')
+        """
+        if isinstance(other, SimulationMethod):
+            return super().__eq__(other)
+        elif isinstance(other, str):
+            return self.name == other
+        else:
+            return False
+
+    def __hash__(self):
+        return hash(self.name)
+
+
+class SStatus(Enum):
+    """ Enumeration of possible solution status. """
+    OPTIMAL = 'Optimal'
+    UNKNOWN = 'Unknown'
+    SUBOPTIMAL = 'Suboptimal'
+    UNBOUNDED = 'Unbounded'
+    INFEASIBLE = 'Infeasible'
+    INF_OR_UNB = 'Infeasible or Unbounded'
+
+    def __repr__(self):
+        return self.name
+
+    def __str__(self):
+        return self.name
 
 
 class SimulationInterface(ABC):
@@ -190,6 +235,17 @@ class Simulator(ModelContainer, SimulationInterface):
     def get_reaction_bounds(self, r_id):
         raise NotImplementedError
 
+    def set_environmental_conditions(self, medium):
+        for k, v in medium.items():
+            if isinstance(v, tuple):
+                lb, ub = v
+            elif isinstance(v, (float, int)):
+                lb, ub = v, v
+            else:
+                raise ValueError(f"{v} is an inappropiate bound.")
+            self.set_reaction_bounds(k, lb, ub, False)
+        self._environmental_conditions = medium
+
     @abstractmethod
     def metabolite_reaction_lookup(self, force_recalculate=False):
         raise NotImplementedError
@@ -336,12 +392,13 @@ class Simulator(ModelContainer, SimulationInterface):
         return NotImplementedError
 
     def get_external_metabolites(self):
-        external = []
+        external =[]
+        ext_com = [c_id for c_id in self.compartments 
+                   if self.get_compartment(c_id).external==True]
         for m_id in self.metabolites:
-            c_id = self.get_metabolite(m_id).compartments
-            if self.get_compartment(c_id).external:
+            if self.get_metabolite(m_id).compartment in ext_com:
                 external.append(m_id)
-        return m_id
+        return external
 
     def blocked_reactions(self, constraints=None, reactions=None, abstol=1e-9):
         """ Find all blocked reactions in a model
@@ -356,6 +413,37 @@ class Simulator(ModelContainer, SimulationInterface):
         variability = self.FVA(obj_frac=0, reactions=reactions, constraints=constraints)
 
         return [r_id for r_id, (lb, ub) in variability.items() if (abs(lb) + abs(ub)) < abstol]
+
+    def get_metabolite_reactions(self,m_id: str) -> List[str]:
+        """Returns the list or reactions that produce or consume a metabolite.
+
+        :param m_id: the metabolite identifier
+        :return: A list of reaction identifiers
+        """
+        m_r = self.metabolite_reaction_lookup()
+        return list(m_r[m_id].keys())
+    
+    def get_metabolite_producers(self, m_id: str) -> List[str]:
+        """Returns the list or reactions that produce a metabolite.
+
+        :param m_id: the metabolite identifier
+        :return: A list of reaction identifiers
+        """
+        m_r = self.metabolite_reaction_lookup()
+        return [k for k, v in m_r[m_id].items() if v > 0]
+
+    def get_metabolite_consumers(self, m_id):
+        """Returns the list or reactions that consume a metabolite.
+
+        :param m_id: the metabolite identifier
+        :return: A list of reaction identifiers
+        """
+        m_r = self.metabolite_reaction_lookup()
+        return [k for k, v in m_r[m_id].items() if v < 0]
+    
+    def copy(self):
+        """Retuns a copy of the Simulator instance."""
+        return deepcopy(self)
 
 
 class SimulationResult(object):
@@ -401,13 +489,12 @@ class SimulationResult(object):
 
     def __repr__(self):
         return (f"objective: {self.objective_value}\nStatus: "
-                f"{self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}")
+                f"{self.status}\nMethod:{self.method}")
 
     def __str__(self):
-        return (f"objective: {self.objective_value}\nStatus: "
-                f"{self.status}\nConstraints: {self.get_constraints()}\nMethod:{self.method}")
-
-    def find(self, pattern=None, sort=False, shadow_prices=False):
+        return self.__repr__()
+    
+    def find(self, pattern=None, sort=False, shadow_prices=False, show_nulls=False):
         """Returns a dataframe of reactions and their fluxes matching a pattern or a list of patterns.
 
         :param pattern: a string or a list of strings. defaults to None
@@ -424,7 +511,10 @@ class SimulationResult(object):
                 raise ValueError('No shadow prices')
         else:
             try:
-                values = [(key, value) for key, value in self.fluxes.items()]
+                if show_nulls:
+                    values = [(key, value) for key, value in self.fluxes.items()]
+                else:
+                    values = [(key, value) for key, value in self.fluxes.items() if value!=0.0]
                 columns = ['Reaction ID', 'Flux rate']
             except Exception:
                 raise ValueError('No fluxes')

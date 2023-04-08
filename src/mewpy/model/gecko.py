@@ -148,7 +148,7 @@ class GeckoModel(CBModel):
             raise ValueError('Model should be a string denomination or a CBModel instance')
 
         super(GeckoModel, self).__init__(model.id)
-
+    
         # import CBModel's data
         self.compartments = copy.deepcopy(model.compartments)
         self.metabolites = copy.deepcopy(model.metabolites)

@@ -24,8 +24,8 @@ Author: Vítor Pereira
 
 import logging
 from collections import OrderedDict
-
 import numpy as np
+
 from reframed.cobra.simulation import FBA, pFBA, MOMA, lMOMA, ROOM
 from reframed.core.cbmodel import CBModel
 from reframed.solvers import set_default_solver
@@ -70,6 +70,10 @@ class CBModelContainer(ModelContainer):
     @property
     def id(self):
         return self.model.id
+
+    @id.setter
+    def id(self,sid:str):
+        self.model.id=sid
 
     @property
     def reactions(self):
@@ -211,7 +215,20 @@ class Simulation(CBModelContainer, Simulator):
         # if modifications on the envirenment are permited
         # during simulations
         self._allow_env_changes = False
-
+        self.biomass_reaction = None 
+        try: 
+            self.biomass_reaction = model.biomass_reaction
+        except:
+            pass
+    
+    def copy(self):
+        """Retuns a copy of the Simulator instance."""
+        return Simulation(self.model.copy(), 
+                          envcond=self.environmental_conditions.copy(),
+                          constraints=self._constraints.copy(),
+                          reset_solver=self._reset_solver
+                          )
+        
     def _set_model_reaction_bounds(self, r_id, bounds):
         if isinstance(bounds, tuple):
             lb = bounds[0]
@@ -350,6 +367,12 @@ class Simulation(CBModelContainer, Simulator):
         """
         self.model.remove_reaction(r_id)
 
+    def update_stoichiometry(self, rxn_id, stoichiometry):
+        rxn = self.model.reactions[rxn_id]
+        rxn.stoichiometry = OrderedDict(stoichiometry)
+        self.model._needs_update = True
+        self.solver = None
+
     def get_uptake_reactions(self):
         """
         :returns: The list of uptake reactions.
@@ -445,8 +468,9 @@ class Simulation(CBModelContainer, Simulator):
         :return: lb(s), ub(s), tuple
         """
         lb, ub = self.model.reactions[reaction].lb, self.model.reactions[reaction].ub
-        return lb if lb > -np.inf else ModelConstants.REACTION_LOWER_BOUND,\
-            ub if ub < np.inf else ModelConstants.REACTION_UPPER_BOUND
+        #return lb if lb > -np.inf else ModelConstants.REACTION_LOWER_BOUND,\
+        #    ub if ub < np.inf else ModelConstants.REACTION_UPPER_BOUND
+        return lb,ub
 
     def set_reaction_bounds(self, reaction, lb, ub, track=True):
         """
@@ -468,8 +492,8 @@ class Simulation(CBModelContainer, Simulator):
         Return the median upper and lower bound of the metabolic model.
         Bounds can vary from model to model. Cobrapy defaults to (-1000, 1000).
         """
-        lower_bounds = np.asarray([rxn.lb for rxn in self.model.reactions], dtype=float)
-        upper_bounds = np.asarray([rxn.ub for rxn in self.model.reactions], dtype=float)
+        lower_bounds = np.asarray([rxn.lb for rxn in self.model.reactions.values()], dtype=float)
+        upper_bounds = np.asarray([rxn.ub for rxn in self.model.reactions.values()], dtype=float)
         lower_bound = np.nanmedian(lower_bounds[lower_bounds != 0.0])
         upper_bound = np.nanmedian(upper_bounds[upper_bounds != 0.0])
         if np.isnan(lower_bound):

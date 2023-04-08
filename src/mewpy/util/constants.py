@@ -34,6 +34,8 @@ class ModelConstants:
     MP_EVALUATOR = 'ray'
     # Solver timeout
     SOLVER_TIMEOUT = 3600
+    # Default kcat value in 1/s
+    DEFAULT_KCAT = 1
 
 
 class EAConstants:
@@ -82,3 +84,9 @@ atomic_weights = {'H': 1.00794, 'He': 4.002602, 'Li': 6.941, 'Be': 9.012182, 'B'
                   'Cf': 251.0, 'Es': 252.0, 'Fm': 257.0, 'Md': 258.0, 'No': 259.0, 'Lr': 262.0, 'Rf': 261.0,
                   'Db': 262.0, 'Sg': 266.0, 'Bh': 264.0, 'Hs': 277.0, 'Mt': 268.0, 'Ds': 281.0, 'Rg': 272.0,
                   'Cn': 285.0, 'Uuq': 289.0, 'Uuh': 292.0}
+
+# Amino acid MW (Da) retrieved from https://modlamp.org/
+aa_weights = {'A': 89.093, 'C': 121.158, 'D': 133.103, 'E': 147.129, 'F': 165.189, 'G': 75.067,
+              'H': 155.155, 'I': 131.173, 'K': 146.188, 'L': 131.173, 'M': 149.211, 'N': 132.118,
+              'P': 115.131, 'Q': 146.145, 'R': 174.20, 'S': 105.093, 'T': 119.119, 'V': 117.146,
+              'W': 204.225, 'Y': 181.189}
