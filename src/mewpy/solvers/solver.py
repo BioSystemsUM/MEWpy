@@ -23,8 +23,6 @@ https://github.com/cdanielmachado/reframed
 """
 from enum import Enum
 from math import inf
-from reframed.core.cbmodel import CBModel
-from cobra.core.model import Model
 from ..simulation import get_simulator
 
 
