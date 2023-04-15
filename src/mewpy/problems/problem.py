@@ -296,7 +296,10 @@ class AbstractProblem(ABC):
                 simulation_results[method] = simulation_result
             # apply the evaluation function(s)
             for f in self.fevaluation:
-                v = f(simulation_results, decoded, scalefactor=self.scalefactor)
+                v = f(simulation_results, 
+                      decoded, 
+                      scalefactor=self.scalefactor,
+                      constraints=constraints)
                 p.append(v)
         except Exception as e:
             p = []

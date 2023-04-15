@@ -754,6 +754,11 @@ class GeckoSimulation(Simulation):
     @property
     def proteins(self):
         return list(self.model.proteins)
+    
+    @property
+    def protein_pool_exchange(self):
+        return self.model.protein_pool_exchange
+
 
     def essential_proteins(self, min_growth=0.01):
         if self._essential_proteins is not None:

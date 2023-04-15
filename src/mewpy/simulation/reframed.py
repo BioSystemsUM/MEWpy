@@ -673,6 +673,10 @@ class GeckoSimulation(Simulation):
         return self.model.proteins
 
     @property
+    def protein_pool_exchange(self):
+        return self.model.protein_pool_exchange
+
+    @property
     def protein_rev_reactions(self):
         return self.model.protein_rev_reactions
 

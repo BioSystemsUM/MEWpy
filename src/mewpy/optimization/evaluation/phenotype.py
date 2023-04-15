@@ -15,93 +15,23 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 ##############################################################################
-Fitness evaluation functions
+Phenotype evaluators 
 
 Author: Vitor Pereira
 ##############################################################################
 """
+from .evaluator import (PhenotypeEvaluationFunction,
+                        KineticEvaluationFunction, 
+                        EvaluationFunction)
+from mewpy.simulation.simulation import SimulationMethod, SStatus
+from mewpy.solvers.ode import ODEStatus
+from mewpy.simulation import get_simulator
+from mewpy.util.constants import ModelConstants, EAConstants
+import numpy as np
 import math
 import warnings
-from abc import ABCMeta, abstractmethod
-from functools import reduce
-import numpy as np
-
-from mewpy.solvers.ode import ODEStatus
-from ..simulation import get_simulator, SimulationMethod, SStatus
-from ..util.constants import EAConstants, ModelConstants
 
 from typing import Dict, Union, List, Tuple
-
-class EvaluationFunction:
-    __metaclass__ = ABCMeta
-
-    def __init__(self, maximize:bool=True,
-                 worst_fitness:float=0.0):
-        """This abstract class should be extended by all evaluation functions.
-
-        :param maximize: Wether to maximize (True) or minimize (False), defaults to True
-        :type maximize: bool, optional
-        :param worst_fitness: The worst fitness value, defaults to 0.0
-        :type worst_fitness: float, optional
-        """
-        self.worst_fitness = worst_fitness
-        self.maximize = maximize
-
-    @abstractmethod
-    def get_fitness(self, simul_results, candidate, **kwargs):
-        """Evaluates a candidate
-
-        :param simul_results: (dic) A dictionary of phenotype SimulationResult objects
-        :param candidate:  Candidate beeing evaluated
-        :returns: A fitness value.
-
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def method_str(self):
-        raise NotImplementedError
-
-    def short_str(self):
-        return self.method_str
-
-    def __str__(self):
-        return self.method_str()
-
-
-
-    @abstractmethod
-    def required_simulations(self):
-        return None
-
-    @property
-    def no_solution(self):
-        """
-        Value to be retuned for wost case evaluation
-        """
-        if self.worst_fitness is not None:
-            res = self.worst_fitness
-        elif self.maximize:
-            res = -math.inf
-        else:
-            res = math.inf
-        return res
-
-    def __call__(self, simulationResult, candidate, **kwargs):
-        return self.get_fitness(simulationResult, candidate, **kwargs)
-
-
-class PhenotypeEvaluationFunction(EvaluationFunction):
-
-    def __init__(self, maximize=True, worst_fitness=0.0):
-        super(PhenotypeEvaluationFunction, self).__init__(maximize=maximize, worst_fitness=worst_fitness)
-
-
-class KineticEvaluationFunction(EvaluationFunction):
-
-    def __init__(self, maximize=True, worst_fitness=0.0):
-        super(KineticEvaluationFunction, self).__init__(maximize=maximize, worst_fitness=worst_fitness)
-
 
 class TargetFlux(PhenotypeEvaluationFunction,KineticEvaluationFunction):
 
@@ -522,88 +452,6 @@ class BPCY_FVA(PhenotypeEvaluationFunction):
             return "BPCY_FVA (" + self.biomassId + " * " + self.productId + ")"
 
 
-class AggregatedSum(PhenotypeEvaluationFunction, KineticEvaluationFunction):
-    
-    def __init__(self,
-                 fevaluation: List[EvaluationFunction], 
-                 tradeoffs: List[float]=None, 
-                 maximize: bool=True):
-        """
-        Aggredated sum evaluation function. Used to converte MOEAs into Single Objective EAs.
-
-        :param fevaluation: (list) List of evaluation functions.
-        :param tradeoffs: (list) Tradeoff values for each evaluation function. If None, all functions have \
-            the same associated weight.
-    """
-        super(AggregatedSum, self).__init__(
-            maximize=maximize, worst_fitness=0.0)
-        self.fevaluation = fevaluation
-        if tradeoffs and len(tradeoffs) == len(fevaluation):
-            self.tradeoffs = tradeoffs
-        else:
-            self.tradeoffs = [1 / len(self.fevaluation)] * \
-                (len(self.fevaluation))
-
-    def required_simulations(self):
-        methods = []
-        for f in self.fevaluation:
-            methods.extend(f.required_simulations())
-        return list(set(methods))
-
-    def get_fitness(self, simul_results, candidate, **kwargs):
-        """Evaluates a candidate
-
-        :param simul_results: (dic) A dictionary of phenotype SimulationResult objects
-        :param candidate:  Candidate beeing evaluated
-        :returns: A fitness value.
-
-        """
-        res = []
-        for f in self.fevaluation:
-            res.append(f.get_fitness(simul_results, candidate, **kwargs))
-        # return sum(map(lambda x, y: x * y, f, self.tradeoffs))
-        return np.dot(res, self.tradeoffs)
-
-    def short_str(self):
-        return "Agg"
-
-    def method_str(self):
-        return "Aggregated Sum = " + reduce(lambda a, b: a + " " + b, [f.method_str() for f in self.fevaluation], "")
-
-
-class CandidateSize(PhenotypeEvaluationFunction, KineticEvaluationFunction):
-   
-    def __init__(self, maximize:bool=False):
-        """
-        Maximize/minimize the number of modifications.
-
-        :param (bool) maximize: Optimization sense. Default False (minimize)
-        """
-        super(CandidateSize, self).__init__(maximize=maximize, worst_fitness=0.0)
-
-    def get_fitness(self, simulResult, candidate, **kwargs):
-        return len(candidate)
-
-    def required_simulations(self):
-        """
-        If the evaluation function requires a pre-simulation to compute fitness values
-        """
-        return []
-
-    def short_str(self):
-        return "Size"
-
-    def method_str(self):
-        return "Minimize/maximize the number of alterations"
-
-
-class MinCandSize(CandidateSize):
-
-    def __init__(self, maximize=False):
-        super(MinCandSize, self).__init__(maximize=maximize, worst_fitness=0.0)
-        warnings.warn("This class will soon be depricated. Use CandidateSize instead.")
-
-
 class CNRFA(PhenotypeEvaluationFunction):
 
     def __init__(self, 
@@ -652,49 +500,7 @@ class CNRFA(PhenotypeEvaluationFunction):
 
     def method_str(self):
         return "Count N Reaction Fluxes Above"
-    
 
-class ModificationType(PhenotypeEvaluationFunction, KineticEvaluationFunction):
-    
-
-    def __init__(self, 
-                 penalizations:Dict[str,float]={'KO': 5, 'UE': 2, 'OE': 0}, 
-                 maximize:bool=True):
-        """
-        This Objective function favors solutions with deletions, under expression
-        and over expression, in this same order.
-
-        :param penalizations: Penalizations by modification type, defaults to {'KO': 5, 'UE': 2, 'OE': 0}
-        :type penalizations: _type_, optional
-        :param maximize: optimization direction: True (maximize) False (minimize), defaults to True
-        :type maximize: bool, optional
-        """
-        super(ModificationType, self).__init__(maximize=maximize, worst_fitness=0.0)
-        self.penalizations = penalizations
-        
-
-    def get_fitness(self, simulResult, candidate, **kwargs):
-        sum = 0
-        for v in candidate.values():
-            if v == 0:
-                sum += self.penalizations['KO']
-            elif v < 1:
-                sum += self.penalizations['UE']
-            else:
-                sum += self.penalizations['OE']
-        return sum / len(candidate)
-
-    def required_simulations(self):
-        """
-        If the evaluation function requires a pre-simulation to compute fitness values
-        """
-        return []
-
-    def short_str(self):
-        return "ModificationType"
-
-    def method_str(self):
-        return "ModificationType"
 
 
 class MolecularWeight(PhenotypeEvaluationFunction):
@@ -718,7 +524,7 @@ class MolecularWeight(PhenotypeEvaluationFunction):
         self.__mw = None
 
     def compute_rxnmw(self, model):
-        from ..util.constants import atomic_weights
+        from mewpy.util.constants import atomic_weights
         self.__mw = {}
         simulator = get_simulator(model)
         for rx in self.reactions:

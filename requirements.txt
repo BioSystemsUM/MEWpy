@@ -4,7 +4,7 @@ reframed
 inspyred
 jmetalpy
 networkx
-matplotlib
+matplotlib<=3.5.0
 tqdm
 joblib
 httpx<=0.23.0
