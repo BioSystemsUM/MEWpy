@@ -57,15 +57,17 @@ def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"], inline:
 
     :param model: A COBRApy or REFRAMED Model or an instance of 
         mewpy.simulation.simulation.Simulator
+    :return: a irreversible model simulator, a reverse mapping.
+    :rtype:(Simulator,dict)
     """
     
     sim = get_simulator(deepcopy(model))
 
     objective = sim.objective.copy()
-
+    irrev_map=dict()
     for r_id in tqdm(sim.reactions, "Converting to irreversible"):
-        lb, ub = sim.get_reaction_bounds(r_id)
-        if lb < 0 and ub > 0:
+        lb, _ = sim.get_reaction_bounds(r_id)
+        if lb < 0:
             rxn = sim.get_reaction(r_id)
             rev_rxn_id = r_id+"_REV"
 
@@ -81,12 +83,14 @@ def convert_to_irreversible(model: Union[Simulator, "Model", "CBModel"], inline:
 
             sim.add_reaction(rev_rxn_id, **rev_rxn)
             sim.set_reaction_bounds(r_id, 0, rxn.ub, False)
-
+            
+            irrev_map[r_id] = rev_rxn_id
+            
             if r_id in objective:
                 objective[rev_rxn_id] = -objective[r_id]
 
     sim.objective = objective
-    return sim
+    return sim, irrev_map
 
 
 def split_isozymes(model: Union[Simulator, "Model", "CBModel"], inline: bool = False):
@@ -262,7 +266,7 @@ def add_enzyme_constraints(model: Union[Simulator, "Model", "CBModel"],
     :return: a new enzyme constrained model
     :rtype: Simulator
     """
-    sim = convert_to_irreversible(model, inline)
+    sim, _ = convert_to_irreversible(model, inline)
     sim, _ = split_isozymes(sim, True)
     sim = __enzime_constraints(sim,
                                prot_mw=prot_mw,
