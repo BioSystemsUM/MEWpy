@@ -2,7 +2,7 @@ numpy
 cobra
 reframed
 inspyred
-jmetalpy
+jmetalpy<=1.5.5
 networkx
 matplotlib<=3.5.0
 tqdm
