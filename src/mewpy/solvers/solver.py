@@ -23,7 +23,10 @@ https://github.com/cdanielmachado/reframed
 """
 from enum import Enum
 from math import inf
-from ..simulation import get_simulator
+from reframed.core.cbmodel import CBModel
+from cobra.core.model import Model
+
+from ..simulation.simulation import Simulator
 
 
 class VarType(Enum):
@@ -169,7 +172,21 @@ class Solver(object):
             model
         """
 
-        self.__build_problem_simulator(get_simulator(model))
+        if isinstance(model, (CBModel, Model)):
+            self.__build_problem_model(model)
+        elif isinstance(model, Simulator):
+            self.__build_problem_simulator(model)
+        else:
+            raise TypeError
+
+    def __build_problem_model(self, model):
+        """ Create a problem for metabolic models (REFRAMED or COBRApy)
+        Args:
+            model: A metabolic model
+        """
+        from ..simulation import get_simulator
+        sim = get_simulator(model)
+        self.__build_problem_simulator(sim)
 
     def __build_problem_simulator(self, simulator):
         """Create a problem for simulators
