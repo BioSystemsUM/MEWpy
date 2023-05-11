@@ -399,6 +399,15 @@ class Simulation(CobraModelContainer, Simulator):
             r_id (str): The reaction identifier.
         """
         self.model.remove_reactions([r_id])
+        
+    def remove_reactions(self, rxn_ids:List[str]):
+        """_summary_
+
+        Args:
+            rxn_ids (List[str]): _description_
+        """
+        self.model.remove_reactions(rxn_ids)
+        
 
     def update_stoichiometry(self, rxn_id, stoichiometry):
         """Updates the stoichiometry of a reaction by creating a 
