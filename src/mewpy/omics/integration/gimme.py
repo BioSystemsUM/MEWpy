@@ -32,7 +32,8 @@ from .. import Preprocessing, ExpressionSet
 
 
 def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
-          constraints=None, parsimonious=False, inline = False, **kwargs):
+          constraints=None, parsimonious=False, build_model = False,
+          **kwargs):
     """ Run a GIMME simulation [1]_.
 
     Arguments:
@@ -45,7 +46,7 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
         growth_frac (float): minimum growth requirement (default: 0.9)
         constraints (dict): additional constraints
         parsimonious (bool): compute a parsimonious solution (default: False)
-        inline (bool): returns a tissue specific model
+        build_model (bool): returns a tissue specific model
 
     Returns:
         Solution: solution
@@ -57,27 +58,23 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
            PLoS Computational Biology, 4(5), e1000082.
            doi:10.1371/journal.pcbi.1000082
     """
-    if not inline:
+    if not build_model:
         sim = get_simulator(model)
     else:
         sim = get_simulator(deepcopy(model))
         
     if isinstance(expr, ExpressionSet):
         pp = Preprocessing(sim, expr)
-        coeffs, _ = pp.percentile(condition, cutoff=cutoff)
+        coeffs, threshold = pp.percentile(condition, cutoff=cutoff)
     else:
         coeffs = expr
-    
+        threshold = cutoff
+    print(coeffs)
     solver = solver_instance(sim)
 
     if biomass is None:
-        try:
-            biomass = list(sim.objective.keys())[0]
-        except Exception:
-            raise ValueError(
-                "A biomass reaction identifier is required or "
-                "needs to be set as the model objective")
-
+        biomass = sim.biomass_reaction
+        
     wt_solution = sim.simulate(constraints=constraints)
 
     if not constraints:
@@ -86,7 +83,7 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
     constraints[biomass] = (growth_frac * wt_solution.fluxes[biomass], inf)
 
     # make model irreversible
-    if not inline:
+    if not build_model:
         for r_id in sim.reactions:
             lb, _ = sim.get_reaction_bounds(r_id)
             if lb < 0:
@@ -106,22 +103,23 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
         solver.update()
 
     else:
-        convert_to_irreversible(sim,inline=True)
+        convert_to_irreversible(sim, inline=True)
 
-
+    # define the objective
     objective = dict()
     for r_id, val in coeffs.items():
         lb, _ = sim.get_reaction_bounds(r_id)
-        if lb < 0:
+        if not build_model and lb < 0:
             pos, neg = r_id + '_p', r_id + '_n'
             objective[pos] = val
             objective[neg] = val
         else:
             objective[r_id] = val
-
+    
     solution = solver.solve(objective, minimize=True, constraints=constraints)
 
-    if parsimonious:
+
+    if not build_model and parsimonious:
         pre_solution = solution
 
         solver.add_constraint('obj', objective, '=', pre_solution.fobj)
@@ -141,16 +139,32 @@ def GIMME(model, expr, biomass=None, condition=0, cutoff=25, growth_frac=0.9,
         solver.remove_constraint('obj')
         solution.pre_solution = pre_solution
 
-    for r_id in sim.reactions:
-        lb, _ = sim.get_reaction_bounds(r_id)
-        if lb < 0:
-            pos, neg = r_id + '_p', r_id + '_n'
-            del solution.values[pos]
-            del solution.values[neg]
 
-    res = to_simulation_result(model, biomass, constraints, sim, solution)
+    if build_model:
+        activity = dict()
+        for rx_id in sim.reactions:
+            activity[rx_id]=0
+            if rx_id in coeffs and coeffs[rx_id] > threshold:
+                activity[rx_id]=1
+            elif solution.values[rx_id]>0:
+                activity[rx_id]=2
+        # remove unused
+        rx_to_delete = [rx_id for rx_id, v in activity.items() if v==0]   
+        sim.remove_reactions(rx_to_delete)
+    else:
+        for r_id in sim.reactions:
+            lb, _ = sim.get_reaction_bounds(r_id)
+            if lb < 0:
+                pos, neg = r_id + '_p', r_id + '_n'
+                del solution.values[pos]
+                del solution.values[neg]
+ 
+    res = to_simulation_result(model, solution.fobj, constraints, sim, solution)
     if hasattr(solution,'pre_solution'):
         res.pre_solution = solution.pre_solution
     
-    return res
+    if build_model:
+        return res, sim
+    else:
+        return res
 
