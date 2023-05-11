@@ -41,6 +41,8 @@ from mewpy.util.constants import ModelConstants
 from mewpy.util.utilities import elements, AttrDict
 from tqdm import tqdm
 
+from typing import List, Union, Dict, Tuple
+
 LOGGER = logging.getLogger(__name__)
 
 solver_map = {'gurobi': 'gurobi', 'cplex': 'cplex', 'glpk': 'optlang'}
@@ -68,7 +70,7 @@ class CBModelContainer(ModelContainer):
         self.model = model
 
     @property
-    def id(self):
+    def id(self) -> str:
         return self.model.id
 
     @id.setter
@@ -76,10 +78,10 @@ class CBModelContainer(ModelContainer):
         self.model.id=sid
 
     @property
-    def reactions(self):
+    def reactions(self) -> List[str]:
         return list(self.model.reactions.keys())
 
-    def get_reaction(self, r_id):
+    def get_reaction(self, r_id:str) -> AttrDict:
         if r_id not in self.reactions:
             raise ValueError(f"Reactions {r_id} does not exist")
         rxn = self.model.reactions[r_id]
@@ -89,10 +91,10 @@ class CBModelContainer(ModelContainer):
         return AttrDict(res)
 
     @property
-    def genes(self):
+    def genes(self) -> List[str]:
         return list(self.model.genes.keys())
 
-    def get_gene(self, g_id):
+    def get_gene(self, g_id:str) -> AttrDict:
         g = self.model.genes[g_id]
         gr = self.get_gene_reactions()
         r = gr.get(g_id,[])
@@ -100,10 +102,10 @@ class CBModelContainer(ModelContainer):
         return AttrDict(res)
 
     @property
-    def metabolites(self):
+    def metabolites(self) -> List[str]:
         return list(self.model.metabolites.keys())
 
-    def get_metabolite(self, m_id):
+    def get_metabolite(self, m_id:str) -> AttrDict:
         met = self.model.metabolites[m_id]
         res = {'id': m_id, 'name': met.name, 'compartment': met.compartment, 'formula': met.metadata.get('FORMULA', '')}
         return AttrDict(res)
@@ -112,12 +114,12 @@ class CBModelContainer(ModelContainer):
     def compartments(self):
         return self.model.compartments
 
-    def get_compartment(self, c_id):
+    def get_compartment(self, c_id:str):
         c = self.model.compartments[c_id]
         res = {'id': c_id, 'name': c.name, 'external': c.external}
         return AttrDict(res)
 
-    def get_exchange_reactions(self):
+    def get_exchange_reactions(self)->List[str]:
         return self.model.get_exchange_reactions()
 
     def get_gene_reactions(self):
@@ -176,7 +178,11 @@ class Simulation(CBModelContainer, Simulator):
     """
 
     # TODO: the parent init call is missing ... super() can resolve the mro of the simulation diamond inheritance
-    def __init__(self, model: CBModel, envcond=None, constraints=None, solver=None, reference=None,
+    def __init__(self, model: CBModel,
+                 envcond:Dict[Union[float,Tuple[float,float]]]=None,
+                 constraints:Dict[Union[float,Tuple[float,float]]]=None,
+                 solver=None,
+                 reference:Dict[str,float]=None,
                  reset_solver=ModelConstants.RESET_SOLVER):
 
         if not isinstance(model, CBModel):
@@ -221,7 +227,7 @@ class Simulation(CBModelContainer, Simulator):
         except:
             pass
     
-    def copy(self):
+    def copy(self) -> 'Simulation':
         """Retuns a copy of the Simulator instance."""
         return Simulation(self.model.copy(), 
                           envcond=self.environmental_conditions.copy(),
@@ -359,15 +365,25 @@ class Simulation(CBModelContainer, Simulator):
         reaction.metadata = annotations
         self.model.add_reaction(reaction, replace=replace)
 
-    def remove_reaction(self, r_id):
+    def remove_reaction(self, r_id:str):
         """Removes a reaction from the model.
 
         Args:
             r_id (str): The reaction identifier.
         """
         self.model.remove_reaction(r_id)
+    
+    def remove_reactions(self, rxn_ids:List[str]):
+        """_summary_
 
-    def update_stoichiometry(self, rxn_id, stoichiometry):
+        Args:
+            rxn_ids (List[str]): _description_
+        """
+        for r_id in rxn_ids:
+            self.model.remove_reactions(r_id)
+    
+
+    def update_stoichiometry(self, rxn_id:str, stoichiometry:dict):
         rxn = self.model.reactions[rxn_id]
         rxn.stoichiometry = OrderedDict(stoichiometry)
         self.model._needs_update = True
@@ -417,7 +433,7 @@ class Simulation(CBModelContainer, Simulator):
                 genes.append(g)
         return genes
 
-    def reverse_reaction(self, reaction_id):
+    def reverse_reaction(self, reaction_id:str):
         """
         Identify if a reaction is reversible and returns the
         reverse reaction if it is the case.
