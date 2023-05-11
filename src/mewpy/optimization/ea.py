@@ -135,7 +135,8 @@ class AbstractEA(ABC):
     def __init__(self, problem: "AbstractProblem",
                  initial_population: List = [],
                  max_generations:int=EAConstants.MAX_GENERATIONS,
-                 mp:bool=True, 
+                 mp:bool=True,
+                 np:int=None,
                  visualizer:bool=False, 
                  **kwargs):
 
@@ -145,6 +146,7 @@ class AbstractEA(ABC):
         self.visualizer = visualizer
         self.mp = mp
         self.final_population = None
+        self.np = np
 
     def run(self, simplify=True):
         """ Runs the optimization for the defined problem.
