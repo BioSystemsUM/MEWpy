@@ -41,8 +41,6 @@ from mewpy.util.constants import ModelConstants
 from mewpy.util.utilities import elements, AttrDict
 from tqdm import tqdm
 
-from typing import List, Union, Dict, Tuple
-
 LOGGER = logging.getLogger(__name__)
 
 solver_map = {'gurobi': 'gurobi', 'cplex': 'cplex', 'glpk': 'optlang'}
@@ -78,10 +76,10 @@ class CBModelContainer(ModelContainer):
         self.model.id=sid
 
     @property
-    def reactions(self) -> List[str]:
+    def reactions(self):
         return list(self.model.reactions.keys())
 
-    def get_reaction(self, r_id:str) -> AttrDict:
+    def get_reaction(self, r_id:str):
         if r_id not in self.reactions:
             raise ValueError(f"Reactions {r_id} does not exist")
         rxn = self.model.reactions[r_id]
@@ -91,10 +89,10 @@ class CBModelContainer(ModelContainer):
         return AttrDict(res)
 
     @property
-    def genes(self) -> List[str]:
+    def genes(self):
         return list(self.model.genes.keys())
 
-    def get_gene(self, g_id:str) -> AttrDict:
+    def get_gene(self, g_id:str):
         g = self.model.genes[g_id]
         gr = self.get_gene_reactions()
         r = gr.get(g_id,[])
@@ -102,12 +100,15 @@ class CBModelContainer(ModelContainer):
         return AttrDict(res)
 
     @property
-    def metabolites(self) -> List[str]:
+    def metabolites(self):
         return list(self.model.metabolites.keys())
 
-    def get_metabolite(self, m_id:str) -> AttrDict:
+    def get_metabolite(self, m_id:str):
         met = self.model.metabolites[m_id]
-        res = {'id': m_id, 'name': met.name, 'compartment': met.compartment, 'formula': met.metadata.get('FORMULA', '')}
+        res = {'id': m_id, 
+               'name': met.name, 
+               'compartment': met.compartment, 
+               'formula': met.metadata.get('FORMULA', '')}
         return AttrDict(res)
 
     @property
@@ -119,7 +120,7 @@ class CBModelContainer(ModelContainer):
         res = {'id': c_id, 'name': c.name, 'external': c.external}
         return AttrDict(res)
 
-    def get_exchange_reactions(self)->List[str]:
+    def get_exchange_reactions(self):
         return self.model.get_exchange_reactions()
 
     def get_gene_reactions(self):
@@ -179,10 +180,10 @@ class Simulation(CBModelContainer, Simulator):
 
     # TODO: the parent init call is missing ... super() can resolve the mro of the simulation diamond inheritance
     def __init__(self, model: CBModel,
-                 envcond:Dict[Union[float,Tuple[float,float]]]=None,
-                 constraints:Dict[Union[float,Tuple[float,float]]]=None,
+                 envcond=None,
+                 constraints=None,
                  solver=None,
-                 reference:Dict[str,float]=None,
+                 reference=None,
                  reset_solver=ModelConstants.RESET_SOLVER):
 
         if not isinstance(model, CBModel):
@@ -373,7 +374,7 @@ class Simulation(CBModelContainer, Simulator):
         """
         self.model.remove_reaction(r_id)
     
-    def remove_reactions(self, rxn_ids:List[str]):
+    def remove_reactions(self, rxn_ids):
         """_summary_
 
         Args:
