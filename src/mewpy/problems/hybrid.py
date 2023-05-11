@@ -240,6 +240,8 @@ class HybridGeckoOUProblem(GeckoOUProblem):
                     #    vmax:  mM/s
                     #    kcat:  1/h
                     #    gDW:   gDW/L
+                    
+                    # TODO: include dil rate
                     max_enzyme_usage = vmax_value * 3600 / (kcat * self.gDW)
                     if self.apply_lb:
                         min_enzyme_usage = max(0, abs(flux) * 3600 / (kcat * self.gDW)-self.lb_tolerance)
