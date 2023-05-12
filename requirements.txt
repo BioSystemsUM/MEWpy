@@ -1,5 +1,5 @@
 numpy
-cobra
+cobra<=0.26.2
 reframed
 inspyred
 jmetalpy<=1.5.5
