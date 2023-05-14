@@ -68,8 +68,8 @@ class GurobiSolver(Solver):
     def __init__(self, model=None):
         Solver.__init__(self)
         self.problem = GurobiModel()
-        self.set_logging(False)
         self.set_parameters(default_parameters)
+        self.set_logging(False)
         if model:
             self.build_problem(model)
 
@@ -374,7 +374,7 @@ class GurobiSolver(Solver):
         Arguments:
             enabled (bool): turn logging on (default: False)
         """
-
+        self.problem.setParam('LogToConsole',0)
         self.problem.setParam('OutputFlag', 1 if enabled else 0)
 
     def write_to_file(self, filename):

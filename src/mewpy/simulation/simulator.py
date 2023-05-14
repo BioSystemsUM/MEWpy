@@ -66,6 +66,10 @@ def get_simulator(model, envcond=None, constraints=None, reference=None, reset_s
             model.solver.configuration.timeout = ModelConstants.SOLVER_TIMEOUT
         except:
             pass
+        try:
+            model.solver.problem.params.OutputFlag = 0
+        except Exception as e:
+            pass
         instance = class_(model, envcond=envcond,
                           constraints=constraints, reference=reference, reset_solver=reset_solver)
     elif "etfl" in name:

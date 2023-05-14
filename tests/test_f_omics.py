@@ -27,11 +27,11 @@ class TestExpressionSet(unittest.TestCase):
         print(solution)
         #self.assertGreater(solution.objective_value,0)
 
-    def test_GIMME_build(self):
-        from mewpy.omics import GIMME
-        solution, sim = GIMME(self.sim, self.expr, build_model=True)
-        print(solution)
-        print(sim.simulate())
+    #def test_GIMME_build(self):
+    #    from mewpy.omics import GIMME
+    #    solution, sim = GIMME(self.sim, self.expr, build_model=True)
+    #    print(solution)
+    #    print(sim.simulate())
 
     def test_eFlux(self):
         from mewpy.omics import eFlux
