@@ -18,7 +18,7 @@ from .simulation import get_simulator
 
 __author__ = 'BiSBII CEB University of Minho'
 __email__ = 'vpereira@ceb.uminho.pt'
-__version__ = '0.1.28'
+__version__ = '0.1.29'
 
 
 
