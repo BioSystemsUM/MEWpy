@@ -273,15 +273,6 @@ class Simulation(CobraModelContainer, Simulator):
         except:
             pass
      
-    def copy(self):
-        """Retuns a copy of the Simulator instance."""
-        return Simulation(self.model.copy(), 
-                          envcond=self.environmental_conditions.copy(),
-                          constraints=self._constraints.copy(),
-                          reset_solver=self._reset_solver
-                          )
-                              
-    
     @property
     def environmental_conditions(self):
         return self._environmental_conditions.copy()

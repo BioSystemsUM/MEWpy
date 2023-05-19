@@ -85,7 +85,6 @@ class TestGERMModel(unittest.TestCase):
 
         self.assertEqual(expr.evaluate(values=values, operators=operators), 93)
     
-    @pytest.mark.xfail
     def test_model(self):
         """
         Tests model and variables object
@@ -181,7 +180,6 @@ class TestGERMModel(unittest.TestCase):
         self.assertEqual(model.regulators, {**{'b0002': regulator}, **model.interactions['I_b0002'].regulators})
         self.assertEqual(model.targets, {'b0001': target, 'b0002': regulator})
 
-    @pytest.mark.xfail
     def test_read(self):
         """
         Tests read model
@@ -261,7 +259,7 @@ class TestGERMModel(unittest.TestCase):
         self.assertEqual(len(model.metabolites), 72)
         self.assertEqual(len(model.genes), 137)
 
-    @pytest.mark.xfail
+    #@pytest.mark.xfail
     def test_write(self):
         """
         Tests write model
@@ -384,7 +382,7 @@ class TestGERMModel(unittest.TestCase):
         sol = isingle_regulator_deletion(model, regulators=list(model.regulators.keys())[0:10])
         self.assertGreater(len(sol), 0)
 
-    @pytest.mark.xfail
+    #@pytest.mark.xfail
     def test_analysis_expression(self):
         """
         It tests model analysis with methods of expression

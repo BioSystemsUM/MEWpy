@@ -228,14 +228,6 @@ class Simulation(CBModelContainer, Simulator):
         except:
             pass
     
-    def copy(self) -> 'Simulation':
-        """Retuns a copy of the Simulator instance."""
-        return Simulation(self.model.copy(), 
-                          envcond=self.environmental_conditions.copy(),
-                          constraints=self._constraints.copy(),
-                          reset_solver=self._reset_solver
-                          )
-        
     def _set_model_reaction_bounds(self, r_id, bounds):
         if isinstance(bounds, tuple):
             lb = bounds[0]
