@@ -83,8 +83,9 @@ def ec_gecko_ou(compound, display=False, filename=None):
     
     import os
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    PATH = os.path.join(dir_path, '../../../examples/models/gecko/')
+    PATH = os.path.join(dir_path, '../../examples/models/ec/')
     DATA_FILE = os.path.join(PATH, 'eciML1515_batch.xml')
+    print(DATA_FILE)
     from reframed.io.sbml import load_cbmodel
     m = load_cbmodel(DATA_FILE)
     model = GeckoModel(m, biomass_reaction_id='R_BIOMASS_Ec_iML1515_core_75p37M',
@@ -128,7 +129,7 @@ if __name__ == '__main__':
 
     N_EXP = 1
 
-    compounds = {'R_EX_tyr__L_e'}
+    compounds = {'TYR':'R_EX_tyr__L_e'}
 
     for k, v in compounds.items():
         for _ in range(N_EXP):

@@ -29,7 +29,7 @@ class ModelConstants:
     # Default tolerance for bounds and coefficients
     TOLERANCE = 1E-10
     # reset solver
-    RESET_SOLVER = False
+    RESET_SOLVER = True
     # Multiprocessing engine. If ray is installed, it is used by default.
     MP_EVALUATOR = 'ray'
     # Solver timeout
