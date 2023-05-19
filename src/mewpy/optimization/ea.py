@@ -85,14 +85,17 @@ class Solution(SolutionInterface):
         return f"{self.fitness};{self.values}"
 
     def __eq__(self, solution:"Solution") -> bool:
-        return set(self.values) == set(solution.values)
+        if isinstance(self.values,dict):
+           return set(self.values.items()) == set(solution.values.items())
+        else:     
+            return set(self.values) == set(solution.values)
 
     def __ne__(self, solution: "Solution") -> bool:
         if self.fitness != solution.fitness:
             return True
         else:
-            return set(self.values) != set(solution.values)
-
+            return not self.__eq__(solution)
+        
     def __gt__(self, solution:"Solution") -> bool:
         if isinstance(solution, self.__class__):
             return dominance_test(self, solution, maximize=self._is_maximize) == 1
@@ -121,7 +124,10 @@ class Solution(SolutionInterface):
         return new_solution
 
     def __hash__(self) -> str:
-        return hash(str(set(self.values)))
+        if isinstance(self.values, dict):
+            return hash(str(set(self.values.items())))
+        else:
+            return hash(str(set(self.values)))
 
     def to_dict(self) -> Dict[str, Any]:
         d = {'values': self.values,
@@ -319,23 +325,9 @@ def non_dominated_population(solutions, maximize=True, filter_duplicate=True):
 def filter_duplicates(population):
     """ Filters equal solutions from a population
     """
-
-    def remove_equal(individual, population):
-        filtered = []
-        for other in population:
-            if individual != other:
-                filtered.append(other)
-        return filtered
-
-    fitered_list = []
-    p = population
-    while len(p) > 1:
-        individual = p[0]
-        fitered_list.append(individual)
-        p = remove_equal(individual, p)
-    if p:
-        fitered_list.extend(p)
-    return fitered_list
+    res = [x for i,x in enumerate(population) if x not in population[:i] ]
+    return res
+        
 
 
 def cmetric(pf1, pf2, maximize=True):
