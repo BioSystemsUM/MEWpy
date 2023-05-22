@@ -910,7 +910,7 @@ class GeckoSimulation(Simulation):
         else:
             raise ValueError(f"Protein {protein} not founded.")
 
-    def set_Kcat(self, protein, reaction, invkcat):
+    def set_Kcat(self, protein, reaction, kcat):
         """Alters an enzyme kcat for a given reaction.
 
         :param protein: The protein identifier
@@ -920,7 +920,7 @@ class GeckoSimulation(Simulation):
         :param invkcat: The inverse kcat value, a real positive value.
         :type invkcat: float
         """
-        if invkcat <= 0:
+        if kcat <= 0:
             raise ValueError('kcat value needs to be positive.')
 
         rxn = self.model.reactions.get_by_id(reaction)
@@ -929,8 +929,8 @@ class GeckoSimulation(Simulation):
             if protein in met.id:
                 m = met
                 break
-        if met is not None:
-            rxn.subtract_metabolites({met: invkcat})
+        if m is not None:
+            rxn.subtract_metabolites({m: -1/kcat})
         else:
             LOGGER.warn(f'Could not identify {protein} ' 
                         f'protein specie in reaction {reaction}')
