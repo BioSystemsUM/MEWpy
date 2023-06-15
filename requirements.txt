@@ -1,10 +1,11 @@
 numpy
-cobra
+cobra<=0.26.2
 reframed
 inspyred
-jmetalpy
+jmetalpy<=1.5.5
 networkx
-matplotlib
+matplotlib<=3.5.0
 tqdm
 joblib
+httpx<=0.23.0
 

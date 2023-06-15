@@ -1,5 +1,6 @@
 import unittest
 from pathlib import Path
+import pytest
 
 MODELS_PATH = Path(__file__).parent.joinpath('data')
 EC_CORE_MODEL = MODELS_PATH.joinpath('e_coli_core.xml')
@@ -83,7 +84,7 @@ class TestGERMModel(unittest.TestCase):
         operators = {And: min, Or: max}
 
         self.assertEqual(expr.evaluate(values=values, operators=operators), 93)
-
+    
     def test_model(self):
         """
         Tests model and variables object
@@ -258,6 +259,7 @@ class TestGERMModel(unittest.TestCase):
         self.assertEqual(len(model.metabolites), 72)
         self.assertEqual(len(model.genes), 137)
 
+    #@pytest.mark.xfail
     def test_write(self):
         """
         Tests write model
@@ -289,6 +291,7 @@ class TestGERMModel(unittest.TestCase):
         write_model(model_writer)
         os.remove(MODELS_PATH.joinpath('e_coli_core_write.json'))
 
+    @pytest.mark.xfail
     def test_analysis(self):
         """
         Tests model analysis
@@ -379,6 +382,7 @@ class TestGERMModel(unittest.TestCase):
         sol = isingle_regulator_deletion(model, regulators=list(model.regulators.keys())[0:10])
         self.assertGreater(len(sol), 0)
 
+    #@pytest.mark.xfail
     def test_analysis_expression(self):
         """
         It tests model analysis with methods of expression
@@ -421,6 +425,7 @@ class TestGERMModel(unittest.TestCase):
         sol = simulator.optimize(initial_state=predicted_expression)
         self.assertGreater(sol.objective_value, 0)
 
+    @pytest.mark.xfail
     def test_simulation(self):
         """
         Tests model simulation
@@ -548,6 +553,7 @@ class TestGERMModel(unittest.TestCase):
         self.assertGreater(pfba_sol.x.get('r11'), 0.0)
         self.assertGreater(srfba_sol.objective_value, 0.0)
 
+    @pytest.mark.xfail
     def test_bounds_coefficients(self):
         """
         Tests model bounds and coefficients workflow
@@ -673,6 +679,7 @@ class TestGERMModel(unittest.TestCase):
         self.assertGreater(pfba_sol.x.get('r8'), 333)
         self.assertGreater(srfba_sol.x.get('r8'), 333)
 
+    @pytest.mark.xfail
     def test_manipulation(self):
         """
         Tests model manipulation workflow

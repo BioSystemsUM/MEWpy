@@ -1,10 +1,24 @@
+# Copyright (C) 2019- Centre of Biological Engineering,
+#     University of Minho, Portugal
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
-##################################################################
+Author: Vitor Pereira
 
 GECKO E. coli model optimization
-
-##################################################################
 """
+
 from collections import OrderedDict
 from time import time
 
@@ -83,8 +97,9 @@ def ec_gecko_ou(compound, display=False, filename=None):
     
     import os
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    PATH = os.path.join(dir_path, '../../../examples/models/gecko/')
+    PATH = os.path.join(dir_path, '../../examples/models/ec/')
     DATA_FILE = os.path.join(PATH, 'eciML1515_batch.xml')
+    print(DATA_FILE)
     from reframed.io.sbml import load_cbmodel
     m = load_cbmodel(DATA_FILE)
     model = GeckoModel(m, biomass_reaction_id='R_BIOMASS_Ec_iML1515_core_75p37M',
@@ -128,7 +143,7 @@ if __name__ == '__main__':
 
     N_EXP = 1
 
-    compounds = {'R_EX_tyr__L_e'}
+    compounds = {'TYR':'R_EX_tyr__L_e'}
 
     for k, v in compounds.items():
         for _ in range(N_EXP):

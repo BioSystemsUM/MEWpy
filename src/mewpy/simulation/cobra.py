@@ -273,15 +273,6 @@ class Simulation(CobraModelContainer, Simulator):
         except:
             pass
      
-    def copy(self):
-        """Retuns a copy of the Simulator instance."""
-        return Simulation(self.model.copy(), 
-                          envcond=self.environmental_conditions.copy(),
-                          constraints=self._constraints.copy(),
-                          reset_solver=self._reset_solver
-                          )
-                              
-    
     @property
     def environmental_conditions(self):
         return self._environmental_conditions.copy()
@@ -385,12 +376,14 @@ class Simulation(CobraModelContainer, Simulator):
         reaction.upper_bound = ub
         if gpr and isinstance(gpr, str):
             reaction.gene_reaction_rule = gpr
-        reaction.annotation = annotations
+        if annotations:    
+            reaction.annotation = annotations
         if replace and rxn_id in self.reactions:
             self.remove_reaction(rxn_id)
 
         self.model.add_reactions([reaction])
-        set_objective(self.model, {reaction: objective})
+        if objective!=0:
+            set_objective(self.model, {reaction: objective})
 
     def remove_reaction(self, r_id):
         """Removes a reaction from the model.
@@ -399,6 +392,15 @@ class Simulation(CobraModelContainer, Simulator):
             r_id (str): The reaction identifier.
         """
         self.model.remove_reactions([r_id])
+        
+    def remove_reactions(self, rxn_ids:List[str]):
+        """_summary_
+
+        Args:
+            rxn_ids (List[str]): _description_
+        """
+        self.model.remove_reactions(rxn_ids)
+        
 
     def update_stoichiometry(self, rxn_id, stoichiometry):
         """Updates the stoichiometry of a reaction by creating a 
@@ -754,6 +756,11 @@ class GeckoSimulation(Simulation):
     @property
     def proteins(self):
         return list(self.model.proteins)
+    
+    @property
+    def protein_pool_exchange(self):
+        return self.model.protein_pool_exchange
+
 
     def essential_proteins(self, min_growth=0.01):
         if self._essential_proteins is not None:
@@ -905,7 +912,7 @@ class GeckoSimulation(Simulation):
         else:
             raise ValueError(f"Protein {protein} not founded.")
 
-    def set_Kcat(self, protein, reaction, invkcat):
+    def set_Kcat(self, protein, reaction, kcat):
         """Alters an enzyme kcat for a given reaction.
 
         :param protein: The protein identifier
@@ -915,7 +922,7 @@ class GeckoSimulation(Simulation):
         :param invkcat: The inverse kcat value, a real positive value.
         :type invkcat: float
         """
-        if invkcat <= 0:
+        if kcat <= 0:
             raise ValueError('kcat value needs to be positive.')
 
         rxn = self.model.reactions.get_by_id(reaction)
@@ -924,8 +931,8 @@ class GeckoSimulation(Simulation):
             if protein in met.id:
                 m = met
                 break
-        if met is not None:
-            rxn.subtract_metabolites({met: invkcat})
+        if m is not None:
+            rxn.subtract_metabolites({m: -1/kcat})
         else:
             LOGGER.warn(f'Could not identify {protein} ' 
                         f'protein specie in reaction {reaction}')

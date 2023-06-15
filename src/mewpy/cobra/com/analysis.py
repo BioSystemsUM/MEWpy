@@ -25,6 +25,7 @@ from mewpy.solvers.solution import Status
 from mewpy.simulation import Environment
 from mewpy.cobra.medium import minimal_medium
 from mewpy.util.constants import ModelConstants
+from mewpy.util import AttrDict
 
 from warnings import warn
 from collections import Counter
@@ -77,7 +78,7 @@ def sc_score(community, environment=None, min_growth=0.1, n_solutions=100, verbo
 
     solver.update()
 
-    scores = {}
+    scores = AttrDict()
 
     for org_id, biomass_id in community.organisms_biomass.items():
         other = {o for o in community.organisms if o != org_id}
@@ -166,7 +167,7 @@ def mu_score(community, environment=None, min_mol_weight=False, min_growth=0.1, 
         environment.apply(sim, inplace=True, warning=False)
 
     max_uptake = max_uptake * len(community.organisms)
-    scores = {}
+    scores = AttrDict()
     
     solver = solver_instance(sim)
 
@@ -237,7 +238,7 @@ def mp_score(community, environment=None, abstol=1e-3):
                 
     solver = solver_instance(sim)
 
-    scores = {}
+    scores = AttrDict()
 
     for org_id in community.organisms:
         org_ex = community.organisms[org_id].get_exchange_reactions()
@@ -400,14 +401,14 @@ def mro_score(community, environment=None, direction=-1, min_mol_weight=False, m
 
     medium = {ex_met(x,True) for x in medium} - exclude
     
-    individual_media = {}
+    individual_media = AttrDict()
 
     for org_id in community.organisms:
         biomass_reaction = community.organisms_biomass[org_id]
         
         org_ex = community.organisms[org_id].get_exchange_reactions()
         org_interacting_exch = [community.reaction_map[(org_id,rx_id)] for rx_id in org_ex]
-        
+
         medium_i, sol = minimal_medium(sim, exchange_reactions=org_interacting_exch, direction=direction,
                                      min_mass_weight=min_mol_weight, min_growth=min_growth, max_uptake=max_uptake,
                                      validate=validate, warnings=False, milp=(not use_lp),
@@ -425,10 +426,10 @@ def mro_score(community, environment=None, direction=-1, min_mol_weight=False, m
     denominator = sum(map(len, individual_media.values())) / len(individual_media) if len(individual_media) != 0 else 0
     score = numerator / denominator if denominator != 0 else None
 
-    extras = {
+    extras = AttrDict({
         'community_medium': medium,
         'individual_media': individual_media
-    }
+    })
 
     return score, extras
 

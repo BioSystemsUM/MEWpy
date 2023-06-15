@@ -74,7 +74,9 @@ class CommunityModel:
 
         self.reaction_map = None
         self.metabolite_map = None
+        self.gene_map = None
         
+        self._reverse_map = None
         self._merge_biomasses = True if abundances is not None else merge_biomasses
         self._add_compartments = add_compartments
         
@@ -112,6 +114,8 @@ class CommunityModel:
         self.biomass = None
         self.reaction_map = None
         self.metabolite_map = None
+        self.gene_map = None
+        self._reverse_map = None
         self._comm_model = None
    
     @property
@@ -138,7 +142,15 @@ class CommunityModel:
             self._merge_biomasses = value
             self.clear()
         
-        
+    @property
+    def reverse_map(self):
+        if self._reverse_map is not None:
+            return self._reverse_map
+        else:
+            self._reverse_map = dict()
+            self._reverse_map.update({v:k for k,v in self.reaction_map.items()})
+            self._reverse_map.update({v:k for k,v in self.gene_map.items()})
+            
     def set_abundance(self,abundances:Dict[str,float],rebuild=False):
         if not self._merge_biomasses:
             raise ValueError("The community model has no merged biomass equation")
@@ -188,6 +200,9 @@ class CommunityModel:
         self.organisms_biomass = {}
         self.reaction_map = {}
         self.metabolite_map = {}
+        self.gene_map = {}
+        self._reverse_map = None
+        
         if self._merge_biomasses:
             self.organisms_biomass_metabolite = {}
 
@@ -267,12 +282,13 @@ class CommunityModel:
                     ext_mets.append(new_mid)
             
             # add genes
-            if self.flavor == 'reframed':
-                for g_id in model.genes:
+            for g_id in model.genes:
+                new_id = r_gene(g_id)
+                self.gene_map[(org_id,g_id)] = new_id
+                if self.flavor == 'reframed':
                     gene = model.get_gene(g_id)
-                    new_id = r_gene(g_id)
                     self._comm_model.add_gene(new_id, gene.name)
-
+                    
             # add reactions
             ex_rxns = model.get_exchange_reactions()
             

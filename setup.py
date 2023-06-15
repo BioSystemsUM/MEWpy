@@ -6,9 +6,9 @@ files = ["model/data/*"]
 with open('README.rst') as readme_file:
     readme = readme_file.read()
 
-requirements = ['cobra', 'inspyred', 'jmetalpy',
-                'reframed', 'networkx', 'matplotlib',
-                'joblib', 'tdqm']
+requirements = ['cobra', 'inspyred', 'jmetalpy<=1.5.5',
+                'reframed', 'networkx', 'matplotlib<=3.5.0',
+                'joblib', 'tdqm', 'httpx<=0.23.0']
 
 setup_requirements = requirements + ['pytest-runner']
 test_requirements = requirements + ['pytest', 'cplex']
@@ -16,7 +16,7 @@ install_requirements = requirements
 
 setup(
     name='mewpy',
-    version='0.1.26',
+    version='0.1.30',
     python_requires='>=3.6',
     package_dir={'': 'src'},
     packages=find_packages('src'),

@@ -68,7 +68,7 @@ class CBModelContainer(ModelContainer):
         self.model = model
 
     @property
-    def id(self):
+    def id(self) -> str:
         return self.model.id
 
     @id.setter
@@ -79,7 +79,7 @@ class CBModelContainer(ModelContainer):
     def reactions(self):
         return list(self.model.reactions.keys())
 
-    def get_reaction(self, r_id):
+    def get_reaction(self, r_id:str):
         if r_id not in self.reactions:
             raise ValueError(f"Reactions {r_id} does not exist")
         rxn = self.model.reactions[r_id]
@@ -92,7 +92,7 @@ class CBModelContainer(ModelContainer):
     def genes(self):
         return list(self.model.genes.keys())
 
-    def get_gene(self, g_id):
+    def get_gene(self, g_id:str):
         g = self.model.genes[g_id]
         gr = self.get_gene_reactions()
         r = gr.get(g_id,[])
@@ -103,16 +103,19 @@ class CBModelContainer(ModelContainer):
     def metabolites(self):
         return list(self.model.metabolites.keys())
 
-    def get_metabolite(self, m_id):
+    def get_metabolite(self, m_id:str):
         met = self.model.metabolites[m_id]
-        res = {'id': m_id, 'name': met.name, 'compartment': met.compartment, 'formula': met.metadata.get('FORMULA', '')}
+        res = {'id': m_id, 
+               'name': met.name, 
+               'compartment': met.compartment, 
+               'formula': met.metadata.get('FORMULA', '')}
         return AttrDict(res)
 
     @property
     def compartments(self):
         return self.model.compartments
 
-    def get_compartment(self, c_id):
+    def get_compartment(self, c_id:str):
         c = self.model.compartments[c_id]
         res = {'id': c_id, 'name': c.name, 'external': c.external}
         return AttrDict(res)
@@ -176,7 +179,11 @@ class Simulation(CBModelContainer, Simulator):
     """
 
     # TODO: the parent init call is missing ... super() can resolve the mro of the simulation diamond inheritance
-    def __init__(self, model: CBModel, envcond=None, constraints=None, solver=None, reference=None,
+    def __init__(self, model: CBModel,
+                 envcond=None,
+                 constraints=None,
+                 solver=None,
+                 reference=None,
                  reset_solver=ModelConstants.RESET_SOLVER):
 
         if not isinstance(model, CBModel):
@@ -221,14 +228,6 @@ class Simulation(CBModelContainer, Simulator):
         except:
             pass
     
-    def copy(self):
-        """Retuns a copy of the Simulator instance."""
-        return Simulation(self.model.copy(), 
-                          envcond=self.environmental_conditions.copy(),
-                          constraints=self._constraints.copy(),
-                          reset_solver=self._reset_solver
-                          )
-        
     def _set_model_reaction_bounds(self, r_id, bounds):
         if isinstance(bounds, tuple):
             lb = bounds[0]
@@ -359,15 +358,25 @@ class Simulation(CBModelContainer, Simulator):
         reaction.metadata = annotations
         self.model.add_reaction(reaction, replace=replace)
 
-    def remove_reaction(self, r_id):
+    def remove_reaction(self, r_id:str):
         """Removes a reaction from the model.
 
         Args:
             r_id (str): The reaction identifier.
         """
         self.model.remove_reaction(r_id)
+    
+    def remove_reactions(self, rxn_ids):
+        """_summary_
 
-    def update_stoichiometry(self, rxn_id, stoichiometry):
+        Args:
+            rxn_ids (List[str]): _description_
+        """
+        for r_id in rxn_ids:
+            self.model.remove_reactions(r_id)
+    
+
+    def update_stoichiometry(self, rxn_id:str, stoichiometry:dict):
         rxn = self.model.reactions[rxn_id]
         rxn.stoichiometry = OrderedDict(stoichiometry)
         self.model._needs_update = True
@@ -417,7 +426,7 @@ class Simulation(CBModelContainer, Simulator):
                 genes.append(g)
         return genes
 
-    def reverse_reaction(self, reaction_id):
+    def reverse_reaction(self, reaction_id:str):
         """
         Identify if a reaction is reversible and returns the
         reverse reaction if it is the case.
@@ -671,6 +680,10 @@ class GeckoSimulation(Simulation):
     @property
     def proteins(self):
         return self.model.proteins
+
+    @property
+    def protein_pool_exchange(self):
+        return self.model.protein_pool_exchange
 
     @property
     def protein_rev_reactions(self):

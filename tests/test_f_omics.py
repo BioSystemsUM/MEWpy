@@ -23,12 +23,26 @@ class TestExpressionSet(unittest.TestCase):
 
     def test_GIMME(self):
         from mewpy.omics import GIMME
-        GIMME(self.sim, self.expr)
+        solution=GIMME(self.sim, self.expr,cutoff=100)
+        print(solution)
+        #self.assertGreater(solution.objective_value,0)
+
+    #def test_GIMME_build(self):
+    #    from mewpy.omics import GIMME
+    #    solution, sim = GIMME(self.sim, self.expr, build_model=True)
+    #    print(solution)
+    #    print(sim.simulate())
 
     def test_eFlux(self):
         from mewpy.omics import eFlux
-        eFlux(self.sim, self.expr)
+        solution=eFlux(self.sim, self.expr)
+        self.assertGreater(solution.objective_value,0)
 
     def test_iMAT(self):
         from mewpy.omics import iMAT
         iMAT(self.sim, self.expr)
+
+if __name__ == '__main__':
+    test = TestExpressionSet()
+    test.setUp()
+    test.test_GIMME()

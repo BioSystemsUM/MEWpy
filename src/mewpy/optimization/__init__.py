@@ -6,7 +6,8 @@ Author: Vítor Pereira
 ##############################################################################
 """
 from ..util.constants import EAConstants
-from .evaluation import *
+from .evaluation.phenotype import *
+from .evaluation.base import * 
 
 engines = dict()
 

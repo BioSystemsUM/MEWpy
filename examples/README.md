@@ -10,7 +10,10 @@ This folder contains examples on how MEWpy can be used to perform phenotype simu
 - The [kinetic](03-kinetic.ipynb) illustrates how MEWpy may be use to load and work with kinetic models.
 - The [ROUProblem](04-ROUproblem.ipynb) example illustrates how MEWpy may be used to identify reaction bounds modifications that favor the production of the aromatic amino acid (AAA) L-tyrosine in yeast.
 - The [GOUProblem](05-GOUproblem.ipynb) example aims to increase the production of the same AAA in E. coli by modifying genes expression.
-- The [GeckoKOProblem](06-GeckoKOProblem.ipynb), also targets the same goal in yeast by exploiting a GECKO model and by deleting enzymatic
+- The [GeckoKOProblem](06-GeckoKOProblem.ipynb), also targets the same goal in yeast by exploiting a GECKO model and by deleting enzymatic.
+- The [CoFactorSwap](07-CoFactorSwap.ipynb) illustrates how to swap co-factors to optimize the production of a metabolite.
+- The [Community](08-community.ipynb) provides examples on how to use MEWpy to build community models.
+- The [CrossFeeding](09-crossfeeding.ipynb) illustrated how to use MEWpy to design strains that favor crossfeeding. 
 - The [GERM_Models](GERM_Models.ipynb) example illustrates how to work with GERM models in MEWpy.
 - The [GERM_Models_analysis](GERM_Models_analysis.ipynb) example illustrates how to work with GERM models analysis in MEWpy.
 proteins.

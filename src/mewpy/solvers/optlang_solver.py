@@ -47,9 +47,9 @@ class OptLangSolver(Solver):
 
         self.parameter_mapping = {
             Parameter.TIME_LIMIT: self.problem.configuration.timeout,
-            Parameter.FEASIBILITY_TOL: self.problem.configuration.tolerances.feasibility,
-            Parameter.OPTIMALITY_TOL: self.problem.configuration.tolerances.optimality,
-            Parameter.INT_FEASIBILITY_TOL: self.problem.configuration.tolerances.integrality,
+            #Parameter.FEASIBILITY_TOL: self.problem.configuration.tolerances.feasibility,
+            # Parameter.OPTIMALITY_TOL: self.problem.configuration.tolerances.optimality,
+            #Parameter.INT_FEASIBILITY_TOL: self.problem.configuration.tolerances.integrality,
         }
 
         self.set_parameters(default_parameters)
@@ -312,8 +312,8 @@ class OptLangSolver(Solver):
 
         if parameter in self.parameter_mapping:
             self.parameter_mapping[parameter] = value
-        else:
-            raise RuntimeError('Parameter unknown (or not yet supported).')
+        #else:
+        #    raise RuntimeError('Parameter unknown (or not yet supported).')
 
     def set_logging(self, enabled=False):
         """ Enable or disable log output:
