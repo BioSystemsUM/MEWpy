@@ -6,3 +6,4 @@ from .optram import load_optram, OptRAMRegModel, OptRamProblem
 from .optorf import load_optorf, OptORFProblem
 from .com import CommunityKOProblem
 from .kinetic import KineticKOProblem, KineticOUProblem
+from .cofactor import CofactorSwapProblem

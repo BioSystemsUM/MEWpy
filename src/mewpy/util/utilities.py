@@ -56,7 +56,7 @@ class AttrDict(dict):
             values.sort()
 
         import pandas as pd
-        data = [{'attribute':x,'value':self.get(x)} for x in values]
+        data = [{'Attribute':x,'Value':self.get(x)} for x in values]
         
         if data:
             df = pd.DataFrame(data)
@@ -68,6 +68,8 @@ class AttrDict(dict):
     def __repr__(self) -> str:
         return str(self.find())
 
+    def _repr_html_(self):
+        return self.find()._repr_html_()
 
 class TimerError(Exception):
     """A custom exception used to report errors in use of Timer class"""

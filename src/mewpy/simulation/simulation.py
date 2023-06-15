@@ -32,7 +32,7 @@ import math
 from ..util.parsing import evaluate_expression_tree
 from ..util.process import cpu_count
 
-from typing import List
+from typing import List, Union
 
 class SimulationMethod(Enum):
     FBA = 'FBA'
@@ -300,6 +300,29 @@ class Simulator(ModelContainer, SimulationInterface):
     def find_metabolites(self, pattern=None, sort=False):
         return self.find(pattern=pattern, sort=sort, find_in='m')
 
+    def find_metabolite_by_formula(self,formula:Union[str,List[str]]):
+        from mewpy.util.utilities import elements
+        formulas = [formula] if isinstance(formula,str) else formula  
+        elems =[elements(f) for f in formulas] 
+        mets = []
+        for met in self.metabolites:
+            f = self.get_metabolite(met).formula
+            if elements(f) in elems:
+                    mets.append(met)
+        if mets:
+            return self.find_metabolites(mets)
+        
+    def metabolite_by_formula(self,formula:str, compartment='c'):
+        from mewpy.util.utilities import elements
+        elem = elements(formula)
+        for met in self.metabolites:
+            m = self.get_metabolite(met)
+            f = m.formula
+            c = m.compartment
+            if elements(f)==elem and c==compartment:
+                return met
+        return None
+        
     def find_reactions(self, pattern=None, sort=False):
         return self.find(pattern=pattern, sort=sort, find_in='r')
 

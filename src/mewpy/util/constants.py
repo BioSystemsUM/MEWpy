@@ -90,3 +90,28 @@ aa_weights = {'A': 89.093, 'C': 121.158, 'D': 133.103, 'E': 147.129, 'F': 165.18
               'H': 155.155, 'I': 131.173, 'K': 146.188, 'L': 131.173, 'M': 149.211, 'N': 132.118,
               'P': 115.131, 'Q': 146.145, 'R': 174.20, 'S': 105.093, 'T': 119.119, 'V': 117.146,
               'W': 204.225, 'Y': 181.189}
+
+COFACTORS = {'H':'H', 
+          'Mg':'Mg',
+          'Mn:':'Mn',
+          'Zn':'Zn',
+          'CO2':'CO2',
+          'H2O':'H2O',
+          'HO4P':'HO4P',
+          'NADPH':'C21H26N7O17P3',      # NADPH
+          'NADP':'C21H25N7O17P3',      # NADP
+          'NAD':'C21H26N7O14P2',      # NAD
+          'NADH':'C21H27N7O14P2',      # NADH
+          'ATP':'C10H12N5O13P3',      # ATP
+          'ADP':'C10H12N5O10P2',      # ADP
+          'FAD':'C27H33N9O15P2',      # FAD
+          'CoA':'C21H36N7O16P3S',     # CoA
+          'TPP':'C12H19N4O7P2S',      # TPP
+          'P5P':'C8H10NO6P',          # P5P
+          'Methylcobalamin':'C63H91CoN13O14P',    # Vitamin B12
+          'Cyanocobalamin':'C63H88CoN14O14P',    # Vitamin B12
+          'Ascorbic acid':'C6H8O6',             # Vitamin C
+          'Biotin':'C10H16N2O3S',        # Vitamin B7
+          'THFA':'C19H23N7O6',         # THFA
+          'PPI':'HO7P2',              # ppi
+    }

@@ -376,12 +376,14 @@ class Simulation(CobraModelContainer, Simulator):
         reaction.upper_bound = ub
         if gpr and isinstance(gpr, str):
             reaction.gene_reaction_rule = gpr
-        reaction.annotation = annotations
+        if annotations:    
+            reaction.annotation = annotations
         if replace and rxn_id in self.reactions:
             self.remove_reaction(rxn_id)
 
         self.model.add_reactions([reaction])
-        set_objective(self.model, {reaction: objective})
+        if objective!=0:
+            set_objective(self.model, {reaction: objective})
 
     def remove_reaction(self, r_id):
         """Removes a reaction from the model.
