@@ -100,16 +100,20 @@ class EA(AbstractEA):
 
         else:
             print("Running GA")
-            algorithm = GeneticAlgorithm(
-                problem=self.ea_problem,
-                population_size=self.population_size,
-                offspring_population_size=self.population_size,
-                mutation=self.mutation,
-                crossover=self.crossover,
-                selection=BinaryTournamentSelection(),
-                termination_criterion=StoppingByEvaluations(
+            args = {
+                'problem':self.ea_problem,
+                'population_size':self.population_size,
+                'offspring_population_size':self.population_size,
+                'mutation':self.mutation,
+                'crossover':self.crossover,
+                'selection':BinaryTournamentSelection(),
+                'termination_criterion':StoppingByEvaluations(
                     max_evaluations=self.max_evaluations)
-            )
+            }
+            if self.mp:
+                args['population_evaluator'] = get_evaluator(self.ea_problem, n_mp=cpu_count())
+
+            algorithm = GeneticAlgorithm(**args)
 
         algorithm.observable.register(observer=PrintObjectivesStatObserver())
         self.algorithm = algorithm
