@@ -52,6 +52,44 @@ BOOLEAN_EQUAL_RELATIONALS = [S_GREATER_THAN_EQUAL, S_LESS_THAN_EQUAL]
 # Increases the system recursion limit for long expressions
 sys.setrecursionlimit(100000)
 
+# latex
+
+def convert_constant(value) -> str:
+    """Helper to convert constant values to LaTeX.
+
+    Args:
+        value: A constant value.
+
+    Returns:
+        The LaTeX representation of `value`.
+    """
+    if value is None or isinstance(value, bool):
+        return r"\mathrm{" + str(value) + "}"
+    if isinstance(value, (int, float, complex)):
+        # TODO(odashi): Support other symbols for the imaginary unit than j.
+        return str(value)
+    if isinstance(value, str):
+        return r'\textrm{' + value + '}'
+    if isinstance(value, bytes):
+        return r"\textrm{" + str(value) + "}"
+    if value is ...:
+        return r"\cdots"
+    raise Exception(
+        f"Unrecognized constant: {type(value).__name__}"
+    )
+
+#TODO: Add more functions    
+latex = {
+    "*": lambda x,y : rf"{x} \times {y}",
+    "/": lambda x,y : r"\frac {"+x+"} {"+y+"}",
+    "+": lambda x,y : f"{x} + {y}",
+    "-": lambda x,y : f"{x} - {y}",
+    "pow": lambda x,y: r"{"+x+r"}^{"+y+r"}",
+    "^": lambda x,y: r"{"+x+r"}^{"+y+r"}",
+    "**": lambda x,y: r"{"+x+r"}^{"+y+r"}",
+    "sqrt": lambda x,y: r"\sqrt {"+y+r"}"   
+}
+    
 
 def evaluate_expression(expression, variables):
     """ Evaluates a logical expression (containing variables, 'and','or','(' and ')')
@@ -144,6 +182,9 @@ class Node(object):
 
     def __repr__(self):
         return self.__str__()
+    
+    #def _repr_latex_(self):
+    #    return "$$ %s $$" % (self.to_latex())
 
     def __str__(self):
         if self.is_leaf():
@@ -293,6 +334,26 @@ class Node(object):
         else:
             return ''.join([opar, self.left.to_infix(opar, cpar, sep, fsep), sep, rval(self.value), sep, self.right.to_infix(opar, cpar, sep, fsep), cpar])
 
+    def to_latex(self):
+        if self.is_leaf():
+            if self.value == EMPTY_LEAF:
+                return ''
+            else:
+                return convert_constant(self.value)
+        else:
+            if isinstance(self.value,str):
+                op = self.value.strip()
+            else:
+                op = self.value
+            
+            if op in latex:
+                return latex[op](self.left.to_latex(),self.right.to_latex())
+            elif self.tp == 1:
+                return convert_constant(self.value)+r"\left("+self.right.to_latex()+r"\right)"
+            else:
+                return convert_constant(self.value)+r"\left("+self.left.to_latex()+","+self.right.to_latex()+r"\right)"
+
+
     def copy(self):
         if self.is_leaf():
             return Node(self.value.copy(), None, None)
@@ -304,6 +365,9 @@ class Syntax:
     """Defines an interface for the tree syntax parsing
        with operators, their precedence and associativity.
     """
+    
+    operators = []
+    
     @ staticmethod
     @ abstractmethod
     def is_operator(op):
@@ -331,6 +395,8 @@ class Syntax:
 class Arithmetic(Syntax):
     """Defines a basic arithmetic sintax.
     """
+
+    operators = ['+', '-', '*', '/', '^']
 
     @ staticmethod
     def is_operator(op):
@@ -375,6 +441,8 @@ class Boolean(Syntax):
     A boolean syntax parser where (NOT) is considered to
     be defined as a binary operator (NOT a) = (EMPTY NOT a)
     """
+
+    operators = [S_AND, S_OR, S_NOT]
 
     @ staticmethod
     def is_operator(op):
@@ -473,13 +541,13 @@ def tokenize_function(exp: str):
             if s == 0:
                 p = i+1
             if not tokens:
-                tokens = [exp[:i]]
+                tokens = [exp[:i].strip()]
         elif exp[i] == ')':
             s -= 1
             if s == -1:
-                tokens.append(exp[p:i])
+                tokens.append(exp[p:i].strip())
         elif exp[i] == ',' and s == 0:
-            tokens.append(exp[p:i])
+            tokens.append(exp[p:i].strip())
             p = i+1
         i += 1
     if not tokens:
@@ -496,7 +564,7 @@ def build_tree(exp, rules):
     :param rules: Sintax definition rules
     """
     replace_dic = rules.replace()
-    exp_ = tokenize_infix_expression(exp)
+    exp_ = tokenize_infix_expression(exp,rules)
     exp_list = []
     for token in exp_:
         if token.lower() in replace_dic:
@@ -586,8 +654,13 @@ def build_tree(exp, rules):
     return t
 
 
-def tokenize_infix_expression(exp: str):
-    return list(filter(lambda x: x != '', exp.replace('(', ' ( ').replace(')', ' ) ').split(' ')))
+def tokenize_infix_expression(exp: str, rules:Syntax=None):
+    _exp = exp.replace('(', ' ( ').replace(')', ' ) ')
+    if rules:
+        for op in rules.operators:
+            _exp = _exp.replace(op,' '+op+' ')
+    tokens = _exp.split(' ')
+    return list(filter(lambda x: x != '', tokens))
 
 
 def is_number(token: str):
