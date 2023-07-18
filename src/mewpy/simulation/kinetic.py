@@ -27,7 +27,8 @@ from mewpy.model.kinetic import ODEModel
 from mewpy.solvers import (KineticConfigurations,
                            SolverConfigurations,
                            ODEStatus,
-                           ode_solver_instance)
+                           ode_solver_instance,
+                           get_default_ode_solver)
 import warnings
 import numpy as np
 from typing import List, Dict, Tuple, Union, TYPE_CHECKING
@@ -62,7 +63,7 @@ def kinetic_solve(model: ODEModel,
     :rtype: _type_
     """
 
-    rates = OrderedDict()
+    rates = OrderedDict()    
     f = model.get_ode(r_dict=rates, params=parameters, factors=factors)
     solver = ode_solver_instance(f, KineticConfigurations.SOLVER_METHOD)
 

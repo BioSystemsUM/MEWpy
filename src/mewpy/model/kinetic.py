@@ -212,6 +212,8 @@ class Rule(object):
     def __repr__(self):
         return self.replace().replace(' ', '')
 
+    def _repr_latex_(self):
+        return "$$ %s $$" % (self.tree.to_latex())
 
 class KineticReaction(Rule):
 
@@ -695,7 +697,8 @@ class ODEModel:
 
         balances = [' '*8 + self.print_balance(m_id, factors=factors) for m_id in self.metabolites]
 
-        func_str = 'def ode_func(t, x, r, p, v):\n\n' + \
+        func = 'def ode_func(t, x, r, p, v)'
+        func_str = func+':\n\n' + \
             '\n'.join(rate_exprs) + '\n\n' + \
             '    dxdt = [\n' + \
             ',\n'.join(balances) + '\n' + \
@@ -727,5 +730,4 @@ class ODEModel:
         np.seterr(divide='ignore', invalid='ignore')
         exec(self.build_ode(factors), globals())
         ode_func = eval('ode_func')
-
         return lambda t, y: ode_func(t, y, r, p, v)

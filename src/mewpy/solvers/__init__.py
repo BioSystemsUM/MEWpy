@@ -37,6 +37,7 @@ def get_default_solver():
     return default_solver
 
 
+
 def set_default_solver(solvername):
     """ Sets default solver.
 
@@ -51,6 +52,8 @@ def set_default_solver(solvername):
     else:
         raise RuntimeError(f"Solver {solvername} not available.")
 
+def solvers():
+    return list(__MEWPY_solvers__.keys())
 
 def solver_instance(model=None):
     """ Returns a new instance of the currently selected solver.
@@ -130,6 +133,8 @@ def set_default_ode_solver(solvername):
     else:
         raise RuntimeError(f"ODE solver {solvername} not available.")
 
+def ode_solvers():
+    return list(__MEWPY_ode_solvers__.keys())
 
 def ode_solver_instance(func, method: ODEMethod):
     """ Returns a new instance of the currently selected solver.
