@@ -25,7 +25,8 @@ import re
 import sys
 from abc import abstractmethod
 from operator import add, sub, mul, truediv, pow
-from typing import List
+from typing import List, Tuple
+from math import *
 
 # Boolean operator symbols
 S_AND = '&'
@@ -52,10 +53,10 @@ BOOLEAN_EQUAL_RELATIONALS = [S_GREATER_THAN_EQUAL, S_LESS_THAN_EQUAL]
 # Increases the system recursion limit for long expressions
 sys.setrecursionlimit(100000)
 
-# latex
+# latex #############################################
 
 def convert_constant(value) -> str:
-    """Helper to convert constant values to LaTeX.
+    """Helper to convert constant values to LaTeX string.
 
     Args:
         value: A constant value.
@@ -78,18 +79,34 @@ def convert_constant(value) -> str:
         f"Unrecognized constant: {type(value).__name__}"
     )
 
+def paren(src):
+    """Adds surrounding parentheses: "(" and ")"."""
+    return r"\mathopen{}\left( " + src + r" \mathclose{}\right)"
+    
 #TODO: Add more functions    
 latex = {
-    "*": lambda x,y : rf"{x} \times {y}",
-    "/": lambda x,y : r"\frac {"+x+"} {"+y+"}",
-    "+": lambda x,y : f"{x} + {y}",
-    "-": lambda x,y : f"{x} - {y}",
+    "*":   lambda x,y : rf"{x} \times {y}",
+    "/":   lambda x,y : r"\frac {"+x+"} {"+y+"}",
+    "+":   lambda x,y : f"{x} + {y}",
+    "-":   lambda x,y : f"{x} - {y}",
     "pow": lambda x,y: r"{"+x+r"}^{"+y+r"}",
-    "^": lambda x,y: r"{"+x+r"}^{"+y+r"}",
-    "**": lambda x,y: r"{"+x+r"}^{"+y+r"}",
-    "sqrt": lambda x,y: r"\sqrt {"+y+r"}"   
+    "^":   lambda x,y: r"{"+x+r"}^{"+y+r"}",
+    "sqrt":lambda x,y: r"\sqrt {"+y+r"}",   
 }
-    
+
+# Operators precedence used to add parentesis when
+# need as they are removed in the parsing tree
+MAX_PRECEDENCE = 10
+latex_precedence = {'+': 0,
+                    '-': 0,
+                    '*': 1, 
+                    '/': 1, 
+                    '^': 2,
+                    'pow': 2,
+                    }
+
+
+# Evaluate #############################################    
 
 def evaluate_expression(expression, variables):
     """ Evaluates a logical expression (containing variables, 'and','or','(' and ')')
@@ -149,6 +166,7 @@ def maybe_fn(f, v1, v2):
     else:
         return f(v1, v2)
 
+# Parsing Tree #############################################
 
 class Node(object):
     """
@@ -334,24 +352,31 @@ class Node(object):
         else:
             return ''.join([opar, self.left.to_infix(opar, cpar, sep, fsep), sep, rval(self.value), sep, self.right.to_infix(opar, cpar, sep, fsep), cpar])
 
-    def to_latex(self):
+    def to_latex(self)->Tuple(str,int):
+        """simple conversion to latex
+        
+        Returns:
+            latex str, precedence of last operator 
+        """
         if self.is_leaf():
             if self.value == EMPTY_LEAF:
-                return ''
+                return '', MAX_PRECEDENCE
             else:
-                return convert_constant(self.value)
+                return convert_constant(self.value), MAX_PRECEDENCE
         else:
-            if isinstance(self.value,str):
-                op = self.value.strip()
-            else:
-                op = self.value
-            
+            op = self.value.strip()
             if op in latex:
-                return latex[op](self.left.to_latex(),self.right.to_latex())
+                l, pl = self.left.to_latex()
+                r, pr = self.right.to_latex()
+                p = latex_precedence.get(op, MAX_PRECEDENCE)
+                s_l = paren(l) if p>pl else l
+                s_r = paren(r) if p>pr else r
+                return latex[op](s_l,s_r), p 
+            
             elif self.tp == 1:
-                return convert_constant(self.value)+r"\left("+self.right.to_latex()+r"\right)"
+                return convert_constant(self.value)+r"\left("+self.right.to_latex()[0]+r"\right)", MAX_PRECEDENCE
             else:
-                return convert_constant(self.value)+r"\left("+self.left.to_latex()+","+self.right.to_latex()+r"\right)"
+                return convert_constant(self.value)+r"\left("+self.left.to_latex()[0]+","+self.right.to_latex()[0]+r"\right)", MAX_PRECEDENCE
 
 
     def copy(self):
@@ -558,7 +583,8 @@ def tokenize_function(exp: str):
 
 # Tree
 def build_tree(exp, rules):
-    """ Builds a parsing syntax tree for basic mathematical expressions
+    """ 
+    Builds a parsing syntax tree for basic mathematical expressions
 
     :param exp: the expression to be parsed
     :param rules: Sintax definition rules

@@ -25,6 +25,7 @@ from mewpy.util.utilities import AttrDict
 from collections import OrderedDict
 import warnings
 import numpy as np
+from math import *
 from typing import Dict, List, Any
 
 
@@ -213,7 +214,8 @@ class Rule(object):
         return self.replace().replace(' ', '')
 
     def _repr_latex_(self):
-        return "$$ %s $$" % (self.tree.to_latex())
+        s,_ = self.tree.to_latex()
+        return "$$ %s $$" % (s)
 
 class KineticReaction(Rule):
 
