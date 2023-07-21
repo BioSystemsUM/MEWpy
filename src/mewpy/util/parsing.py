@@ -18,7 +18,7 @@
 File containing string expression parsing utility functions.
 Expressions are decomposed into binary parsed trees.
 
-Authors: Vitor Pereira
+Author: Vitor Pereira
 ##############################################################################
 """
 import re
@@ -54,6 +54,18 @@ BOOLEAN_EQUAL_RELATIONALS = [S_GREATER_THAN_EQUAL, S_LESS_THAN_EQUAL]
 sys.setrecursionlimit(100000)
 
 # latex #############################################
+
+class Latex:
+    
+    def __init__(self,text) -> None:
+        self.text = text
+    
+    def __repr__(self) -> str:
+        return self.text
+    
+    def _repr_latex_(self):
+        return "$$ %s $$" % self.text
+
 
 def convert_constant(value) -> str:
     """Helper to convert constant values to LaTeX string.
@@ -352,11 +364,14 @@ class Node(object):
         else:
             return ''.join([opar, self.left.to_infix(opar, cpar, sep, fsep), sep, rval(self.value), sep, self.right.to_infix(opar, cpar, sep, fsep), cpar])
 
-    def to_latex(self)->Tuple(str,int):
-        """simple conversion to latex
+    def to_latex(self)->Tuple[str,int]:
+        """
+        Simple conversion of a parsing tree to LaTeX.
+        Operator precedences are used to decide when to add
+        parentheses. 
         
         Returns:
-            latex str, precedence of last operator 
+            LaTeX str, precedence of last operator 
         """
         if self.is_leaf():
             if self.value == EMPTY_LEAF:
@@ -582,13 +597,14 @@ def tokenize_function(exp: str):
 
 
 # Tree
-def build_tree(exp, rules):
+def build_tree(exp:str, rules:Syntax):
     """ 
     Builds a parsing syntax tree for basic mathematical expressions
 
     :param exp: the expression to be parsed
     :param rules: Sintax definition rules
     """
+    assert exp.count('(')==exp.count(')'), "The expression is parentheses unbalanced." 
     replace_dic = rules.replace()
     exp_ = tokenize_infix_expression(exp,rules)
     exp_list = []

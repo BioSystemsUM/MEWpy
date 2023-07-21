@@ -20,7 +20,7 @@ Kinetic Modeling Module
 Authors: Vitor Pereira
 ##############################################################################
 """
-from mewpy.util.parsing import Arithmetic, build_tree
+from mewpy.util.parsing import Arithmetic, build_tree, Latex
 from mewpy.util.utilities import AttrDict
 from collections import OrderedDict
 import warnings
@@ -174,7 +174,11 @@ class Rule(object):
     def get_parameters(self):
         return self.parameters
 
-    def replace(self, parameters: Dict[str, Any] = None, local=True, infix=True):
+    def replace(self, 
+                parameters: Dict[str, Any] = None, 
+                local:bool=True,
+                infix:bool=True,
+                latex:bool=False):
         """Replaces parameters with values taken from a dictionary.
         If no parameter are given for replacement, returns the string representation of the rule
         built from the parsing tree.
@@ -189,7 +193,9 @@ class Rule(object):
         if local:
             param.update(self.parameters)
         t = self.tree.replace(param)
-        if infix:
+        if latex:
+            return Latex(t.to_latex()[0])
+        elif infix:
             return t.to_infix()
         else:
             return t
@@ -697,6 +703,7 @@ class ODEModel:
         rate_exprs = [' '*4+"r['{}'] = {}".format(r_id, parsed_rates[r_id])
                       for r_id in self.ratelaws.keys()]
 
+        # TODO: review factores....
         balances = [' '*8 + self.print_balance(m_id, factors=factors) for m_id in self.metabolites]
 
         func = 'def ode_func(t, x, r, p, v)'
@@ -732,4 +739,5 @@ class ODEModel:
         np.seterr(divide='ignore', invalid='ignore')
         exec(self.build_ode(factors), globals())
         ode_func = eval('ode_func')
+        
         return lambda t, y: ode_func(t, y, r, p, v)

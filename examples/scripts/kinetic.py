@@ -67,17 +67,15 @@ def simulation():
     consc ={k:5*v for k,v in model.concentrations.items()}
     print("Modified metabolite concentrations:",consc)
     r1 = res.fluxes
-    print(res.fluxes)
-    print()
     # simulate with user defined folds of vMAXs
     # 0 folds are KO 
-    factors = {'vPGI_rmaxPGI': 0, 
-               'vPGM_rmaxPGM': 0,
-               'vTKB_rmaxTKb': 0,
-               'vTRPSYNTH_rmaxTrpSynth': 0,
-               'vPK_rmaxPK': 0,
-               'vPGDH_rmaxPGDH': 0,
-               'vG1PAT_rmaxG1PAT': 0
+    factors = {'rmaxPGI': 0, 
+               'rmaxPGM': 0,
+               'rmaxTKb': 0,
+               'rmaxTrpSynth': 0,
+               'rmaxPK': 0,
+               'rmaxPGDH': 0,
+               'rmaxG1PAT': 0
                }
     print("Modified kinetic paramenter by a factor", factors)
     res = sim.simulate(factors=factors)
@@ -111,4 +109,4 @@ def optimization():
 
 if __name__ == '__main__':
     simulation()
-    optimization()
+    #optimization()

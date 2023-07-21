@@ -67,18 +67,25 @@ def kinetic_solve(model: ODEModel,
     f = model.get_ode(r_dict=rates, params=parameters, factors=factors)
     solver = ode_solver_instance(f, KineticConfigurations.SOLVER_METHOD)
 
-    C, t, y = solver.solve(y0, time_steps)
+    try:
+        C, t, y = solver.solve(y0, time_steps)
 
-    for c in C:
-        if c < -1 * SolverConfigurations.RELATIVE_TOL:
-            return ODEStatus.ERROR, {}, {}
+        for c in C:
+            if c < -1 * SolverConfigurations.RELATIVE_TOL:
+                return ODEStatus.ERROR, {}, {}
 
-    # values bellow solver precision will be set to 0
-    rates.update({k: 0 for k, v in rates.items() if (
-                  v < SolverConfigurations.ABSOLUTE_TOL
-                  and v > - SolverConfigurations.ABSOLUTE_TOL)})
-    conc = OrderedDict(zip(model.metabolites.keys(), C))
-    return ODEStatus.OPTIMAL, rates, conc, t, y
+        # values bellow solver precision will be set to 0
+        rates.update({k: 0 for k, v in rates.items() if (
+                    v < SolverConfigurations.ABSOLUTE_TOL
+                    and v > - SolverConfigurations.ABSOLUTE_TOL)})
+        conc = OrderedDict(zip(model.metabolites.keys(), C))
+        
+        return ODEStatus.OPTIMAL, rates, conc, t, y
+        
+    except Exception as e:
+        return ODEStatus.ERROR, None, None, None, None
+    
+    
 
 
 class KineticThread(Process):
@@ -172,8 +179,11 @@ class KineticSimulationResult(SimulationResult):
         self.concentrations = concentrations
         self.t = t
         self.y = y
-        self.m_indexes = {k: v for v, k in enumerate(concentrations.keys())}
-
+        if concentrations:
+            self.m_indexes = {k: v for v, k in enumerate(concentrations.keys())}
+        else: 
+            self.m_indexes = None
+            
     def get_y(self, m_id):
         if m_id in self.m_indexes:
             return np.array(self.y).T[:, self.m_indexes[m_id]]
@@ -279,7 +289,7 @@ class KineticSimulation(SimulationInterface):
 
     def simulate(self,
                  parameters: Dict[str, float] = None,
-                 initcon: List[float] = None,
+                 initcon: Dict[str,float] = None,
                  factors: Dict[str, float] = None,
                  t_points: List[float] = None) -> KineticSimulationResult:
         """
@@ -302,7 +312,7 @@ class KineticSimulation(SimulationInterface):
         sstateConc = None
         t = None
         y = None
-        params = self.parameters
+        params = self.parameters.copy()
         if parameters:
             params.update(parameters)
 
