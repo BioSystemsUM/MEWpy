@@ -18,29 +18,30 @@
 File containing string expression parsing utility functions.
 Expressions are decomposed into binary parsed trees.
 
-Authors: Vitor Pereira
+Author: Vitor Pereira
 ##############################################################################
 """
 import re
 import sys
 from abc import abstractmethod
 from operator import add, sub, mul, truediv, pow
-from typing import List
+import typing as T
+from math import *
 
 # Boolean operator symbols
-S_AND = '&'
-S_OR = '|'
-S_NOT = '~'
-S_ON = '1'
-S_OFF = '0'
-S_GREATER = '>'
-S_LESS = '<'
-S_EQUAL = '='
-S_GREATER_THAN_EQUAL = '>='
-S_LESS_THAN_EQUAL = '=>'
+S_AND = "&"
+S_OR = "|"
+S_NOT = "~"
+S_ON = "1"
+S_OFF = "0"
+S_GREATER = ">"
+S_LESS = "<"
+S_EQUAL = "="
+S_GREATER_THAN_EQUAL = ">="
+S_LESS_THAN_EQUAL = "=>"
 
 # Empty leaf symbol
-EMPTY_LEAF = '@'
+EMPTY_LEAF = "@"
 
 BOOLEAN_OPERATORS = [S_AND, S_OR, S_NOT]
 
@@ -52,9 +53,82 @@ BOOLEAN_EQUAL_RELATIONALS = [S_GREATER_THAN_EQUAL, S_LESS_THAN_EQUAL]
 # Increases the system recursion limit for long expressions
 sys.setrecursionlimit(100000)
 
+# latex #############################################
 
-def evaluate_expression(expression, variables):
-    """ Evaluates a logical expression (containing variables, 'and','or','(' and ')')
+
+class Latex:
+    def __init__(self, text) -> None:
+        """A simple class for _repr_latex_
+
+        Args:
+            text (str): LaTeX string
+        """
+        self.text = text
+
+    def __repr__(self) -> str:
+        return self.text
+
+    def _repr_latex_(self) -> str:
+        return "$$ %s $$" % self.text
+
+
+def convert_constant(value: T.Any) -> str:
+    """Helper to convert constant values to LaTeX string.
+
+    Args:
+        value: A constant value.
+
+    Returns:
+        The LaTeX representation of `value`.
+    """
+    if value is None or isinstance(value, bool):
+        return r"\mathrm{" + str(value) + "}"
+    if isinstance(value, (int, float, complex)):
+        # TODO(odashi): Support other symbols for the imaginary unit than j.
+        return str(value)
+    if isinstance(value, str):
+        return r"\textrm{" + value + "}"
+    if isinstance(value, bytes):
+        return r"\textrm{" + str(value) + "}"
+    if value is ...:
+        return r"\cdots"
+    raise Exception(f"Unrecognized constant: {type(value).__name__}")
+
+
+def paren(src: str) -> str:
+    """Adds surrounding parentheses: "(" and ")"."""
+    return r"\mathopen{}\left( " + src + r" \mathclose{}\right)"
+
+
+# TODO: Add more functions
+latex = {
+    "*": lambda x, y: rf"{x} \times {y}",
+    "/": lambda x, y: r"\frac {" + x + "} {" + y + "}",
+    "+": lambda x, y: f"{x} + {y}",
+    "-": lambda x, y: f"{x} - {y}",
+    "pow": lambda x, y: r"{" + x + r"}^{" + y + r"}",
+    "^": lambda x, y: r"{" + x + r"}^{" + y + r"}",
+    "sqrt": lambda x, y: r"\sqrt {" + y + r"}",
+}
+
+# Operators precedence used to add parentesis when
+# need as they are removed in the parsing tree
+MAX_PRECEDENCE = 10
+latex_precedence = {
+    "+": 0,
+    "-": 0,
+    "*": 1,
+    "/": 1,
+    "^": 2,
+    "pow": 2,
+}
+
+
+# Evaluate #############################################
+
+
+def evaluate_expression(expression: str, variables: T.List[str]) -> T.Any:
+    """Evaluates a logical expression (containing variables, 'and','or','(' and ')')
     against the presence (True) or absence (False) of propositions within a list.
     The evaluation is achieved usind python native eval function.
 
@@ -63,9 +137,9 @@ def evaluate_expression(expression, variables):
     :returns: A boolean evaluation of the expression.
 
     """
-    expression = expression.replace('(', '( ').replace(')', ' )')
+    expression = expression.replace("(", "( ").replace(")", " )")
     # Symbol conversion not mandatory
-    expression = expression.replace('and', '&').replace('or', '|')
+    expression = expression.replace("and", "&").replace("or", "|")
     tokens = expression.split()
     sentence = []
     for token in tokens:
@@ -75,14 +149,17 @@ def evaluate_expression(expression, variables):
             sentence.append("True")
         else:
             sentence.append("False")
-    proposition = ' '.join(sentence)
+    proposition = " ".join(sentence)
     return eval(proposition)
 
 
-def evaluate_expression_tree(expression, variables):
-    """ Evaluates a logical expression (containing variables, 'and','or', 'not','(' , ')') against the presence (True)
+def evaluate_expression_tree(expression: str, 
+                             variables: T.List[str]) -> T.Any:
+    """Evaluates a logical expression (containing variables, 
+    'and','or', 'not','(' , ')') against the presence (True)
     or absence (False) of propositions within a list.
-    Assumes the correctness of the expression. The evaluation is achieved by means of a parsing tree.
+    Assumes the correctness of the expression. The evaluation 
+    is achieved by means of a parsing tree.
 
     :param str expression: The expression to be evaluated.
     :param list variables: List of variables to be evaluated as True.
@@ -95,9 +172,10 @@ def evaluate_expression_tree(expression, variables):
     return res
 
 
-def maybe_fn(f, v1, v2):
-    """Maybe evaluator: if one of the arguments is None, it retuns the value of the other\
-    argument. If both arguments are None, it returns None. If both arguments are not None\
+def maybe_fn(f: T.Callable, v1: T.Any, v2: T.Any) -> T.Any:
+    """Maybe evaluator: if one of the arguments is None, it 
+    retuns the value of the other argument. If both arguments
+    are None, it returns None. If both arguments are not None
     it returns the evaluation f(v1,v2).
 
     :param f: a function
@@ -112,6 +190,9 @@ def maybe_fn(f, v1, v2):
         return f(v1, v2)
 
 
+# Parsing Tree #############################################
+
+
 class Node(object):
     """
     Binary syntax tree node.
@@ -121,8 +202,15 @@ class Node(object):
     :param right: The right node or None.
     """
 
-    def __init__(self, value, left=None, right=None, tp=0):
-        """Binary tree.  Empty leafs with None or 'EMPTY_LEAF' are always left sided.
+    def __init__(
+        self,
+        value: T.Any,
+        left: T.Union["Node", None] = None,
+        right: T.Union["Node", None] = None,
+        tp=0,
+    ) -> None:
+        """Binary tree.  Empty leafs with None or 'EMPTY_LEAF'
+           are always left sided.
 
         Args:
             value : Node value
@@ -142,35 +230,42 @@ class Node(object):
         self.right = right
         self.tp = tp
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
-    def __str__(self):
+    # def _repr_latex_(self):
+    #    return "$$ %s $$" % (self.to_latex())
+
+    def __str__(self) -> str:
         if self.is_leaf():
             return str(self.value)
         else:
-            return f"{str(self.value)} ( {str(self.left)} , {str(self.right)} )"
+            return (f"{str(self.value)} "
+                    f"( {str(self.left)} ,"
+                    f" {str(self.right)} )")
 
-    def is_leaf(self):
+    def is_leaf(self) -> bool:
         """
-        :returns: True if the node is a leaf False otherwise. Both left and right are None.
+        :returns: True if the node is a leaf False otherwise.
+        Both left and right are None.
         """
         return not self.left and not self.right
 
-    def is_empty_leaf(self):
+    def is_empty_leaf(self) -> bool:
         """
         :returns: True if the node is an empty leaf False otherwise.
         """
         return self.value == EMPTY_LEAF
 
-    def is_unary(self):
+    def is_unary(self) -> bool:
         """
         :returns: True if the node is a unary operation False otherwise.
         """
         return (self.left.is_empty_leaf() and not self.right.is_empty_leaf()) or (
-            not self.left.is_empty_leaf() and self.right.is_empty_leaf())
+            not self.left.is_empty_leaf() and self.right.is_empty_leaf()
+        )
 
-    def is_binary(self):
+    def is_binary(self) -> bool:
         """
         :returns: True if the node is a binary operation False otherwise.
         """
@@ -189,8 +284,11 @@ class Node(object):
         if self.is_leaf():
             return set()
         else:
-            return {self.value}.union(self.left.get_operators()).union(self.right.get_operators())
-
+            return (
+                {self.value}
+                .union(self.left.get_operators())
+                .union(self.right.get_operators())
+            )
 
     def get_parameters(self):
         """Parameters are all non numeric symbols in an expression"""
@@ -221,17 +319,19 @@ class Node(object):
 
     def evaluate(self, f_operand=None, f_operator=None):
         """
-        Evaluates the expression using the f_operand and f_operator mapping functions
+        Evaluates the expression using the f_operand and 
+        f_operator mapping functions
         """
         if f_operand is None or f_operator is None:
             return eval(str(self))
         elif self.is_leaf():
             return f_operand(self.value)
         else:
-            return maybe_fn(f_operator(self.value),
-                            self.left.evaluate(f_operand, f_operator),
-                            self.right.evaluate(f_operand, f_operator)
-                            )
+            return maybe_fn(
+                f_operator(self.value),
+                self.left.evaluate(f_operand, f_operator),
+                self.right.evaluate(f_operand, f_operator),
+            )
 
     def get_conditions(self):
         """
@@ -255,15 +355,18 @@ class Node(object):
             v = r_map[self.value] if self.value in r_map.keys() else self.value
             return Node(v, None, None)
         else:
-            return Node(self.value, self.left.replace(r_map), self.right.replace(r_map), self.tp)
+            return Node(
+                self.value, self.left.replace(r_map), self.right.replace(r_map), self.tp
+            )
 
-    def to_infix(self,
-                 opar: str = '(',
-                 cpar: str = ')',
-                 sep: str = ' ',
-                 fsep: str = ' , ',
-                 replacers={S_AND: 'and', S_OR: 'or'}
-                 ) -> str:
+    def to_infix(
+        self,
+        opar: str = "(",
+        cpar: str = ")",
+        sep: str = " ",
+        fsep: str = " , ",
+        replacers={S_AND: "and", S_OR: "or"},
+    ) -> str:
         """Infix string representation
 
         :param opar: open parentesis string, defaults to '( '
@@ -283,15 +386,84 @@ class Node(object):
 
         if self.is_leaf():
             if self.value == EMPTY_LEAF:
-                return ''
+                return ""
             else:
                 return rval(self.value)
         elif self.tp == 2:
-            return ''.join([rval(self.value), opar, self.left.to_infix(opar, cpar, sep, fsep), fsep, self.right.to_infix(opar, cpar, sep, fsep), cpar])
+            return "".join(
+                [
+                    rval(self.value),
+                    opar,
+                    self.left.to_infix(opar, cpar, sep, fsep),
+                    fsep,
+                    self.right.to_infix(opar, cpar, sep, fsep),
+                    cpar,
+                ]
+            )
         elif self.tp == 1:
-            return ''.join([rval(self.value), opar, self.right.to_infix(opar, cpar, sep, fsep), cpar])
+            return "".join(
+                [
+                    rval(self.value),
+                    opar,
+                    self.right.to_infix(opar, cpar, sep, fsep),
+                    cpar,
+                ]
+            )
         else:
-            return ''.join([opar, self.left.to_infix(opar, cpar, sep, fsep), sep, rval(self.value), sep, self.right.to_infix(opar, cpar, sep, fsep), cpar])
+            return "".join(
+                [
+                    opar,
+                    self.left.to_infix(opar, cpar, sep, fsep),
+                    sep,
+                    rval(self.value),
+                    sep,
+                    self.right.to_infix(opar, cpar, sep, fsep),
+                    cpar,
+                ]
+            )
+
+    def to_latex(self) -> T.Tuple[str, int]:
+        """
+        Simple conversion of a parsing tree to LaTeX.
+        Operator precedences are used to decide when to add
+        parentheses.
+
+        Returns:
+            LaTeX str, precedence of last operator
+        """
+        if self.is_leaf():
+            if self.value == EMPTY_LEAF:
+                return "", MAX_PRECEDENCE
+            else:
+                return convert_constant(self.value), MAX_PRECEDENCE
+        else:
+            op = self.value.strip()
+            if op in latex:
+                l, pl = self.left.to_latex()
+                r, pr = self.right.to_latex()
+                p = latex_precedence.get(op, MAX_PRECEDENCE)
+                s_l = paren(l) if p > pl else l
+                s_r = paren(r) if p > pr else r
+                return latex[op](s_l, s_r), p
+
+            elif self.tp == 1:
+                return (
+                    convert_constant(self.value)
+                    + r"\left("
+                    + self.right.to_latex()[0]
+                    + r"\right)",
+                    MAX_PRECEDENCE,
+                )
+            else:
+                return (
+                    convert_constant(self.value)
+                    + r"\left("
+                    + self.left.to_latex()[0]
+                    + ","
+                    + self.right.to_latex()[0]
+                    + r"\right)",
+                    MAX_PRECEDENCE,
+                )
 
     def copy(self):
         if self.is_leaf():
@@ -302,67 +474,70 @@ class Node(object):
 
 class Syntax:
     """Defines an interface for the tree syntax parsing
-       with operators, their precedence and associativity.
+    with operators, their precedence and associativity.
     """
-    @ staticmethod
-    @ abstractmethod
+
+    operators = []
+
+    @staticmethod
+    @abstractmethod
     def is_operator(op):
         raise NotImplementedError
 
-    @ staticmethod
-    @ abstractmethod
+    @staticmethod
+    @abstractmethod
     def is_greater_precedence(op1, op2):
         raise NotImplementedError
 
-    @ staticmethod
-    @ abstractmethod
+    @staticmethod
+    @abstractmethod
     def associativity(op):
         raise NotImplementedError
 
-    @ staticmethod
+    @staticmethod
     def arity(op):
         return 2
 
-    @ staticmethod
+    @staticmethod
     def replace():
         return {}
 
 
 class Arithmetic(Syntax):
-    """Defines a basic arithmetic sintax.
-    """
+    """Defines a basic arithmetic sintax."""
 
-    @ staticmethod
+    operators = ["+", "-", "*", "/", "^"]
+
+    @staticmethod
     def is_operator(op):
-        return op in ['+', '-', '*', '/', '^']
+        return op in ["+", "-", "*", "/", "^"]
 
-    @ staticmethod
+    @staticmethod
     def is_greater_precedence(op1, op2):
-        pre = {'+': 0, '-': 0, '*': 1, '/': 1, '^': 2}
+        pre = {"+": 0, "-": 0, "*": 1, "/": 1, "^": 2}
         return pre[op1] >= pre[op2]
 
-    @ staticmethod
+    @staticmethod
     def associativity(op):
-        ass = {'+': 0, '-': 0, '*': 0, '/': 0, '^': 1}
+        ass = {"+": 0, "-": 0, "*": 0, "/": 0, "^": 1}
         return ass[op]
 
-    @ staticmethod
+    @staticmethod
     def arity(op):
-        ar = {'+': 2, '-': 2, '*': 2, '/': 2, '^': 2}
+        ar = {"+": 2, "-": 2, "*": 2, "/": 2, "^": 2}
         return ar[op]
 
 
 class ArithmeticEvaluator:
-
-    @ staticmethod
+    @staticmethod
     def f_operator(op):
-        operators = {'+': add, '-': sub, '*': mul, '/': truediv, '^': pow, 'pow': pow}
+        operators = {"+": add, "-": sub, "*": mul, "/": truediv, "^": pow, "pow": pow}
         if op in operators.keys():
             return operators[op]
         else:
             raise ValueError(f"Operator {op} not defined")
 
-    @ staticmethod
+    @staticmethod
     def f_operand(op):
         if is_number(op):
             return float(op)
@@ -376,30 +551,39 @@ class Boolean(Syntax):
     be defined as a binary operator (NOT a) = (EMPTY NOT a)
     """
 
-    @ staticmethod
+    operators = [S_AND, S_OR, S_NOT]
+
+    @staticmethod
     def is_operator(op):
         return op in [S_AND, S_OR, S_NOT]
 
-    @ staticmethod
+    @staticmethod
     def is_greater_precedence(op1, op2):
         pre = {S_AND: 0, S_OR: 0, S_NOT: 1}
         return pre[op1] >= pre[op2]
 
-    @ staticmethod
+    @staticmethod
     def associativity(op):
         ass = {S_AND: 0, S_OR: 0, S_NOT: 1}
         return ass[op]
 
-    @ staticmethod
+    @staticmethod
     def arity(op):
         ar = {S_AND: 2, S_OR: 2, S_NOT: 1}
         return ar[op]
 
-    @ staticmethod
+    @staticmethod
     def replace():
-        r = {'not': [EMPTY_LEAF, S_NOT], 'and': [S_AND],
-             'or': [S_OR], '&': [S_AND], '|': [S_OR], '~': [EMPTY_LEAF, S_NOT]}
+        r = {
+            "not": [EMPTY_LEAF, S_NOT],
+            "and": [S_AND],
+            "or": [S_OR],
+            "&": [S_AND],
+            "|": [S_OR],
+            "~": [EMPTY_LEAF, S_NOT],
+        }
         return r
+
 
 class BooleanEvaluator:
     """A boolean evaluator.
@@ -414,14 +598,18 @@ class BooleanEvaluator:
         self.vars = variables
 
     def f_operator(self, op):
-        operators = {S_AND: lambda x, y: x and y, S_OR: lambda x, y: x or y, S_NOT: lambda x, y: not y}
+        operators = {
+            S_AND: lambda x, y: x and y,
+            S_OR: lambda x, y: x or y,
+            S_NOT: lambda x, y: not y,
+        }
         if op in operators.keys():
             return operators[op]
         else:
             raise ValueError(f"Operator {op} not defined")
 
     def f_operand(self, op):
-        if op.upper() == 'TRUE' or op == '1' or op in self.true_list:
+        if op.upper() == "TRUE" or op == "1" or op in self.true_list:
             return True
         elif is_condition(op):
             return eval(op, None, self.vars)
@@ -440,7 +628,14 @@ class GeneEvaluator:
     :param or_operator: function to be applied instead of ('or','|') (not case sensitive)
     """
 
-    def __init__(self, genes_value, and_operator=min, or_operator=max, prefix="", unexpressed_value=1):
+    def __init__(
+        self,
+        genes_value,
+        and_operator=min,
+        or_operator=max,
+        prefix="",
+        unexpressed_value=1,
+    ):
 
         self.genes_value = genes_value
         self.and_operator = and_operator
@@ -456,31 +651,39 @@ class GeneEvaluator:
             raise ValueError(f"Operator {op} not defined")
 
     def f_operand(self, op):
-        if op[len(self.prefix):] in self.genes_value:
+        if op[len(self.prefix) :] in self.genes_value:
             return self.genes_value[op]
         else:
             return self.unexpressed_value
 
 
-def tokenize_function(exp: str):
+def tokenize_function(exp: str) -> T.List[str]:
+    """Tokenize a function "f(...)" expression string
+
+    Args:
+        exp (str): expression
+
+    Returns:
+        T.List[str]: List of tokens
+    """
     p = 0
     s = -1
     tokens = []
     i = 0
     while i < len(exp):
-        if exp[i] == '(':
+        if exp[i] == "(":
             s += 1
             if s == 0:
-                p = i+1
+                p = i + 1
             if not tokens:
-                tokens = [exp[:i]]
-        elif exp[i] == ')':
+                tokens = [exp[:i].strip()]
+        elif exp[i] == ")":
             s -= 1
             if s == -1:
-                tokens.append(exp[p:i])
-        elif exp[i] == ',' and s == 0:
-            tokens.append(exp[p:i])
-            p = i+1
+                tokens.append(exp[p:i].strip())
+        elif exp[i] == "," and s == 0:
+            tokens.append(exp[p:i].strip())
+            p = i + 1
         i += 1
     if not tokens:
         return [exp]
@@ -489,14 +692,16 @@ def tokenize_function(exp: str):
 
 
 # Tree
-def build_tree(exp, rules):
-    """ Builds a parsing syntax tree for basic mathematical expressions
+def build_tree(exp: str, rules: Syntax) -> Node:
+    """
+    Builds a parsing syntax tree for basic mathematical expressions
 
     :param exp: the expression to be parsed
     :param rules: Sintax definition rules
     """
+    assert exp.count("(") == exp.count(")"), "The expression is parentheses unbalanced."
     replace_dic = rules.replace()
-    exp_ = tokenize_infix_expression(exp)
+    exp_ = tokenize_infix_expression(exp, rules)
     exp_list = []
     for token in exp_:
         if token.lower() in replace_dic:
@@ -509,44 +714,55 @@ def build_tree(exp, rules):
     i = 0
     while i < len(exp_list):
         token = exp_list[i]
-        if not (rules.is_operator(token) or token in ['(', ')']):
-            if i < len(exp_list)-2 and exp_list[i+1] == '(':
+        if not (rules.is_operator(token) or token in ["(", ")"]):
+            if i < len(exp_list) - 2 and exp_list[i + 1] == "(":
                 s = 1
-                p = i+2
+                p = i + 2
                 while p < len(exp_list) and s > 0:
-                    if exp_list[p] == '(':
+                    if exp_list[p] == "(":
                         s += 1
-                    elif exp_list[p] == ')':
+                    elif exp_list[p] == ")":
                         s -= 1
                     p += 1
-                token = ' '.join(exp_list[i:p])
+                token = " ".join(exp_list[i:p])
                 i = p - 1
 
-            if predecessor and not (rules.is_operator(predecessor) or predecessor in ['(', ')']):
+            if predecessor and not (
+                rules.is_operator(predecessor) or predecessor in ["(", ")"]
+            ):
                 s = tree_stack[-1].value
                 tree_stack[-1].value = s + " " + token
             else:
-                if '(' in token:
+                if "(" in token:
                     f = tokenize_function(token)
                     if len(f) == 2:
                         t = Node(f[0], Node(EMPTY_LEAF), build_tree(f[1], rules), 1)
                     elif len(f) == 3:
-                        t = Node(f[0], build_tree(f[1], rules), build_tree(f[2], rules), 2)
+                        t = Node(
+                            f[0], build_tree(f[1], rules), build_tree(f[2], rules), 2
+                        )
                     else:
                         t = Node(token)
                 else:
                     t = Node(token)
                 tree_stack.append(t)
         elif rules.is_operator(token):
-            if not stack or stack[-1] == '(':
+            if not stack or stack[-1] == "(":
                 stack.append(token)
 
-            elif rules.is_greater_precedence(token, stack[-1]) and rules.associativity(token) == 1:
+            elif (
+                rules.is_greater_precedence(token, stack[-1])
+                and rules.associativity(token) == 1
+            ):
                 stack.append(token)
 
             else:
-                while stack and stack[-1] != '(' and rules.is_greater_precedence(stack[-1], token) \
-                        and rules.associativity(token) == 0:
+                while (
+                    stack
+                    and stack[-1] != "("
+                    and rules.is_greater_precedence(stack[-1], token)
+                    and rules.associativity(token) == 0
+                ):
                     popped_item = stack.pop()
                     t = Node(popped_item)
                     t1 = tree_stack.pop()
@@ -556,11 +772,11 @@ def build_tree(exp, rules):
                     tree_stack.append(t)
                 stack.append(token)
 
-        elif token == '(':
-            stack.append('(')
+        elif token == "(":
+            stack.append("(")
 
-        elif token == ')':
-            while stack[-1] != '(':
+        elif token == ")":
+            while stack[-1] != "(":
                 popped_item = stack.pop()
                 t = Node(popped_item)
                 t1 = tree_stack.pop()
@@ -586,28 +802,33 @@ def build_tree(exp, rules):
     return t
 
 
-def tokenize_infix_expression(exp: str):
-    return list(filter(lambda x: x != '', exp.replace('(', ' ( ').replace(')', ' ) ').split(' ')))
+def tokenize_infix_expression(exp: str, 
+                              rules: Syntax = None) -> T.List[str]:
+    _exp = exp.replace("(", " ( ").replace(")", " ) ")
+    if rules:
+        for op in rules.operators:
+            _exp = _exp.replace(op, " " + op + " ")
+    tokens = _exp.split(" ")
+    return list(filter(lambda x: x != "", tokens))
 
 
-def is_number(token: str):
-    """ Returns True if the token is a number
-    """
-    return token.replace('.', '', 1).replace('-', '', 1).isnumeric()
+def is_number(token: str) -> bool:
+    """Returns True if the token is a number"""
+    return token.replace(".", "", 1).replace("-", "", 1).isnumeric()
 
 
-def is_condition(token: str):
-    """ Returns True if the token is a condition
-    """
-    regexp = re.compile(r'>|<|=')
+def is_condition(token: str) -> bool:
+    """Returns True if the token is a condition"""
+    regexp = re.compile(r">|<|=")
     return bool(regexp.search(token))
 
 
-def isozymes(exp: str) -> List[str]:
+def isozymes(exp: str) -> T.List[str]:
     """
     Parses a GPR and splits it into its isozymes as a list of strings.
     """
     tree = build_tree(exp, Boolean())
+
     def split_or(node):
         if node.is_leaf():
             return [node]
@@ -615,7 +836,7 @@ def isozymes(exp: str) -> List[str]:
             if node.value == S_AND:
                 return [node]
             elif node.value == S_OR:
-                return split_or(node.left)+split_or(node.right)
+                return split_or(node.left) + split_or(node.right)
             else:
                 raise ValueError(f"Unrecognized operator for node {node}")
         else:
@@ -624,9 +845,8 @@ def isozymes(exp: str) -> List[str]:
     prots = split_or(tree)
 
     # validate
-    if not all([ len(node.get_operators()-set(S_AND))==0 for node in prots]):
+    if not all([len(node.get_operators() - set(S_AND)) == 0 for node in prots]):
         raise ValueError(f"{exp} is a malformed expression")
 
-    proteins = [node.to_infix(opar='',cpar='') for node in prots]
+    proteins = [node.to_infix(opar="", cpar="") for node in prots]
     return proteins
-    

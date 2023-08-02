@@ -4,7 +4,6 @@ from mewpy.io import read_model, Engines, Reader
 from mewpy.optimization import EA
 from mewpy.optimization.evaluation import BPCY, WYIELD
 from mewpy.problems import OptORFProblem
-from mewpy.util.io import population_to_csv
 
 
 def optorf_ec():
@@ -36,9 +35,7 @@ def optorf_ec():
     final_pop = ea.run()
 
     filename = "OPTORF_{}_KO_{}.csv".format(PRODUCT_ID, "ec")
-    population_to_csv(problem, final_pop, filename, simplify=False)
-
-
+    
 def optorf_imc():
     """
     The OptORF approach was used in the iMC1010 model to identify metabolic engineering strategies
@@ -73,8 +70,7 @@ def optorf_imc():
     final_pop = ea.run()
 
     filename = "OPTORF_{}_KO_{}.csv".format(PRODUCT_ID, "iJR904_srfba")
-    population_to_csv(problem, final_pop, filename, simplify=False)
-
+   
 
 if __name__ == '__main__':
     optorf_ec()
