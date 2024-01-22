@@ -1,5 +1,4 @@
 from setuptools import setup, find_packages
-import sys
 
 files = ["model/data/*"]
 
@@ -16,7 +15,7 @@ install_requirements = requirements
 
 setup(
     name='mewpy',
-    version='0.1.31',
+    version='0.1.34',
     python_requires='>=3.6',
     package_dir={'': 'src'},
     packages=find_packages('src'),
@@ -28,8 +27,8 @@ setup(
     tests_require=test_requirements,
     author='BiSBII CEB University of Minho',
     author_email='vpereira@ceb.uminho.pt',
-    description='mewpy - Metabolic Engineering in Python ',
-    license='Apache License Version 2.0',
+    description='MEWpy - Metabolic Engineering in Python ',
+    license='GPL v3 License',
     keywords='strain optimization',
     url='https://github.com/BioSystemsUM/mewpy/',
     long_description=readme,

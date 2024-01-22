@@ -129,8 +129,9 @@ class GurobiSolver(Solver):
                      '>': GRB.GREATER_EQUAL}
 
         if constr_id in self.constr_ids:
-            constr = self.problem.getConstrByName(constr_id)
-            self.problem.remove(constr)
+                self.problem.update()
+                constr = self.problem.getConstrByName(constr_id)
+                self.problem.remove(constr)
 
         expr = quicksum(coeff * self.problem.getVarByName(r_id) for r_id, coeff in lhs.items() if coeff)
 

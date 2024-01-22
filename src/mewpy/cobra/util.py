@@ -207,26 +207,33 @@ def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
     # Add gene/protein species and draw protein pseudo-reactions
     # MW in kDa, [kDa = g/mmol]
     gene_meta = dict()
+    skipped_gene = []
     for gene in tqdm(sim.genes, "Adding gene species"):
+        if gene not in prot_mw.keys():
+            skipped_gene.append(gene)
+            continue
         mw = prot_mw[gene]
         m_prot_id = f"prot_{mw['protein']}_{c_compartment}"
         m_name = f"prot_{mw['protein']} {c_compartment}"
         sim.add_metabolite(m_prot_id,
-                           name=m_name,
-                           compartment=c_compartment)
+                        name=m_name,
+                        compartment=c_compartment)
 
         gene_meta[gene] = m_prot_id
 
         r_prot_id = f"draw_prot_{mw['protein']}"
         sim.add_reaction(r_prot_id,
-                         name=r_prot_id,
-                         stoichiometry={common_protein_pool_id: -1*mw['mw'],
+                        name=r_prot_id,
+                        stoichiometry={common_protein_pool_id: -1*mw['mw'],
                                         m_prot_id: 1},
-                         lb=0,
-                         ub=inf,
-                         reversible=False,
-                         )
-
+                        lb=0,
+                        ub=inf,
+                        reversible=False,
+                        gpr=gene
+                        )
+    
+    print(len(skipped_gene), " genes species not added")
+    
     # Add enzymes to reactions stoichiometry.
     # 1/Kcats in per hour. Considering kcats in per second.
     for rxn_id in tqdm(sim.reactions, "Adding proteins usage to reactions"):
@@ -235,11 +242,13 @@ def __enzime_constraints(model: Union[Simulator, "Model", "CBModel"],
             s = rxn.stoichiometry
             genes = build_tree(rxn.gpr, Boolean).get_operands()
             for g in genes:
-                # TODO: mapping of (gene, reaction ec) to kcat
-                try:
-                    s[gene_meta[g]] = -1/(enz_kcats[g][rxn_id]['kcat']*3600)
-                except Exception:
-                    s[gene_meta[g]] = -1/(ModelConstants.DEFAULT_KCAT*3600)
+                if g in gene_meta:
+                    # TODO: mapping of (gene, reaction ec) to kcat
+                    try:
+                        if isinstance(prot_mw[g]['kcat'],float):
+                            s[gene_meta[g]] = -1/(prot_mw[g]['kcat'])
+                    except Exception:
+                        s[gene_meta[g]] = -1/(ModelConstants.DEFAULT_KCAT)
             sim.update_stoichiometry(rxn_id, s)
     sim.objective = objective
     return sim

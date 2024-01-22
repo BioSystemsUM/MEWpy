@@ -129,6 +129,9 @@ class Solution(SolutionInterface):
         else:
             return hash(str(set(self.values)))
 
+    def __len__(self) ->int:
+        return len(self.values)
+
     def to_dict(self) -> Dict[str, Any]:
         d = {'values': self.values,
              'fitness': self.fitness,
@@ -174,8 +177,7 @@ class AbstractEA(ABC):
         pop = self._convertPopulation(final_pop)
         pop = filter_duplicates(pop)
         if simplify:
-            n_cpu = cpu_count() if self.mp else 1
-            pop = self.problem.simplify_population(pop, n_cpu)
+            pop = self.problem.simplify_population(pop)
         self.final_population = pop
         return self.final_population
 
