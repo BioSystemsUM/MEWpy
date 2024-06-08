@@ -190,15 +190,34 @@ class Simulator(ModelContainer, SimulationInterface):
     Interface for simulators
     """
 
-    @abstractmethod
-    def simulate(self, objective=None, method=SimulationMethod.FBA, maximize=True, constraints=None, reference=None,
-                 solver=None, **kwargs):
+    def simulate(self, *args, **kwargs):
+        """Abstract method to run a phenotype simulation.
+
+        :returns: A SimulationResult.
+
+        """
+        method = kwargs.get('method',None)
+        if method and callable(method):
+            new_kwargs = {k: v for k, v in kwargs.items() if k in ["method"]}
+            return self._simulate_callable(method=method,*args,**new_kwargs)
+        else:
+            return self._simulate(self,*args, **kwargs)
+    
+    def _simulate_callable(self, method, *args, **kwargs):
+        if not callable(method):
+            raise ValueError(f"The method {method} is not callable.")
+        simulation_result = method(self,*args, **kwargs)
+        return simulation_result
+
+
+    def _simulate(self,*args, **kwargs):
         """Abstract method to run a phenotype simulation.
 
         :returns: A SimulationResult.
 
         """
         raise NotImplementedError
+    
 
     @abstractmethod
     def FVA(self, reactions=None, obj_frac=0, constraints=None, loopless=False, internal=None, solver=None):
@@ -511,8 +530,13 @@ class SimulationResult(object):
         return constraints
 
     def __repr__(self):
+        if callable(self.method):
+            name = getattr(self.method, '__name__', repr(self.method))
+        else:
+            name = str(self.method)
         return (f"objective: {self.objective_value}\nStatus: "
-                f"{self.status}\nMethod:{self.method}")
+                f"{self.status}\nMethod:{name}")
+
 
     def __str__(self):
         return self.__repr__()

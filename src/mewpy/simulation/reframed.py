@@ -525,7 +525,8 @@ class Simulation(CBModelContainer, Simulator):
     # Simulate
     def simulate(self, objective=None, method=SimulationMethod.FBA,
                  maximize=True, constraints=None, reference=None,
-                 scalefactor=None, solver=None, slim=False, shadow_prices=False):
+                 scalefactor=None, solver=None, slim=False,
+                 shadow_prices=False,**kwargs):
         '''
         Simulates a phenotype when applying a set constraints using the specified method.
 
@@ -537,6 +538,15 @@ class Simulation(CBModelContainer, Simulator):
         :param float scalefactor: A positive scaling factor for the solver. Default None.
         :param solver: An instance of the solver.
         '''
+        
+        if callable(method):
+            return self._simulate_callable(method, 
+                                           objective=objective, 
+                                           maximize=maximize, 
+                                           constraints=constraints,
+                                           **kwargs)
+
+
 
         if not objective:
             objective = self.model.get_objective()

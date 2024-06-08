@@ -40,7 +40,8 @@ from typing import (TYPE_CHECKING,
                     Dict,
                     Tuple,
                     Union,
-                    Any)
+                    Any,
+                    Callable)
 
 if TYPE_CHECKING:
     from pandas import DataFrame
@@ -560,14 +561,15 @@ class Simulation(CobraModelContainer, Simulator):
     # The simulator
     def simulate(self, 
                  objective: Dict[str,float]=None,
-                 method:Union[SimulationMethod,str]=SimulationMethod.FBA,
+                 method:Union[SimulationMethod,str,Callable]=SimulationMethod.FBA,
                  maximize:bool=True,
                  constraints:Dict[str,Union[float,Tuple[float,float]]]=None,
                  reference:Dict[str,float]=None, 
                  scalefactor:float=None, 
                  solver=None, 
                  slim:bool=False,
-                 shadow_prices:bool=False) -> SimulationResult:
+                 shadow_prices:bool=False,
+                 **kwargs) -> SimulationResult:
         '''
         Simulates a phenotype when applying a set constraints using the specified method.
 
@@ -579,6 +581,13 @@ class Simulation(CobraModelContainer, Simulator):
         :param float scalefactor: A positive scaling factor for the solver. Default None.
 
         '''
+        if callable(method):
+            return self._simulate_callable(method, 
+                                           objective=objective, 
+                                           maximize=maximize, 
+                                           constraints=constraints,
+                                           **kwargs)
+
 
         if not objective:
             objective = self.model.objective

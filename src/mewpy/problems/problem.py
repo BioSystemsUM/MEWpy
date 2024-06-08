@@ -338,7 +338,6 @@ class AbstractProblem(ABC):
             raise ValueError("Solution must be a list, a dict or an instance of Solution")
        
         fitness = self.evaluate_solution(enc_values)
-        simplified = False
         simp = copy.copy(enc_values)
         # single removal
         for entry in enc_values:
@@ -355,7 +354,6 @@ class AbstractProblem(ABC):
             if not is_equal:
                 simp.add(entry)
             else:
-                simplified = True
                 fitness = fit 
                 
         v = self.decode(simp)
