@@ -182,6 +182,9 @@ class CommunityModel:
 
     def size(self):
         return len(self.organisms)
+    
+    def get_organisms_biomass(self)->Dict[str,str]:
+        return self.organisms_biomass
 
     @property
     def merged_model(self):

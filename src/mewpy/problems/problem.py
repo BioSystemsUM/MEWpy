@@ -27,7 +27,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 import numpy as np
 from mewpy.optimization.ea import Solution, filter_duplicates
-from mewpy.simulation import get_simulator
+from mewpy.simulation import get_simulator, SimulationMethod
 from mewpy.util.constants import EAConstants, ModelConstants
 from typing import Union, TYPE_CHECKING, List, Dict
 
@@ -291,9 +291,13 @@ class AbstractProblem(ABC):
         try:
             p = []
             for method in self.methods:
-                simulation_result = self.simulator.simulate(
-                    constraints=constraints, method=method, scalefactor=self.scalefactor)
-                simulation_results[method] = simulation_result
+                if isinstance(method,str) or isinstance(method,SimulationMethod): 
+                    simulation_result = self.simulator.simulate(
+                        constraints=constraints, method=method, scalefactor=self.scalefactor)
+                    simulation_results[method] = simulation_result
+                elif callable(method):
+                    method(self.model,constraints=constraints)
+                    simulation_results[method] = simulation_result
             # apply the evaluation function(s)
             for f in self.fevaluation:
                 v = f(simulation_results, 
