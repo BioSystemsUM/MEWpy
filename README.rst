@@ -16,7 +16,6 @@ Documentation
 
 For documentation and API please check: `https://mewpy.readthedocs.io <https://mewpy.readthedocs.io>`_
 
-
 Installation
 ------------
 
@@ -26,6 +25,5 @@ pip install mewpy
 Credits and License
 -------------------
 
-Developed at:
--  Centre of Biological Engineering, University of Minho (2019-)
+Developed the Centre of Biological Engineering, University of Minho (2019-2023) and Vítor Pereira  
 

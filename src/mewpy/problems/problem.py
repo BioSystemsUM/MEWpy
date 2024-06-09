@@ -27,7 +27,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 import numpy as np
 from mewpy.optimization.ea import Solution, filter_duplicates
-from mewpy.simulation import get_simulator, SimulationMethod
+from mewpy.simulation import get_simulator, SimulationMethod, Simulator
 from mewpy.util.constants import EAConstants, ModelConstants
 from typing import Union, TYPE_CHECKING, List, Dict
 
@@ -105,7 +105,7 @@ class OUBounder(object):
 class AbstractProblem(ABC):
 
     def __init__(self, 
-                 model:Union["Model","CBModel"], 
+                 model:Union["Model","CBModel",Simulator], 
                  fevaluation:List["EvaluationFunction"]=None,
                  **kwargs):
         """
@@ -125,14 +125,17 @@ class AbstractProblem(ABC):
         :param list non_target: List of non target genes. Not considered if a target list is provided.
         :param float scalefactor: A scaling factor to be used in the LP formulation.
         """
-        
+        if isinstance(model,Simulator):
+            self._simul = model
+        else:
+            self._simul = None
+            
         self.model = model
         self.fevaluation = [] if fevaluation is None else fevaluation
         self.number_of_objectives = len(self.fevaluation)
 
         # simulation context : defines the simulations environment
         self._reset_solver = kwargs.get('reset_solver', ModelConstants.RESET_SOLVER)
-        self._simul = None
         # The target product reaction id may be specified when optimizing for a single product.
         # Only required for probabilistic modification targeting.
         self.product = kwargs.get('product', None)
@@ -291,13 +294,9 @@ class AbstractProblem(ABC):
         try:
             p = []
             for method in self.methods:
-                if isinstance(method,str) or isinstance(method,SimulationMethod): 
-                    simulation_result = self.simulator.simulate(
-                        constraints=constraints, method=method, scalefactor=self.scalefactor)
-                    simulation_results[method] = simulation_result
-                elif callable(method):
-                    method(self.model,constraints=constraints)
-                    simulation_results[method] = simulation_result
+                simulation_result = self.simulator.simulate(
+                    constraints=constraints, method=method, scalefactor=self.scalefactor)
+                simulation_results[method] = simulation_result
             # apply the evaluation function(s)
             for f in self.fevaluation:
                 v = f(simulation_results, 
