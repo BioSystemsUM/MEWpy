@@ -61,6 +61,13 @@ def set_default_solver(solvername):
 
     if solvername.lower() in __MEWPY_sim_solvers__:
         default_solver = solvername.lower()
+        # try to also set the local solvers interfaces
+        # implementation to the selected solver
+        try:
+            import mewpy.solvers as msolvers
+            msolvers.set_default_solver(solvername)
+        except:
+            pass
     else:
         raise RuntimeError(f"Solver {solvername} not available.")
 

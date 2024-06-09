@@ -7,5 +7,5 @@ networkx
 matplotlib<=3.5.0
 tqdm
 joblib
-httpx<=0.23.0
+httpx~=0.24.0
 

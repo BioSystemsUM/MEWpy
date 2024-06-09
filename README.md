@@ -47,8 +47,8 @@ Vítor Pereira, Fernando Cruz, Miguel Rocha, MEWpy: a computational strain optim
 
 ### Credits and License
 
-Developed at Centre of Biological Engineering, University of Minho (2019- )
+Developed at Centre of Biological Engineering, University of Minho (2019-2023) and received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement number 814408.
 
-This project has received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement number 814408.
+MEWpy is currently mantained by Vítor Pereira.
 
 Released under an Apache License.

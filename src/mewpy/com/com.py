@@ -150,7 +150,10 @@ class CommunityModel:
             self._reverse_map = dict()
             self._reverse_map.update({v:k for k,v in self.reaction_map.items()})
             self._reverse_map.update({v:k for k,v in self.gene_map.items()})
-            
+    
+    def get_organisms_biomass(self):
+        return self.organisms_biomass
+        
     def set_abundance(self,abundances:Dict[str,float],rebuild=False):
         if not self._merge_biomasses:
             raise ValueError("The community model has no merged biomass equation")
@@ -182,6 +185,9 @@ class CommunityModel:
 
     def size(self):
         return len(self.organisms)
+    
+    def get_organisms_biomass(self)->Dict[str,str]:
+        return self.organisms_biomass
 
     @property
     def merged_model(self):
@@ -401,6 +407,7 @@ class CommunityModel:
         self._comm_model.objective = comm_growth
         self._comm_model.biomass_reaction = comm_growth
         self.biomass = comm_growth
+        setattr(self._comm_model,'organisms_biomass',self.organisms_biomass) 
         return self._comm_model
 
     def copy(self, copy_models=False, flavor=None):

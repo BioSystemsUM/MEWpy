@@ -17,4 +17,3 @@
 from .medium import minimal_medium
 from .parsimonious import pFBA
 from .util import *
-from .com import *

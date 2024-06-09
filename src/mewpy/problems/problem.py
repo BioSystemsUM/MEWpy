@@ -27,7 +27,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 import numpy as np
 from mewpy.optimization.ea import Solution, filter_duplicates
-from mewpy.simulation import get_simulator
+from mewpy.simulation import get_simulator, SimulationMethod, Simulator
 from mewpy.util.constants import EAConstants, ModelConstants
 from typing import Union, TYPE_CHECKING, List, Dict
 
@@ -105,7 +105,7 @@ class OUBounder(object):
 class AbstractProblem(ABC):
 
     def __init__(self, 
-                 model:Union["Model","CBModel"], 
+                 model:Union["Model","CBModel",Simulator], 
                  fevaluation:List["EvaluationFunction"]=None,
                  **kwargs):
         """
@@ -125,14 +125,17 @@ class AbstractProblem(ABC):
         :param list non_target: List of non target genes. Not considered if a target list is provided.
         :param float scalefactor: A scaling factor to be used in the LP formulation.
         """
-        
+        if isinstance(model,Simulator):
+            self._simul = model
+        else:
+            self._simul = None
+            
         self.model = model
         self.fevaluation = [] if fevaluation is None else fevaluation
         self.number_of_objectives = len(self.fevaluation)
 
         # simulation context : defines the simulations environment
         self._reset_solver = kwargs.get('reset_solver', ModelConstants.RESET_SOLVER)
-        self._simul = None
         # The target product reaction id may be specified when optimizing for a single product.
         # Only required for probabilistic modification targeting.
         self.product = kwargs.get('product', None)
@@ -326,56 +329,38 @@ class AbstractProblem(ABC):
         :returns: A list of simplified solutions.
 
         """
-        if hasattr(solution,'values'):
-            enc_values = self.encode(solution.values)
-        elif isinstance(solution,(list,dict)):
+        if isinstance(solution,(list,dict)):
             enc_values = self.encode(solution)
+        elif hasattr(solution,'values'):
+            enc_values = self.encode(solution.values)
+        else:
+            raise ValueError("Solution must be a list, a dict or an instance of Solution")
+       
         fitness = self.evaluate_solution(enc_values)
-        one_to_remove = {}
+        simp = copy.copy(enc_values)
         # single removal
         for entry in enc_values:
-            simul_enc_values = copy.copy(enc_values)
-            simul_enc_values.remove(entry)
-            fit = self.evaluate_solution(simul_enc_values)
+            simp.remove(entry)
+            fit = self.evaluate_solution(simp)
             diff = np.abs(np.array(fit) - np.array(fitness))
+            
             is_equal = False
             if isinstance(tolerance, float):
                 is_equal = np.all(diff <= tolerance)
             else:
                 is_equal = np.all(diff <= np.array(tolerance))
-            if is_equal:
-                one_to_remove[entry] = fit
-
-        simul_enc_values = copy.copy(enc_values)
-        for entry in one_to_remove.keys():
-            simul_enc_values.remove(entry)
-
-        # test all simultaneous removals
-        fit = self.evaluate_solution(simul_enc_values)
-        diff = np.abs(np.array(fit) - np.array(fitness))
-        is_equal = False
-        if isinstance(tolerance, float):
-            is_equal = np.all(diff <= tolerance)
-        else:
-            is_equal = np.all(diff <= np.array(tolerance))
-
-        if is_equal:
-            v = self.decode(simul_enc_values)
-            c = self.solution_to_constraints(v)
-            simplification = Solution(v, fitness, c)
-            return [simplification]
-        else:
-            res = []
-            for entry, fit in one_to_remove.items():
-                simul_enc_values = copy.copy(enc_values)
-                simul_enc_values.remove(entry)
-                v = self.decode(simul_enc_values)
-                c = self.solution_to_constraints(v)
-                simplification = Solution(v, fitness, c)
-                res.append(simplification)
-            return res
-
-    def simplify_population(self, population, n_cpu=1):
+               
+            if not is_equal:
+                simp.add(entry)
+            else:
+                fitness = fit 
+                
+        v = self.decode(simp)
+        c = self.solution_to_constraints(v)
+        simplification = Solution(v, fitness, c)
+        return [simplification]
+        
+    def simplify_population(self, population, n_cpu=1, tolerance=1e-6):
         """Simplifies a population of solutions
 
         Args:
@@ -387,8 +372,9 @@ class AbstractProblem(ABC):
         pop = []
         for solution in population:
             try:
-                res = self.simplify(solution)
-                pop.extend(res)
+                res = self.simplify(solution,tolerance=tolerance)
+                if len(res)>0:
+                    pop.extend(res)
             except Exception:
                 pop.append(solution)
         return filter_duplicates(pop)
