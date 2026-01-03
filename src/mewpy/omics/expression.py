@@ -142,15 +142,75 @@ class ExpressionSet:
         return values
 
     @classmethod
-    def from_dataframe(cls, data_frame):
+    def from_dataframe(cls, data_frame, duplicates='suffix'):
         """Read expression data from a pandas.DataFrame.
 
         Args:
             data_frame (Dataframe): The expression Dataframe
+            duplicates (str): How to handle duplicate identifiers. Options:
+                - 'suffix' (default): Keep all rows, rename duplicates with numeric suffixes (_2, _3, etc.)
+                - 'error': Raise ValueError if duplicates found
+                - 'first': Keep first occurrence of each duplicate
+                - 'last': Keep last occurrence of each duplicate
+                - 'mean': Average values for duplicate identifiers
+                - 'sum': Sum values for duplicate identifiers
 
         Returns:
             ExpressionSet: the expression dataset from the dataframe.
+
+        Raises:
+            ValueError: If duplicates parameter has invalid value
         """
+        import warnings
+
+        # Validate duplicates parameter
+        valid_strategies = {'error', 'first', 'last', 'mean', 'sum', 'suffix'}
+        if duplicates not in valid_strategies:
+            raise ValueError(
+                f"Invalid duplicates parameter: '{duplicates}'. "
+                f"Must be one of: {valid_strategies}"
+            )
+
+        # Handle duplicate identifiers based on strategy
+        if data_frame.index.duplicated().any():
+            if duplicates == 'error':
+                # Keep original error behavior
+                pass  # Will be caught by ExpressionSet.__init__
+            elif duplicates == 'first':
+                data_frame = data_frame[~data_frame.index.duplicated(keep='first')]
+            elif duplicates == 'last':
+                data_frame = data_frame[~data_frame.index.duplicated(keep='last')]
+            elif duplicates == 'mean':
+                data_frame = data_frame.groupby(data_frame.index).mean()
+            elif duplicates == 'sum':
+                data_frame = data_frame.groupby(data_frame.index).sum()
+            elif duplicates == 'suffix':
+                # Count duplicate identifiers and warn user
+                duplicate_mask = data_frame.index.duplicated(keep=False)
+                n_duplicates = duplicate_mask.sum()
+                unique_duplicates = data_frame.index[duplicate_mask].unique()
+
+                warnings.warn(
+                    f"Found {n_duplicates} duplicate rows for {len(unique_duplicates)} unique identifiers. "
+                    f"Renaming with numeric suffixes (_2, _3, etc.). "
+                    f"Duplicate identifiers: {list(unique_duplicates[:10])}"
+                    + (f" and {len(unique_duplicates)-10} more..." if len(unique_duplicates) > 10 else ""),
+                    UserWarning
+                )
+
+                # Create new index with suffixes for duplicates
+                new_index = []
+                seen = {}
+                for idx in data_frame.index:
+                    if idx in seen:
+                        seen[idx] += 1
+                        new_index.append(f"{idx}_{seen[idx]}")
+                    else:
+                        seen[idx] = 1
+                        new_index.append(idx)
+
+                data_frame.index = new_index
+
         columns = [str(x) for x in data_frame.columns]
         data_frame.columns = columns
 
@@ -166,17 +226,28 @@ class ExpressionSet:
         return ExpressionSet(identifiers, conditions, expression, p_values)
 
     @classmethod
-    def from_csv(cls, file_path, **kwargs):
+    def from_csv(cls, file_path, duplicates='suffix', **kwargs):
         """Read expression data from a comma separated values (csv) file.
 
         Args:
             file_path (str): the csv file path.
+            duplicates (str): How to handle duplicate identifiers. Options:
+                - 'suffix' (default): Keep all rows, rename duplicates with numeric suffixes (_2, _3, etc.)
+                - 'error': Raise ValueError if duplicates found
+                - 'first': Keep first occurrence of each duplicate
+                - 'last': Keep last occurrence of each duplicate
+                - 'mean': Average values for duplicate identifiers
+                - 'sum': Sum values for duplicate identifiers
+            **kwargs: Additional arguments passed to pandas.read_csv()
 
         Returns:
             ExpressionSet: the expression dataset from the csv file.
+
+        Raises:
+            ValueError: If duplicates parameter has invalid value
         """
         data = pd.read_csv(file_path, **kwargs)
-        return cls.from_dataframe(data)
+        return cls.from_dataframe(data, duplicates=duplicates)
 
     @property
     def dataframe(self):
